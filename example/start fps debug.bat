@@ -1,0 +1,1 @@
+torqueDemo_Debug.exe -game starter.fps

@@ -1,0 +1,24 @@
+# GLOBAL IGNORES
+*.bak
+*.log
+*.tmp
+
+# ASSET IGNORES
+*.blend1
+
+# TS IGNORES
+*.cs.dso
+*.gui.dso
+*.uft
+**/prefs.cs
+**/prefs.list
+example/**/*.ml
+example/*.exe
+example/*.bin
+
+# ENGINE IGNORES
+lib/out.*.*/
+engine/out.*.*/
+tools/out.*.*/
+**/.vs/
+*.vcxproj.user

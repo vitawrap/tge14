@@ -1,0 +1,60 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(MessageBoxOKDlg) {
+   Profile = "GuiDefaultProfile";
+   HorizSizing = "width";
+   VertSizing = "height";
+   position = "0 0";
+   Extent = "800 600";
+   MinExtent = "8 8";
+   Visible = "1";
+      helpTag = "0";
+
+   new GuiWindowCtrl(MBOKFrame) {
+      Profile = "GuiWindowProfile";
+      HorizSizing = "center";
+      VertSizing = "center";
+      position = "175 185";
+      Extent = "450 230";
+      MinExtent = "48 92";
+      Visible = "1";
+      maxLength = "255";
+      resizeWidth = "1";
+      resizeHeight = "1";
+      canMove = "1";
+      canClose = "0";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+         helpTag = "0";
+
+      new GuiMLTextCtrl(MBOKText) {
+         Profile = "GuiTextProfile";
+         HorizSizing = "center";
+         VertSizing = "bottom";
+         position = "28 80";
+         Extent = "394 24";
+         MinExtent = "8 8";
+         Visible = "1";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+            helpTag = "0";
+      };
+      new GuiBitmapButtonTextCtrl() {
+         Profile = "GuiBitmapButtonProfile";
+         HorizSizing = "center";
+         VertSizing = "top";
+         position = "150 140";
+         Extent = "149 59";
+         MinExtent = "8 2";
+         Visible = "1";
+         Command = "MessageCallback(MessageBoxOKDlg,MessageBoxOKDlg.callback);";
+         Accelerator = "return";
+         text = "OK";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "starter.fps/client/ui/guiBtn";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

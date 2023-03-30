@@ -1,0 +1,59 @@
+G:/TGE14/example/starter.fps/data/interiors/island/def_tower.dif
+
+
+
+Constructor Version: 1.0.6
+
+
+
+Date: 2022/08/27 19:00:07
+
+
+Detail Level 0
+
+
+
+  Zones:         1
+
+  Points:        684
+
+  Surfaces:      363
+
+  Null Surfaces: 1
+
+  BSP Nodes:     484
+
+
+
+  Textures From Brushes:
+
+
+
+    WALL2
+
+    FLOOR2
+
+    FLOOR3
+
+    WALL7
+
+    WALL4
+
+    FLOOR1
+
+    NULL
+
+    S34
+
+    FLOOR03
+
+
+
+  Static Meshes and Textures:
+
+
+
+    -- None --
+
+
+
