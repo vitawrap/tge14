@@ -347,7 +347,7 @@ GlobalActionMap.bind(keyboard, "F9", cycleDebugRenderMode);
 // Misc.
 //------------------------------------------------------------------------------
 
-GlobalActionMap.bind(keyboard, "=", toggleConsole);
+GlobalActionMap.bind(keyboard, "tilde", toggleConsole);
 GlobalActionMap.bindCmd(keyboard, "alt enter", "", "toggleFullScreen();");
 GlobalActionMap.bindCmd(keyboard, "F1", "", "contextHelp();");
 moveMap.bindCmd(keyboard, "n", "NetGraph::toggleNetGraph();", "");

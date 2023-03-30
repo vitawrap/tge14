@@ -11,6 +11,7 @@
 *.gui.dso
 *.uft
 **/prefs.cs
+**/config.cs
 **/prefs.list
 example/**/*.ml
 example/*.exe
