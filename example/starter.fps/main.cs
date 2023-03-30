@@ -104,7 +104,7 @@ function onExit()
 
    echo("Exporting client config");
    if (isObject(moveMap))
-      moveMap.save("./client/config.list", false);
+      moveMap.save("./client/config.cs", false);
 
    echo("Exporting server prefs");
    exportList("$Pref::Server::*", "./server/prefs.list", False);
