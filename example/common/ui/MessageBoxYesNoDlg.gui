@@ -1,0 +1,75 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(MessageBoxYesNoDlg) {
+   Profile = "GuiDefaultProfile";
+   HorizSizing = "width";
+   VertSizing = "height";
+   position = "0 0";
+   Extent = "800 600";
+   MinExtent = "8 8";
+   Visible = "1";
+      helpTag = "0";
+
+   new GuiWindowCtrl(MBYesNoFrame) {
+      Profile = "GuiWindowProfile";
+      HorizSizing = "center";
+      VertSizing = "center";
+      position = "200 185";
+      Extent = "400 230";
+      MinExtent = "48 92";
+      Visible = "1";
+      maxLength = "255";
+      resizeWidth = "1";
+      resizeHeight = "1";
+      canMove = "1";
+      canClose = "0";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+         helpTag = "0";
+
+      new GuiMLTextCtrl(MBYesNoText) {
+         Profile = "GuiTextProfile";
+         HorizSizing = "center";
+         VertSizing = "bottom";
+         position = "82 68";
+         Extent = "236 24";
+         MinExtent = "8 8";
+         Visible = "1";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+            helpTag = "0";
+      };
+      new GuiBitmapButtonTextCtrl() {
+         Profile = "GuiBitmapButtonProfile";
+         HorizSizing = "right";
+         VertSizing = "top";
+         position = "27 144";
+         Extent = "146 53";
+         MinExtent = "8 2";
+         Visible = "1";
+         Command = "MessageCallback(MessageBoxYesNoDlg,MessageBoxYesNoDlg.noCallback);";
+         Accelerator = "escape";
+         text = "NO";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "starter.fps/client/ui/guiBtn";
+      };
+      new GuiBitmapButtonTextCtrl() {
+         Profile = "GuiBitmapButtonProfile";
+         HorizSizing = "left";
+         VertSizing = "top";
+         position = "227 144";
+         Extent = "146 53";
+         MinExtent = "8 2";
+         Visible = "1";
+         Command = "MessageCallback(MessageBoxYesNoDlg,MessageBoxYesNoDlg.yesCallback);";
+         Accelerator = "return";
+         text = "YES";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "starter.fps/client/ui/guiBtn";
+      };
+   };
+};
+//--- OBJECT WRITE END ---
