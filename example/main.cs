@@ -85,7 +85,7 @@ for ($i = 1; $i < $Game::argc ; $i++)
          if ($hasNextArg)
          {
             // Set the selected mod and creator for editor stuff.
-            $userMods = "creator;" @ $nextArg;
+            $userMods = "creator;" @ stripChars($nextArg, "\\/;:");
             $argUsed[$i+1]++;
             $i++;
             $modcount = 2;
