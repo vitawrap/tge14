@@ -910,7 +910,6 @@
     <ClInclude Include="..\engine\math\mTrig.h" />
     <ClInclude Include="..\engine\platformWin32\GLWinExtFunc.h" />
     <ClInclude Include="..\engine\platformWin32\GLWinFunc.h" />
-    <ClInclude Include="..\engine\platformWin32\platformAL.h" />
     <ClInclude Include="..\engine\platformWin32\platformGL.h" />
     <ClInclude Include="..\engine\platformWin32\platformWin32.h" />
     <ClInclude Include="..\engine\platformWin32\winConsole.h" />
@@ -925,6 +924,7 @@
     <ClInclude Include="..\engine\platform\GLExtFunc.h" />
     <ClInclude Include="..\engine\platform\GLUFunc.h" />
     <ClInclude Include="..\engine\platform\platform.h" />
+    <ClInclude Include="..\engine\platform\platformAL.h" />
     <ClInclude Include="..\engine\platform\platformAssert.h" />
     <ClInclude Include="..\engine\platform\platformAudio.h" />
     <ClInclude Include="..\engine\platform\platformFont.h" />
