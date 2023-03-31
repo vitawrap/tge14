@@ -1864,9 +1864,6 @@
     <ClInclude Include="..\engine\platformWin32\GLWinFunc.h">
       <Filter>Source Files\platformWin32</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\platformWin32\platformAL.h">
-      <Filter>Source Files\platformWin32</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\platformWin32\platformGL.h">
       <Filter>Source Files\platformWin32</Filter>
     </ClInclude>
@@ -2241,6 +2238,9 @@
     </ClInclude>
     <ClInclude Include="..\engine\game\fx\fxBeam.h">
       <Filter>Source Files\game\fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\platform\platformAL.h">
+      <Filter>Source Files\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
