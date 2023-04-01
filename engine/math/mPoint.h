@@ -803,7 +803,7 @@ inline void Point2F::setMax(const Point2F& _test)
 
 inline void Point2F::interpolate(const Point2F& _rFrom, const Point2F& _to, const F32 _factor)
 {
-   AssertFatal(_factor >= 0.0f && _factor <= 1.0f, "Out of bound interpolation factor");
+   //AssertFatal(_factor >= 0.0f && _factor <= 1.0f, "Out of bound interpolation factor");
    x = (_rFrom.x * (1.0f - _factor)) + (_to.x * _factor);
    y = (_rFrom.y * (1.0f - _factor)) + (_to.y * _factor);
 }
