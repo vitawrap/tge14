@@ -34,6 +34,8 @@
 class GuiCanvas;
 class GuiEditCtrl;
 
+typedef F32 (*GuiEaseFn) (F32 t);
+
 /// Root class for all GUI controls in Torque.
 ///
 /// @see GUI for an overview of the Torque GUI system.
@@ -84,6 +86,20 @@ public:
     static bool smDesignTime; ///< static GuiControl boolean that specifies if the GUI Editor is active
     /// @}
 
+    /// @name Ease State
+    /// @{
+    
+    U32 mLastEaseMS;
+
+    S32 mPositionEaseMS, mPositionEaseMSLeft;
+    Point2I mPositionSaved, mPositionTargetAfterEase;
+    GuiEaseFn mPositionEaseFn;
+    S32 mExtentEaseMS, mExtentEaseMSLeft;
+    Point2I mExtentSaved, mExtentTargetAfterEase;
+    GuiEaseFn mExtentEaseFn;
+
+    /// @}
+
     /// @name Design Time Editor Access
     /// @{
     static GuiEditCtrl *smEditorHandle; ///< static GuiEditCtrl pointer that gives controls access to editor-NULL if editor is closed
@@ -111,6 +127,16 @@ public:
         vertResizeTop,          ///< fixed in height and on the bottom
         vertResizeCenter,
         vertResizeRelative      ///< resize relative
+    };
+
+    enum easeFnOptions
+    {
+        linear = 0,
+        elasticIn,
+        elasticOut,
+        sinIn,
+        sinOut,
+        easeFnCount
     };
 
 protected:
@@ -561,6 +587,17 @@ public:
     ///
     /// @note This should move into the graphics library at some point
     void renderJustifiedText(Point2I offset, Point2I extent, const char *text);
+
+    /// @name Ease functions
+    /// These start an easing routine on specific parameters
+    /// @{
+
+    /// Ease control position from current position to target position, using fn interp type, over X ms
+    virtual void easePositionTo(Point2I const& target, easeFnOptions fn, S32 ms);
+
+    /// Ease control extent from current extent to target extent, using fn interp type, over X ms
+    virtual void easeExtentTo(Point2I const& target, easeFnOptions fn, S32 ms);
+    /// @}
 
     void inspectPostApply();
     void inspectPreApply();

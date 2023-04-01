@@ -15,6 +15,57 @@
 #include "gui/core/guiDefaultControlRender.h"
 #include "gui/editor/guiEditCtrl.h"
 //------------------------------------------------------------------------------
+//  EASE FUNCTIONS
+//  The final form of what used to be tween.cs
+//------------------------------------------------------------------------------
+
+#ifndef M_HALFPI
+#define M_HALFPI 1.5707963267948966f
+#endif // !M_HALFPI
+
+// linear
+static F32 guiEase_Linear(F32 t)
+{
+    return t;
+}
+
+// elastic in
+static F32 guiEase_ElasticIn(F32 t)
+{
+    return (.04f - (.04f / t)) * mSin(25.f * t) + 1.f;
+}
+
+// elastic out
+static F32 guiEase_ElasticOut(F32 t)
+{
+    F32 r = (.04f * t / (t - 1.f) * mSin(25.f * t));
+    return getMin(1.f, r);
+}
+
+// sin in
+static F32 guiEase_SinIn(F32 t)
+{
+    return 1.f + mSin(M_HALFPI * t - M_HALFPI);
+}
+
+// sin out
+static F32 guiEase_SinOut(F32 t)
+{
+    return mSin(M_HALFPI * t);
+}
+
+//  EASE FUNCTION TABLE
+
+static GuiEaseFn guiEaseTable[GuiControl::easeFnCount] =
+{
+    guiEase_Linear,
+    guiEase_ElasticIn,
+    guiEase_ElasticOut,
+    guiEase_SinIn,
+    guiEase_SinOut
+};
+
+//------------------------------------------------------------------------------
 
 IMPLEMENT_CONOBJECT(GuiControl);
 
@@ -51,6 +102,12 @@ GuiControl::GuiControl()
    mVertSizing = vertResizeBottom;
    mTooltipProfile = NULL;
    mTooltip = StringTable->insert("");
+
+   mLastEaseMS = ~0U;
+   mPositionEaseMSLeft = 0;
+   mPositionTargetAfterEase.set(0, 0);
+   mExtentEaseMSLeft = 0;
+   mExtentTargetAfterEase = mMinExtent;
 }
 
 GuiControl::~GuiControl()
@@ -535,6 +592,49 @@ void GuiControl::preRender()
    if(!mAwake)
       return;
 
+   // Update our ease state
+   if (mPositionEaseMSLeft || mExtentEaseMSLeft)
+   {
+       U32 now = Platform::getVirtualMilliseconds();
+       if (mLastEaseMS == ~0U)
+           mLastEaseMS = now;
+       U32 dt = now - mLastEaseMS;
+
+       Point2F interp;
+       if (mPositionEaseMSLeft > 0)
+       {
+           F32 t = 1.f - mPositionEaseFn((F32)mPositionEaseMSLeft / mPositionEaseMS);
+
+           mPositionEaseMSLeft -= dt;
+           if (mPositionEaseMSLeft < 0)
+           {
+               mPositionEaseMSLeft = 0; setPosition(mPositionTargetAfterEase);
+               return;
+           }
+           interp.interpolate(Point2F(mPositionSaved.x, mPositionSaved.y), 
+               Point2F(mPositionTargetAfterEase.x, mPositionTargetAfterEase.y), t);
+           setPosition(Point2I(interp.x, interp.y));
+       }
+       if (mExtentEaseMSLeft > 0)
+       {
+           F32 t = 1.f - mPositionEaseFn((F32)mExtentEaseMSLeft / mExtentEaseMS);
+
+           mExtentEaseMSLeft -= dt;
+           if (mExtentEaseMSLeft < 0)
+           {
+               mExtentEaseMSLeft = 0; setExtent(mExtentTargetAfterEase);
+               return;
+           }
+           interp.interpolate(Point2F(mExtentSaved.x, mExtentSaved.y),
+               Point2F(mExtentTargetAfterEase.x, mExtentTargetAfterEase.y), t);
+           setExtent(Point2I(interp.x, interp.y));
+       }
+       mLastEaseMS = now;
+   }
+   else
+       mLastEaseMS = ~0U;
+
+   // Pre-render children
    iterator i;
    for(i = begin(); i != end(); i++)
    {
@@ -542,6 +642,28 @@ void GuiControl::preRender()
       ctrl->preRender();
    }
    onPreRender();
+}
+
+void GuiControl::easePositionTo(Point2I const& target, easeFnOptions fn, S32 ms)
+{
+    AssertFatal(fn < easeFnCount, "Ease function out of bounds of function table...");
+
+    mPositionSaved = getPosition();
+    mPositionTargetAfterEase = target;
+    mPositionEaseFn = guiEaseTable[fn];
+    mPositionEaseMSLeft = ms;
+    mPositionEaseMS = ms;
+}
+
+void GuiControl::easeExtentTo(Point2I const& target, easeFnOptions fn, S32 ms)
+{
+    AssertFatal(fn < easeFnCount, "Ease function out of bounds of function table...");
+
+    mExtentSaved = getExtent();
+    mExtentTargetAfterEase = target;
+    mExtentEaseFn = guiEaseTable[fn];
+    mExtentEaseMSLeft = ms;
+    mExtentEaseMS = ms;
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //
@@ -741,6 +863,32 @@ ConsoleMethod( GuiControl, getMinExtent, const char*, 2, 2, "Get the minimum all
    const Point2I &minExt = object->getMinExtent();
    dSprintf(retBuffer, 64, "%d %d", minExt.x, minExt.y);
    return retBuffer;
+}
+
+ConsoleMethod(GuiControl, easePositionLinearTo, void, 5, 5, "(int x, int y, S32 ms)")
+{
+    Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
+    object->easePositionTo(newPos, GuiControl::linear, dAtoi(argv[4]));
+}
+
+ConsoleMethod(GuiControl, easePositionElasticTo, void, 5, 6, "(int x, int y, S32 ms[, bool in = true])")
+{
+    Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
+    GuiControl::easeFnOptions fn = GuiControl::elasticIn;
+    if (argc > 5 && !dAtob(argv[5]))
+        fn = GuiControl::elasticOut;
+
+    object->easePositionTo(newPos, fn, dAtoi(argv[4]));
+}
+
+ConsoleMethod(GuiControl, easePositionSmoothTo, void, 5, 6, "(int x, int y, S32 ms[, bool in = true])")
+{
+    Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
+    GuiControl::easeFnOptions fn = GuiControl::sinIn;
+    if (argc > 5 && !dAtob(argv[5]))
+        fn = GuiControl::sinOut;
+
+    object->easePositionTo(newPos, fn, dAtoi(argv[4]));
 }
 
 void GuiControl::onRemove()
