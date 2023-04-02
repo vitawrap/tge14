@@ -217,16 +217,18 @@ void fxBeam::unpackUpdate(NetConnection* conn, BitStream* stream)
     }
 
     if (stream->readFlag()) // UpdateAttachmentMask
-    if (stream->readFlag()) // Not null or -1
     {
-        // Resolve the GhostID from the server. (cannot be -1)
-        S32 GhostID = stream->readRangedU32(0, NetConnection::MaxGhostCount);
-        
-        NetObject* obj = NULL;
-        if (GhostID != -1)
+        if (stream->readFlag()) // mAttachedObject && (GhostID != -1)
+        {
+            // Resolve the GhostID from the server. (cannot be -1)
+            S32 GhostID = stream->readRangedU32(0, NetConnection::MaxGhostCount);
+
+            NetObject* obj = NULL;
             obj = conn->resolveGhost(GhostID);
-        mAttachedObject = dynamic_cast<ShapeBase*>(obj);
-        mAttachedSlot = stream->readRangedU32(0, ShapeBase::MaxMountedImages);
+            mAttachedObject = dynamic_cast<ShapeBase*>(obj);
+            mAttachedSlot = stream->readRangedU32(0, ShapeBase::MaxMountedImages);
+        } else
+            mAttachedObject = NULL;
     }
 }
 
@@ -293,7 +295,7 @@ void fxBeam::attachToObject(const char* ObjectName, U32 slot)
 
     // Update our values
     mAttachedObject = Obj;
-    mAttachedSlot = 0;
+    mAttachedSlot = slot;
 
     // Set Config Change Mask.
     if (isServerObject()) setMaskBits(UpdateAttachmentMask);
