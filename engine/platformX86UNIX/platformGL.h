@@ -66,6 +66,9 @@ struct GLState
    unsigned int primCount[4];
    unsigned int primMode; // 0-3
 
+   // GL2/GLES2 buffer objects (not the D3D buffer wrappers)
+   bool suppBufferObjects;
+
    GLfloat maxAnisotropy;
    GLint   maxTextureUnits;
 };
@@ -165,7 +168,12 @@ inline bool dglDoesSupportTexAnisotropy()
 
 inline bool dglDoesSupportVertexBuffer()
 {
-        return gGLState.suppVertexBuffer;
+    return gGLState.suppVertexBuffer;
+}
+
+inline bool dglDoesSupportBufferObjects()
+{
+    return gGLState.suppVertexBuffer;
 }
 
 inline GLfloat dglGetMaxAnisotropy()

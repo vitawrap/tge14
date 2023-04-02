@@ -49,6 +49,9 @@ struct GLState
    bool suppVertexBuffer;
    bool suppSwapInterval;
 
+   // GL2/GLES2 buffer objects (not the D3D buffer wrappers)
+   bool suppBufferObjects;
+
    unsigned int triCount[4];
    unsigned int primCount[4];
    unsigned int primMode; // 0-3
@@ -155,6 +158,11 @@ inline bool dglDoesSupportTexAnisotropy()
 inline bool dglDoesSupportVertexBuffer()
 {
    return gGLState.suppVertexBuffer;
+}
+
+inline bool dglDoesSupportBufferObjects()
+{
+    return gGLState.suppBufferObjects;
 }
 
 inline GLfloat dglGetMaxAnisotropy()

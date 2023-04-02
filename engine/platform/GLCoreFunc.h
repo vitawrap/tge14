@@ -360,14 +360,21 @@ GL_FUNCTION(void,       glVertexPointer, (GLint size, GLenum type, GLsizei strid
 GL_FUNCTION(void,       glViewport, (GLint x, GLint y, GLsizei width, GLsizei height), return; )
 
 //torque vertex buffer extension
-GL_FUNCTION(GLboolean, glAvailableVertexBufferEXT, (void), return GL_FALSE; )
-GL_FUNCTION(GLint, glAllocateVertexBufferEXT, (GLsizei size, GLint format, GLboolean preserve), return 0; )
-GL_FUNCTION(void*, glLockVertexBufferEXT, (GLint handle, GLsizei size), return NULL; )
-GL_FUNCTION(void, glUnlockVertexBufferEXT, (GLint handle), return; )
-GL_FUNCTION(void, glSetVertexBufferEXT, (GLint handle), return; )
-GL_FUNCTION(void, glOffsetVertexBufferEXT, (GLint handle, GLuint offset), return; )
-GL_FUNCTION(void, glFillVertexBufferEXT, (GLint handle, GLint first, GLsizei count), return; )
-GL_FUNCTION(void, glFreeVertexBufferEXT, (GLint handle), return; )
+GL_FUNCTION(GLboolean,	glAvailableVertexBufferEXT, (void), return GL_FALSE; )
+GL_FUNCTION(GLint,		glAllocateVertexBufferEXT, (GLsizei size, GLint format, GLboolean preserve), return 0; )
+GL_FUNCTION(void*,		glLockVertexBufferEXT, (GLint handle, GLsizei size), return NULL; )
+GL_FUNCTION(void,		glUnlockVertexBufferEXT, (GLint handle), return; )
+GL_FUNCTION(void,		glSetVertexBufferEXT, (GLint handle), return; )
+GL_FUNCTION(void,		glOffsetVertexBufferEXT, (GLint handle, GLuint offset), return; )
+GL_FUNCTION(void,		glFillVertexBufferEXT, (GLint handle, GLint first, GLsizei count), return; )
+GL_FUNCTION(void,		glFreeVertexBufferEXT, (GLint handle), return; )
+
+//real GL vertex buffers (ES2 compatibility)
+GL_FUNCTION(void,		glGenBuffers, (GLsizei n, GLuint* buffers), return; )
+GL_FUNCTION(void,		glDeleteBuffers, (GLsizei n, const GLuint* buffers), return; )
+GL_FUNCTION(void,		glBindBuffer, (GLenum target, GLuint handle), return; )
+GL_FUNCTION(void,		glBufferData, (GLenum target, GLsizei* size, const GLvoid* data, GLenum usage), return; )
+GL_FUNCTION(void,		glBufferSubData, (GLenum target, GLint* offset, GLsizei* size, const GLvoid* data), return; )
 
 //GL_ARB_imaging
 #ifdef DEFINE_IMAGING
