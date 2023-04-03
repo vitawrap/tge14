@@ -82,10 +82,6 @@ enum {
    { Con::printf("Could not load this WGL function: %s", #fn_name); fn_body } \
    fn_type (APIENTRY * d##fn_name)fn_args = d##fn_name##_t; \
    extern fn_type (APIENTRY * dlld##fn_name)fn_args = d##fn_name##_t;
-#define WGLD3D_FUNCTION(fn_type, fn_name, fn_args, fn_body) fn_type (APIENTRY dwgl##fn_name##_t)fn_args \
-   { Con::printf("Could not load this WGLD3D function: wgl%s", #fn_name); fn_body } \
-   fn_type (APIENTRY * dwgl##fn_name)fn_args = dwgl##fn_name##_t; \
-   extern fn_type (APIENTRY * dlldwgl##fn_name)fn_args = dwgl##fn_name##_t;
 #define WGLEXT_FUNCTION(fn_type, fn_name, fn_args, fn_body) fn_type (APIENTRY d##fn_name##_t)fn_args \
    { Con::printf("Could not load this WGLEXT function: %s", #fn_name); fn_body } \
    fn_type (APIENTRY * d##fn_name)fn_args = d##fn_name##_t;
@@ -100,10 +96,6 @@ enum {
    { fn_body } \
    fn_type (APIENTRY * d##fn_name)fn_args = d##fn_name##_t; \
    extern fn_type (APIENTRY * dlld##fn_name)fn_args = d##fn_name##_t;
-#define WGLD3D_FUNCTION(fn_type, fn_name, fn_args, fn_body) fn_type (APIENTRY dwgl##fn_name##_t)fn_args \
-   { fn_body } \
-   fn_type (APIENTRY * dwgl##fn_name)fn_args = dwgl##fn_name##_t; \
-   extern fn_type (APIENTRY * dlldwgl##fn_name)fn_args = dwgl##fn_name##_t;
 #define WGLEXT_FUNCTION(fn_type, fn_name, fn_args, fn_body) fn_type (APIENTRY d##fn_name##_t)fn_args \
    { fn_body } \
    fn_type (APIENTRY * d##fn_name)fn_args = d##fn_name##_t;
@@ -120,7 +112,6 @@ enum {
 //undefs...
 #undef GL_FUNCTION
 #undef WGL_FUNCTION
-#undef WGLD3D_FUNCTION
 #undef WGLEXT_FUNCTION
 
 // These functions won't be in the normal OGL dll, so don't give
@@ -248,17 +239,13 @@ static bool bindWGLFunctions(const char* prefix)
 {
    //ugh... the stupid D3D wrapper prefixes some functions
    //with either wd3d or wgl, so we have to account for that
+   //-- removed the D3D specific loader :)
    static char buff[200];
    bool result = true;
-   #define WGLD3D_FUNCTION(fn_return, fn_name, fn_args, fn_value) \
-   dSprintf(buff, 200, "%s%s", prefix, #fn_name); \
-   result &= bindWGLFunction( *(void**)&dlldwgl##fn_name, buff); \
-   dwgl##fn_name = dlldwgl##fn_name;
    #define WGL_FUNCTION(fn_return, fn_name, fn_args, fn_valud) \
    result &= bindWGLFunction( *(void**)&dlld##fn_name, #fn_name); \
    d##fn_name = dlld##fn_name;
    #include "platformWin32/GLWinFunc.h"
-   #undef WGLD3D_FUNCTION
    #undef WGL_FUNCTION
 
    return result;
@@ -367,20 +354,12 @@ bool GL_Init( const char *dllname_gl, const char *dllname_glu )
          return false;
    }
 
+   if (!bindWGLFunctions("wgl"))
+       Con::errorf("You are missing some WGL Functions.  That's REALLY bad.");
    if (!bindGLFunctions())
       Con::errorf("You are missing some OpenGL functions.  That's bad.");
    if (!bindGLUFunctions())
       Con::errorf("You are missing some GLU functions.  That's bad.");
-   // these will have already been bound thru the OGL version
-   if (dStrstr(dllname_gl, "d3d") == NULL)
-   {
-      if (!bindWGLFunctions("wgl"))
-         Con::errorf("You are missing some WGL Functions.  That's REALLY bad.");
-   }
-   else
-      if (!bindWGLFunctions("wd3d"))
-         Con::errorf("You are missing some WGL Functions.  That's REALLY bad.");
-
 
    return true;
 }
