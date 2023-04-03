@@ -928,6 +928,7 @@
     <ClInclude Include="..\engine\platform\platformAssert.h" />
     <ClInclude Include="..\engine\platform\platformAudio.h" />
     <ClInclude Include="..\engine\platform\platformFont.h" />
+    <ClInclude Include="..\engine\platform\platformGL.h" />
     <ClInclude Include="..\engine\platform\platformInput.h" />
     <ClInclude Include="..\engine\platform\platformMutex.h" />
     <ClInclude Include="..\engine\platform\platformRedBook.h" />
