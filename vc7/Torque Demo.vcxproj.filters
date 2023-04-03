@@ -2242,6 +2242,9 @@
     <ClInclude Include="..\engine\platform\platformAL.h">
       <Filter>Source Files\platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\engine\platform\platformGL.h">
+      <Filter>Source Files\platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\engine\console\BASgram.y">
