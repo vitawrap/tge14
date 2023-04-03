@@ -369,13 +369,6 @@ GL_FUNCTION(void,		glOffsetVertexBufferEXT, (GLint handle, GLuint offset), retur
 GL_FUNCTION(void,		glFillVertexBufferEXT, (GLint handle, GLint first, GLsizei count), return; )
 GL_FUNCTION(void,		glFreeVertexBufferEXT, (GLint handle), return; )
 
-//real GL vertex buffers (ES2 compatibility)
-GL_FUNCTION(void,		glGenBuffers, (GLsizei n, GLuint* buffers), return; )
-GL_FUNCTION(void,		glDeleteBuffers, (GLsizei n, const GLuint* buffers), return; )
-GL_FUNCTION(void,		glBindBuffer, (GLenum target, GLuint handle), return; )
-GL_FUNCTION(void,		glBufferData, (GLenum target, GLsizei* size, const GLvoid* data, GLenum usage), return; )
-GL_FUNCTION(void,		glBufferSubData, (GLenum target, GLint* offset, GLsizei* size, const GLvoid* data), return; )
-
 //GL_ARB_imaging
 #ifdef DEFINE_IMAGING
 GL_FUNCTION(void,       glBlendColor, (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha), return; )

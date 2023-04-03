@@ -114,6 +114,15 @@ GL_FUNCTION(void, wglFreeMemoryNV, (void*), return; )
 GL_GROUP_END()
 #endif
 
+GL_GROUP_BEGIN(ARB_vertex_buffer_object)
+//real GL vertex buffers (ES2 compatibility)
+GL_FUNCTION(void, glGenBuffers, (GLsizei n, GLuint * buffers), return; )
+GL_FUNCTION(void, glDeleteBuffers, (GLsizei n, const GLuint * buffers), return; )
+GL_FUNCTION(void, glBindBuffer, (GLenum target, GLuint handle), return; )
+GL_FUNCTION(void, glBufferData, (GLenum target, GLsizei * size, const GLvoid * data, GLenum usage), return; )
+GL_FUNCTION(void, glBufferSubData, (GLenum target, GLint * offset, GLsizei * size, const GLvoid * data), return; )
+GL_GROUP_END()
+
 #ifdef UNDEF_BEGIN
 #undef GL_GROUP_BEGIN
 #undef UNDEF_BEGIN
