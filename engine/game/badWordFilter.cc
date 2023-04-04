@@ -27,17 +27,17 @@ void BadWordFilter::create()
 {
    Con::addVariable("pref::enableBadWordFilter", TypeBool, &filteringEnabled);
    gBadWordFilter = new BadWordFilter;
-   gBadWordFilter->addBadWord("shit");
-   gBadWordFilter->addBadWord("fuck");
-   gBadWordFilter->addBadWord("cock");
-   gBadWordFilter->addBadWord("bitch");
-   gBadWordFilter->addBadWord("cunt");
-   gBadWordFilter->addBadWord("nigger");
-   gBadWordFilter->addBadWord("bastard");
-   gBadWordFilter->addBadWord("dick");
-   gBadWordFilter->addBadWord("whore");
-   gBadWordFilter->addBadWord("goddamn");
-   gBadWordFilter->addBadWord("asshole");
+   gBadWordFilter->addBadWordSHL("\xe6\xd0\xd2\xe8");             // shit
+   gBadWordFilter->addBadWordSHL("\xcc\xea\xc6\xd6");             // fuck
+   gBadWordFilter->addBadWordSHL("\xc6\xde\xc6\xd6");             // cock
+   gBadWordFilter->addBadWordSHL("\xc4\xd2\xe8\xc6\xd0");         // bitch
+   gBadWordFilter->addBadWordSHL("\xc6\xea\xdc\xe8");             // cunt
+   gBadWordFilter->addBadWordSHL("\xdc\xd2\xce\xce\xca\xe4");     // nigger
+   gBadWordFilter->addBadWordSHL("\xc4\xc2\xe6\xe8\xc2\xe4\xc8"); // bastard
+   gBadWordFilter->addBadWordSHL("\xc8\xd2\xc6\xd6");             // dick
+   gBadWordFilter->addBadWordSHL("\xee\xd0\xde\xe4\xca");         // whore
+   gBadWordFilter->addBadWordSHL("\xce\xde\xc8\xc8\xc2\xda\xdc"); // goddamn
+   gBadWordFilter->addBadWordSHL("\xc2\xe6\xe6\xd0\xde\xd8\xca"); // asshole
 }
 
 void BadWordFilter::destroy()
@@ -100,6 +100,24 @@ bool BadWordFilter::addBadWord(const char *cword)
       word++;
    }
    return true;
+}
+
+bool BadWordFilter::addBadWordSHL(const char* cword)
+{
+   char wordSHR [MaxBadwordLength + 1] = {0};
+   dsize_t len = dStrlen(cword);
+   if(len > MaxBadwordLength)
+      return false;
+   dStrncpy(wordSHR, cword, len);
+
+   char* ch = wordSHR;
+   while (*ch)
+   {
+      ch[0] = (ch[0] & 0xff) >> 1;
+      ++ch;
+   }
+   
+   return BadWordFilter::addBadWord(wordSHR);
 }
 
 bool BadWordFilter::setDefaultReplaceStr(const char *str)
