@@ -34,6 +34,7 @@ private:
 
 public:
    bool addBadWord(const char *word);
+   bool addBadWordSHL(const char *word);
    bool setDefaultReplaceStr(const char *str);
    void filterString(char *string, const char *replaceStr = NULL);
    bool containsBadWords(const char *string);
