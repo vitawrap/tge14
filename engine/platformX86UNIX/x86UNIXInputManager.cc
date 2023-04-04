@@ -184,7 +184,11 @@ void InitKeyMaps()
    MapKey(SDLK_QUOTE, KEY_APOSTROPHE, XK_apostrophe);
    MapKey(SDLK_COMMA, KEY_COMMA, XK_comma);
    MapKey(SDLK_PERIOD, KEY_PERIOD, XK_period);
-   MapKey(SDLK_SLASH, KEY_SLASH, XK_slash); 
+   MapKey(SDLK_SLASH, KEY_SLASH, XK_slash);
+
+   // Might be french only 
+   MapKey(SDLK_COLON, KEY_SLASH, XK_colon);
+   MapKey(SDLK_QUOTEDBL, KEY_APOSTROPHE, XK_quotedbl);
 
    // numpad numbers
    for (keysym = SDLK_KP0, tkeycode = KEY_NUMPAD0, xkey = XK_KP_0; 
