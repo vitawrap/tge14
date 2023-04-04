@@ -38,6 +38,8 @@ void BadWordFilter::create()
    gBadWordFilter->addBadWordSHL("\xee\xd0\xde\xe4\xca");         // whore
    gBadWordFilter->addBadWordSHL("\xce\xde\xc8\xc8\xc2\xda\xdc"); // goddamn
    gBadWordFilter->addBadWordSHL("\xc2\xe6\xe6\xd0\xde\xd8\xca"); // asshole
+   gBadWordFilter->addBadWordSHL("\xe8\xe4\xc2\xdc\xdc\xf2");     // tranny
+   gBadWordFilter->addBadWordSHL("\xcc\xc2\xce\xce\xde\xe8");     // faggot
 }
 
 void BadWordFilter::destroy()
