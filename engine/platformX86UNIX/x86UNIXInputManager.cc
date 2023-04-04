@@ -51,10 +51,7 @@ extern "C" Uint16 X11_KeyToUnicode( SDLKey keysym, SDLMod modifiers );
 // Static helper functions
 //==============================================================================
 static void MapKey(Uint16 SDLkey, U8 tkey, KeySym xkeysym)
-{ 
-   DisplayPtrManager xdisplay;
-   Display* display = xdisplay.getDisplayPointer();
-
+{
    SDLtoTKeyMap[SDLkey] = tkey; 
 
    Uint16 key = 0;
@@ -73,6 +70,9 @@ static void MapKey(Uint16 SDLkey, U8 tkey, KeySym xkeysym)
    AsciiTable[tkey].goofy.ascii = key;
 
 #if 0
+   DisplayPtrManager xdisplay;
+   Display* display = xdisplay.getDisplayPointer();
+
    if (xkeysym == 0)
       return;
 
