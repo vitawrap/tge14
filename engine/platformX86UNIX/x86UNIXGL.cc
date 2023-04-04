@@ -39,7 +39,8 @@ enum {
    EXT_paletted_texture          = BIT(4),
    NV_vertex_array_range         = BIT(5),
    EXT_blend_color               = BIT(6),
-   EXT_blend_minmax              = BIT(7)
+   EXT_blend_minmax              = BIT(7),
+   ARB_vertex_buffer_object      = BIT(8)
 };
 
 //WGL_ARB
@@ -287,6 +288,15 @@ bool GL_EXT_Init( )
       gGLState.suppTextureCompression = false;
    }
 
+   // ARB_vertex_buffer_object
+   if (pExtString && dStrstr(pExtString, (const char*)"ARB_vertex_buffer_object") != NULL)
+   {
+      extBitMask |= ARB_vertex_buffer_object;
+      gGLState.suppBufferObjects = true;
+   } else {
+      gGLState.suppBufferObjects = false;
+   }
+
    // NV_vertex_array_range (not on *nix)
    gGLState.suppVertexArrayRange = false;
 
@@ -339,6 +349,7 @@ bool GL_EXT_Init( )
    if (gGLState.suppTexEnvAdd)          Con::printf("  (ARB|EXT)_texture_env_add");
    if (gGLState.suppTexAnisotropic)     Con::printf("  EXT_texture_filter_anisotropic (Max anisotropy: %f)", gGLState.maxAnisotropy);
    if (gGLState.suppSwapInterval)       Con::printf("  WGL_EXT_swap_control");
+   if (gGLState.suppBufferObjects)      Con::printf("  ARB_vertex_buffer_object");
 
    Con::warnf("OpenGL Init: Disabled Extensions");
    if (!gGLState.suppARBMultitexture)    Con::warnf("  ARB_multitexture");
@@ -356,6 +367,7 @@ bool GL_EXT_Init( )
    if (!gGLState.suppTexEnvAdd)          Con::warnf("  (ARB|EXT)_texture_env_add");
    if (!gGLState.suppTexAnisotropic)     Con::warnf("  EXT_texture_filter_anisotropic");
    if (!gGLState.suppSwapInterval)       Con::warnf("  WGL_EXT_swap_control");
+   if (!gGLState.suppBufferObjects)      Con::warnf("  ARB_vertex_buffer_object");
    Con::printf(" ");
 
    // Set some console variables:
