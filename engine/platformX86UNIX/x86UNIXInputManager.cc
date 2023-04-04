@@ -169,13 +169,16 @@ void InitKeyMaps()
 
    // various punctuation
    MapKey('|', KEY_TILDE, XK_grave);
+   MapKey(SDLK_WORLD_18, KEY_TILDE, XK_grave);  // French superscript 2
    MapKey(SDLK_BACKQUOTE, KEY_TILDE, XK_grave);
    MapKey(SDLK_MINUS, KEY_MINUS, XK_minus);
    MapKey(SDLK_EQUALS, KEY_EQUALS, XK_equal);
    MapKey(SDLK_LEFTBRACKET, KEY_LBRACKET, XK_bracketleft);
-   MapKey('{', KEY_LBRACKET, XK_bracketleft);
+   MapKey('{', KEY_LBRACKET, XK_braceleft);
+   MapKey('(', KEY_LBRACKET, XK_parenleft);
    MapKey(SDLK_RIGHTBRACKET, KEY_RBRACKET, XK_bracketright);
-   MapKey('}', KEY_RBRACKET, XK_bracketright);
+   MapKey('}', KEY_RBRACKET, XK_braceright);
+   MapKey(')', KEY_RBRACKET, XK_parenright);
    MapKey(SDLK_BACKSLASH, KEY_BACKSLASH, XK_backslash);
    MapKey(SDLK_SEMICOLON, KEY_SEMICOLON, XK_semicolon);
    MapKey(SDLK_QUOTE, KEY_APOSTROPHE, XK_apostrophe);
@@ -211,13 +214,13 @@ void InitKeyMaps()
    MapKey(SDLK_RCTRL, KEY_RCONTROL, XK_Control_R);
    MapKey(SDLK_LALT, KEY_LALT, XK_Alt_L);
    MapKey(SDLK_RALT, KEY_RALT, XK_Alt_R);
-   MapKey(313, KEY_RALT, XK_Alt_R);   
    MapKey(SDLK_LSHIFT, KEY_LSHIFT, XK_Shift_L);
    MapKey(SDLK_RSHIFT, KEY_RSHIFT, XK_Shift_R);
    MapKey(SDLK_LSUPER, KEY_WIN_LWINDOW, 0);
    MapKey(SDLK_RSUPER, KEY_WIN_RWINDOW, 0);
    MapKey(SDLK_MENU, KEY_WIN_APPS, 0);
-   MapKey(SDLK_MODE, KEY_OEM_102, 0);
+   MapKey(SDLK_MODE, KEY_ALT, XK_Mode_switch);
+   MapKey(SDLK_MODE, KEY_OEM_102, XK_Mode_switch);
 
    keyMapsInitialized = true;
 };
@@ -925,6 +928,12 @@ void UInputManager::keyEvent(const SDL_Event& event)
       action = SI_REPEAT;
    ievent.action = action;
    ievent.fValue = (action == SI_MAKE || action == SI_REPEAT) ? 1.0 : 0.0;
+
+   // We catch this before processKeyEvent because Torque doesn't know how to deal with that!
+   if (action == SI_MAKE && event.key.keysym.mod == SDLMod::KMOD_MODE)
+      mModifierKeys |= SI_CTRL|SI_ALT;
+   else if (action == SI_BREAK && event.key.keysym.mod == SDLMod::KMOD_MODE)
+      mModifierKeys &= ~(SI_CTRL|SI_ALT);
 
    processKeyEvent(ievent);
    Game->postEvent(ievent);
