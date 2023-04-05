@@ -45,10 +45,9 @@ GuiPlayerView::~GuiPlayerView()
 
 
 //------------------------------------------------------------------------------
-ConsoleMethod( GuiPlayerView, setModel, void, 4, 4, "playerView.setModel( raceGender, skin )" )
+ConsoleMethod( GuiPlayerView, setModel, void, 4, 5, "playerView.setModel( playermodel, skin[, wepmodel] )" )
 {
-   argc;
-   object->setPlayerModel( argv[2], argv[3] );
+   object->setPlayerModel( argv[2], argv[3], argc == 5? argv[4] : NULL );
 }
 
 ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( index )" )
@@ -145,7 +144,7 @@ void GuiPlayerView::setPlayerSeq( S32 index )
 }
 
 //------------------------------------------------------------------------------
-void GuiPlayerView::setPlayerModel( const char* shape, const char* skin )
+void GuiPlayerView::setPlayerModel(const char* shape, const char* skin, const char* weapon)
 {
    // Stuff random rotation values in...
    mCameraRot.z = gRandGen.randF(-4.14, -1);
@@ -164,7 +163,7 @@ void GuiPlayerView::setPlayerModel( const char* shape, const char* skin )
 
    runThread = 0;
 
-   Resource<TSShape> hShape = ResourceManager->load( shape);
+   Resource<TSShape> hShape = ResourceManager->load(shape);
    if ( !bool( hShape ) )
       return;
 
@@ -175,35 +174,8 @@ void GuiPlayerView::setPlayerModel( const char* shape, const char* skin )
    if ( !mModel->ownMaterialList() )
       mModel->cloneMaterialList();
 
-   TSMaterialList* materialList = mModel->getMaterialList();
-   for ( U32 i = 0; i < materialList->mMaterialNames.size(); i++ )
-   {
-      const char* name = materialList->mMaterialNames[i];
-      if ( !name )
-         continue;
-
-      const U32 len = dStrlen( name );
-      AssertISV( len < 200, "GuiPlayerView::setPlayerModel - Skin name exceeds maximum length!" );
-      if ( len < 6 )
-         continue;
-
-      const char* replace = dStrstr( name, "base." );
-      if ( !replace )
-         continue;
-
-      char newName[256];
-      dStrncpy( newName, name, replace - name );
-      newName[replace - name] = 0;
-      dStrcat( newName, skin );
-      dStrcat( newName, "." );
-      dStrcat( newName, replace + 5 );
-
-      TextureHandle test = TextureHandle( newName, MeshTexture, false );
-      if ( test.getGLName() )
-         materialList->mMaterials[i] = test;
-      else
-         materialList->mMaterials[i] = TextureHandle( name, MeshTexture, false );
-   }
+   StringHandle shSkin = StringHandle(skin);
+   mModel->reSkin(shSkin);
 
    // Initialize camera values:
    mOrbitPos = mModel->getShape()->center;
@@ -220,20 +192,10 @@ void GuiPlayerView::setPlayerModel( const char* shape, const char* skin )
 //      mModel->setSequence( runThread, sequence, 0 );
 //   }
 
-   // create a weapon for this dude
+   // create a weapon for this dude (there was hardcoded Tribes 2 weapon code here)
    Resource<TSShape> wShape;
-   if( dStrcmp( shape, "heavy_male") == 0 || dStrcmp( shape, "bioderm_heavy") == 0 || dStrcmp( shape, "heavy_female") == 0 )
-   {
-      wShape = ResourceManager->load( "shapes/weapon_mortar.dts" );
-   }
-   else if( dStrcmp( shape, "medium_male") == 0 || dStrcmp( shape, "bioderm_medium") == 0 || dStrcmp( shape, "medium_female") == 0 )
-   {
-      wShape = ResourceManager->load( "shapes/weapon_plasma.dts" );
-   }
-   else
-   {
-      wShape = ResourceManager->load( "shapes/weapon_disc.dts" );
-   }
+   if (weapon)
+       wShape = ResourceManager->load( weapon );
 
    if ( !bool( wShape ) )
       return;

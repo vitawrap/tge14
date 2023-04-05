@@ -82,7 +82,7 @@ class GuiPlayerView : public GuiTSCtrl
       void onRightMouseUp( const GuiEvent &event );
       void onRightMouseDragged( const GuiEvent &event );
 
-      void setPlayerModel( const char* shape, const char* skin );
+      void setPlayerModel( const char* shape, const char* skin, const char* weapon );
       void setPlayerSeq( S32 index );
       void getWeaponTransform( MatrixF *mat );
 
