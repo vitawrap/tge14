@@ -482,8 +482,8 @@ bool GuiCanvas::processInputEvent(const InputEvent *event)
          }
          return true;
       }
-		else if ( event->objType == SI_ZAXIS )
-		{
+      else if ( event->objType == SI_ZAXIS )
+      {
          mLastEvent.mousePoint.x = S32( cursorPt.x );
          mLastEvent.mousePoint.y = S32( cursorPt.y );
 
@@ -525,7 +525,8 @@ bool GuiCanvas::processInputEvent(const InputEvent *event)
                mLastEvent.mouseClickCount = mLastMouseClickCount;
 
                //tell the cursor, for potential effects
-               lastCursor->onLeftClick(mLastEvent.mousePoint);
+               if (lastCursor)
+                   lastCursor->onLeftClick(mLastEvent.mousePoint);
 
                rootMouseDown(mLastEvent);
             }
