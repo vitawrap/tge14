@@ -2480,6 +2480,41 @@ static void APIENTRY logglBlendEquationEXT(GLenum mode)
    dllglBlendEquationEXT(mode);
 }
 
+static void APIENTRY logglGenBuffers(GLsizei n, GLuint* buffers)
+{
+    fprintf(winState.log_fp, "glGenBuffers( %u, %p )\n", n, buffers);
+    fflush(winState.log_fp);
+    dllglGenBuffers(n, buffers);
+}
+
+static void APIENTRY logglDeleteBuffers(GLsizei n, const GLuint* buffers)
+{
+    fprintf(winState.log_fp, "glDeleteBuffers( %u, %p )\n", n, buffers);
+    fflush(winState.log_fp);
+    dllglDeleteBuffers(n, buffers);
+}
+
+static void APIENTRY logglBindBuffer(GLenum target, GLuint handle)
+{
+    fprintf(winState.log_fp, "glBindBuffer( %u, %u )\n", target, handle);
+    fflush(winState.log_fp);
+    dllglBindBuffer(target, handle);
+}
+
+static void APIENTRY logglBufferData(GLenum target, GLsizei* size, const GLvoid* data, GLenum usage)
+{
+    fprintf(winState.log_fp, "glDeleteBuffers( %u, %p, %p, %u )\n", target, size, data, usage);
+    fflush(winState.log_fp);
+    dllglBufferData(target, size, data, usage);
+}
+
+static void APIENTRY logglBufferSubData(GLenum target, GLint* offset, GLsizei* size, const GLvoid* data)
+{
+    fprintf(winState.log_fp, "glDeleteBuffers( %u, %p, %p, %p )\n", target, offset, size, data);
+    fflush(winState.log_fp);
+    dllglBufferSubData(target, offset, size, data);
+}
+
 //-------------------------------------------------------
 static U32 getIndex(GLenum type, const void *indices, U32 i)
 {
