@@ -26,27 +26,6 @@ function formatSessionNumber(%number)
    return %number;
 }
 
-
-//----------------------------------------
-function recordMovie(%movieName, %fps)
-{
-   $timeAdvance = 1000 / %fps;
-   $screenGrabThread = schedule($timeAdvance,0,movieGrabScreen,%movieName,0);   
-}
-
-function movieGrabScreen(%movieName, %frameNumber)
-{
-   screenshot(%movieName @ formatImageNumber(%frameNumber) @ ".png");
-   $screenGrabThread = schedule($timeAdvance, 0, movieGrabScreen, %movieName, %frameNumber + 1);   
-}
-
-function stopMovie()
-{
-   $timeAdvance = 0;
-   cancel($screenGrabThread);
-}
-
-
 //----------------------------------------
 $screenshotNumber = 0;
 
