@@ -8,7 +8,7 @@ new GuiFadeinBitmapCtrl(StartupGui) {
    minExtent = "8 8";
    visible = "1";
    helpTag = "0";
-   bitmap = "./GarageGames";
+   bitmap = "./startscreen";
    wrap = "0";
    fadeinTime = "125";
    waitTime   = "3000";
