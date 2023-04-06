@@ -1589,7 +1589,7 @@ void Player::updateMove(const Move* move)
 
    // Determine ground contact normal. Only look for contacts if
    // we can move.
-   VectorF contactNormal;
+   VectorF contactNormal{ 0.f, 0.f, 0.f };
    bool jumpSurface = false, runSurface = false;
    if (!isMounted())
       findContact(&runSurface,&jumpSurface,&contactNormal);
