@@ -133,33 +133,17 @@ ConsoleMethod( GuiPopUpMenuCtrl, addScheme, void, 6, 6, "(int id, ColorI fontCol
 {
    ColorI fontColor, fontColorHL, fontColorSEL;
    U32 r, g, b;
-   char buf[64];
 
-   dStrcpy( buf, argv[3] );
-   char* temp = dStrtok( buf, " \0" );
-   r = temp ? dAtoi( temp ) : 0;
-   temp = dStrtok( NULL, " \0" );
-   g = temp ? dAtoi( temp ) : 0;
-   temp = dStrtok( NULL, " \0" );
-   b = temp ? dAtoi( temp ) : 0;
+   r = g = b = 0;
+   dSscanf( argv[3], "%d %d %d", &r, &g, &b );
    fontColor.set( r, g, b );
 
-   dStrcpy( buf, argv[4] );
-   temp = dStrtok( buf, " \0" );
-   r = temp ? dAtoi( temp ) : 0;
-   temp = dStrtok( NULL, " \0" );
-   g = temp ? dAtoi( temp ) : 0;
-   temp = dStrtok( NULL, " \0" );
-   b = temp ? dAtoi( temp ) : 0;
+   r = g = b = 0;
+   dSscanf( argv[4], "%d %d %d", &r, &g, &b );
    fontColorHL.set( r, g, b );
 
-   dStrcpy( buf, argv[5] );
-   temp = dStrtok( buf, " \0" );
-   r = temp ? dAtoi( temp ) : 0;
-   temp = dStrtok( NULL, " \0" );
-   g = temp ? dAtoi( temp ) : 0;
-   temp = dStrtok( NULL, " \0" );
-   b = temp ? dAtoi( temp ) : 0;
+   r = g = b = 0;
+   dSscanf( argv[5], "%d %d %d", &r, &g, &b );
    fontColorSEL.set( r, g, b );
 
    object->addScheme( dAtoi( argv[2] ), fontColor, fontColorHL, fontColorSEL );
