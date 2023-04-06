@@ -103,8 +103,12 @@ void GuiTheoraCtrl::onRender(Point2I offset, const RectI &updateRect)
 	}
 	else
 	{
-		if(mTheoraTexture.isReady())
+		if (mTheoraTexture.isReady())
+		{
+			if (!mDone)
+				Con::executef(this, 1, "onDone");
 			mDone = true;
+		}
 
  		dglDrawRectFill(rect, mBackgroundColor); // black rect
 	}
