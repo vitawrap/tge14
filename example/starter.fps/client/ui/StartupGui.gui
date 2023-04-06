@@ -18,26 +18,11 @@ function loadStartup()
 {
    StartupGui.done = false;
    Canvas.setContent( StartupGui );
-   schedule(100, 0, checkStartupDone );
 }
-   
 
 //-------------------------------------
-function StartupGui::click()
+function StartupGui::onDone(%this)
 {
-   StartupGui.done = true;
+   echo ("*** Load Main Menu");
+   loadMainMenu();
 }
-
-
-//-------------------------------------
-function checkStartupDone()
-{
-   if (StartupGui.done)
-   {
-   	  echo ("*** Load Main Menu");
-      loadMainMenu();
-   }
-   else
-      schedule(100, 0, checkStartupDone );
-}
-
