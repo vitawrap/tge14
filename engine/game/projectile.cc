@@ -592,10 +592,11 @@ void Projectile::emitParticles(const Point3F& from, const Point3F& to, const Poi
          MatrixF trans = getTransform();
          trans.setPosition(rInfo.point);
 
-         Splash *splash = new Splash();
+         Splash* splash = new Splash();
          splash->onNewDataBlock(mDataBlock->splash);
          splash->setTransform(trans);
          splash->setInitialState(trans.getPosition(), Point3F(0.0, 0.0, 1.0));
+         splash->setCausingObject(this);
          if (!splash->registerObject())
          {
             delete splash;
@@ -621,6 +622,7 @@ void Projectile::emitParticles(const Point3F& from, const Point3F& to, const Poi
          splash->onNewDataBlock(mDataBlock->splash);
          splash->setTransform(trans);
          splash->setInitialState(trans.getPosition(), Point3F(0.0, 0.0, 1.0));
+         splash->setCausingObject(this);
          if (!splash->registerObject())
          {
             delete splash;
