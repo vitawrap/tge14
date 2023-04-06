@@ -494,10 +494,14 @@ bool TheoraTexture::parseHeaders()
 bool TheoraTexture::createVideoBuffers()
 {
    // Set up our texture.
-   const GBitmap *bmp = new GBitmap(
+   GBitmap *bmp = new GBitmap(
                         getMax((U32)mTheoraInfo.frame_width, (U32)mTheoraInfo.width),
                         getMax((U32)mTheoraInfo.frame_height, (U32)mTheoraInfo.height),
                         false, GBitmap::RGB);
+
+   // Ew!! white startup frame! Clear that!
+   U8* rgb = bmp->getWritableBits();
+   dMemset(rgb, 0, bmp->byteSize);
 
    mTextureHandle = new TextureHandle(NULL, bmp, true);
 
