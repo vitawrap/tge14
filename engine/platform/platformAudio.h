@@ -84,6 +84,7 @@ void alxStopAll();
 
 // one-shot helper alxPlay functions, create and play in one call
 AUDIOHANDLE alxPlay(const AudioProfile *profile, const MatrixF *transform=NULL, const Point3F *velocity=NULL);
+AUDIOHANDLE alxPlayPitched(const AudioProfile* profile, F32 min, F32 max, const MatrixF* transform = NULL, const Point3F* velocity = NULL);
 
 // Source
 void alxSourcef(AUDIOHANDLE handle, ALenum pname, ALfloat value);

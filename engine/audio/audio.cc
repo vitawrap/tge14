@@ -932,6 +932,20 @@ AUDIOHANDLE alxPlay(const AudioProfile *profile, const MatrixF *transform, const
    return(handle);
 }
 
+AUDIOHANDLE alxPlayPitched(const AudioProfile* profile, F32 min, F32 max, const MatrixF* transform, const Point3F* /*velocity*/)
+{
+    if (profile == NULL)
+        return NULL_AUDIOHANDLE;
+
+    AUDIOHANDLE handle = alxCreateSource(profile->mDescriptionObject, profile->mFilename, transform, profile->mSampleEnvironment);
+    if (handle != NULL_AUDIOHANDLE)
+    {
+        alxSourcef(handle, AL_PITCH, mRandF(min, max));
+        return(alxPlay(handle));
+    }
+    return(handle);
+}
+
 //--------------------------------------------------------------------------
 void alxStop(AUDIOHANDLE handle)
 {
