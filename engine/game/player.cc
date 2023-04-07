@@ -4247,37 +4247,39 @@ void Player::renderImage(SceneState* state, SceneRenderImage* image)
 
 void Player::playFootstepSound(bool triggeredLeft, S32 sound)
 {
-   MatrixF footMat = getTransform();
+   MatrixF const& footMat = getTransform();
+
+#define FOOTSTEP_PITCH_RANGE 0.75f,1.25f
 
    if (mWaterCoverage == 0.0f) {
       switch (sound) {
          case 0: // Soft
-            alxPlay(mDataBlock->sound[PlayerData::FootSoft], &footMat);
+            alxPlayPitched(mDataBlock->sound[PlayerData::FootSoft], FOOTSTEP_PITCH_RANGE, &footMat);
             break;
          case 1: // Hard
-            alxPlay(mDataBlock->sound[PlayerData::FootHard], &footMat);
+            alxPlayPitched(mDataBlock->sound[PlayerData::FootHard], FOOTSTEP_PITCH_RANGE, &footMat);
             break;
          case 2: // Metal
-            alxPlay(mDataBlock->sound[PlayerData::FootMetal], &footMat);
+            alxPlayPitched(mDataBlock->sound[PlayerData::FootMetal], FOOTSTEP_PITCH_RANGE, &footMat);
          break;
          case 3: // Snow
-            alxPlay(mDataBlock->sound[PlayerData::FootSnow], &footMat);
+            alxPlayPitched(mDataBlock->sound[PlayerData::FootSnow], FOOTSTEP_PITCH_RANGE, &footMat);
             break;
          default: //Hard
-            alxPlay(mDataBlock->sound[PlayerData::FootHard], &footMat);
+            alxPlayPitched(mDataBlock->sound[PlayerData::FootHard], FOOTSTEP_PITCH_RANGE, &footMat);
          break;
       }
    }
    else {
       if (mWaterCoverage < mDataBlock->footSplashHeight)
-         alxPlay(mDataBlock->sound[PlayerData::FootShallowSplash], &footMat);
+         alxPlayPitched(mDataBlock->sound[PlayerData::FootShallowSplash], FOOTSTEP_PITCH_RANGE, &footMat);
       else
          if (mWaterCoverage < 1.0)
-            alxPlay(mDataBlock->sound[PlayerData::FootWading], &footMat);
+            alxPlayPitched(mDataBlock->sound[PlayerData::FootWading], FOOTSTEP_PITCH_RANGE, &footMat);
          else
             if(triggeredLeft) {
-               alxPlay(mDataBlock->sound[PlayerData::FootUnderWater], &footMat);
-               alxPlay(mDataBlock->sound[PlayerData::FootBubbles], &footMat);
+               alxPlayPitched(mDataBlock->sound[PlayerData::FootUnderWater], FOOTSTEP_PITCH_RANGE, &footMat);
+               alxPlayPitched(mDataBlock->sound[PlayerData::FootBubbles], FOOTSTEP_PITCH_RANGE, &footMat);
             }
    }
 }
