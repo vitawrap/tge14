@@ -229,27 +229,27 @@ void NetObject::unpackUpdate(NetConnection*, BitStream*)
 
 void NetObject::onCameraScopeQuery(NetConnection *cr, CameraScopeQuery* /*camInfo*/)
 {
-   // default behavior -
-   // ghost everything that is ghostable
+    // default behavior -
+    // ghost everything that is ghostable
 
-   for (SimSetIterator obj(Sim::getRootGroup()); *obj; ++obj)
-   {
+    for (SimSetIterator obj(Sim::getRootGroup()); *obj; ++obj)
+    {
 		NetObject* nobj = dynamic_cast<NetObject*>(*obj);
 		if (nobj)
 		{
 			AssertFatal(!nobj->mNetFlags.test(NetObject::Ghostable) || !nobj->mNetFlags.test(NetObject::IsGhost),
-			   "NetObject::onCameraScopeQuery: object marked both ghostable and as ghost");
+			    "NetObject::onCameraScopeQuery: object marked both ghostable and as ghost");
 
 			// Some objects don't ever want to be ghosted
 			if (!nobj->mNetFlags.test(NetObject::Ghostable))
 				continue;
-         if (!nobj->mNetFlags.test(NetObject::ScopeAlways))
-         {
+            if (!nobj->mNetFlags.test(NetObject::ScopeAlways))
+            {
             // it's in scope...
             cr->objectInScope(nobj);
-         }
-      }
-   }
+            }
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
