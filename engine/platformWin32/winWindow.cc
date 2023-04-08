@@ -818,7 +818,7 @@ void Platform::process()
 {
    DInputManager* mgr = dynamic_cast<DInputManager*>( Input::getManager() );
 
-   if ( !mgr || !mgr->isMouseActive() )
+   if (!mgr || !mgr->isMouseActive())
       CheckCursorPos();
 
    WindowsConsole->process();
@@ -833,8 +833,9 @@ void Platform::process()
    }
 
    // if there's no window, we sleep 1, otherwise we sleep 0
-   if(!Game->isJournalReading())
-      Sleep(gWindowCreated ? 0 : 1); // give others some process time if necessary...
+   if (!windowActive && !Game->isJournalReading())
+      if (gWindowCreated)
+          Sleep(1); // give others some process time if necessary...
 
    // 12/2022 : this is obsolete for modern systems and probably even harming to performance.
    // so only do it conditionally.
