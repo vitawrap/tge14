@@ -101,6 +101,72 @@ void SSE_MatrixF_x_MatrixF(const F32 *matA, const F32 *matB, F32 *result)
       movups      [eax+30h], xmm2
    }
 }
+#elif defined(_MSC_VER)
+#define ADD_SSE_FN
+#include <immintrin.h>
+
+void SSE_MatrixF_x_MatrixF(const F32* matA, const F32* matB, F32* result) {
+    __m128 row1 = _mm_load_ps(&matB[0]);
+    __m128 row2 = _mm_load_ps(&matB[4]);
+    __m128 row3 = _mm_load_ps(&matB[8]);
+    __m128 row4 = _mm_load_ps(&matB[12]);
+
+    __m128 brod1 = _mm_set1_ps(matA[0]);
+    __m128 brod2 = _mm_set1_ps(matA[1]);
+    __m128 brod3 = _mm_set1_ps(matA[2]);
+    __m128 brod4 = _mm_set1_ps(matA[3]);
+    __m128 row = _mm_add_ps(
+        _mm_add_ps(
+            _mm_mul_ps(brod1, row1),
+            _mm_mul_ps(brod2, row2)),
+        _mm_add_ps(
+            _mm_mul_ps(brod3, row3),
+            _mm_mul_ps(brod4, row4))
+    );
+    _mm_store_ps(&result[0], row);
+
+    brod1 = _mm_set1_ps(matA[4]);
+    brod2 = _mm_set1_ps(matA[5]);
+    brod3 = _mm_set1_ps(matA[6]);
+    brod4 = _mm_set1_ps(matA[7]);
+    row = _mm_add_ps(
+        _mm_add_ps(
+            _mm_mul_ps(brod1, row1),
+            _mm_mul_ps(brod2, row2)),
+        _mm_add_ps(
+            _mm_mul_ps(brod3, row3),
+            _mm_mul_ps(brod4, row4))
+    );
+    _mm_store_ps(&result[4], row);
+
+    brod1 = _mm_set1_ps(matA[8]);
+    brod2 = _mm_set1_ps(matA[9]);
+    brod3 = _mm_set1_ps(matA[10]);
+    brod4 = _mm_set1_ps(matA[11]);
+    row = _mm_add_ps(
+        _mm_add_ps(
+            _mm_mul_ps(brod1, row1),
+            _mm_mul_ps(brod2, row2)),
+        _mm_add_ps(
+            _mm_mul_ps(brod3, row3),
+            _mm_mul_ps(brod4, row4))
+    );
+    _mm_store_ps(&result[8], row);
+
+    brod1 = _mm_set1_ps(matA[12]);
+    brod2 = _mm_set1_ps(matA[13]);
+    brod3 = _mm_set1_ps(matA[14]);
+    brod4 = _mm_set1_ps(matA[15]);
+    row = _mm_add_ps(
+        _mm_add_ps(
+            _mm_mul_ps(brod1, row1),
+            _mm_mul_ps(brod2, row2)),
+        _mm_add_ps(
+            _mm_mul_ps(brod3, row3),
+            _mm_mul_ps(brod4, row4))
+    );
+    _mm_store_ps(&result[12], row);
+}
 #endif
 
 
