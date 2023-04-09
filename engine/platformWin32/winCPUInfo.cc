@@ -107,30 +107,30 @@ void Processor::init()
       pop      edx
       pop      ebx
    }
-#elif defined(_MSC_VER) // Use MSVC intrinsic?
-/*  // TODO
-   typedef S32 CPUInfoData[4];
+#elif defined(_MSC_VER) // Use MSVC intrinsics?
 
-   CPUInfoData cpuInfo = { -1 };
-   __cpuid(cpuInfo, 0);
-   S32 nIds = cpuInfo[0];
+   // Get vendor info (eax = 0)
+   int e[4];
+   __cpuid(e, 0);
+   int* vendor32 = (int*)vendor;
 
-   U32 wm = FrameAllocator::getWaterMark();
-   CPUInfoData* dataBase = (CPUInfoData*)FrameAllocator::alloc(0);
+   vendor32[0] = e[1];
+   vendor32[1] = e[3];
+   vendor32[2] = e[2];
 
-   for (S32 i = 0; i < nIds; ++i)
+   // Get extended CPUID info
+   __cpuid(e, 1);
+   processor = e[0] & 0x0FF0;
+   properties = e[3];
+
+   // 3Dnow(tm) stuff (probably useless)
+   __cpuid(e, 0x80000000);
+   if (e[0] >= 0x80000001)
    {
-       __cpuidex(cpuInfo, i, 0);
-       CPUInfoData* data = ((CPUInfoData*)FrameAllocator::alloc(sizeof(CPUInfoData)));
-       dMemcpy(data, cpuInfo, sizeof(CPUInfoData));
+       __cpuid(e, 0x80000001);
+       properties |= (e[3] & 0x80000000);
    }
 
-   ((U32*)vendor)[0] = dataBase[0][1];
-   ((U32*)vendor)[1] = dataBase[0][3];
-   ((U32*)vendor)[2] = dataBase[0][2];
-
-   FrameAllocator::setWaterMark(wm);
-*/
 #endif
 
    SetProcessorInfo(Platform::SystemInfo.processor, vendor, processor, properties);
