@@ -891,6 +891,30 @@ ConsoleMethod(GuiControl, easePositionSmoothTo, void, 5, 6, "(int x, int y, S32 
     object->easePositionTo(newPos, fn, dAtoi(argv[4]));
 }
 
+// Helper functions
+ConsoleMethod(GuiControl, getPosIfCentered, const char*, 3, 4,
+    "(Point2I xy)|(int x, int y) - Returns a Point2I of the GIVEN position with half-extent subtracted.")
+{
+    Point2I pos(0, 0);
+    if (argc > 3)
+        pos.set(dAtoi(argv[2]), dAtoi(argv[3]));
+    else
+        dSscanf(argv[2], "%d %d", &pos.x, &pos.y);
+
+    char* retBuffer = Con::getReturnBuffer(64);
+    const Point2I& originPos = pos - (object->getExtent() / 2);
+    dSprintf(retBuffer, 64, "%d %d", originPos.x, originPos.y);
+    return retBuffer;
+}
+
+ConsoleMethod(GuiControl, getCenter, const char*, 2, 2, "")
+{
+    char* retBuffer = Con::getReturnBuffer(64);
+    const Point2I& pos = object->getPosition() + (object->getExtent() / 2);
+    dSprintf(retBuffer, 64, "%d %d", pos.x, pos.y);
+    return retBuffer;
+}
+
 void GuiControl::onRemove()
 {
    // Only invoke script callbacks if they can be received
