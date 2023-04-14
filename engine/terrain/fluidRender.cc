@@ -136,10 +136,12 @@ void fluid::Render( bool& EyeSubmerged )
 	// MM: Let's cull backfaces.
 	//
 	// NOTE:-	This will get promoted to an option for large-wave cases.
-	glEnable(GL_CULL_FACE);
-
-	// MM: Set culling mode.
-	glCullFace(EyeSubmerged?GL_BACK:GL_FRONT);
+	if (m_WaveAmplitude < 2.f)
+	{
+		glEnable(GL_CULL_FACE);
+		// MM: Set culling mode.
+		glCullFace(EyeSubmerged?GL_BACK:GL_FRONT);
+	}
 
 	// MM: Select Appropriate Environment Map.
 	U32 EnvMapViewTex = EyeSubmerged ? m_EnvMapUnderTexture.getGLName() : m_EnvMapOverTexture.getGLName();
