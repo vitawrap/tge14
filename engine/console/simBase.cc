@@ -1161,7 +1161,7 @@ void SimDataBlock::unpackData(BitStream*)
 {
 }
 
-bool SimDataBlock::preload(bool, char[256])
+bool SimDataBlock::preload(bool, char[ErrorBufferSize])
 {
    return true;
 }

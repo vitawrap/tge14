@@ -67,7 +67,7 @@ void DecalData::unpackData(BitStream* stream)
    textureName = stream->readSTString();
 }
 
-bool DecalData::preload(bool server, char errorBuffer[256])
+bool DecalData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;

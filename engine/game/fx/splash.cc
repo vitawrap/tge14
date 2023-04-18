@@ -227,7 +227,7 @@ void SplashData::unpackData(BitStream* stream)
 //--------------------------------------------------------------------------
 // Preload data - load resources
 //--------------------------------------------------------------------------
-bool SplashData::preload(bool server, char errorBuffer[256])
+bool SplashData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;

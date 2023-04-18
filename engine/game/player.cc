@@ -259,7 +259,7 @@ PlayerData::PlayerData()
    groundImpactShakeFalloff = 10.0;
 }
 
-bool PlayerData::preload(bool server, char errorBuffer[256])
+bool PlayerData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if(!Parent::preload(server, errorBuffer))
       return false;

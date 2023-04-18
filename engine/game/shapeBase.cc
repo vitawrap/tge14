@@ -114,7 +114,7 @@ ShapeBaseData::~ShapeBaseData()
 
 }
 
-bool ShapeBaseData::preload(bool server, char errorBuffer[256])
+bool ShapeBaseData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (!Parent::preload(server, errorBuffer))
       return false;
@@ -156,7 +156,7 @@ bool ShapeBaseData::preload(bool server, char errorBuffer[256])
          debrisShape = ResourceManager->load(debrisShapeName);
          if( bool(debrisShape) == false )
          {
-            dSprintf(errorBuffer, 256, "ShapeBaseData::load: Couldn't load shape \"%s\"", debrisShapeName);
+            dSprintf(errorBuffer, ErrorBufferSize, "ShapeBaseData::load: Couldn't load shape \"%s\"", debrisShapeName);
             return false;
          }
          else
@@ -177,7 +177,7 @@ bool ShapeBaseData::preload(bool server, char errorBuffer[256])
       // Resolve shapename
       shape = ResourceManager->load(shapeName, computeCRC);
       if (!bool(shape)) {
-         dSprintf(errorBuffer, 256, "ShapeBaseData: Couldn't load shape \"%s\"",shapeName);
+         dSprintf(errorBuffer, ErrorBufferSize, "ShapeBaseData: Couldn't load shape \"%s\"",shapeName);
          return false;
       }
       if(!server && !shape->preloadMaterialList() && NetConnection::filesWereDownloaded())
@@ -190,7 +190,7 @@ bool ShapeBaseData::preload(bool server, char errorBuffer[256])
             mCRC = shape.getCRC();
          else if(mCRC != shape.getCRC())
          {
-            dSprintf(errorBuffer, 256, "Shape \"%s\" does not match version on server.",shapeName);
+            dSprintf(errorBuffer, ErrorBufferSize, "Shape \"%s\" does not match version on server.",shapeName);
             return false;
          }
       }

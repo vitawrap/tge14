@@ -120,7 +120,7 @@ VehicleData::VehicleData()
 
 //----------------------------------------------------------------------------
 
-bool VehicleData::preload(bool server, char errorBuffer[256])
+bool VehicleData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (!Parent::preload(server, errorBuffer))
       return false;

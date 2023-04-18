@@ -59,7 +59,7 @@ void PathedInteriorData::unpackData(BitStream* stream)
    Parent::unpackData(stream);
 }
 
-bool PathedInteriorData::preload(bool server, char errorBuffer[256])
+bool PathedInteriorData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if(!Parent::preload(server, errorBuffer))
       return false;

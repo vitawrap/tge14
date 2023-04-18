@@ -107,7 +107,7 @@ struct VehicleData: public ShapeBaseData
 
    //
    VehicleData();
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    static void initPersistFields();
    virtual void packData(BitStream* stream);
    virtual void unpackData(BitStream* stream);

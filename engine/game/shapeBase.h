@@ -368,7 +368,7 @@ struct ShapeBaseImageData: public GameBaseData {
    ShapeBaseImageData();
    ~ShapeBaseImageData();
    bool onAdd();
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    S32 lookupState(const char* name);  ///< Get a state by name.
    static void initPersistFields();
    virtual void packData(BitStream* stream);
@@ -519,7 +519,7 @@ public:
 
    /// @}
 
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    void computeAccelerator(U32 i);
    S32  findMountPoint(U32 n);
 

@@ -100,7 +100,7 @@ class HoverVehicleData : public VehicleData
 
    void packData(BitStream*);
    void unpackData(BitStream*);
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
 
    DECLARE_CONOBJECT(HoverVehicleData);
    static void initPersistFields();

@@ -243,7 +243,7 @@ struct PlayerData: public ShapeBaseData {
    //
    DECLARE_CONOBJECT(PlayerData);
    PlayerData();
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    void getGroundInfo(TSShapeInstance*,TSThread*,ActionAnimation*);
    bool isTableSequence(S32 seq);
    bool isJumpAction(U32 action);

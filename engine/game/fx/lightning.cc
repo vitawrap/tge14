@@ -242,7 +242,7 @@ bool LightningData::onAdd()
 }
 
 
-bool LightningData::preload(bool server, char errorBuffer[256])
+bool LightningData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;
