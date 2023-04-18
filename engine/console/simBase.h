@@ -972,6 +972,14 @@ protected:
    static SimObjectId sNextObjectId;
    static S32         sNextModifiedKey;
 
+   /// Constant for preload error buffer size.
+   ///
+   /// Error buffer array is passed as a parameter everywhere, size then isn't available...
+   enum ErrorBuffer
+   {
+       ErrorBufferSize = 256
+   };
+
    /// Assign a new modified key.
    ///
    /// Datablocks are assigned a modified key which is updated every time
@@ -1005,7 +1013,7 @@ protected:
    /// @returns True if all went well; false if something failed.
    ///
    /// @see @ref SimDataBlock_preload
-   virtual bool preload(bool server, char errorBuffer[256]);
+   virtual bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    /// @}
 
    /// This helps to debug or otherwise inform the user/developer when datablocks

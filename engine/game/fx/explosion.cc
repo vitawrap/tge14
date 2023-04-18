@@ -571,7 +571,7 @@ void ExplosionData::unpackData(BitStream* stream)
    lightEndColor.blue = stream->readFloat(7);
 }
 
-bool ExplosionData::preload(bool server, char errorBuffer[256])
+bool ExplosionData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;
@@ -581,7 +581,7 @@ bool ExplosionData::preload(bool server, char errorBuffer[256])
       explosionShape = ResourceManager->load(dtsFileName);
       if (!bool(explosionShape))
       {
-         dSprintf(errorBuffer, sizeof(errorBuffer), "ExplosionData: Couldn't load shape \"%s\"", dtsFileName);
+         dSprintf(errorBuffer, ErrorBufferSize, "ExplosionData: Couldn't load shape \"%s\"", dtsFileName);
          return false;
       }
 

@@ -50,7 +50,7 @@ bool ParticleEmitterNodeData::onAdd()
 }
 
 
-bool ParticleEmitterNodeData::preload(bool server, char errorBuffer[256])
+bool ParticleEmitterNodeData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;

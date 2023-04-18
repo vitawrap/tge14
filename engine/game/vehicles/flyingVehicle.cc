@@ -103,7 +103,7 @@ FlyingVehicleData::FlyingVehicleData()
    vertThrustMultiple = 1.0;
 }
 
-bool FlyingVehicleData::preload(bool server, char errorBuffer[256])
+bool FlyingVehicleData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (!Parent::preload(server, errorBuffer))
       return false;

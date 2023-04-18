@@ -159,6 +159,7 @@ void SimDataBlockEvent::process(NetConnection *cptr)
 
       SimDataBlock* obj = NULL;
       char *errorBuffer = NetConnection::getErrorBuffer();
+      static_assert(sizeof(NetConnection::mErrorBuffer) == SimDataBlock::ErrorBufferSize, "NetConnection error buffer size mismatch");
 
       if( Sim::findObject( id,obj ) && dStrcmp( obj->getClassName(),mObj->getClassName() ) == 0 )
       {

@@ -179,7 +179,7 @@ bool ProjectileData::onAdd()
 }
 
 
-bool ProjectileData::preload(bool server, char errorBuffer[256])
+bool ProjectileData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;
@@ -189,7 +189,7 @@ bool ProjectileData::preload(bool server, char errorBuffer[256])
       projectileShape = ResourceManager->load(projectileShapeName);
       if (bool(projectileShape) == false)
       {
-         dSprintf(errorBuffer, sizeof(errorBuffer), "ProjectileData::load: Couldn't load shape \"%s\"", projectileShapeName);
+         dSprintf(errorBuffer, ErrorBufferSize, "ProjectileData::load: Couldn't load shape \"%s\"", projectileShapeName);
          return false;
       }
       activateSeq = projectileShape->findSequence("activate");

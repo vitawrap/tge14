@@ -34,7 +34,7 @@ bool TSShapeConstructor::onAdd()
    return true;
 }
 
-bool TSShapeConstructor::preload(bool server, char errorBuffer[256])
+bool TSShapeConstructor::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if(!Parent::preload(server, errorBuffer))
       return false;
@@ -71,14 +71,14 @@ bool TSShapeConstructor::preload(bool server, char errorBuffer[256])
          f = ResourceManager->openStream(fileBuf);
          if (!f || f->getStatus() != Stream::Ok)
          {
-            dSprintf(errorBuffer, 256, "Missing sequence %s for %s",mSequence[i],mShape);
+            dSprintf(errorBuffer, ErrorBufferSize, "Missing sequence %s for %s",mSequence[i],mShape);
             error = true;
             continue;
          }
          if (!shape->importSequences(f) || f->getStatus()!=Stream::Ok)
          {
             ResourceManager->closeStream(f);
-            dSprintf(errorBuffer, 256, "Load sequence %s failed for %s",mSequence[i],mShape);
+            dSprintf(errorBuffer, ErrorBufferSize, "Load sequence %s failed for %s",mSequence[i],mShape);
             return false;
          }
          ResourceManager->closeStream(f);

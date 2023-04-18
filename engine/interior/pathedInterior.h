@@ -34,7 +34,7 @@ public:
    static void initPersistFields();
    virtual void packData(BitStream* stream);
    virtual void unpackData(BitStream* stream);
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    PathedInteriorData();
 
    DECLARE_CONOBJECT(PathedInteriorData);

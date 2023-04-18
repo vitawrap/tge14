@@ -72,7 +72,7 @@ void GameBaseData::initPersistFields()
    addField("className",  TypeString,              Offset(className,  GameBaseData));
 }
 
-bool GameBaseData::preload(bool server, char errorBuffer[256])
+bool GameBaseData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (!Parent::preload(server, errorBuffer))
       return false;

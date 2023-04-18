@@ -67,7 +67,7 @@ WheeledVehicleTire::WheeledVehicleTire()
    longitudinalRelaxation = 1;
 }
 
-bool WheeledVehicleTire::preload(bool server, char errorBuffer[256])
+bool WheeledVehicleTire::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    // Load up the tire shape.  ShapeBase has an option to force a
    // CRC check, this is left out here, but could be easily added.
@@ -76,7 +76,7 @@ bool WheeledVehicleTire::preload(bool server, char errorBuffer[256])
       // Load up the shape resource
       shape = ResourceManager->load(shapeName);
       if (!bool(shape)) {
-         dSprintf(errorBuffer, 256, "WheeledVehicleTire: Couldn't load shape \"%s\"",shapeName);
+         dSprintf(errorBuffer, ErrorBufferSize, "WheeledVehicleTire: Couldn't load shape \"%s\"",shapeName);
          return false;
       }
 
@@ -228,7 +228,7 @@ WheeledVehicleData::WheeledVehicleData()
 
    The steering and animation sequences are optional.
 */
-bool WheeledVehicleData::preload(bool server, char errorBuffer[256])
+bool WheeledVehicleData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (!Parent::preload(server, errorBuffer))
       return false;
@@ -298,7 +298,7 @@ bool WheeledVehicleData::preload(bool server, char errorBuffer[256])
 
    if (collisionDetails.empty())
    {
-       dSprintf(errorBuffer, 256, "WheeledVehicleData::preload: No collision info for shape \"%s\"", shapeName);
+       dSprintf(errorBuffer, ErrorBufferSize, "WheeledVehicleData::preload: No collision info for shape \"%s\"", shapeName);
        return false;
    }
 

@@ -232,7 +232,7 @@ bool ShapeBaseImageData::onAdd()
    return true;
 }
 
-bool ShapeBaseImageData::preload(bool server, char errorBuffer[256])
+bool ShapeBaseImageData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (!Parent::preload(server, errorBuffer))
       return false;
@@ -260,7 +260,7 @@ bool ShapeBaseImageData::preload(bool server, char errorBuffer[256])
       // Resolve shapename
       shape = ResourceManager->load(shapeName, computeCRC);
       if (!bool(shape)) {
-         dSprintf(errorBuffer, 256, "Unable to load shape: %s", shapeName);
+         dSprintf(errorBuffer, ErrorBufferSize, "Unable to load shape: %s", shapeName);
          return false;
       }
       if(computeCRC)
@@ -270,7 +270,7 @@ bool ShapeBaseImageData::preload(bool server, char errorBuffer[256])
             mCRC = shape.getCRC();
          else if(mCRC != shape.getCRC())
          {
-            dSprintf(errorBuffer, 256, "Shape \"%s\" does not match version on server.",shapeName);
+            dSprintf(errorBuffer, ErrorBufferSize, "Shape \"%s\" does not match version on server.",shapeName);
             return false;
          }
       }
@@ -329,7 +329,7 @@ bool ShapeBaseImageData::preload(bool server, char errorBuffer[256])
       spinSequence = shape->findSequence("spin");
    }
    else {
-      dSprintf(errorBuffer, sizeof(errorBuffer), "Bad Datablock from server");
+      dSprintf(errorBuffer, ErrorBufferSize, "Bad Datablock from server");
       return false;
    }
 

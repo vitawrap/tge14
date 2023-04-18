@@ -73,7 +73,7 @@ void fxBeamData::unpackData(BitStream* stream)
     mBeamTextureName = stream->readSTString();
 }
 
-bool fxBeamData::preload(bool server, char errorBuffer[256])
+bool fxBeamData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
     if (!Parent::preload(server, errorBuffer))
         return false;
@@ -82,7 +82,7 @@ bool fxBeamData::preload(bool server, char errorBuffer[256])
     mBeamTexture = TextureHandle(mBeamTextureName, MeshTexture);
     if (!mBeamTexture.getName())
     {
-        dSprintf(errorBuffer, 256, "Missing beam texture: %s", mBeamTextureName);
+        dSprintf(errorBuffer, ErrorBufferSize, "Missing beam texture: %s", mBeamTextureName);
         return false;
     }
 

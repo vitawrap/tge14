@@ -65,7 +65,7 @@ struct GameBaseData : public SimDataBlock {
    DECLARE_CONOBJECT(GameBaseData);
    GameBaseData();
    static void initPersistFields();
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    void unpackData(BitStream* stream);
 };
 

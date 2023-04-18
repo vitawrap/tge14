@@ -417,7 +417,7 @@ void AudioProfile::initPersistFields()
    addField("preload",     TypeBool,                        Offset(mPreload, AudioProfile));
 }
 
-bool AudioProfile::preload(bool server, char errorBuffer[256])
+bool AudioProfile::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if(!Parent::preload(server, errorBuffer))
       return false;

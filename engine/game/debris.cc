@@ -158,7 +158,7 @@ bool DebrisData::onAdd()
 //--------------------------------------------------------------------------
 // Preload
 //--------------------------------------------------------------------------
-bool DebrisData::preload(bool server, char errorBuffer[256])
+bool DebrisData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;
@@ -171,7 +171,7 @@ bool DebrisData::preload(bool server, char errorBuffer[256])
       shape = ResourceManager->load(shapeName);
       if( bool(shape) == false )
       {
-         dSprintf(errorBuffer, sizeof(errorBuffer), "DebrisData::load: Couldn't load shape \"%s\"", shapeName);
+         dSprintf(errorBuffer, ErrorBufferSize, "DebrisData::load: Couldn't load shape \"%s\"", shapeName);
          return false;
       }
       else

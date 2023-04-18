@@ -38,7 +38,7 @@ public:
    TSShapeConstructor();
    ~TSShapeConstructor();
    bool onAdd();
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    void packData(BitStream* stream);
    void unpackData(BitStream* stream);
 

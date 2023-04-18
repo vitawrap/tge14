@@ -72,7 +72,7 @@ struct DebrisData : public GameBaseData
    DebrisData();
 
    bool        onAdd();
-   bool        preload( bool server, char errorBuffer[256] );
+   bool        preload( bool server, char errorBuffer[ErrorBufferSize] );
    static void initPersistFields();
    void        packData(BitStream* stream);
    void        unpackData(BitStream* stream);

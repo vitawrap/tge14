@@ -129,7 +129,7 @@ public:
    virtual bool onAdd();
    virtual void packData(BitStream* stream);
    virtual void unpackData(BitStream* stream);
-   virtual bool preload(bool server, char errorBuffer[256]);
+   virtual bool preload(bool server, char errorBuffer[ErrorBufferSize]);
 
    const Audio::Description* getDescription() const { return mDescriptionObject ? mDescriptionObject->getDescription() : NULL; }
    bool isPreload() { return mPreload; }

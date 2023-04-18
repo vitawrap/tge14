@@ -487,7 +487,7 @@ breakContinue:
 
             // Are we dealing with a datablock?
             SimDataBlock *dataBlock = dynamic_cast<SimDataBlock *>(currentNewObject);
-            static char errorBuffer[256];
+            static char errorBuffer[SimDataBlock::ErrorBufferSize];
 
             // If so, preload it.
             if(dataBlock && !dataBlock->preload(true, errorBuffer))

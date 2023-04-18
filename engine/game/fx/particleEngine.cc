@@ -93,9 +93,9 @@ class ParticleData : public SimDataBlock
    void packData(BitStream* stream);
    void unpackData(BitStream* stream);
    bool onAdd();
-   bool preload(bool server, char errorBuffer[256]);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]);
    bool loadParameters();
-   bool reload(char errorBuffer[256]);
+   bool reload(char errorBuffer[ErrorBufferSize]);
    DECLARE_CONOBJECT(ParticleData);
    static void  initPersistFields();
 };
@@ -420,7 +420,7 @@ bool ParticleEmitterData::loadParameters()
    return true;
 }
 
-bool ParticleEmitterData::preload(bool server, char errorBuffer[256])
+bool ParticleEmitterData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;
@@ -720,7 +720,7 @@ bool ParticleData::loadParameters()
    return true;
 }
 
-bool ParticleData::preload(bool server, char errorBuffer[256])
+bool ParticleData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;
@@ -734,7 +734,7 @@ bool ParticleData::preload(bool server, char errorBuffer[256])
    return true;
 }
 
-bool ParticleData::reload(char errorBuffer[256])
+bool ParticleData::reload(char errorBuffer[ErrorBufferSize])
 {
    bool error = false;
    numFrames = 0;
@@ -745,7 +745,7 @@ bool ParticleData::reload(char errorBuffer[256])
          textureList[i] = TextureHandle( textureNameList[i], MeshTexture );
          if (!textureList[i].getName())
          {
-            dSprintf(errorBuffer, 256, "Missing particle texture: %s", textureNameList[i]);
+            dSprintf(errorBuffer, ErrorBufferSize, "Missing particle texture: %s", textureNameList[i]);
             error = true;
          }
          numFrames++;
@@ -1642,6 +1642,6 @@ ConsoleMethod(ParticleData, reload, void, 2, 2, "(void)"
               "Reloads this particle")
 {
    object->loadParameters();
-   char errorBuffer[256];
+   char errorBuffer[SimDataBlock::ErrorBufferSize];
    object->reload(errorBuffer);
 }

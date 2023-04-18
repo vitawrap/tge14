@@ -172,7 +172,7 @@ bool HoverVehicleData::onAdd()
 }
 
 
-bool HoverVehicleData::preload(bool server, char errorBuffer[256])
+bool HoverVehicleData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if (Parent::preload(server, errorBuffer) == false)
       return false;

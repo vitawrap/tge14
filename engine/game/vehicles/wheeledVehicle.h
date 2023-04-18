@@ -51,7 +51,7 @@ struct WheeledVehicleTire: public SimDataBlock {
    WheeledVehicleTire();
    DECLARE_CONOBJECT(WheeledVehicleTire);
    static void initPersistFields();
-   bool preload(bool, char errorBuffer[256]);
+   bool preload(bool, char errorBuffer[ErrorBufferSize]);
    virtual void packData(BitStream* stream);
    virtual void unpackData(BitStream* stream);
 };
@@ -119,7 +119,7 @@ struct WheeledVehicleData: public VehicleData {
    WheeledVehicleData();
    DECLARE_CONOBJECT(WheeledVehicleData);
    static void initPersistFields();
-   bool preload(bool, char errorBuffer[256]);
+   bool preload(bool, char errorBuffer[ErrorBufferSize]);
    bool mirrorWheel(Wheel* we);
    virtual void packData(BitStream* stream);
    virtual void unpackData(BitStream* stream);

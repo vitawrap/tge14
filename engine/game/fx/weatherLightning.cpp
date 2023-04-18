@@ -164,7 +164,7 @@ bool WeatherLightningData::onAdd()
    return true;
 }
 
-bool WeatherLightningData::preload(bool server, char errorBuffer[256])
+bool WeatherLightningData::preload(bool server, char errorBuffer[ErrorBufferSize])
 {
    if(Parent::preload(server, errorBuffer) == false)
       return false;
