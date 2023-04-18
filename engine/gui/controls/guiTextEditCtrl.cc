@@ -1204,7 +1204,7 @@ const char *GuiTextEditCtrl::getScriptValue()
 {
    FrameTemp<UTF8> temp(mTextBuffer.length() * 3 + 1);
    mTextBuffer.get(temp, mTextBuffer.length() * 3 + 1);
-   return StringTable->insert((const char*)(UTF8*)temp);
+   return StringTable->insert((const char*)(UTF8*)temp, true);
 }
 
 void GuiTextEditCtrl::setScriptValue(const char *value)
