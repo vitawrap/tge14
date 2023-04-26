@@ -662,7 +662,7 @@ void fxLight::AnimateLight(void)
 		if (!mDataBlock->mSingleColourKeys && mBlueKeysLength)
 		{
 			// Calculate Blue.
-			mAnimationColour.blue = GetLerpKey(mDataBlock->mGreenKeys, PosFrom, PosTo, mDataBlock->mMinColour.blue, mDataBlock->mMaxColour.blue, LerpFactor);
+			mAnimationColour.blue = GetLerpKey(mDataBlock->mBlueKeys, PosFrom, PosTo, mDataBlock->mMinColour.blue, mDataBlock->mMaxColour.blue, LerpFactor);
 
 			// Flag Blue Set.
 			BlueSet = true;
