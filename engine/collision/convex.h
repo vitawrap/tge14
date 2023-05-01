@@ -158,11 +158,11 @@ protected:
    CollisionStateList   mList;            ///< Objects we're testing against
    CollisionWorkingList mWorking;         ///< Objects within our bounds
    CollisionWorkingList mReference;       ///< Other convex testing against us
-   SceneObject* mObject;                  ///< Object this Convex is built around
    ConvexType mType;                      ///< Type of Convex this is @see ConvexType
 
    //
 public:
+   SceneObject* mObject;                  ///< Object this Convex is built around
 
    /// Constructor
    Convex();
