@@ -72,10 +72,10 @@ class ShapeBaseConvex : public Convex
    friend class Vehicle;
 
   protected:
-   ShapeBase*  pShapeBase;
    MatrixF*    nodeTransform;
 
   public:
+   ShapeBase*  pShapeBase;
    MatrixF*    transform;
    U32         hullId;
    Box3F       box;

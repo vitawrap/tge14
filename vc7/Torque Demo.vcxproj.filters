@@ -1253,6 +1253,9 @@
     <ClCompile Include="..\engine\interior\itf.cc">
       <Filter>Source Files\interior</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\game\rotatingDoor.cc">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">
@@ -2244,6 +2247,9 @@
     </ClInclude>
     <ClInclude Include="..\engine\platform\platformGL.h">
       <Filter>Source Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\game\rotatingDoor.h">
+      <Filter>Source Files\game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -330,6 +330,7 @@ SOURCE.GAME=\
 	game/player.cc \
 	game/projectile.cc \
 	game/rigid.cc \
+	game/rotatingDoor.cc \
 	game/scopeAlwaysShape.cc \
 	game/shadow.cc \
 	game/shapeBase.cc \

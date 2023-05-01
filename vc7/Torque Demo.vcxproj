@@ -431,6 +431,7 @@
     <ClCompile Include="..\engine\game\player.cc" />
     <ClCompile Include="..\engine\game\projectile.cc" />
     <ClCompile Include="..\engine\game\rigid.cc" />
+    <ClCompile Include="..\engine\game\rotatingDoor.cc" />
     <ClCompile Include="..\engine\game\scopeAlwaysShape.cc" />
     <ClCompile Include="..\engine\game\shadow.cc" />
     <ClCompile Include="..\engine\game\shapeBase.cc" />
@@ -807,6 +808,7 @@
     <ClInclude Include="..\engine\game\projectile.h" />
     <ClInclude Include="..\engine\game\resource.h" />
     <ClInclude Include="..\engine\game\rigid.h" />
+    <ClInclude Include="..\engine\game\rotatingDoor.h" />
     <ClInclude Include="..\engine\game\shadow.h" />
     <ClInclude Include="..\engine\game\shapeBase.h" />
     <ClInclude Include="..\engine\game\showTSShape.h" />

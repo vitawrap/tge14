@@ -1,3 +1,7 @@
+//-----------------------------------------------------------------------------
+// Torque Game Engine 
+// Copyright (C) GarageGames.com, Inc.
+//-----------------------------------------------------------------------------
 
 datablock AudioProfile(FireIgniteSound)
 {
@@ -44,3 +48,31 @@ datablock fxBeamData (smokeBeam)
 	scrollSec = 5;
 	glow = true;
 };
+
+datablock RotatingDoorData(BaseDoorData) {
+    shapeFile = "~/data/shapes/maps/pushdoor.dts";
+
+    // Transform
+    rotationOrigin = "0 0 0";
+    rotationAngleAxis = "3.1415 0 0 1";
+
+    // Sounds
+    //toggleSound = ButtonDownSound;
+    //movingSound = VehicleRollSound;
+    //closedSound = MonitorImpactSound;
+    //openedSound = MonitorImpactSound;
+    //haltedSound = MonitorImpactSound;
+
+    // Settings
+    openTwoWays = false;
+    msBeforeMoving = 0;
+    msRotationTime = 1000;
+
+    // Collisions
+    blockOnCollision = false;
+    collisionIgnoreMask = 0;
+    collisionParticles = "";
+    spawnParticlesOnCollision = false;
+};
+
+//$tdoor = new RotatingDoor("testDoor"){ datablock = BaseDoorData; position = localclientconnection.player.getTransform(); }; MissionGroup.add($tdoor);
