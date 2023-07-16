@@ -366,6 +366,8 @@ void shutdownGame()
    gDecalManager = NULL;
 
    TerrainRender::shutdown();
+
+   shutdownLibraries(); // Factor call in this function directly.
 }
 
 extern bool gDGLRender;
@@ -415,7 +417,6 @@ int DemoGame::main(int argc, const char **argv)
    {
       Platform::AlertOK("Error", "Failed to initialize game, shutting down.");
       shutdownGame();
-      shutdownLibraries();
       gShuttingDown = true;
       return 0;
    }
@@ -449,7 +450,6 @@ int DemoGame::main(int argc, const char **argv)
             PROFILE_END();
    }
    shutdownGame();
-   shutdownLibraries();
 
    gShuttingDown = true;
 
