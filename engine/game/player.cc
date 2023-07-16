@@ -1017,15 +1017,15 @@ bool Player::onNewDataBlock(GameBaseData* dptr)
 
    // Initialize head look thread
    TSShape const* shape = mShapeInstance->getShape();
-   //S32 crouchSeq = shape->findSequence("crouch");
-   //if (crouchSeq != -1)
-   //{
-   //    mCrouchThread = mShapeInstance->addThread();
-   //    mShapeInstance->setSequence(mCrouchThread, crouchSeq, mCrouching);
-   //    mShapeInstance->setTimeScale(mCrouchThread, mCrouching);
-   //}
-   //else
-   //    mCrouchThread = 0;
+   S32 crouchSeq = shape->findSequence("crouch");
+   if (crouchSeq != -1)
+   {
+       mCrouchThread = mShapeInstance->addThread();
+       mShapeInstance->setSequence(mCrouchThread, crouchSeq, 0);
+       mShapeInstance->setTimeScale(mCrouchThread, mCrouching);
+   }
+   else
+       mCrouchThread = 0;
 
    S32 headSeq = shape->findSequence("head");
    if (headSeq != -1) {
