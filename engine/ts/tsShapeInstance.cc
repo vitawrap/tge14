@@ -20,7 +20,6 @@ F32                           TSShapeInstance::smDetailAdjust = 1.0f;
 F32                           TSShapeInstance::smScreenError = 5.0f;
 bool                          TSShapeInstance::smFogExemptionOn = false;
 S32                           TSShapeInstance::smNumSkipRenderDetails = 0;
-bool                          TSShapeInstance::smSkipFirstFog = false;
 bool                          TSShapeInstance::smSkipFog = false;
 
 Vector<QuatF>                 TSShapeInstance::smNodeCurrentRotations(__FILE__, __LINE__);
@@ -124,7 +123,6 @@ void TSShapeInstance::init()
    Con::addVariable("$pref::TS::detailAdjust",  TypeF32,  &smDetailAdjust);
    Con::addVariable("$pref::TS::skipLoadDLs",   TypeS32,  &TSShape::smNumSkipLoadDetails);
    Con::addVariable("$pref::TS::skipRenderDLs", TypeS32,  &smNumSkipRenderDetails);
-   Con::addVariable("$pref::TS::skipFirstFog",  TypeBool, &smSkipFirstFog);
    Con::addVariable("$pref::TS::screenError",   TypeF32,  &smScreenError);
    Con::addVariable("$pref::TS::UseTriangles",  TypeBool, &TSMesh::smUseTriangles);
 }

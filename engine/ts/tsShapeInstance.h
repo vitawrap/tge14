@@ -549,7 +549,6 @@ class TSShapeInstance
    /// never choose detail level number below this value (except if
    /// only way to get a visible detail)
    static S32 smNumSkipRenderDetails;
-   static bool smSkipFirstFog;
    static bool smSkipFog;
 
    virtual void render(const Point3F * objectScale = NULL);

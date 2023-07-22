@@ -105,19 +105,6 @@ void SceneGraph::renderScene(const U32 objectMask)
    else if (smVisibleDistanceMod < 0.5f)
       smVisibleDistanceMod = 0.5f;
 
-   static bool skipFirstFog = TSShapeInstance::smSkipFirstFog;
-
-   if (skipFirstFog)
-      // HACK:  This is the dumbest hack for 3Dfx yet:
-      // don't two-pass fog for the first frame
-      if (TSShapeInstance::smSkipFog)
-      {
-         TSShapeInstance::smSkipFog = false;
-         skipFirstFog = false;
-      }
-      else
-         TSShapeInstance::smSkipFog = true;
-
    // Determine the camera position, and store off render state...
    MatrixF modelview;
    MatrixF mv;
