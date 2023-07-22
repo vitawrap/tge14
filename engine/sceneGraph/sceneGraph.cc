@@ -147,28 +147,28 @@ void SceneGraph::renderScene(const U32 objectMask)
    TextureHandle envMap = NULL;
    if (getCurrentSky() != NULL)
       envMap = getCurrentSky()->getEnvironmentMap();
-   SceneState* pBaseState = new SceneState(NULL,
-                                           mCurrZoneEnd,
-                                           left, right,
-                                           bottom, top,
-                                           nearPlane,
-                                           F64(getVisibleDistanceMod()),
-                                           viewport,
-                                           cp,
-                                           modelview,
-                                           getFogDistanceMod(),
-                                           getVisibleDistanceMod(),
-                                           mFogColor,
-                                           mNumFogVolumes,
-                                           mFogVolumes,
-                                           envMap,
-                                           smVisibleDistanceMod);
+   SceneState pBaseState(NULL,
+                        mCurrZoneEnd,
+                        left, right,
+                        bottom, top,
+                        nearPlane,
+                        F64(getVisibleDistanceMod()),
+                        viewport,
+                        cp,
+                        modelview,
+                        getFogDistanceMod(),
+                        getVisibleDistanceMod(),
+                        mFogColor,
+                        mNumFogVolumes,
+                        mFogVolumes,
+                        envMap,
+                        smVisibleDistanceMod);
    // build the fog texture
    PROFILE_START(BuildFogTexture);
    if(!useSpecial)
-      buildFogTexture( pBaseState );
+      buildFogTexture( &pBaseState );
    else
-      buildFogTextureSpecial( pBaseState );
+      buildFogTextureSpecial( &pBaseState );
    PROFILE_END();
 
    // Find the start zone...
@@ -179,7 +179,7 @@ void SceneGraph::renderScene(const U32 objectMask)
 
    DetailManager::beginPrepRender();
 
-   buildSceneTree(pBaseState, startObject, startZone, 1, objectMask);
+   buildSceneTree(&pBaseState, startObject, startZone, 1, objectMask);
 
    DetailManager::endPrepRender();
    PROFILE_END();
@@ -190,10 +190,9 @@ void SceneGraph::renderScene(const U32 objectMask)
    PROFILE_END();
 
    PROFILE_START(TraverseScene);
-   traverseSceneTree(pBaseState);
+   traverseSceneTree(&pBaseState);
    PROFILE_END();
 
-   delete pBaseState;
    PROFILE_END();
 }
 
