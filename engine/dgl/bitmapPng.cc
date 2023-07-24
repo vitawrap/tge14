@@ -82,14 +82,14 @@ static void pngFreeFn(png_structp /*png_ptr*/, png_voidp /*mem*/)
 static void pngFatalErrorFn(png_structp     /*png_ptr*/,
                             png_const_charp pMessage)
 {
-   AssertISV(false, avar("Error reading PNG file:\n %s", pMessage));
+    AssertISV(false, avar("Error reading PNG file:\n %s", pMessage));
 }
 
 
 //--------------------------------------
-static void pngWarningFn(png_structp, png_const_charp /*pMessage*/)
+static void pngWarningFn(png_structp, png_const_charp pMessage)
 {
-//   AssertWarn(false, avar("Warning reading PNG file:\n %s", pMessage));
+    AssertWarn(false, avar("Warning reading PNG file:\n %s", pMessage));
 }
 
 
