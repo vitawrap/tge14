@@ -274,9 +274,6 @@ public:
    SceneObject();
    virtual ~SceneObject();
 
-   /// Returns a value representing this object which can be passed to script functions.
-   const char* scriptThis();
-
 public:
    /// @name Collision and transform related interface
    ///
