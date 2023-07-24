@@ -1160,6 +1160,11 @@ class SimSet: public SimObject
 #endif
    }
 
+   /// @name Debug
+   /// @{
+   void dumpHierarchy(U32 depth = 0) const; ///< Recursively dump an object tree here.
+   /// @}
+
    DECLARE_CONOBJECT(SimSet);
 };
 

@@ -1458,6 +1458,11 @@ ConsoleMethod(SimSet, pushToBack, void, 3, 3, "set.pushToBack(object)")
    object->pushObjectToBack(obj);
 }
 
+ConsoleMethod(SimSet, dumpHierarchy, void, 2, 2, "set.dumpHierarchy()")
+{
+    object->dumpHierarchy();
+}
+
 //----------------------------------------------------------------------------
 
 IMPLEMENT_CONOBJECT(SimSet);
@@ -1597,6 +1602,40 @@ SimObject *SimSet::findObject(const char *namePath)
    }
    unlock();
    return NULL;
+}
+
+void SimSet::dumpHierarchy(U32 depth) const
+{
+    /* Prepare log buffer for this simset + n spaces */
+    char logLineBuffer[4096];
+    char* logLineStr = logLineBuffer;
+    for (U32 i = 0; i < depth; ++i)
+        *(logLineStr++) = ' ';
+
+    if (depth >= 1024)    // Buffer zone before danger...
+    {
+        dStrcpy(logLineStr, "... (max exceeded)");
+        Con::warnf("%s", logLineBuffer);
+        return;
+    }
+
+    if (getName())  dSprintf(logLineStr, 4095 - depth, "SET %d : %s( %s )", getId(), getClassName(), getName());
+    else            dSprintf(logLineStr, 4095 - depth, "SET %d : %s", getId(), getClassName());
+    Con::printf("%s", logLineBuffer);
+
+    SimSet* set;
+    for (SimObject* child : objectList)
+        if (set = dynamic_cast<SimSet*>(child))
+            set->dumpHierarchy(depth + 1);
+        else if (child)
+        {
+            // If the child isn't a SimSet it is a leaf and can't dump itself, so it has to be done here...
+            logLineBuffer[depth] = ' ';
+            logLineStr = &logLineBuffer[depth + 1];
+            if (child->getName())   dSprintf(logLineStr, 4094 - depth, "%d : %s( %s )", child->getId(), child->getClassName(), child->getName());
+            else                    dSprintf(logLineStr, 4094 - depth, "%d : %s", child->getId(), child->getClassName());
+            Con::printf("%s", logLineBuffer);
+        }
 }
 
 SimObject* SimObject::findObject(const char* )
