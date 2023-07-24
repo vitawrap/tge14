@@ -414,7 +414,7 @@ SubObjectRenderImage* MirrorSubObject::getRenderImage(SceneState*    state,
    getSOTransform().mulP(startPoint);
    startPoint.convolve(getSOScale());
 
-   state->insertTransformPortal(this, 0, realZone, startPoint, true);
+   state->insertTransformPortal(this, 0, realZone, startPoint, true, true);
 
    return ri;
 }
