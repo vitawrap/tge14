@@ -10,6 +10,7 @@
 #include "sceneGraph/sceneGraph.h"
 #include "terrain/sky.h"
 #include "platform/profiler.h"
+#include "game/shapeBase.h"
 
 namespace {
 
@@ -209,6 +210,7 @@ SceneState::SceneState(SceneState*    parent,
    setupFog();
 
    mTerrainOverride = false;
+   mRenderFirstPersonShapeOverride = false;
 
    mEnvironmentMap  = envMap;
 
@@ -277,7 +279,7 @@ void SceneState::insertRenderImage(SceneRenderImage* ri)
 
 void SceneState::insertTransformPortal(SceneObject* owner, U32 portalIndex,
                                        U32 globalZone,     const Point3F& traversalStartPoint,
-                                       const bool flipCull)
+                                       const bool flipCull, const bool renderFirstPersonShape)
 {
    mTransformPortals.increment();
    mTransformPortals.last().owner         = owner;
@@ -285,6 +287,7 @@ void SceneState::insertTransformPortal(SceneObject* owner, U32 portalIndex,
    mTransformPortals.last().globalZone    = globalZone;
    mTransformPortals.last().traverseStart = traversalStartPoint;
    mTransformPortals.last().flipCull      = flipCull;
+   mTransformPortals.last().renderFirstPersonShape = renderFirstPersonShape;
 }
 
 void SceneState::sortRenderImages()
@@ -465,6 +468,9 @@ void SceneState::renderCurrentImages()
    glPushMatrix();
    dglLoadMatrix(&mModelview);
 
+   if (mRenderFirstPersonShapeOverride)
+       ShapeBase::gRenderFirstPersonShapeOverride = true;
+
    U32 i;
    for (i = 0; i < mRenderImages.size(); i++)
       renderImage(this, mRenderImages[i]);
@@ -476,6 +482,8 @@ void SceneState::renderCurrentImages()
 
    for (i = 0; i < mTranslucentEndImages.size(); i++)
       renderImage(this, mTranslucentEndImages[i]);
+
+   ShapeBase::gRenderFirstPersonShapeOverride = false;
 
    glMatrixMode(GL_MODELVIEW);
    glPopMatrix();

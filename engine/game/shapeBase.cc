@@ -34,6 +34,7 @@ IMPLEMENT_CO_DATABLOCK_V1(ShapeBaseData);
 //----------------------------------------------------------------------------
 // Timeout for non-looping sounds on a channel
 static SimTime sAudioTimeout = 500;
+bool ShapeBase::gRenderFirstPersonShapeOverride = false;
 bool ShapeBase::gRenderEnvMaps = true;
 F32  ShapeBase::sWhiteoutDec = 0.007;
 F32  ShapeBase::sDamageFlashDec = 0.007;
@@ -1073,7 +1074,7 @@ bool ShapeBase::isFirstPerson()
       return true;
 
    if (GameConnection* con = getControllingClient())
-      return con->getControlObject() == this && con->isFirstPerson();
+      return con->getControlObject() == this && (con->isFirstPerson() && !gRenderFirstPersonShapeOverride);
    return false;
 }
 

@@ -988,6 +988,7 @@ public:
 
    /// @}
 
+   static bool gRenderFirstPersonShapeOverride;
    static bool gRenderEnvMaps; ///< Global flag which turns on or off all environment maps
    static F32  sWhiteoutDec;
    static F32  sDamageFlashDec;

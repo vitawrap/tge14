@@ -149,6 +149,7 @@ class SceneState
       U32          globalZone;
       Point3F      traverseStart;
       bool         flipCull;
+      bool         renderFirstPersonShape;
    };
 
   public:
@@ -227,20 +228,27 @@ class SceneState
 
    /// Adds a new transform portal to the SceneState.
    ///
-   /// @param   owner                 SceneObject owner of the portal (portalized object).
-   /// @param   portalIndex           Index of the portal in the list of portal planes.
-   /// @param   globalZone            Index of the zone this portal is in in the list of ZoneStates.
-   /// @param   traversalStartPoint   Start point of the zone traversal.
-   ///                                @see SceneGraph::buildSceneTree
-   ///                                @see SceneGraph::findZone
+   /// @param   owner                   SceneObject owner of the portal (portalized object).
+   /// @param   portalIndex             Index of the portal in the list of portal planes.
+   /// @param   globalZone              Index of the zone this portal is in in the list of ZoneStates.
+   /// @param   traversalStartPoint     Start point of the zone traversal.
+   ///                                  @see SceneGraph::buildSceneTree
+   ///                                  @see SceneGraph::findZone
+   /// @param   renderFirstPersonShape  Force rendering of the control object shape currently in first person.
    ///
    /// @param   flipCull              If true, the portal plane will be flipped
    void insertTransformPortal(SceneObject* owner, U32 portalIndex,
                               U32 globalZone,     const Point3F& traversalStartPoint,
-                              const bool flipCull);
+                              const bool flipCull, const bool renderFirstPersonShape = false);
 
    /// This enables terrain to be drawn inside interiors.
    void enableTerrainOverride();
+
+   /// Returns true if terrain is allowed to be drawn inside interiors.
+   bool isFirstPersonShapeOverridden() const;
+
+   /// This enables terrain to be drawn inside interiors.
+   void enableFirstPersonShapeOverride();
 
    /// Returns true if terrain is allowed to be drawn inside interiors.
    bool isTerrainOverridden() const;
@@ -361,6 +369,7 @@ class SceneState
    void renderNode(RenderBSPNode &rNode);
 
    bool mTerrainOverride;                             ///< If true, terrain is allowed to render inside interiors
+   bool mRenderFirstPersonShapeOverride;              ///< If true, First person control object is forced to render in this SceneState
 
    Vector<SceneState*>       mSubsidiaries;           ///< Transform portals which have been processed by the scene traversal process
                                                       ///
@@ -463,6 +472,16 @@ inline void SceneState::enableTerrainOverride()
 inline bool SceneState::isTerrainOverridden() const
 {
    return mTerrainOverride;
+}
+
+inline void SceneState::enableFirstPersonShapeOverride()
+{
+    mRenderFirstPersonShapeOverride = true;
+}
+
+inline bool SceneState::isFirstPersonShapeOverridden() const
+{
+    return mRenderFirstPersonShapeOverride;
 }
 
 

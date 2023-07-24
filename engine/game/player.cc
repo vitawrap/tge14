@@ -1272,7 +1272,7 @@ void Player::interpolateTick(F32 dt)
    // apply camera effects - is this the best place? - bramage
    // nope, THIS is the best place - viwrap
    GameConnection* connection = GameConnection::getConnectionToServer();
-   if (connection->isFirstPerson())
+   if (isFirstPerson())
    {
        ShapeBase* obj = connection->getControlObject();
        if (obj == this)
@@ -1499,7 +1499,7 @@ void Player::updateMove(const Move* move)
       if (y > M_PI) y -= M_2PI;
 
       GameConnection* con = getControllingClient();
-      if (move->freeLook && ((isMounted() && getMountNode() == 0) || (con && !con->isFirstPerson())))
+      if (move->freeLook && ((isMounted() && getMountNode() == 0) || (con && !isFirstPerson())))
       {
          mHead.z = mClampF(mHead.z + y,
                            -mDataBlock->maxFreelookAngle,
@@ -4035,13 +4035,13 @@ void Player::renderMountedImage(SceneState* state, ShapeImageRenderImage* rimage
    AssertFatal(rimage->mSBase == this, "Error, wrong image");
    GameConnection *con = GameConnection::getConnectionToServer();
    bool renderMounts = true;
-   if(con && con->getControlObject() == this && con->isFirstPerson())
+   if(con && isFirstPerson())
       renderMounts = sRenderMyItems;
    if (renderMounts == false)
       return;
 
    bool fogExemption = false;
-   if(con && con->getControlObject() == this && con->isFirstPerson() == true)
+   if(con && isFirstPerson() == true)
       fogExemption = true;
    F32 fogAmount = 0.0f;
    if (fogExemption == false)
@@ -4119,7 +4119,7 @@ void Player::renderImage(SceneState* state, SceneRenderImage* image)
    // Decide whether we are going to render the player shape or not
    bool renderPlayer = true;
    bool renderMounts = true;
-   if (con && con->getControlObject() == this && con->isFirstPerson()) {
+   if (con && isFirstPerson()) {
       renderPlayer = mDataBlock->renderFirstPerson;
 
       // Options that let the client turn off (but not on) rendering
@@ -4169,7 +4169,7 @@ void Player::renderImage(SceneState* state, SceneRenderImage* image)
 
       bool fogExemption = false;
       GameConnection *con = GameConnection::getConnectionToServer();
-      if(con && con->getControlObject() == this && con->isFirstPerson() == true)
+      if(con && isFirstPerson() == true)
          fogExemption = true;
       fogAmount = fogExemption ? 0.0 : state->getHazeAndFog(dist,cameraOffset.z);
 

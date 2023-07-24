@@ -276,7 +276,10 @@ void SceneGraph::buildSceneTree(SceneState*  state,
                                                smVisibleDistanceMod);
          newState->mFlipCull = state->mFlipCull ^ rPortal.flipCull;
          newState->setPortal(rPortal.owner, rPortal.portalIndex);
-
+         
+         // Don't immediately assume a portal is a mirror, the portal must tell us if we need to render the local player.
+         if (rPortal.renderFirstPersonShape)
+            newState->enableFirstPersonShapeOverride();
 
          glMatrixMode(GL_MODELVIEW);
          glPushMatrix();
