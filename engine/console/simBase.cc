@@ -836,14 +836,14 @@ void SimObject::setHidden(bool b = true)
    setDataField(StringTable->insert("hidden", false), NULL, b ? "true" : "false" );
 }
 
-const char* SimObject::getIdString()
+const char* SimObject::getIdString() const
 {
    static char IDbuffer[12];
    dSprintf(IDbuffer, sizeof(IDbuffer), "%d", mId);
    return IDbuffer;
 }
 
-const char* SimObject::scriptThis()
+const char* SimObject::scriptThis() const
 {
     return Con::getIntArg(getId());
 }

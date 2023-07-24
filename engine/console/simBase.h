@@ -699,11 +699,11 @@ class SimObject: public ConsoleObject
    /// @name Accessors
    /// @{
    SimObjectId getId() const { return mId; }
-   const char* getIdString();
+   const char* getIdString() const;
    U32         getType() const  { return mTypeMask; }
    const char* getName() const { return objectName; };
 
-   const char* scriptThis();    ///< Returns a value representing this object which can be passed to script functions.
+   const char* scriptThis() const;    ///< Returns a value representing this object which can be passed to script functions.
 
    void setId(SimObjectId id);
    void assignName(const char* name);
