@@ -74,41 +74,46 @@ bool FindMatch::findMatch( const char *str, bool caseSensitive )
    return false;
 }
 
+// Backported from T3D
+#define IS_CHAR_MATCH(a, b, sens) ((sens)? (a) == (b) : dTolower(a) == dTolower(b))
 bool FindMatch::isMatch( const char *exp, const char *str, bool caseSensitive )
 {
-   const char  *e=exp;
-   const char  *s=str;
-   bool  match=true;
+    if (str == NULL || exp == NULL)
+        return false;
 
-   while ( match && *e && *s )
-   {
-      switch( *e )
-      {
-         case '*':
-               e++;
-               match = false;
-               while( ((s=dStrchr(s,*e)) !=NULL) && !match )
-               {
-                  match = isMatch( e, s, caseSensitive );
-                  s++;
-               }
-               return( match );
-         case '?':
-            e++;
-            s++;
-            break;
-         default:
-            if (caseSensitive) match = ( *e++ == *s++ );
-            else match = ( dToupper(*e++) == dToupper(*s++) );
+    while (*str && (*exp != '*'))
+        if ( !IS_CHAR_MATCH(*exp++, *str++, caseSensitive) )
+            return false;
 
-            break;
-      }
-   }
+    const char* cp = NULL;
+    const char* mp = NULL;
 
-   if (*e != *s) // both exp and str should be at '\0' if match was successfull
-      match = false;
+    while (*str)
+    {
+        if (*exp == '*')
+        {
+            if (!*++exp)
+                return true;
 
-   return ( match );
+            mp = exp;
+            cp = str + 1;
+        }
+        else if ( (*exp == '?') || IS_CHAR_MATCH(*exp, *str, caseSensitive) )
+        {
+            exp++;
+            str++;
+        }
+        else
+        {
+            exp = mp;
+            str = cp++;
+        }
+    }
+
+    while (*exp == '*')
+        exp++;
+
+    return !*exp;
 }
 
 
