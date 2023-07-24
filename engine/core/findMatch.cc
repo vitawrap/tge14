@@ -74,7 +74,11 @@ bool FindMatch::findMatch( const char *str, bool caseSensitive )
    return false;
 }
 
-// Backported from T3D
+// Backported from T3D (and fixed)
+// ?: Consumes one character
+// *: Consumes any character while testing remainder, wildcard.
+// *N?: where N is N occurences of "?". Ensures the wildcard must be at least N chars long.
+// N?*: where N is N occurences of "?". Ensures there must be at least N chars before wildcard.
 #define IS_CHAR_MATCH(a, b, sens) ((sens)? (a) == (b) : dTolower(a) == dTolower(b))
 bool FindMatch::isMatch( const char *exp, const char *str, bool caseSensitive )
 {
@@ -99,7 +103,7 @@ bool FindMatch::isMatch( const char *exp, const char *str, bool caseSensitive )
             mp = exp;
             cp = str + 1;
         }
-        else if ( IS_CHAR_MATCH(*exp, *str, caseSensitive) )
+        else if ( (*exp == '?') || IS_CHAR_MATCH(*exp, *str, caseSensitive) )
         {
             exp++;
             str++;
