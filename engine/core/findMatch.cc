@@ -82,11 +82,12 @@ bool FindMatch::isMatch( const char *exp, const char *str, bool caseSensitive )
         return false;
 
     while (*str && (*exp != '*'))
-        if ( !IS_CHAR_MATCH(*exp++, *str++, caseSensitive) )
+        if ( !(*exp == '?' || IS_CHAR_MATCH(*exp, *str, caseSensitive)) )
             return false;
+        else { ++exp; ++str; }
 
-    const char* cp = NULL;
     const char* mp = NULL;
+    const char* cp = NULL;
 
     while (*str)
     {
@@ -98,7 +99,7 @@ bool FindMatch::isMatch( const char *exp, const char *str, bool caseSensitive )
             mp = exp;
             cp = str + 1;
         }
-        else if ( (*exp == '?') || IS_CHAR_MATCH(*exp, *str, caseSensitive) )
+        else if ( IS_CHAR_MATCH(*exp, *str, caseSensitive) )
         {
             exp++;
             str++;
