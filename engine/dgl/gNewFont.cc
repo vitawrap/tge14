@@ -240,6 +240,11 @@ ConsoleFunction(exportCachedFont, void, 6, 6, "(fontName, size, fileName, paddin
    // Tell the font to export itself.
    Resource<GFont> f = GFont::create(argv[1], dAtoi(argv[2]), Con::getVariable("$GUI::fontCacheDirectory"));
 
+   // Fun thing: at this point the font potentially doesn't have any or all of its char info filled.
+   // We force loading of at least the CP1252 range here...
+   for (U32 i = 0; i < 256; ++i)
+       f->loadCharInfo(i);
+
    if(f.isNull())
    {
       Con::errorf("populateFontCacheString - could not load font '%s %d'!", argv[1], dAtoi(argv[2]));

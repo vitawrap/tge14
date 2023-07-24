@@ -77,7 +77,6 @@ public:
    virtual ~GFont();
 
 protected:
-    bool loadCharInfo(const UTF16 ch);
     void addBitmap(PlatformFont::CharInfo &charInfo);
     void addSheet(void);
     void assignSheet(S32 sheetNum, GBitmap *bmp);
@@ -119,6 +118,9 @@ public:
    U32 getStrNWidthPrecise(const UTF8*, U32 n);
    
    void wrapString(const UTF8 *string, U32 width, Vector<U32> &startLineOffset, Vector<U32> &lineLen);
+
+   /// Load char info for character.
+   bool loadCharInfo(const UTF16 ch);
 
    /// Dump information about this font to the console.
    void dumpInfo();
