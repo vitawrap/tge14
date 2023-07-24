@@ -843,6 +843,11 @@ const char* SimObject::getIdString()
    return IDbuffer;
 }
 
+const char* SimObject::scriptThis()
+{
+    return Con::getIntArg(getId());
+}
+
 //---------------------------------------------------------------------------
 
 bool SimObject::onAdd()

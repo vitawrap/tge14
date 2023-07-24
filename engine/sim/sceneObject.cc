@@ -360,12 +360,6 @@ SceneObject::~SceneObject()
    unlink();
 }
 
-//----------------------------------------------------------------------------
-const char* SceneObject::scriptThis()
-{
-   return Con::getIntArg(getId());
-}
-
 
 //--------------------------------------------------------------------------
 void SceneObject::buildConvex(const Box3F&, Convex*)

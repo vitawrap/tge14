@@ -703,6 +703,8 @@ class SimObject: public ConsoleObject
    U32         getType() const  { return mTypeMask; }
    const char* getName() const { return objectName; };
 
+   const char* scriptThis();    ///< Returns a value representing this object which can be passed to script functions.
+
    void setId(SimObjectId id);
    void assignName(const char* name);
    SimGroup* getGroup() const { return mGroup; }
