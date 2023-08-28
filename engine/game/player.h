@@ -371,6 +371,7 @@ protected:
    static Range mArmRange;
    static Range mHeadVRange;
    static Range mHeadHRange;
+   S32 mCrouchSeq;
    /// @}
 
    bool mInMissionArea;          ///< Are we in the mission area?
@@ -511,6 +512,8 @@ public:
    virtual F32     getMass() const;
    virtual bool    displaceObject(const Point3F& displaceVector);
    virtual bool    getAIMove(Move*);
+
+   void setCrouching(bool val);
    bool getIsCrouching() const { return mCrouching; }
 
    bool checkDismountPosition(const MatrixF& oldPos, const MatrixF& newPos);  ///< Is it safe to dismount here?

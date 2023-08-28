@@ -854,6 +854,7 @@ Player::Player()
    dMemset( mSplashEmitter, 0, sizeof( mSplashEmitter ) );
 
    mHeadUp = false;
+   mCrouchSeq = -1;
 
    mImpactSound = 0;
    mRecoverTicks = 0;
@@ -1017,11 +1018,11 @@ bool Player::onNewDataBlock(GameBaseData* dptr)
 
    // Initialize head look thread
    TSShape const* shape = mShapeInstance->getShape();
-   S32 crouchSeq = shape->findSequence("crouch");
-   if (crouchSeq != -1)
+   mCrouchSeq = shape->findSequence("crouch");
+   if (mCrouchSeq != -1)
    {
        mCrouchThread = mShapeInstance->addThread();
-       mShapeInstance->setSequence(mCrouchThread, crouchSeq, 0);
+       mShapeInstance->setSequence(mCrouchThread, mCrouchSeq, 0);
        mShapeInstance->setTimeScale(mCrouchThread, mCrouching);
    }
    else
@@ -1779,7 +1780,12 @@ void Player::updateMove(const Move* move)
    }
 
    // Crouching behavior
-   mCrouching = (mDamageState == Enabled) && move->trigger[3];
+   if ((mDamageState == Enabled) && move->trigger[3])
+   {
+       setCrouching(true);
+   }
+   else
+       setCrouching(false);
 
    // Acceleration from Jumping
    if (move->trigger[2] && !isMounted() && canJump())
@@ -2537,6 +2543,14 @@ void Player::updateAnimation(F32 dt)
       mShapeInstance->advanceTime(dt,mActionAnimation.thread);
    if (mRecoilThread)
       mShapeInstance->advanceTime(dt,mRecoilThread);
+   if (mCrouchThread)
+   {
+       mShapeInstance->advanceTime(dt, mCrouchThread);
+       if (mShapeInstance->getPos(mCrouchThread) == 0.f && mShapeInstance->getTimeScale(mCrouchThread) != 1.f)
+           mShapeInstance->setSequence(mCrouchThread, 0, 0.f);
+   }
+   if (mHeadUpThread)
+       mShapeInstance->advanceTime(dt, mHeadUpThread);
 
    // If we are the client's player on this machine, then we need
    // to make sure the transforms are up to date as they are used
@@ -2574,6 +2588,31 @@ void Player::updateAnimationTree(bool firstPerson)
 
 
 //----------------------------------------------------------------------------
+
+void Player::setCrouching(bool val)
+{
+    if (mCrouching == val)
+        return;
+
+    if (isServerObject())
+        setMaskBits(MoveMask);
+
+    mCrouching = val;
+    onScaleChanged();
+    if (!val)
+    {
+        if (mCrouchThread)
+            mShapeInstance->setTimeScale(mCrouchThread, -1.f);
+    }
+    else
+    {
+        if (mCrouchThread)
+        {
+            mShapeInstance->setTimeScale(mCrouchThread, 1.f);
+            mShapeInstance->setSequence(mCrouchThread, mCrouchSeq, 0.f);
+        }
+    }
+}
 
 bool Player::step(Point3F *pos,F32 *maxStep,F32 time)
 {
