@@ -12,6 +12,9 @@
 #ifndef _TSSHAPE_H_
 #include "ts/tsShape.h"
 #endif
+#ifndef _NETSTRINGTABLE_H_
+#include "sim/netStringTable.h"
+#endif
 
 class ParticleEmitter;
 class ParticleEmitterData;
@@ -136,6 +139,7 @@ class Explosion : public GameBase
    S32      mDelayMS;
    F32      mRandomVal;
    U32      mCollideType;
+   StringHandle mDebSkinHandle;
 
   protected:
    bool onAdd();
@@ -163,6 +167,7 @@ class Explosion : public GameBase
 
    bool onNewDataBlock(GameBaseData* dptr);
    void setCollideType( U32 cType ){ mCollideType = cType; }
+   void setDebrisSkin(StringHandle const& name) { mDebSkinHandle = name; };
 
    DECLARE_CONOBJECT(Explosion);
    static void initPersistFields();

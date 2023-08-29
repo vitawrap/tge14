@@ -952,3 +952,12 @@ void Debris::setSize( F32 size )
 {
    mSize = size;
 }
+
+//----------------------------------------------------------------------------
+// Fast reskin shape if there is any
+//----------------------------------------------------------------------------
+void Debris::setShapeSkin( StringHandle& name )
+{
+    if (mShape)
+        mShape->reSkin(name);
+}
