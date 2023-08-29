@@ -2015,9 +2015,107 @@ void Player::updateLookAnimation()
    // the min and max look angles provided in the datablock.
    if (mArmAnimation.thread) {
       // TG: Adjust arm position to avoid collision.
+      // [2023] Thanks Clay Hanson.
+      RayInfo ri;
       F32 tp = mControlObject? 0.5:
          (mHead.x - mArmRange.min) / mArmRange.delta;
-      mShapeInstance->setPos(mArmAnimation.thread,mClampF(tp,0,1));
+      Point3F fwd;
+      Point3F ourPos;
+      Point3F start;
+      Point3F end;
+      Point3F offset;
+      F32 mag;
+      F32 newT;
+
+      if (mDamageState > ShapeBase::Enabled)
+      {
+          mShapeInstance->setPos(mArmAnimation.thread, 0.5f);
+          return;
+      }
+
+      U32 collisionMask = StaticTSObjectType | StaticShapeObjectType | InteriorObjectType | TerrainObjectType;
+
+      if (isClientObject())
+          mRenderObjToWorld.getColumn(1, &fwd);
+      else
+          mObjToWorld.getColumn(1, &fwd);
+
+      F32 scalarZ = mObjScale.z * 2.2f;
+      fwd.z = 0.f;
+      fwd.normalizeSafe();
+      fwd *= scalarZ;
+
+      ourPos = getPosition();
+      start = ourPos;
+      start.z += 0.67f;
+      offset = (fwd * 0.25f) + start;
+      start += (fwd * 0.25f);
+
+      if (mMount.object)
+      {
+          mShapeInstance->setPos(mArmAnimation.thread, tp);
+      }
+      else
+      {
+          if (tp <= 0.5f)
+          {
+              if (mCrouching)
+              {
+                  if (isServerObject())
+                      start = end = getPosition();
+                  else
+                      start = end = getRenderPosition();
+                  end.z = start.z + .5f + scalarZ;
+                  start.z += .5f;
+              }
+              else
+              {
+                  ourPos = offset - fwd;
+                  end = offset - fwd;
+              }
+
+              if (mContainer->castRay(start, end, collisionMask, &ri))
+              {
+                  ourPos = ri.point - start;
+                  mag = ourPos.magnitudeSafe();
+                  newT = mAcos(mag / scalarZ) * .3184f;
+                  mShapeInstance->setPos(mArmAnimation.thread, newT <= tp? tp : newT);
+              }
+              else
+              {
+                  mShapeInstance->setPos(mArmAnimation.thread, tp);
+              }
+          }
+          else
+          {
+              if (mCrouching)
+              {
+                  if (isServerObject())
+                      start = end = getPosition();
+                  else
+                      start = end = getRenderPosition();
+                  end.z -= scalarZ;
+                  start.z += .5f;
+              }
+              else
+              {
+                  ourPos = offset + fwd;
+                  end = offset + fwd;
+              }
+
+              if ((isClientObject() && isFirstPerson()) || !mContainer->castRay(start, end, collisionMask, &ri))
+              {
+                  mShapeInstance->setPos(mArmAnimation.thread, tp);
+              }
+              else
+              {
+                  ourPos = ri.point - start;
+                  mag = ourPos.magnitudeSafe();
+                  newT = ((1.57 - mAcos(mag / scalarZ)) * .6369f + 1.f) * .5f;
+                  mShapeInstance->setPos(mArmAnimation.thread, tp <= newT ? tp : newT);
+              }
+          }
+      }
    }
    if (mHeadVThread) {
       F32 tp = (mHead.x - mHeadVRange.min) / mHeadVRange.delta;
