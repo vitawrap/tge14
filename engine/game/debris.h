@@ -9,6 +9,9 @@
 #ifndef _GAMEBASE_H_
 #include "game/gameBase.h"
 #endif
+#ifndef _NETSTRINGTABLE_H_
+#include "sim/netStringTable.h"
+#endif
 
 class ParticleEmitterData;
 class ParticleEmitter;
@@ -142,6 +145,7 @@ public:
    void  setSize( F32 size );
    void  setVelocity( const Point3F &vel ){ mVelocity = vel; }
    void  setRotAngles( const Point3F &angles ){ mRotAngles = angles; }
+   void  setShapeSkin( StringHandle& name);
 
    DECLARE_CONOBJECT(Debris);
 

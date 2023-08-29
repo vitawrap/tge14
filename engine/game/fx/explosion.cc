@@ -1041,6 +1041,9 @@ void Explosion::launchDebris( Point3F &axis )
          delete debris;
          debris = NULL;
       }
+
+      if (!mDebSkinHandle.isNull())
+          debris->setShapeSkin(mDebSkinHandle);
    }
 }
 

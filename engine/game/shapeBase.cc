@@ -1436,6 +1436,7 @@ void ShapeBase::blowUp()
       {
          pExplosion = new Explosion;
          pExplosion->onNewDataBlock(mDataBlock->explosion);
+         pExplosion->setDebrisSkin(mSkinNameHandle);
       }
    }
 
