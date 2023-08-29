@@ -329,6 +329,11 @@ void Item::setCollisionTimeout(ShapeBase* obj)
    setMaskBits(ThrowSrcMask);
 }
 
+void Item::hide(bool hide)
+{
+    // TODO:
+    Con::printf("Item::hide(%s)", hide? "true": "false");
+}
 
 //----------------------------------------------------------------------------
 
@@ -1021,6 +1026,11 @@ ConsoleMethod( Item, getLastStickyNormal, const char *, 2, 2, "()"
       dStrcpy(ret, "0 0 0");
 
    return ret;
+}
+
+ConsoleMethod( Item, hide, void, 3, 3, "(bool val)")
+{
+    object->hide(dAtob(argv[2]));
 }
 
 //----------------------------------------------------------------------------

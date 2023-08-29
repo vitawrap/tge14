@@ -146,6 +146,7 @@ class Item: public ShapeBase
    void applyImpulse(const Point3F& pos,const VectorF& vec);
    void setCollisionTimeout(ShapeBase* obj);
    ShapeBase* getCollisionObject()   { return mCollisionObject; };
+   void hide(bool hide);
 
    void processTick(const Move *move);
    void interpolateTick(F32 delta);
