@@ -50,6 +50,8 @@ struct ItemData: public ShapeBaseData {
 
 //----------------------------------------------------------------------------
 
+constexpr U32 sCollisionTimeout = 15;      // Timeout value in ticks
+
 class Item: public ShapeBase
 {
    typedef ShapeBase Parent;
@@ -144,9 +146,8 @@ class Item: public ShapeBase
    Point3F getVelocity() const;
    void setVelocity(const VectorF& vel);
    void applyImpulse(const Point3F& pos,const VectorF& vec);
-   void setCollisionTimeout(ShapeBase* obj);
+   void setCollisionTimeout(ShapeBase* obj, U32 ticks = sCollisionTimeout);
    ShapeBase* getCollisionObject()   { return mCollisionObject; };
-   void hide(bool hide);
 
    void processTick(const Move *move);
    void interpolateTick(F32 delta);
