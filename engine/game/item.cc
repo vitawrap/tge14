@@ -23,7 +23,6 @@
 
 const F32 sRotationSpeed = 3.0;        // Secs/Rotation
 const F32 sAtRestVelocity = 0.15;      // Min speed after collision
-const S32 sCollisionTimeout = 15;      // Timout value in ticks
 
 // Client prediction
 static F32 sMinWarpTicks = 0.5;        // Fraction of tick at which instant warp occures
@@ -322,20 +321,14 @@ void Item::applyImpulse(const Point3F&,const VectorF& vec)
    setVelocity(vel);
 }
 
-void Item::setCollisionTimeout(ShapeBase* obj)
+void Item::setCollisionTimeout(ShapeBase* obj, U32 ticks)
 {
    if (mCollisionObject)
       clearNotify(mCollisionObject);
    deleteNotify(obj);
    mCollisionObject = obj;
-   mCollisionTimeout = sCollisionTimeout;
+   mCollisionTimeout = ticks;
    setMaskBits(ThrowSrcMask);
-}
-
-void Item::hide(bool hide)
-{
-    // TODO:
-    Con::printf("Item::hide(%s)", hide? "true": "false");
 }
 
 //----------------------------------------------------------------------------
@@ -988,13 +981,16 @@ ConsoleMethod(Item, isRotating, bool, 2, 2, "()"
    return object->isRotating();
 }
 
-ConsoleMethod(Item, setCollisionTimeout, bool, 3, 3, "(ShapeBase obj)"
-              "Temporarily disable collisions against obj.")
+ConsoleMethod(Item, setCollisionTimeout, bool, 3, 4, "(ShapeBase obj [, S32 n])"
+              "Disable collisions against obj for n ticks.")
 {
    ShapeBase* source;
    if (Sim::findObject(dAtoi(argv[2]),source))
    {
-      object->setCollisionTimeout(source);
+      if (argc == 3)
+          object->setCollisionTimeout(source);
+      else if (argc == 4)
+          object->setCollisionTimeout(source, dAtoi(argv[3]));
       return true;
    }
 
@@ -1029,11 +1025,6 @@ ConsoleMethod( Item, getLastStickyNormal, const char *, 2, 2, "()"
       dStrcpy(ret, "0 0 0");
 
    return ret;
-}
-
-ConsoleMethod( Item, hide, void, 3, 3, "(bool val)")
-{
-    object->hide(dAtob(argv[2]));
 }
 
 //----------------------------------------------------------------------------
