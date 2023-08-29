@@ -126,6 +126,7 @@ void ItemData::packData(BitStream* stream)
       stream->write(lightRadius);
       stream->writeFlag(lightOnlyStatic);
    }
+   stream->writeFloat(maxCamScale, 10);
 }
 
 void ItemData::unpackData(BitStream* stream)
@@ -158,6 +159,8 @@ void ItemData::unpackData(BitStream* stream)
    }
    else
       lightType = Item::NoLight;
+
+   maxCamScale = stream->readFloat(10);
 }
 
 
