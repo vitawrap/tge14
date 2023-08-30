@@ -334,6 +334,13 @@ void Sky::consoleInit()
    Con::addVariable("pref::NumCloudLayers", TypeS32, &smNumCloudsOn);
    Con::addVariable("pref::SkyOn",          TypeBool, &smSkyOn);
 }
+
+void Sky::onStaticModified(char const* slot)
+{
+    if (isServerObject() && dStricmp(slot, "materialList") == 0)
+        setMaskBits(InitMask);
+}
+
 //---------------------------------------------------------------------------
 void Sky::unpackUpdate(NetConnection *, BitStream *stream)
 {
@@ -1213,10 +1220,17 @@ void Sky::calcPoints()
 //---------------------------------------------------------------------------
 bool Sky::loadDml()
 {
-   char path[1024], *p;
+   char path[1024] {};
    dStrncpy(path, mMaterialListName, 1023);
-   if ((p = dStrrchr(path, '/')) != NULL)
-      *p = 0;
+   S32 len = dStrlen(path);
+   // Restrictive indeed... but loadDml is called on a client with info from the server.
+   // So only allow .dml files whose format is expected to be text only.
+   if (dStricmp(path + (len - 4), ".dml") != 0)
+   {
+       Con::errorf("Sky::loadDml: \"%s\" is not a valid dml file.", path);
+       return false;
+   }
+
    mNumCloudLayers = 0;
    Stream *stream = ResourceManager->openStream(mMaterialListName);
    if (stream==NULL)

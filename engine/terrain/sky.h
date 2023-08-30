@@ -259,6 +259,7 @@ class Sky : public SceneObject
    DECLARE_CONOBJECT(Sky);
    static void initPersistFields();
    static void consoleInit();
+   virtual void onStaticModified(char const* slot) override;
 
    bool processArguments(S32 argc, const char **argv);
 
