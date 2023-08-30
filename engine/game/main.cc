@@ -677,8 +677,8 @@ void DemoGame::processTimeEvent(TimeEvent *event)
    fpsUpdate();
    PROFILE_END();
 
-   // Update the console time
-   Con::setFloatVariable("Sim::Time",F32(Platform::getVirtualMilliseconds()) / 1000);
+   // Update the console time (Don't actually use $Sim::time, exclusively rely on getSimTime)
+   // Con::setFloatVariable("Sim::Time",F32(Platform::getVirtualMilliseconds()) / 1000);
 }
 
 /// Re-activate the game from, say, a minimized state
