@@ -505,10 +505,9 @@ ConsoleMethod(GameBase, setDataBlock, bool, 3, 3, "(DataBlock db)"
 }
 
 //----------------------------------------------------------------------------
-ConsoleMethod(NetObject, forceInitialUpdate, void, 2, 2, "Re-initialize object for clients")
+ConsoleMethod(GameBase, forceInitialUpdate, void, 2, 2, "Re-initialize object for clients")
 {
-    if (object->isServerObject() && dynamic_cast<GameBase*>(object))
-        object->setMaskBits(GameBase::InitialUpdateMask);
+    object->setMaskBits(GameBase::InitialUpdateMask);
 }
 
 //----------------------------------------------------------------------------
