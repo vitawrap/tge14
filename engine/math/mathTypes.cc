@@ -489,6 +489,30 @@ ConsoleFunction( MatrixMulPoint, const char*, 3, 3, "(MatrixF xfrm, Point3F pnt)
 
 ConsoleFunctionGroupEnd(MatrixMath);
 
+ConsoleFunctionGroupBegin(PlaneMath, "Plane manipulation functions.");
+
+ConsoleFunction(PlaneDist, F32, 3, 3, "(PlaneF plane, Point3F pt) Get signed distance of pt from plane.")
+{
+    PlaneF pl;
+    dSscanf(argv[1], "%g %g %g %g", &pl.x, &pl.y, &pl.z, &pl.d);
+    Point3F pt(argv[2]);
+
+    return pl.distToPlane(pt);
+}
+
+ConsoleFunction(PlaneProject, const char*, 3, 3, "(PlaneF plane, Point3F pt) Project pt on plane.")
+{
+    PlaneF pl;
+    dSscanf(argv[1], "%g %g %g %g", &pl.x, &pl.y, &pl.z, &pl.d);
+
+    Point3F pt = pl.project(Point3F(argv[2]));
+    char* ret = Con::getReturnBuffer(256);
+    dSprintf(ret, 255, "%g %g %g", pt.x, pt.y, pt.z);
+    return ret;
+}
+
+ConsoleFunctionGroupEnd(PlaneMath);
+
 //------------------------------------------------------------------------------
 
 ConsoleFunction( getBoxCenter, const char*, 2, 2, "(Box b) Get the center point of a box.")
