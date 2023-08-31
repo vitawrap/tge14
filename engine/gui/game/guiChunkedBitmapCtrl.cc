@@ -23,6 +23,8 @@ protected:
    bool  mUseVariable;
    bool  mTile;
 
+   bool  mCorrectAspect;
+
 public:
    //creation methods
    DECLARE_CONOBJECT(GuiChunkedBitmapCtrl);
@@ -47,6 +49,7 @@ void GuiChunkedBitmapCtrl::initPersistFields()
    addField( "bitmap",        TypeFilename,  Offset( mBitmapName, GuiChunkedBitmapCtrl ) );
    addField( "useVariable",   TypeBool,      Offset( mUseVariable, GuiChunkedBitmapCtrl ) );
    addField( "tile",          TypeBool,      Offset( mTile, GuiChunkedBitmapCtrl ) );
+   addField( "correctAspect", TypeBool,      Offset( mCorrectAspect, GuiChunkedBitmapCtrl ) );
    endGroup("Misc");		
 }
 
@@ -61,6 +64,7 @@ GuiChunkedBitmapCtrl::GuiChunkedBitmapCtrl()
    mBitmapName = StringTable->insert("");
    mUseVariable = false;
    mTile = false;
+   mCorrectAspect = false;
 }
 
 void GuiChunkedBitmapCtrl::setBitmap(const char *name)
@@ -102,6 +106,7 @@ void GuiChunkedBitmapCtrl::renderRegion(const Point2I &offset, const Point2I &ex
    F32 widthScale = F32(extent.x) / F32(mTexHandle.getWidth());
    F32 heightScale = F32(extent.y) / F32(mTexHandle.getHeight());
    dglSetBitmapModulation(ColorF(1,1,1));
+
    for(U32 i = 0; i < widthCount; i++)
    {
       for(U32 j = 0; j < heightCount; j++)
@@ -128,18 +133,45 @@ void GuiChunkedBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 {
    if(mTexHandle)
    {
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+
+      Point2I imgOffset = offset;
+      RectI imgRect = updateRect;
+
+      if (mCorrectAspect)
+      {
+          F32 bitmapDims = (F32)mTexHandle.getWidth() / mTexHandle.getHeight();
+          F32 screenDims = (F32)updateRect.len_x() / updateRect.len_y();
+
+          if (screenDims < bitmapDims)
+          {
+              F32 width = (F32)mTexHandle.getWidth() * ((F32)updateRect.len_y() / mTexHandle.getHeight());
+              imgOffset.x += (updateRect.len_x() - width) * .5f;
+              imgRect.extent.x = width;
+          }
+          else
+          {
+              F32 height = (F32)mTexHandle.getHeight() * ((F32)updateRect.len_x() / mTexHandle.getWidth());
+              imgOffset.y += (updateRect.len_y() - height) * .5f;
+              imgRect.extent.y = height;
+          }
+      }
+
       if (mTile)
       {
          int stepy = 0;
-         for(int y = 0; offset.y + stepy < mBounds.extent.y; stepy += mTexHandle.getHeight())
+         for(int y = 0; imgOffset.y + stepy < imgRect.extent.y; stepy += mTexHandle.getHeight())
          {
             int stepx = 0;
-            for(int x = 0; offset.x + stepx < mBounds.extent.x; stepx += mTexHandle.getWidth())
-               renderRegion(Point2I(offset.x+stepx, offset.y+stepy), Point2I(mTexHandle.getWidth(), mTexHandle.getHeight()) );
+            for(int x = 0; imgOffset.x + stepx < imgRect.extent.x; stepx += mTexHandle.getWidth())
+               renderRegion(Point2I(imgOffset.x+stepx, imgOffset.y+stepy), Point2I(mTexHandle.getWidth(), mTexHandle.getHeight()) );
          }
       }
       else
-         renderRegion(offset, mBounds.extent);
+         renderRegion(imgOffset, imgRect.extent);
+      
+      glPopMatrix();
 
       renderChildControls(offset, updateRect);
    }
