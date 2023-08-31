@@ -133,9 +133,6 @@ void GuiChunkedBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 {
    if(mTexHandle)
    {
-      glMatrixMode(GL_MODELVIEW);
-      glPushMatrix();
-
       Point2I imgOffset = offset;
       RectI imgRect = updateRect;
 
@@ -170,8 +167,6 @@ void GuiChunkedBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
       }
       else
          renderRegion(imgOffset, imgRect.extent);
-      
-      glPopMatrix();
 
       renderChildControls(offset, updateRect);
    }
