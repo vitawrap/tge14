@@ -273,7 +273,7 @@ void fxLightData::unpackData(BitStream* stream)
 	stream->read(&mColour);
 
 	// Flare.
-	mFlareTextureName = StringTable->insert(stream->readSTString());
+	mFlareTextureName = stream->readSTString();
 	stream->read(&mFlareColour);
 	stream->read(&mFlareOn);
 	stream->read(&mFlareTP);
@@ -449,7 +449,7 @@ void fxLight::setFlareBitmap(const char* Name)
 		mFlareTextureHandle = NULL;
 
 		// Got a nice flare texture?
-		if (*mDataBlock->mFlareTextureName)
+		if (mDataBlock->mFlareTextureName && mDataBlock->mFlareTextureName[0])
 		{
 			// Yes, so load it.
 			mFlareTextureHandle = TextureHandle(mDataBlock->mFlareTextureName, BitmapTexture, true);
@@ -1129,9 +1129,9 @@ bool fxLight::onAdd()
 	// Only on client.
 	if (isClientObject())
 	{
-		// Fetch Textures.
-		mIconTextureHandle = TextureHandle(FXLIGHTDBICONTEXTURE, BitmapTexture, true);
-		setFlareBitmap(mDataBlock->mFlareTextureName);
+		// Fetch Textures. ...Uh this is inevitably overwritten by onNewDatablock?
+		//mIconTextureHandle = TextureHandle(FXLIGHTDBICONTEXTURE, BitmapTexture, true);
+		//setFlareBitmap(mDataBlock->mFlareTextureName);
 
 		// Add object to Light Set.
 		Sim::getLightSet()->addObject(this);
