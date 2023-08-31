@@ -1500,7 +1500,7 @@ void Player::updateMove(const Move* move)
       if (y > M_PI) y -= M_2PI;
 
       GameConnection* con = getControllingClient();
-      if (move->freeLook && ((isMounted() && getMountNode() == 0) || (con && !isFirstPerson())))
+      if (move->freeLook && ((isMounted() && getMountNode() == 0) || (con && !con->isFirstPerson())))
       {
          mHead.z = mClampF(mHead.z + y,
                            -mDataBlock->maxFreelookAngle,
