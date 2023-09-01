@@ -134,23 +134,23 @@ void GuiChunkedBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
    if(mTexHandle)
    {
       Point2I imgOffset = offset;
-      RectI imgRect = updateRect;
+      RectI imgRect = mBounds;
 
       if (mCorrectAspect)
       {
           F32 bitmapDims = (F32)mTexHandle.getWidth() / mTexHandle.getHeight();
-          F32 screenDims = (F32)updateRect.len_x() / updateRect.len_y();
+          F32 screenDims = (F32)mBounds.len_x() / mBounds.len_y();
 
           if (screenDims < bitmapDims)
           {
-              F32 width = (F32)mTexHandle.getWidth() * ((F32)updateRect.len_y() / mTexHandle.getHeight());
-              imgOffset.x += (updateRect.len_x() - width) * .5f;
+              F32 width = (F32)mTexHandle.getWidth() * ((F32)mBounds.len_y() / mTexHandle.getHeight());
+              imgOffset.x += (mBounds.len_x() - width) * .5f;
               imgRect.extent.x = width;
           }
           else
           {
-              F32 height = (F32)mTexHandle.getHeight() * ((F32)updateRect.len_x() / mTexHandle.getWidth());
-              imgOffset.y += (updateRect.len_y() - height) * .5f;
+              F32 height = (F32)mTexHandle.getHeight() * ((F32)mBounds.len_x() / mTexHandle.getWidth());
+              imgOffset.y += (mBounds.len_y() - height) * .5f;
               imgRect.extent.y = height;
           }
       }
