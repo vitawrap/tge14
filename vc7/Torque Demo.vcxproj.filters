@@ -1256,6 +1256,9 @@
     <ClCompile Include="..\engine\game\rotatingDoor.cc">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\gui\game\guiLetterboxCtrl.cc">
+      <Filter>Source Files\gui\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">
