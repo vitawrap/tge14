@@ -56,32 +56,12 @@ void GuiStackControl::updatePanes()
       // except we have to assign positions in an arse backwards way
       // (literally :P)
 
-      // Figure out how high everything is going to be...
-      // Place each child...
-      for(S32 i=0; i<size(); i++)
-      {
-         // Place control
-         GuiControl * gc = dynamic_cast<GuiControl*>(operator [](i));
-
-         if(gc)
-         {
-            Point2I childExtent = gc->getExtent();
-            totalHeight += childExtent.y;
-         }
-      }
-
       // Figure out where we're starting...
       curPos = getPosition();
-      curPos.y += totalHeight;
-
-      // Offset so the bottom control goes in the right place...
-      GuiControl * gc = dynamic_cast<GuiControl*>(operator [](size()-1));
-      if(gc)
-         curPos.y -= gc->getExtent().y;
-
+      curPos.y += getExtent().y;
 
       // Now work up from there!
-      for(S32 i=size()-1; i>=0; i--)
+      for(S32 i=0; i<size(); i++)
       {
          // Place control
          GuiControl * gc = dynamic_cast<GuiControl*>(operator [](i));
@@ -94,12 +74,14 @@ void GuiStackControl::updatePanes()
             Point2I childExtent = gc->getExtent();
 
             // Update our state...
-            curPos.y -= childExtent.y - mPadding;
+            curPos.y -= childExtent.y + mPadding;
 
             // And resize...
             gc->resize(curPos - getPosition(), Point2I(getExtent().x, childExtent.y));
          }
       }
+
+      // No size conforming here apparently.
    }
    else
    {
