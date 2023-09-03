@@ -1462,6 +1462,7 @@ void ShapeBase::blowUp()
    else
    {
       debShape = new TSShapeInstance( mDataBlock->debrisShape, true);
+      debShape->reSkin( mSkinNameHandle );
    }
 
 
