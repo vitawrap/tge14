@@ -96,8 +96,10 @@ bool GuiTextEditCtrl::onAdd()
          mHistoryBuf[i][0] = '\0';
       }
    }
-
-   setText(mText);
+   
+   // Console variable has priority over text value for construction.
+   if ((mText && mText[0]) && !(mConsoleVariable && mConsoleVariable[0]))
+      setText(mText);
 
    return true;
 }
