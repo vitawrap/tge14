@@ -240,6 +240,12 @@ struct PlayerData: public ShapeBaseData {
    S32 splashEmitterIDList[NUM_SPLASH_EMITTERS];
    /// @}
 
+   /// @name Destruction
+   /// Restore destruction behavior for the player
+   /// @{
+   bool destroyOnDisable;
+   /// @}
+
    //
    DECLARE_CONOBJECT(PlayerData);
    PlayerData();

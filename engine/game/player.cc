@@ -257,6 +257,9 @@ PlayerData::PlayerData()
    groundImpactShakeAmp.set( 20.0, 20.0, 20.0 );
    groundImpactShakeDuration = 1.0;
    groundImpactShakeFalloff = 10.0;
+
+   // destroy when dying
+   destroyOnDisable = false;
 }
 
 bool PlayerData::preload(bool server, char errorBuffer[ErrorBufferSize])
@@ -543,6 +546,8 @@ void PlayerData::initPersistFields()
    addField("groundImpactShakeAmp",       TypePoint3F,   Offset(groundImpactShakeAmp,        PlayerData));
    addField("groundImpactShakeDuration",  TypeF32,       Offset(groundImpactShakeDuration,   PlayerData));
    addField("groundImpactShakeFalloff",   TypeF32,       Offset(groundImpactShakeFalloff,    PlayerData));
+
+   addField("destroyOnDisable", TypeBool, Offset(destroyOnDisable, PlayerData));
 }
 
 void PlayerData::packData(BitStream* stream)
@@ -669,6 +674,8 @@ void PlayerData::packData(BitStream* stream)
    stream->write(groundImpactShakeAmp.z);
    stream->write(groundImpactShakeDuration);
    stream->write(groundImpactShakeFalloff);
+
+   stream->writeFlag(destroyOnDisable);
 }
 
 void PlayerData::unpackData(BitStream* stream)
@@ -797,6 +804,8 @@ void PlayerData::unpackData(BitStream* stream)
    stream->read(&groundImpactShakeAmp.z);
    stream->read(&groundImpactShakeDuration);
    stream->read(&groundImpactShakeFalloff);
+
+   destroyOnDisable = stream->readFlag();
 }
 
 
@@ -1986,7 +1995,7 @@ bool Player::canJump()
 void Player::updateDamageLevel()
 {
    if (!isGhost())
-      setDamageState((mDamage >= mDataBlock->maxDamage)? Disabled: Enabled);
+      setDamageState((mDamage >= mDataBlock->maxDamage)? (mDataBlock->destroyOnDisable? Destroyed : Disabled) : Enabled);
    if (mDamageThread)
       mShapeInstance->setPos(mDamageThread, mDamage / mDataBlock->destroyedLevel);
 }
