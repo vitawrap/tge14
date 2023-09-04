@@ -1416,11 +1416,21 @@ void ShapeBase::updateDamageState()
 
 void ShapeBase::blowUp()
 {
+   // Hack for a shape to look decent when debrisShape uses the same shapeName.
    Point3F center;
-   mObjBox.getCenter(&center);
-   center += getPosition();
-   MatrixF trans = getTransform();
-   trans.setPosition( center );
+   MatrixF trans;
+   if (mDataBlock->shapeName == mDataBlock->debrisShapeName)
+   {
+       center = getPosition();
+       trans = getTransform();
+   }
+   else
+   {
+       mObjBox.getCenter(&center);
+       center += getPosition();
+       trans = getTransform();
+       trans.setPosition( center );
+   }
 
    // explode
    Explosion* pExplosion = NULL;
