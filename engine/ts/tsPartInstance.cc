@@ -223,20 +223,24 @@ void TSPartInstance::render(S32 od, const Point3F * objectScale)
    if (mSourceShape->twoPassEnvironmentMap())
       renderEnvironmentMap(od);
 
-   // set up gl environment for decals...
-   TSDecalMesh::initDecalMaterials();
+   // Only mutate the GL state if we have at least some decals to render...
+   if (mDecalObjects.size())
+   {
+       // set up gl environment for decals...
+       TSDecalMesh::initDecalMaterials();
 
-   // render decals...
-   TSShapeInstance::smRenderData.currentTransform = NULL;
-   for (i=0; i<mDecalObjects.size(); i++)
-      mDecalObjects[i]->render(od,mSourceShape->mMaterialList);
+       // render decals...
+       TSShapeInstance::smRenderData.currentTransform = NULL;
+       for (i=0; i<mDecalObjects.size(); i++)
+          mDecalObjects[i]->render(od,mSourceShape->mMaterialList);
 
-   // if we have a matrix pushed, pop it now
-   if (TSShapeInstance::smRenderData.currentTransform)
-      glPopMatrix();
+       // if we have a matrix pushed, pop it now
+       if (TSShapeInstance::smRenderData.currentTransform)
+          glPopMatrix();
 
-   // restore gl state
-   TSDecalMesh::resetDecalMaterials();
+       // restore gl state
+       TSDecalMesh::resetDecalMaterials();
+   }
 
    // render fog if 2-passing it
    if (mSourceShape->twoPassFog())
