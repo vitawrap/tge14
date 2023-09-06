@@ -210,7 +210,7 @@ void Camera::processTick(const Move* move)
                 }
             }
             setPosition(mPosition, mRot);
-            validateEyePoint(1.0f, &mObjToWorld);
+            validateEyePoint(1.0f, &mRenderObjToWorld);
             pos = mPosition;
         }
         else
@@ -283,7 +283,7 @@ void Camera::interpolateTick(F32 dt)
             }
         }
         setRenderPosition(mPosition, rot);
-        validateEyePoint(1.0f, &mObjToWorld);
+        validateEyePoint(1.0f, &mRenderObjToWorld);
     }
     else
     {
@@ -483,7 +483,7 @@ ConsoleMethod(Camera, getPosition, const char*, 2, 2, "()"
 ConsoleMethod(Camera, setOrbitMode, void, 7, 8, "(GameBase orbitObject, transform mat, float minDistance,"
     " float maxDistance, float curDistance, bool ownClientObject)"
     "Set the camera to orbit around some given object.\n\n"
-    "@param   orbitObject  Object we want to orbit.\n"
+    "@param   orbitObject  Object we want to orbit. (or none for point orbit)\n"
     "@param   mat          A set of fields: posX posY posZ aaX aaY aaZ aaTheta\n"
     "@param   minDistance  Minimum distance to keep from object.\n"
     "@param   maxDistance  Maximum distance to keep from object.\n"
@@ -494,13 +494,9 @@ ConsoleMethod(Camera, setOrbitMode, void, 7, 8, "(GameBase orbitObject, transfor
     AngAxisF aa;
     F32 minDis, maxDis, curDis;
 
+    // This can be 0, then we orbit around a static transform.
     GameBase* orbitObject = NULL;
-    if (Sim::findObject(argv[2], orbitObject) == false)
-    {
-        Con::warnf("Cannot orbit non-existing object.");
-        object->setFlyMode();
-        return;
-    }
+    Sim::findObject(argv[2], orbitObject);
 
     dSscanf(argv[3], "%g %g %g %g %g %g %g",
         &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
@@ -592,7 +588,8 @@ void Camera::validateEyePoint(F32 pos, MatrixF* mat)
         // Use the eye transform to orient the camera
         Point3F dir;
         mat->getColumn(1, &dir);
-        pos *= mMaxOrbitDist - mMinOrbitDist;
+        if (mMaxOrbitDist - mMinOrbitDist > 0.0f)
+            pos *= mMaxOrbitDist - mMinOrbitDist;
 
         // Use the camera node's pos.
         Point3F startPos = getRenderPosition();
