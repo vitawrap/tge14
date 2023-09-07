@@ -16,6 +16,7 @@
 #include "game/gameConnection.h"
 #include "math/mathIO.h"
 #include "editor/editor.h"
+#include "game/fx/cameraFXMgr.h"
 
 #define MaxPitch 1.3962
 #define CameraRadius    0.05;
@@ -289,6 +290,15 @@ void Camera::interpolateTick(F32 dt)
     {
         Point3F pos = delta.pos + delta.posVec * dt;
         setRenderPosition(pos, rot);
+    }
+
+    // ugly copy-paste from player.cc
+    GameConnection* con = GameConnection::getConnectionToServer();
+    if (con->getControlObject() == this)
+    {
+        MatrixF curTrans = getRenderTransform();
+        curTrans.mul(gCamFXMgr.getTrans());
+        Parent::setRenderTransform(curTrans);
     }
 }
 

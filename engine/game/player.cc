@@ -1318,8 +1318,8 @@ void Player::advanceTime(F32 dt)
    {
       if( mDamageState == Disabled || mDamageState == Destroyed )
       {
-         // clear out all camera effects being applied to player if dead
-         gCamFXMgr.clear();
+         // allow cam fx to continue while dead
+         // gCamFXMgr.clear();
       }
    }
 }
