@@ -63,9 +63,9 @@ PathCamera::PathCamera()
    mTarget = 0;
    mTargetSet = false;
 
-   MatrixF mat(1);
-   mat.setPosition(Point3F(0,0,700));
-   Parent::setTransform(mat);
+   //MatrixF mat(1);
+   //mat.setPosition(Point3F(0,0,700));
+   //Parent::setTransform(mat);
 }
 
 PathCamera::~PathCamera()
