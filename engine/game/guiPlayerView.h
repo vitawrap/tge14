@@ -47,9 +47,16 @@ class GuiPlayerView : public GuiTSCtrl
 
       MouseState  mMouseState;
 
+      struct PreviewImage
+      {
+          TSShapeInstance* shape;
+          S32 imageNode;
+          S32 shapeNode;
+          U32 skinTag;
+      };
+      Vector<PreviewImage> mImages;
       TSShapeInstance*  mModel;
-      TSShapeInstance*  mWeapon;
-      U32   mSkinTag;
+      U32      mSkinTag;
 
       Point3F  mCameraPos;
       MatrixF  mCameraMatrix;
@@ -57,14 +64,14 @@ class GuiPlayerView : public GuiTSCtrl
       Point3F  mOrbitPos;
       F32      mMinOrbitDist;
       F32      mOrbitDist;
-      S32      wNode;
-      S32      pNode;
 
       TSThread *runThread;
       S32      lastRenderTime;
       S32      mAnimationSeq;
 
       Point2I  mLastMousePoint;
+
+      void clearImages();
 
    public:
       DECLARE_CONOBJECT( GuiPlayerView );
@@ -82,9 +89,10 @@ class GuiPlayerView : public GuiTSCtrl
       void onRightMouseUp( const GuiEvent &event );
       void onRightMouseDragged( const GuiEvent &event );
 
-      void setPlayerModel( const char* shape, const char* skin, const char* weapon );
+      void setPlayerModel( const char* shape, const char* skin );
+      void setImage( const char* shape, const char* skin, S32 shapeNode );
       void setPlayerSeq( S32 index );
-      void getWeaponTransform( MatrixF *mat );
+      void getImageTransform( PreviewImage const& image, MatrixF *mat );
 
       bool processCameraQuery( CameraQuery *query );
       void renderWorld( const RectI &updateRect );

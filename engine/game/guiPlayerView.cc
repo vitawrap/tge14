@@ -18,12 +18,9 @@ GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
    mActive = true;
    mMouseState = None;
    mModel = NULL;
-   mWeapon = NULL;
    mLastMousePoint.set( 0, 0 );
    lastRenderTime = 0;
    runThread = 0;
-   wNode = -1;
-   pNode = -1;
    mAnimationSeq = 0;
 }
 
@@ -36,18 +33,18 @@ GuiPlayerView::~GuiPlayerView()
       delete mModel;
       mModel = NULL;
    }
-   if ( mWeapon )
-   {
-      delete mWeapon;
-      mWeapon = NULL;
-   }
 }
 
 
 //------------------------------------------------------------------------------
-ConsoleMethod( GuiPlayerView, setModel, void, 4, 5, "playerView.setModel( playermodel, skin[, wepmodel] )" )
+ConsoleMethod( GuiPlayerView, setModel, void, 4, 4, "playerView.setModel( playermodel, skin )" )
 {
-   object->setPlayerModel( argv[2], argv[3], argc == 5? argv[4] : NULL );
+   object->setPlayerModel( argv[2], argv[3] );
+}
+
+ConsoleMethod(GuiPlayerView, setImage, void, 4, 5, "playerView.setImage( playermodel, skin, mountN = 0 )")
+{
+    object->setImage( argv[2], argv[3], argc == 4? 0 : dAtoi(argv[4]) );
 }
 
 ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( index )" )
@@ -144,7 +141,15 @@ void GuiPlayerView::setPlayerSeq( S32 index )
 }
 
 //------------------------------------------------------------------------------
-void GuiPlayerView::setPlayerModel(const char* shape, const char* skin, const char* weapon)
+void GuiPlayerView::clearImages()
+{
+    for (PreviewImage const& img : mImages)
+        if (img.shape)
+            delete img.shape;
+    mImages.clear();
+}
+
+void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
 {
    // Stuff random rotation values in...
    mCameraRot.z = gRandGen.randF(-4.14, -1);
@@ -155,11 +160,8 @@ void GuiPlayerView::setPlayerModel(const char* shape, const char* skin, const ch
       mModel = NULL;
    }
 
-   if ( mWeapon )
-   {
-      delete mWeapon;
-      mWeapon = NULL;
-   }
+   // Clear images (their shapes and consequently their mounting data)
+   clearImages();
 
    runThread = 0;
 
@@ -192,29 +194,67 @@ void GuiPlayerView::setPlayerModel(const char* shape, const char* skin, const ch
 //      mModel->setSequence( runThread, sequence, 0 );
 //   }
 
-   // create a weapon for this dude (there was hardcoded Tribes 2 weapon code here)
-   Resource<TSShape> wShape;
-   if (weapon)
-       wShape = ResourceManager->load( weapon );
-
-   if ( !bool( wShape ) )
-      return;
-
-   pNode = hShape->findNode("mount0");
-   wNode = wShape->findNode("mountPoint");
-
-   mWeapon = new TSShapeInstance( wShape, true );
-   AssertFatal( mWeapon, "ERROR!  Failed to load Weapon Model!" );
-
    // the first time recording
    lastRenderTime = Platform::getVirtualMilliseconds();
 }
 
-void GuiPlayerView::getWeaponTransform( MatrixF *mat )
+void GuiPlayerView::setImage( char const* image, const char* skin, S32 shapeNode )
 {
-   MatrixF weapTrans = mWeapon->mNodeTransforms[wNode];
+    if (!mModel || !mModel->getShape()) // Not sure if this is possible, whatever!
+        return;
+
+    char shapeMount[128]{};
+
+    // create an image here, populating a new PreviewImage all at once if it is found.
+    Resource<TSShape> imShape;
+    if (image && image[0])
+        imShape = ResourceManager->load(image);
+    // they're trying to take an image away from the model...
+    else
+    {
+        dSprintf(shapeMount, 127, "mount%d", shapeNode);
+        S32 actualShapeNode = mModel->getShape()->findNode(shapeMount);
+        if (actualShapeNode != -1)
+        {
+            for (U32 i = 0; i < mImages.size(); ++i)
+            {
+                PreviewImage& img = mImages[i];
+                if (img.shapeNode == actualShapeNode)
+                {
+                    if (img.shape)
+                        delete img.shape;
+                    mImages.erase_fast(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!bool(imShape))
+        return;
+
+    mImages.increment();
+    PreviewImage& img = mImages.last();
+
+    dSprintf(shapeMount, 127, "mount%d", shapeNode);
+    img.shapeNode = mModel->getShape()->findNode(shapeMount);
+    img.imageNode = imShape->findNode("mountPoint");
+
+    if (img.shapeNode == -1 || img.imageNode == -1)
+    {
+        mImages.decrement();
+        return;
+    }
+
+    img.shape = new TSShapeInstance(imShape, true);
+    AssertFatal(img.shape, "ERROR!  Failed to load Weapon Model!");
+}
+
+void GuiPlayerView::getImageTransform( PreviewImage const& image, MatrixF *mat )
+{
+   MatrixF weapTrans = image.shape->mNodeTransforms[image.imageNode];
    Point3F weapOffset = -weapTrans.getPosition();
-   MatrixF modelTrans = mModel->mNodeTransforms[pNode];
+   MatrixF modelTrans = mModel->mNodeTransforms[image.shapeNode];
    modelTrans.mulP( weapOffset );
    modelTrans.setPosition( weapOffset );
    *mat = modelTrans;
@@ -269,15 +309,16 @@ void GuiPlayerView::renderWorld( const RectI &updateRect )
    mModel->animate();
    mModel->render();
 
-   // render a weapon, if we have one
-   if(mWeapon)
+   // render images, if we have any
+   for (PreviewImage const& image : mImages)
    {
       MatrixF mat;
-      getWeaponTransform( &mat );
+      getImageTransform( image, &mat );
       glPushMatrix();
       dglMultMatrix( &mat );
 
-      mWeapon->render();
+      image.shape->animate();
+      image.shape->render();
 
       glPopMatrix();
    }
