@@ -655,12 +655,6 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp, bool fullScree
       newRes = mResolutionList[resIndex];
    }
 
-   if ( newRes.w < 480 || newRes.h < 360 )
-   {
-      Con::warnf( ConsoleLogEntry::General, "OpenGLDevice::setScreenMode -- can't go smaller than 480x360!" );
-      return false;
-   }
-
    if ( newFullScreen )
    {
       if (newRes.bpp != 16 && mFullScreenOnly)
