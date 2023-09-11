@@ -70,6 +70,7 @@ class GuiPlayerView : public GuiTSCtrl
       S32      mAnimationSeq;
 
       Point2I  mLastMousePoint;
+      bool     mbUnlit;
 
       void clearImages();
 
@@ -96,6 +97,8 @@ class GuiPlayerView : public GuiTSCtrl
 
       bool processCameraQuery( CameraQuery *query );
       void renderWorld( const RectI &updateRect );
+
+      static void initPersistFields();
 };
 
 #endif // _GUI_PLAYERVIEW_H
