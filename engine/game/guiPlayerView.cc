@@ -15,6 +15,7 @@ IMPLEMENT_CONOBJECT( GuiPlayerView );
 //------------------------------------------------------------------------------
 GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
 {
+   mbUnlit = false;
    mActive = true;
    mMouseState = None;
    mModel = NULL;
@@ -35,6 +36,14 @@ GuiPlayerView::~GuiPlayerView()
    }
 }
 
+void GuiPlayerView::initPersistFields()
+{
+    Parent::initPersistFields();
+
+    addGroup("Display");
+    addField("unlit", TypeBool, Offset(mbUnlit, GuiPlayerView));
+    endGroup("Display");
+}
 
 //------------------------------------------------------------------------------
 ConsoleMethod( GuiPlayerView, setModel, void, 4, 4, "playerView.setModel( playermodel, skin )" )
@@ -310,6 +319,19 @@ void GuiPlayerView::renderWorld( const RectI &updateRect )
    glEnable( GL_DEPTH_TEST );
    glDepthFunc( GL_LEQUAL );
 
+   if (!mbUnlit)
+   {
+       glEnable(GL_LIGHTING);
+       glEnable(GL_LIGHT0);
+       
+       F32 diff[]{ 1.f, 1.f, 1.f, 1.f };
+       F32 amb[]{ .6f, .6f, .6f, 1.f };
+       F32 dir[]{ 0.f, 0.f, 1.f, 0.f };
+       glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
+       glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
+       glLightfv(GL_LIGHT0, GL_POSITION, dir);
+   }
+
    // animate and render in a run pose
    F32 fdt = dt;
 //   mModel->advanceTime( fdt/1000.f, runThread );
@@ -328,6 +350,12 @@ void GuiPlayerView::renderWorld( const RectI &updateRect )
       image.shape->render();
 
       glPopMatrix();
+   }
+
+   if (!mbUnlit)
+   {
+       glDisable(GL_LIGHT0);
+       glDisable(GL_LIGHTING);
    }
 
    glDisable( GL_DEPTH_TEST );
