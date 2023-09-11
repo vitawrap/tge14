@@ -36,6 +36,7 @@ GuiWindowCtrl::GuiWindowCtrl(void)
    mMinimizeIndex = -1;
    mTabIndex = -1;
 
+   mBitmapBounds = NULL;
    RectI closeRect(80, 2, 16, 16);
    mCloseButton = closeRect;
    closeRect.point.x -= 18;
@@ -80,6 +81,10 @@ bool GuiWindowCtrl::isMinimized(S32 &index)
 // helper fn so button positioning shares code...
 void GuiWindowCtrl::PositionButtons(void)
 {
+   // oops!!! we could be here before the bitmap arrays are made...
+   if (!mBitmapBounds)
+       createBitmapArray();
+
    S32 buttonWidth = mBitmapBounds[BmpStates * BmpClose].extent.x;
    S32 buttonHeight = mBitmapBounds[BmpStates * BmpClose].extent.y;
    Point2I mainOff = mProfile->mTextOffset;
@@ -111,25 +116,32 @@ void GuiWindowCtrl::PositionButtons(void)
    }
 }
 
+bool GuiWindowCtrl::createBitmapArray()
+{
+    //get the texture for the close, minimize, and maximize buttons
+    mTextureHandle = mProfile->mTextureHandle;
+    bool result = mProfile->constructBitmapArray() >= NumBitmaps;
+    AssertFatal(result, "Failed to create the bitmap array");
+    if (!result)
+        return false;
+
+    mBitmapBounds = mProfile->mBitmapArrayRects.address();
+    S32 buttonWidth = mBitmapBounds[BmpStates * BmpClose].extent.x;
+    S32 buttonHeight = mBitmapBounds[BmpStates * BmpClose].extent.y;
+
+    mTitleHeight = buttonHeight + 4;
+    mResizeRightWidth = mTitleHeight / 2;
+    mResizeBottomHeight = mTitleHeight / 2;
+    return true;
+}
+
 bool GuiWindowCtrl::onWake()
 {
    if (! Parent::onWake())
       return false;
 
-   //get the texture for the close, minimize, and maximize buttons
-   mTextureHandle = mProfile->mTextureHandle;
-   bool result = mProfile->constructBitmapArray() >= NumBitmaps;
-   AssertFatal(result, "Failed to create the bitmap array");
-   if(!result)
-      return false;
-
-   mBitmapBounds = mProfile->mBitmapArrayRects.address();
-   S32 buttonWidth = mBitmapBounds[BmpStates * BmpClose].extent.x;
-   S32 buttonHeight = mBitmapBounds[BmpStates * BmpClose].extent.y;
-
-   mTitleHeight = buttonHeight + 4;
-   mResizeRightWidth = mTitleHeight / 2;
-   mResizeBottomHeight = mTitleHeight / 2;
+   //create bitmap array
+   createBitmapArray();
 
    //set the button coords
    PositionButtons();
