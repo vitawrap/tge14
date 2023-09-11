@@ -92,7 +92,7 @@ class GuiWindowCtrl : public GuiTextCtrl
       RectI *mBitmapBounds;  //bmp is [3*n], bmpHL is [3*n + 1], bmpNA is [3*n + 2]
       TextureHandle mTextureHandle;
 
-
+      bool createBitmapArray();
       void drawWinRect(const RectI &myRect);
 
    public:
