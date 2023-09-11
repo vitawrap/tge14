@@ -247,6 +247,13 @@ void GuiPlayerView::setImage( char const* image, const char* skin, S32 shapeNode
     }
 
     img.shape = new TSShapeInstance(imShape, true);
+    // Set the skin:
+    if ( !img.shape->ownMaterialList() )
+       img.shape->cloneMaterialList();
+
+    StringHandle shSkin = StringHandle(skin);
+    img.shape->reSkin(shSkin);
+
     AssertFatal(img.shape, "ERROR!  Failed to load Weapon Model!");
 }
 
