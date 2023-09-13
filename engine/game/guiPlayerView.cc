@@ -49,6 +49,7 @@ void GuiPlayerView::initPersistFields()
 
     addGroup("Display");
     addField("unlit", TypeBool, Offset(mbUnlit, GuiPlayerView));
+    addField("cameraEulerRot", TypePoint3F, Offset(mCameraRot, GuiPlayerView));
     endGroup("Display");
 }
 
@@ -197,7 +198,7 @@ void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
       return;
 
    mModel = new TSShapeInstance( hShape, true );
-   AssertFatal( mModel, "ERROR!  Failed to load warrior model!" );
+   AssertFatal( mModel, "ERROR!  Failed to load model!" );
 
    // Set the skin:
    if ( !mModel->ownMaterialList() )
