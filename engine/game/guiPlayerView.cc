@@ -29,6 +29,7 @@ GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
 //------------------------------------------------------------------------------
 GuiPlayerView::~GuiPlayerView()
 {
+   clearImages();
    if ( mModel )
    {
       delete mModel;
@@ -152,9 +153,12 @@ void GuiPlayerView::setPlayerSeq( S32 index )
 //------------------------------------------------------------------------------
 void GuiPlayerView::clearImages()
 {
-    for (PreviewImage const& img : mImages)
+    for (PreviewImage& img : mImages)
         if (img.shape)
+        {
             delete img.shape;
+            img.shape = NULL;
+        }
     mImages.clear();
 }
 
