@@ -73,6 +73,7 @@ class GuiPlayerView : public GuiTSCtrl
       bool     mbUnlit;
 
       void clearImages();
+      void setCamera();
 
    public:
       DECLARE_CONOBJECT( GuiPlayerView );

@@ -23,6 +23,12 @@ GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
    lastRenderTime = 0;
    runThread = 0;
    mAnimationSeq = 0;
+
+   mCameraMatrix.identity();
+   mCameraRot.set(0, 0, 3.9);
+   mCameraPos.set(0, 1.75, 1.25);
+   mCameraMatrix.setColumn(3, mCameraPos);
+   setCamera();
 }
 
 
@@ -68,13 +74,6 @@ bool GuiPlayerView::onWake()
 {
    if ( !Parent::onWake() )
       return( false );
-
-   mCameraMatrix.identity();
-   mCameraRot.set( 0, 0, 3.9 );
-   mCameraPos.set( 0, 1.75, 1.25 );
-   mCameraMatrix.setColumn( 3, mCameraPos );
-   mOrbitPos.set( 0, 0, 0 );
-   mOrbitDist = 3.5f;
 
    return( true );
 }
@@ -162,6 +161,20 @@ void GuiPlayerView::clearImages()
     mImages.clear();
 }
 
+void GuiPlayerView::setCamera()
+{
+    if (mModel)
+    {
+        mOrbitPos = mModel->getShape()->center;
+        mMinOrbitDist = mModel->getShape()->radius;
+    }
+    else
+    {
+        mOrbitPos.set(0, 0, 0);
+        mOrbitDist = 3.5f;
+    }
+}
+
 void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
 {
    // Stuff random rotation values in...
@@ -194,8 +207,7 @@ void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
    mModel->reSkin(shSkin);
 
    // Initialize camera values:
-   mOrbitPos = mModel->getShape()->center;
-   mMinOrbitDist = mModel->getShape()->radius;
+   setCamera();
 
 //   // initialize run thread
 //   S32 sequence = hShape->findSequence("dummyRun");
