@@ -65,9 +65,8 @@ class GuiPlayerView : public GuiTSCtrl
       F32      mMinOrbitDist;
       F32      mOrbitDist;
 
-      TSThread *runThread;
+      TSThread *mAnimThread;
       S32      lastRenderTime;
-      S32      mAnimationSeq;
 
       Point2I  mLastMousePoint;
       bool     mbUnlit;
@@ -93,7 +92,7 @@ class GuiPlayerView : public GuiTSCtrl
 
       void setPlayerModel( const char* shape, const char* skin );
       void setImage( const char* shape, const char* skin, S32 shapeNode );
-      void setPlayerSeq( S32 index );
+      void setPlayerSeq( const char* seq );
       void getImageTransform( PreviewImage const& image, MatrixF *mat );
 
       bool processCameraQuery( CameraQuery *query );
