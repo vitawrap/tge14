@@ -21,8 +21,7 @@ GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
    mModel = NULL;
    mLastMousePoint.set( 0, 0 );
    lastRenderTime = 0;
-   runThread = 0;
-   mAnimationSeq = 0;
+   mAnimThread = 0;
 
    mCameraMatrix.identity();
    mCameraRot.set(0, 0, 3.9);
@@ -56,6 +55,7 @@ void GuiPlayerView::initPersistFields()
 //------------------------------------------------------------------------------
 ConsoleMethod( GuiPlayerView, setModel, void, 4, 4, "playerView.setModel( playermodel, skin )" )
 {
+   argc;
    object->setPlayerModel( argv[2], argv[3] );
 }
 
@@ -64,10 +64,10 @@ ConsoleMethod(GuiPlayerView, setImage, void, 4, 5, "playerView.setImage( playerm
     object->setImage( argv[2], argv[3], argc == 4? 0 : dAtoi(argv[4]) );
 }
 
-ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( index )" )
+ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( name )" )
 {
    argc;
-   object->setPlayerSeq( dAtoi(argv[2]) );
+   object->setPlayerSeq( argv[2] );
 }
 
 //------------------------------------------------------------------------------
@@ -142,12 +142,19 @@ void GuiPlayerView::onRightMouseDragged( const GuiEvent &event )
    mOrbitDist += ( delta * 0.01 );
 }
 
-void GuiPlayerView::setPlayerSeq( S32 index )
+// TODO: Load a TSShapeConstructor if necessary...
+void GuiPlayerView::setPlayerSeq( char const* seq )
 {
-   if( index > MaxAnimations || index < 0 )
-      return;
+    if (!mModel || !mAnimThread)
+        return;
 
-   mAnimationSeq = index;
+    S32 iSeq = mModel->getShape()->findSequence(seq);
+    if (iSeq != -1)
+    {
+        mModel->setPos(mAnimThread, 0);
+        mModel->setTimeScale(mAnimThread, 1);
+        mModel->setSequence(mAnimThread, iSeq, 0);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -191,7 +198,7 @@ void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
    // Clear images (their shapes and consequently their mounting data)
    clearImages();
 
-   runThread = 0;
+   mAnimThread = 0;
 
    Resource<TSShape> hShape = ResourceManager->load(shape);
    if ( !bool( hShape ) )
@@ -210,16 +217,8 @@ void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
    // Initialize camera values:
    setCamera();
 
-//   // initialize run thread
-//   S32 sequence = hShape->findSequence("dummyRun");
-//
-//   if( sequence != -1 )
-//   {
-//      runThread = mModel->addThread();
-//      mModel->setPos( runThread, 0 );
-//      mModel->setTimeScale( runThread, 1 );
-//      mModel->setSequence( runThread, sequence, 0 );
-//   }
+   // initialize anim thread
+   mAnimThread = mModel->addThread();
 
    // the first time recording
    lastRenderTime = Platform::getVirtualMilliseconds();
@@ -350,9 +349,9 @@ void GuiPlayerView::renderWorld( const RectI &updateRect )
        glLightfv(GL_LIGHT0, GL_POSITION, dir);
    }
 
-   // animate and render in a run pose
-   F32 fdt = dt;
-//   mModel->advanceTime( fdt/1000.f, runThread );
+   // animate and render
+   if (mAnimThread)
+      mModel->advanceTime(dt * 0.001f, mAnimThread);
    mModel->animate();
    mModel->render();
 
