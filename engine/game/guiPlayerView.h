@@ -58,6 +58,7 @@ class GuiPlayerView : public GuiTSCtrl
       TSShapeInstance*  mModel;
       U32      mSkinTag;
 
+      bool     mCameraLocked;
       Point3F  mCameraPos;
       MatrixF  mCameraMatrix;
       EulerF   mCameraRot;

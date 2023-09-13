@@ -15,6 +15,7 @@ IMPLEMENT_CONOBJECT( GuiPlayerView );
 //------------------------------------------------------------------------------
 GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
 {
+   mCameraLocked = false;
    mbUnlit = false;
    mActive = true;
    mMouseState = None;
@@ -49,6 +50,7 @@ void GuiPlayerView::initPersistFields()
     addGroup("Display");
     addField("unlit", TypeBool, Offset(mbUnlit, GuiPlayerView));
     addField("cameraEulerRot", TypePoint3F, Offset(mCameraRot, GuiPlayerView));
+    addField("lockCamera", TypeBool, Offset(mCameraLocked, GuiPlayerView));
     endGroup("Display");
 }
 
@@ -82,7 +84,7 @@ bool GuiPlayerView::onWake()
 //------------------------------------------------------------------------------
 void GuiPlayerView::onMouseDown( const GuiEvent &event )
 {
-   if ( !mActive || !mVisible || !mAwake )
+   if ( mCameraLocked || !mActive || !mVisible || !mAwake )
       return;
 
    mMouseState = Rotating;
@@ -102,7 +104,7 @@ void GuiPlayerView::onMouseUp( const GuiEvent &/*event*/ )
 //------------------------------------------------------------------------------
 void GuiPlayerView::onMouseDragged( const GuiEvent &event )
 {
-   if ( mMouseState != Rotating )
+   if ( mCameraLocked || mMouseState != Rotating )
       return;
 
    Point2I delta = event.mousePoint - mLastMousePoint;
@@ -116,6 +118,9 @@ void GuiPlayerView::onMouseDragged( const GuiEvent &event )
 //------------------------------------------------------------------------------
 void GuiPlayerView::onRightMouseDown( const GuiEvent &event )
 {
+   if ( mCameraLocked )
+       return;
+
    mMouseState = Zooming;
    mLastMousePoint = event.mousePoint;
    mouseLock();
@@ -133,7 +138,7 @@ void GuiPlayerView::onRightMouseUp( const GuiEvent &/*event*/ )
 //------------------------------------------------------------------------------
 void GuiPlayerView::onRightMouseDragged( const GuiEvent &event )
 {
-   if ( mMouseState != Zooming )
+   if ( mCameraLocked || mMouseState != Zooming )
       return;
 
    S32 delta = event.mousePoint.y - mLastMousePoint.y;
