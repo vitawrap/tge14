@@ -161,7 +161,8 @@ void GuiPlayerView::clearImages()
 void GuiPlayerView::setPlayerModel(const char* shape, const char* skin)
 {
    // Stuff random rotation values in...
-   mCameraRot.z = gRandGen.randF(-4.14, -1);
+   // No? Maybe don't, please?
+   // mCameraRot.z = gRandGen.randF(-4.14, -1);
 
    if ( mModel )
    {
