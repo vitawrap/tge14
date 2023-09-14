@@ -62,6 +62,7 @@ class GuiPlayerView : public GuiTSCtrl
       Point3F  mCameraPos;
       MatrixF  mCameraMatrix;
       EulerF   mCameraRot;
+      EulerF   mCameraDeltaRot;
       Point3F  mOrbitPos;
       F32      mMinOrbitDist;
       F32      mOrbitDist;
