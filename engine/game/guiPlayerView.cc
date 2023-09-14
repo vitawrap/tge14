@@ -24,6 +24,7 @@ GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
    lastRenderTime = 0;
    mAnimThread = 0;
 
+   mCameraDeltaRot.set(0.f, 0.f, 0.f);
    mCameraMatrix.identity();
    mCameraRot.set(0, 0, 3.9);
    mCameraPos.set(0, 1.75, 1.25);
@@ -50,6 +51,7 @@ void GuiPlayerView::initPersistFields()
     addGroup("Display");
     addField("unlit", TypeBool, Offset(mbUnlit, GuiPlayerView));
     addField("cameraEulerRot", TypePoint3F, Offset(mCameraRot, GuiPlayerView));
+    addField("cameraDeltaRot", TypePoint3F, Offset(mCameraDeltaRot, GuiPlayerView));
     addField("lockCamera", TypeBool, Offset(mCameraLocked, GuiPlayerView));
     endGroup("Display");
 }
@@ -354,9 +356,15 @@ void GuiPlayerView::renderWorld( const RectI &updateRect )
        glLightfv(GL_LIGHT0, GL_POSITION, dir);
    }
 
+   // Calculate corrected MS dt
+   F32 fdt = dt * 0.001f;
+
+   // Spin if there is a delta rotation specified
+   mCameraRot += mCameraDeltaRot * fdt;
+
    // animate and render
    if (mAnimThread)
-      mModel->advanceTime(dt * 0.001f, mAnimThread);
+      mModel->advanceTime(fdt, mAnimThread);
    mModel->animate();
    mModel->render();
 
