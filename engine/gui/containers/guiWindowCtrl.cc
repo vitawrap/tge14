@@ -82,8 +82,10 @@ bool GuiWindowCtrl::isMinimized(S32 &index)
 void GuiWindowCtrl::PositionButtons(void)
 {
    // oops!!! we could be here before the bitmap arrays are made...
+   // Or we simply have no texture assigned in the profile.
    if (!mBitmapBounds)
-       createBitmapArray();
+       if (!createBitmapArray())
+         return;
 
    S32 buttonWidth = mBitmapBounds[BmpStates * BmpClose].extent.x;
    S32 buttonHeight = mBitmapBounds[BmpStates * BmpClose].extent.y;
@@ -120,6 +122,9 @@ bool GuiWindowCtrl::createBitmapArray()
 {
     //get the texture for the close, minimize, and maximize buttons
     mTextureHandle = mProfile->mTextureHandle;
+    if (!mTextureHandle)
+        return false;
+
     bool result = mProfile->constructBitmapArray() >= NumBitmaps;
     AssertFatal(result, "Failed to create the bitmap array");
     if (!result)
