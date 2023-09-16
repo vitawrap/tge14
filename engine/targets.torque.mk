@@ -337,6 +337,7 @@ SOURCE.GAME=\
 	game/shapeBase.cc \
 	game/shapeCollision.cc \
 	game/shapeImage.cc \
+	game/shockwave.cc \
 	game/showTSShape.cc \
 	game/sphere.cc \
 	game/staticShape.cc \
