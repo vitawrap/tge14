@@ -666,6 +666,19 @@ void GuiControl::easeExtentTo(Point2I const& target, easeFnOptions fn, S32 ms)
     mExtentEaseMS = ms;
 }
 
+void GuiControl::easeStop()
+{
+    mPositionSaved = getPosition();
+    mPositionTargetAfterEase = getPosition();
+    mExtentSaved = getExtent();
+    mExtentTargetAfterEase = getExtent();
+    mPositionEaseMSLeft = 0;
+    mPositionEaseMS = 0;
+    mExtentEaseMSLeft = 0;
+    mExtentEaseMS = 0;
+    mLastEaseMS = ~0U;
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //
 
 bool GuiControl::onWake()
@@ -889,6 +902,11 @@ ConsoleMethod(GuiControl, easePositionSmoothTo, void, 5, 6, "(int x, int y, S32 
         fn = GuiControl::sinOut;
 
     object->easePositionTo(newPos, fn, dAtoi(argv[4]));
+}
+
+ConsoleMethod(GuiControl, easeStop, void, 2, 2, "()")
+{
+    object->easeStop();
 }
 
 // Helper functions
