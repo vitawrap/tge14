@@ -777,6 +777,22 @@ ConsoleFunction( gotoWebPage, void, 2, 2, "( address ) - Open a web page in the 
 
 ConsoleFunctionGroupBegin(MetaScripting, "Functions that let you manipulate the scripting engine programmatically.");
 
+ConsoleFunction(isFunction, bool, 2, 3, "isFunction([namespace,] funcName)")
+{
+    if (argc == 2)
+        return Con::isFunction( argv[1] );
+    else
+    {
+        Namespace* ns = Con::lookupNamespace( argv[1][0]? argv[1] : NULL );
+        if (ns)
+        {
+            StringTableEntry ste = StringTable->lookup(argv[2]);
+            return ste ? static_cast<bool>(ns->lookup(ste)) : false;
+        }
+        return false;
+    }
+}
+
 ConsoleFunction(call, const char *, 2, 0, "call(funcName [,args ...])")
 {
    return Con::execute(argc - 1, argv + 1);
