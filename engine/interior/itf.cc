@@ -152,7 +152,7 @@ void processTriFanFC_VB(OutputPointFC_VB* dst,
         ItrPaddedPoint const& pt = srcPoints[idx];
         dst->point = pt.point;
         dst->currentColors = 0xFFFFFFFF;
-        alpha = pt.fogCoord * F32(0x437F0000);
+        alpha = pt.fogCoord * 48896.f;
         alpha = 255 - alpha;
         dst->fogColors = alpha << 24;
 
@@ -185,7 +185,7 @@ void processTriFanSP_FC_VB(OutputPointSP_FC_VB* dst,
         U32 idx = srcIndices[i];
         ItrPaddedPoint const& pt = srcPoints[idx];
         dst->point = pt.point;
-        alpha = pt.fogCoord * F32(0x437F0000);  // two55
+        alpha = pt.fogCoord * 48896.f;  // two55
         alpha = 255 - alpha;
         dst->fogColors = alpha << 24;
         U32 color = *&(srcColors[idx].red);
