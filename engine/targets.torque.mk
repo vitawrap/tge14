@@ -2,6 +2,9 @@ EXE_NAME=torqueDemo
 EXE_DEDICATED_NAME=$(EXE_NAME)d
 BIN_DIRECTORY=../example
 
+SOURCE.AI=\
+	ai/aiNavigation.cc \
+
 SOURCE.AUDIO=\
 	audio/audio.cc \
 	audio/audioBuffer.cc \
@@ -494,6 +497,7 @@ SOURCE.TS=\
 
 # jmq: added the stuff after SOURCE.TS for tools build hack
 SOURCE.ENGINE =\
+	$(SOURCE.AI) \
 	$(SOURCE.COLLISION) \
 	$(SOURCE.CONSOLE) \
 	$(SOURCE.CORE) \
@@ -523,6 +527,7 @@ SOURCE.ENGINE += $(SOURCE.PLATFORM$(OS)DEDICATED)
 endif
 
 SOURCE.TESTAPP =\
+	$(SOURCE.AI) \
 	$(SOURCE.AUDIO) \
 	$(SOURCE.COLLISION) \
 	$(SOURCE.CONSOLE) \

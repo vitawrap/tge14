@@ -111,6 +111,9 @@
     <Filter Include="Source Files\mimalloc">
       <UniqueIdentifier>{b9acf5f3-2115-4f8e-ba31-8f02a4221d36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ai">
+      <UniqueIdentifier>{c1d5ae70-cf66-4255-bd6f-c544da573634}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vc7fix.cpp">
@@ -1262,6 +1265,9 @@
     <ClCompile Include="..\engine\game\shockwave.cc">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\ai\aiNavigation.cc">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">
@@ -2259,6 +2265,9 @@
     </ClInclude>
     <ClInclude Include="..\engine\game\shockwave.h">
       <Filter>Source Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\ai\aiNavigation.h">
+      <Filter>Source Files\ai</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
