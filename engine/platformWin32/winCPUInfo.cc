@@ -40,7 +40,7 @@ void Processor::init()
    Con::printf("Processor Init:");
 
    Platform::SystemInfo.processor.type = CPU_X86Compatible;
-   Platform::SystemInfo.processor.name = StringTable->insert("Unknown x86 Compatible");
+   Platform::SystemInfo.processor.name = StringTable->insert("Unknown " TORQUE_CPU_STRING " Compatible");
    Platform::SystemInfo.processor.mhz  = 0;
    Platform::SystemInfo.processor.properties = CPU_PROP_C;
 
