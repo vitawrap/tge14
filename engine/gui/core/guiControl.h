@@ -597,6 +597,9 @@ public:
 
     /// Ease control extent from current extent to target extent, using fn interp type, over X ms
     virtual void easeExtentTo(Point2I const& target, easeFnOptions fn, S32 ms);
+
+    /// Stop in-progress easing
+    virtual void easeStop();
     /// @}
 
     void inspectPostApply();
