@@ -437,6 +437,7 @@
     <ClCompile Include="..\engine\game\shapeBase.cc" />
     <ClCompile Include="..\engine\game\shapeCollision.cc" />
     <ClCompile Include="..\engine\game\shapeImage.cc" />
+    <ClCompile Include="..\engine\game\shockwave.cc" />
     <ClCompile Include="..\engine\game\showTSShape.cc" />
     <ClCompile Include="..\engine\game\sphere.cc" />
     <ClCompile Include="..\engine\game\staticShape.cc" />
@@ -812,6 +813,7 @@
     <ClInclude Include="..\engine\game\rotatingDoor.h" />
     <ClInclude Include="..\engine\game\shadow.h" />
     <ClInclude Include="..\engine\game\shapeBase.h" />
+    <ClInclude Include="..\engine\game\shockwave.h" />
     <ClInclude Include="..\engine\game\showTSShape.h" />
     <ClInclude Include="..\engine\game\sphere.h" />
     <ClInclude Include="..\engine\game\staticShape.h" />
