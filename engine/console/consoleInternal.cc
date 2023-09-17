@@ -983,6 +983,14 @@ bool Namespace::isPackage(StringTableEntry name)
    return false;
 }
 
+bool Namespace::isPackageActive(StringTableEntry name)
+{
+    for (U32 i = 0; i < mNumActivePackages; i++)
+        if (mActivePackages[i] == name)
+            return true;
+    return false;
+}
+
 void Namespace::activatePackage(StringTableEntry name)
 {
    if(mNumActivePackages == MaxActivePackages)
@@ -993,9 +1001,7 @@ void Namespace::activatePackage(StringTableEntry name)
    if(!name)
       return;
 
-   // see if this one's already active
-   for(U32 i = 0; i < mNumActivePackages; i++)
-      if(mActivePackages[i] == name)
+   if (isPackageActive(name))
          return;
 
    // kill the cache
@@ -1090,6 +1096,13 @@ ConsoleFunction(isPackage,bool,2,2,"isPackage(packageName)")
    argc;
    StringTableEntry packageName = StringTable->insert(argv[1]);
    return Namespace::isPackage(packageName);
+}
+
+ConsoleFunction(isPackageActive, bool, 2, 2, "isPackageActive(packageName)")
+{
+    argc;
+    StringTableEntry packageName = StringTable->insert(argv[1]);
+    return Namespace::isPackageActive(packageName);
 }
 
 ConsoleFunction(activatePackage, void,2,2,"activatePackage(packageName)")

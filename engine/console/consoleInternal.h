@@ -131,6 +131,7 @@ public:
     static void unlinkPackages();
     static void relinkPackages();
     static bool isPackage(StringTableEntry name);
+    static bool isPackageActive(StringTableEntry name);
 };
 
 extern char *typeValueEmpty;
