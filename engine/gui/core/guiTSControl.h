@@ -19,6 +19,7 @@
 struct CameraQuery
 {
    CameraQuery()
+       :cameraMatrix(true)
    {
       ortho = false;
    }
