@@ -150,6 +150,17 @@ void SimDataBlockEvent::write(NetConnection *cptr, BitStream *bstream)
    }
 }
 
+void SimDataBlockEvent::processLocally(NetConnection* cptr, SimDataBlock* obj)
+{
+    if (obj)
+    {
+        mObj = obj;
+        mProcess = true;
+        process(cptr);
+        mObj = NULL;
+    }
+}
+
 void SimDataBlockEvent::process(NetConnection *cptr)
 {
    if(mProcess)
