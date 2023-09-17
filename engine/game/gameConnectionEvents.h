@@ -30,6 +30,7 @@ class SimDataBlockEvent : public NetEvent
    void unpack(NetConnection *cptr, BitStream *bstream);
    void process(NetConnection*);
    void notifyDelivered(NetConnection *, bool);
+   void processLocally(NetConnection*, SimDataBlock* obj);
 #ifdef TORQUE_DEBUG_NET
    const char *getDebugName();
 #endif

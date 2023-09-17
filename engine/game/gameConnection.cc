@@ -1244,12 +1244,27 @@ ConsoleMethod( GameConnection, transmitDataBlocks, void, 3, 3, "(int sequence)")
    }
    object->setMaxDataBlockModifiedKey(key);
 
-   // Ship the rest off...
-   U32 max = getMin(i + DataBlockQueueCount, groupCount);
-   //U32 max = groupCount;
-   for (;i < max; i++) {
-      SimDataBlock *data = (SimDataBlock *)(*g)[i];
-      object->postNetEvent(new SimDataBlockEvent(data, i, groupCount, object->getDataBlockSequence()));
+   if (object->isLocalConnection()) // TODO: Figure out how this affects dedicated servers.
+   {
+       // Simulate the process, but effectively bypassing the net packet queue AND datablock queue
+       U32 max = groupCount;
+
+       for (; i < max; i++) {
+           SimDataBlock* data = (SimDataBlock*)(*g)[i];
+           SimDataBlockEvent sdbe(data, i, groupCount, object->getDataBlockSequence());
+           sdbe.processLocally(object, data);
+       }
+       object->sendConnectionMessage(GameConnection::DataBlocksDone, object->getDataBlockSequence());
+   }
+   else
+   {
+       // Ship the rest off...
+       U32 max = object->isLocalConnection()? groupCount : getMin(i + DataBlockQueueCount, groupCount);
+       //U32 max = groupCount;
+       for (;i < max; i++) {
+          SimDataBlock *data = (SimDataBlock *)(*g)[i];
+          object->postNetEvent(new SimDataBlockEvent(data, i, groupCount, object->getDataBlockSequence()));
+       }
    }
 }
 
