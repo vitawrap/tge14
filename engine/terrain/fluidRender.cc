@@ -27,7 +27,8 @@ void fluid::Render( bool& EyeSubmerged )
 	if (lm)
 	{
 		LightInfo* li = lm->getSunLight();
-		amb = li->mColor;
+		if (li)
+			amb = li->mColor;
 	}
 
     f32 BaseDriftX, BaseDriftY;
