@@ -532,13 +532,13 @@ bool clientProcess(U32 timeDelta)
    //ShowTSShape::advanceTime(timeDelta);
    ITickable::advanceTime(timeDelta);
 
-   bool ret = gClientProcessList.advanceClientTime(timeDelta);
-
    // If there are no datablocks, we assume there is nothing that could be updated.
    // Since even a camera needs a datablock, we can safely assume there is no
    // context in which an actual scene can be presented without any live datablock.
    if (Sim::getDataBlockGroup()->size() <= 0)
-       return ret;
+       return false;
+
+   bool ret = gClientProcessList.advanceClientTime(timeDelta);
 
    // Run the collision test and update the Audio system
    // by checking the controlObject
