@@ -131,18 +131,6 @@ Point2F bumpTextureOffset;
 } // namespace {}
 
 
-static S32 getPower(S32 x)
-{
-    // Returns 2^n (the highest bit).
-    S32 i = 0;
-    if (x)
-        do
-            i++;
-        while (x >>= 1);
-    return i;
-}
-
-
 void TerrainRender::init()
 {
    S32 i;
@@ -592,7 +580,8 @@ void TerrainRender::processCurrentBlock(SceneState*, EdgeParent *topEdge, EdgePa
                if(squareDistance > 0.001)
                {
                   S32 size = S32(dglProjectRadius(squareDistance + (squareSz >> 1), squareSz));
-                  mipLevel = getPower((S32)(size * 0.75));
+                  size = (size * 0.75);
+                  mipLevel = getBinLog2(size) + (size > 1);
                   if(mipLevel > TerrainTextureMipLevel) // too big for this square
                      goto notexalloc;
                }
