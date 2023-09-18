@@ -7,11 +7,10 @@
 
 #include "console/consoleTypes.h"
 #include "dgl/dgl.h"
-#include "platformWIN32/platformGL.h"
 #include "platform/platformAudio.h"
 #include "audio/audioDataBlock.h"
-#include "scenegraph/sceneGraph.h"
-#include "scenegraph/sceneState.h"
+#include "sceneGraph/sceneGraph.h"
+#include "sceneGraph/sceneState.h"
 #include "core/bitStream.h"
 #include "game/fx/particleEngine.h"
 #include "game/shockwave.h"
