@@ -10,7 +10,7 @@
 #include "audio/audioDataBlock.h"
 
 /// How many drops are on a side of the material texture
-#define DROPS_PER_SIDE 4
+#define DROPS_PER_SIDE 2
 /// How many frames are on a side of a splash animation
 #define FRAMES_PER_SIDE 2
 
