@@ -100,7 +100,7 @@ void ShockwaveData::initPersistFields()
    addField("acceleration",      TypeF32,                      Offset(acceleration,       ShockwaveData));
    addField("times",             TypeF32,                      Offset(times,              ShockwaveData), NUM_TIME_KEYS);
    addField("colors",            TypeColorF,                   Offset(colors,             ShockwaveData), NUM_TIME_KEYS);
-   addField("texture",           TypeString,                   Offset(textureName,        ShockwaveData), NUM_TEX);
+   addField("texture",           TypeFilename,                 Offset(textureName,        ShockwaveData), NUM_TEX);
    addField("texWrap",           TypeF32,                      Offset(texWrap,            ShockwaveData));
    addField("is2D",              TypeBool,                     Offset(is2D,               ShockwaveData));
    addField("mapToTerrain",      TypeBool,                     Offset(mapToTerrain,       ShockwaveData));
