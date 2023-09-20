@@ -23,6 +23,7 @@ public:
    U32 fadeinTime;
    U32 waitTime;
    U32 fadeoutTime;
+   bool fadeWhenVisible;
 
    GuiFadeinBitmapCtrl()
        : mFramebufferTexture(RectI(getPosition(), getExtent()))
@@ -33,11 +34,18 @@ public:
       fadeoutTime = 1000;
       fadeAlpha   = false;
       done        = false;
+      fadeWhenVisible = false;
    }
    virtual void resize(const Point2I& newPosition, const Point2I& newExtent)
    {
        Parent::resize(newPosition, newExtent);
        mFramebufferTexture.setUpdateRect(RectI(newPosition, newExtent));
+   }
+   virtual void setVisible(bool vis) override
+   {
+       Parent::setVisible(vis);
+       if (fadeWhenVisible && vis)
+           wakeTime = Platform::getRealMilliseconds();
    }
    void onPreRender()
    {
@@ -117,6 +125,7 @@ public:
       addField("waitTime", TypeS32, Offset(waitTime, GuiFadeinBitmapCtrl));
       addField("fadeoutTime", TypeS32, Offset(fadeoutTime, GuiFadeinBitmapCtrl));
       addField("fadeAlpha", TypeBool, Offset(fadeAlpha, GuiFadeinBitmapCtrl)); // Fade to alpha instead of black
+      addField("fadeWhenVisible", TypeBool, Offset(fadeWhenVisible, GuiFadeinBitmapCtrl));
       addField("done", TypeBool, Offset(done, GuiFadeinBitmapCtrl));
    }
 };
