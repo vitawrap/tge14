@@ -331,16 +331,14 @@ bool Shockwave::onAdd()
    mObjBox.max = Point3F(  1,  1,  1 );
    resetWorldBox();
 
-   gClientContainer.addObject(this);
-   gClientSceneGraph->addObjectToScene(this);
-
-   removeFromProcessList();
-   gClientProcessList.addObject(this);
-
    MatrixF trans(true);
    trans.setPosition( mInitialPosition );
    setTransform( trans );
 
+   addToScene();
+
+   if (isServerObject())
+       scriptOnAdd();
    return true;
 }
 
@@ -349,6 +347,8 @@ bool Shockwave::onAdd()
 //--------------------------------------------------------------------------
 void Shockwave::onRemove()
 {
+   Parent::onRemove();
+
    for( int i=0; i<ShockwaveData::NUM_EMITTERS; i++ )
    {
       if( mEmitterList[i] )
@@ -358,9 +358,8 @@ void Shockwave::onRemove()
       }
    }
 
-   mSceneManager->removeObjectFromScene(this);
-   getContainer()->removeObject(this);
-
+   scriptOnRemove();
+   removeFromScene();
    Parent::onRemove();
 }
 
@@ -916,9 +915,9 @@ void Shockwave::renderSquare()
 //--------------------------------------------------------------------------
 // packUpdate
 //--------------------------------------------------------------------------
-U32 Shockwave::packUpdate(NetConnection* con, U32 mask, BitStream* stream)
+U64 Shockwave::packUpdate(NetConnection* con, U64 mask, BitStream* stream)
 {
-   U32 retMask = Parent::packUpdate(con, mask, stream);
+   U64 retMask = Parent::packUpdate(con, mask, stream);
 
    if( stream->writeFlag(mask & GameBase::InitialUpdateMask) )
    {
