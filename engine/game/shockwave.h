@@ -103,11 +103,11 @@ class Shockwave : public GameBase
    S32      mDelayMS;
 
   protected:
-   bool onAdd();
-   void onRemove();
+   virtual bool onAdd() override;
+   virtual void onRemove() override;
 
-   void  processTick(const Move*);
-   void  advanceTime(F32 dt);
+   virtual void  processTick(const Move*) override;
+   virtual void  advanceTime(F32 dt) override;
    void  updateEmitters( F32 dt );
    void  updateWave( F32 dt );
    void  renderWave();
@@ -119,19 +119,19 @@ class Shockwave : public GameBase
 
    // Rendering
   protected:
-   bool prepRenderImage(SceneState*, const U32, const U32, const bool);
-   void renderObject(SceneState*, SceneRenderImage*);
+   virtual bool prepRenderImage(SceneState*, const U32, const U32, const bool) override;
+   virtual void renderObject(SceneState*, SceneRenderImage*) override;
 
   public:
    Shockwave();
    ~Shockwave();
    void setInitialState(const Point3F& point, const Point3F& normal, const F32 fade = 1.0);
 
-   bool onNewDataBlock(GameBaseData* dptr);
+   virtual bool onNewDataBlock(GameBaseData* dptr) override;
    DECLARE_CONOBJECT(Shockwave);
 
-   U32  packUpdate(NetConnection*, U32 mask, BitStream* stream);
-   void unpackUpdate(NetConnection*, BitStream* stream);
+   virtual U64  packUpdate(NetConnection*, U64 mask, BitStream* stream) override;
+   virtual void unpackUpdate(NetConnection*, BitStream* stream) override;
 
    static void initPersistFields();
 };
