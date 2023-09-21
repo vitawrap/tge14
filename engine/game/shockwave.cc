@@ -278,10 +278,11 @@ Shockwave::~Shockwave()
 //--------------------------------------------------------------------------
 // Set initial state
 //--------------------------------------------------------------------------
-void Shockwave::setInitialState(const Point3F& point, const Point3F& normal, const F32 fade)
+void Shockwave::setInitialState(const Point3F& point, const Point3F& normal, const F32 radius, const F32 fade)
 {
    mInitialPosition = point;
    mInitialNormal   = normal;
+   mRadius          = radius;
    mFade            = fade;
    mFog             = 0.0f;
 }
@@ -302,7 +303,7 @@ void Shockwave::initPersistFields()
 //--------------------------------------------------------------------------
 // CONSOLE commands
 //--------------------------------------------------------------------------
-ConsoleMethod(Shockwave, setInitialState, void, 4, 4, "setInitialState( pos, dir )")
+ConsoleMethod(Shockwave, setInitialState, void, 4, 5, "setInitialState( pos, dir, rad )")
 {
    Point3F pos;
    dSscanf( argv[2], "%f %f %f", &pos.x, &pos.y, &pos.z );
@@ -310,7 +311,10 @@ ConsoleMethod(Shockwave, setInitialState, void, 4, 4, "setInitialState( pos, dir
    Point3F dir;
    dSscanf( argv[3], "%f %f %f", &dir.x, &dir.y, &dir.z );
 
-   object->setInitialState( pos, dir );
+   if (argc > 4)
+      object->setInitialState( pos, dir, dAtof(argv[4]) );
+   else
+      object->setInitialState( pos, dir );
 }
 
 //--------------------------------------------------------------------------
@@ -923,6 +927,7 @@ U64 Shockwave::packUpdate(NetConnection* con, U64 mask, BitStream* stream)
    {
       mathWrite(*stream, mInitialPosition);
       mathWrite(*stream, mInitialNormal);
+      stream->write(mRadius);
    }
 
    return retMask;
@@ -939,5 +944,6 @@ void Shockwave::unpackUpdate(NetConnection* con, BitStream* stream)
    {
       mathRead(*stream, &mInitialPosition);
       mathRead(*stream, &mInitialNormal);
+      stream->read(&mRadius);
    }
 }

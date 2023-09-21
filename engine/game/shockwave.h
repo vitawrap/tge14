@@ -125,7 +125,7 @@ class Shockwave : public GameBase
   public:
    Shockwave();
    ~Shockwave();
-   void setInitialState(const Point3F& point, const Point3F& normal, const F32 fade = 1.0);
+   void setInitialState(const Point3F& point, const Point3F& normal, const F32 radius = 0.f, const F32 fade = 1.f);
 
    virtual bool onNewDataBlock(GameBaseData* dptr) override;
    DECLARE_CONOBJECT(Shockwave);
