@@ -1686,6 +1686,10 @@ void TerrainRender::renderBlock(TerrainBlock *block, SceneState *state)
 {
    PROFILE_START(TerrainRender);
    PROFILE_START(TerrainRenderSetup);
+#ifdef TORQUE_OS_WIN32
+   mRenderGL = (dStrcmp(Video::getDeviceName(), "OpenGL") == 0);
+#endif
+
    dglSetRenderPrimType(1);
    U32 storedWaterMark = FrameAllocator::getWaterMark();
 
@@ -1727,11 +1731,7 @@ void TerrainRender::renderBlock(TerrainBlock *block, SceneState *state)
     if (mEnableTerrainEmbossBumps && mCurrentBlock->mBumpTextureHandle.getGLName() != 0)
     {
         PROFILE_START(TerrainRenderBumpBuild);
-        //There should be a better way to do this, really...
-#ifdef TORQUE_OS_WIN32
-        //if (dStrcmp(Con::getVariable( "$pref::Video::displayDevice" ), "OpenGL") == 0)
-        mRenderGL = (dStrcmp(Video::getDeviceName(), "OpenGL") == 0);
-#endif
+
         //note: don't multiply light by inverse modelview matrix
         //because it is already in object space (or world or anything, really)
         //The first light in the light manager is always the sun.
