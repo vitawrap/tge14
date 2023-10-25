@@ -54,10 +54,7 @@ bool TerrainRender::mEnableTerrainDetails       = true;
 //    the FARTHER they will exist.  If you go above 7-8, the bumps tend to go a little wacky.
 //    8 should be the max.  6-7 are good values.
 bool TerrainRender::mEnableTerrainEmbossBumps   = true;
-// This is only for win32
-#ifdef TORQUE_OS_WIN32
-bool TerrainRender::mRenderGL = false;
-#endif
+
 // CW - end bump map stuff
 bool TerrainRender::mEnableTerrainDynLights     = true;
 
@@ -103,7 +100,6 @@ U32            TerrainRender::mDynamicLightCount;
 F32 TerrainRender::mPixelError;
 
 TerrLightInfo TerrainRender::mTerrainLights[MaxTerrainLights];
-bool TerrainRender::mRenderingCommander = false;
 
 
 F32 TerrainRender::mScreenError;
@@ -392,9 +388,6 @@ void TerrainRender::emitTerrChunk(SquareStackNode *n, F32 squareDistance, U32 li
    chunk->next = mCurrentTexture->list;
    mCurrentTexture->list = chunk;
 
-   if(mRenderingCommander)
-      return;
-
    chunk->edge[0] = (ChunkEdge *) n->top;
    chunk->edge[1] = (ChunkEdge *) n->right;
    chunk->edge[2] = (ChunkEdge *) n->bottom;
@@ -572,31 +565,23 @@ void TerrainRender::processCurrentBlock(SceneState*, EdgeParent *topEdge, EdgePa
             goto notexalloc;
 
          S32 mipLevel = TerrainTextureMipLevel;
-         if(!mRenderingCommander)
+         if(n->level > mTextureMinSquareSize + 2)
          {
-            if(n->level > mTextureMinSquareSize + 2)
+            // get the mip level of the square and see if we're in range
+            if(squareDistance > 0.001)
             {
-               // get the mip level of the square and see if we're in range
-               if(squareDistance > 0.001)
-               {
-                  S32 size = S32(dglProjectRadius(squareDistance + (squareSz >> 1), squareSz));
-                  size = (size * 0.75);
-                  mipLevel = getBinLog2(size) + (size > 1);
-                  if(mipLevel > TerrainTextureMipLevel) // too big for this square
-                     goto notexalloc;
-               }
-               else
-                  goto notexalloc;
+                S32 size = S32(dglProjectRadius(squareDistance + (squareSz >> 1), squareSz));
+                size = (size * 0.75);
+                mipLevel = getBinLog2(size) + (size > 1);
+                if(mipLevel > TerrainTextureMipLevel) // too big for this square
+                    goto notexalloc;
             }
+            else
+                goto notexalloc;
          }
+
          allocTerrTexture(n->pos, n->level, mipLevel, true, squareDistance);
          n->texAllocated = true;
-         if(mRenderingCommander) // level == 6
-         {
-            emitTerrChunk(n, 0, 0, 0, 0, 0);
-            curStackSize--;
-            continue;
-         }
       }
 notexalloc:
       if(n->lightMask)
@@ -1686,9 +1671,6 @@ void TerrainRender::renderBlock(TerrainBlock *block, SceneState *state)
 {
    PROFILE_START(TerrainRender);
    PROFILE_START(TerrainRenderSetup);
-#ifdef TORQUE_OS_WIN32
-   mRenderGL = (dStrcmp(Video::getDeviceName(), "OpenGL") == 0);
-#endif
 
    dglSetRenderPrimType(1);
    U32 storedWaterMark = FrameAllocator::getWaterMark();
@@ -1987,18 +1969,12 @@ void TerrainRender::renderBlock(TerrainBlock *block, SceneState *state)
             EmitChunk *sq;
             for(sq = step->list; sq && mXFPointCount < maxTerrPoints; sq = sq->next)
             {
-               if(mRenderingCommander)
-               {
-                  renderChunkCommander(sq);
-               }
-               else
-               {
-                  renderDetails |= sq->renderDetails && mEnableTerrainDetails;
+               renderDetails |= sq->renderDetails && mEnableTerrainDetails;
 // CW - stuff with bump maps
-                  renderBumps |= sq->renderBumps && mEnableTerrainEmbossBumps;
+               renderBumps |= sq->renderBumps && mEnableTerrainEmbossBumps;
 // CW - end bump map stuff
-                  renderChunkOutline(sq);   // This is where the actual terrain block mesh is assembled
-               }
+               renderChunkOutline(sq);   // This is where the actual terrain block mesh is assembled
+               
                AssertFatal(mXFPointCount <= VertexBufferSize, "Invalid point count.");
                AssertFatal(mXFIndexCount <= 64 * 64 * 4, "Index count sucks.");
             }
@@ -2063,16 +2039,9 @@ void TerrainRender::renderBlock(TerrainBlock *block, SceneState *state)
             glDisable(GL_BLEND);
             if (renderBumps && mCurrentBlock->mBumpTextureHandle.getGLName() != 0 && mCurrentBlock->mInvertedBumpTextureHandle.getGLName() != 0 && mEnableTerrainEmbossBumps)
             {
-#ifdef TORQUE_OS_WIN32
-               if ( mRenderGL )
-                  renderGLBumps(bumpTextureOffset, hazeTexture.getGLName());
-               else
-                  // D3D sucks...
-                  renderD3DBumps(bumpTextureOffset);
-#else
                renderGLBumps(bumpTextureOffset, hazeTexture.getGLName());
-#endif
-                    //add a little fade-out
+
+               //add a little fade-out
                glEnable(GL_BLEND);
                glDisable(GL_TEXTURE_2D);
                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
