@@ -238,18 +238,12 @@ struct TerrainRender
 
    static F32 mPixelError;
 
-#ifdef TORQUE_OS_WIN32
-   //only need this in win32
-   static bool mRenderGL;
-#endif
-
    static TerrLightInfo mTerrainLights[MaxTerrainLights];
    static F32 mScreenError;
    static F32 mMinSquareSize;
    static F32 mFarDistance;
    static S32 mDynamicTextureCount;
    static S32 mStaticTextureCount;
-   static bool mRenderingCommander;
 
    static ColorF mFogColor;
 
