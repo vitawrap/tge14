@@ -759,6 +759,13 @@ void WaterBlock::initPersistFields()
    endGroup("Misc");
 }
 
+void WaterBlock::consoleInit()
+{
+    Parent::consoleInit();
+
+    Con::addVariable("$Fluid::FastRender", TypeBool, &fluid::smFastFluidRender);
+}
+
 //==============================================================================
 
 void WaterBlock::toggleWireFrame()
