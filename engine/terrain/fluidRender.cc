@@ -9,6 +9,7 @@
 #include "sceneGraph/sceneGraph.h"
 #include "math/mathUtils.h"
 
+bool fluid::smFastFluidRender = false;
 
 //==============================================================================
 //  FUNCTIONS
@@ -162,7 +163,7 @@ void fluid::Render( bool& EyeSubmerged )
 // because of the different ways they are blended into the frame buffer.
 // The current solution is to disable the single pass method in favor of consistency.
 //		if (dglGetMaxTextureUnits() > 2)
-		if ( 0 )
+		if ( smFastFluidRender )
 		{
 			// More than Dual TMU's ... let's do it a lot quicker ...
 

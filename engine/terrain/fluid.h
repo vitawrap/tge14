@@ -105,6 +105,8 @@ class fluid
 //  Public Types
 //
 public:
+    static bool smFastFluidRender;
+
     typedef f32 compute_fog_fn( f32 DeltaZ, f32 D );
 
 //------------------------------------------------------------------------------

@@ -140,6 +140,8 @@ public:
 
     static void initPersistFields();
 
+    static void consoleInit();
+
     EWaterType getLiquidType() const                 { return mLiquidType; }
     static bool isWater      ( U32 liquidType );
     static bool isLava       ( U32 liquidType );
