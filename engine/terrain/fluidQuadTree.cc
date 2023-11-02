@@ -362,6 +362,10 @@ void fluid::RunQuadTree( bool& EyeSubmerged )
 
 void fluid::ProcessNode( node& Node )
 {
+    // Fluid is set to not tile, reject all repeat nodes.
+    if (!mTile && (Node.BlockX0 < 0 || Node.BlockY0 < 0 || Node.BlockX0 >= 32 || Node.BlockY0 >= 32))
+        return;
+
     // Quick debug render.
     if( m_ShowNodes )
     {
@@ -387,13 +391,12 @@ void fluid::ProcessNode( node& Node )
         glEnd           ();
     }
 
-    // For each node, render all the blocks it contains.
-
     s32 X, Y;
     s32 Blocks;
 
     Blocks = (32 >> Node.Level);
 
+    // For each node, render all the blocks it contains.
     for( Y = 0; Y < Blocks; Y++ )
     for( X = 0; X < Blocks; X++ )
     {
