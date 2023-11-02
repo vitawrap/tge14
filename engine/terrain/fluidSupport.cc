@@ -417,15 +417,8 @@ void fluid::SetInfo( f32& X0,
 	// MM: Put in neater constraints.
 	m_EnvMapIntensity = mClampF(EnvMapIntensity, 0.0f, 1.0f);
 
-	// MM: Removed Section.
-/*
-    // Constrain the range of parameters.
-    if( Opacity         > 1.0f )    Opacity         = 1.0f;
-    if( Opacity         < 0.0f )    Opacity         = 0.0f;
-    if( EnvMapIntensity > 1.0f )    EnvMapIntensity = 1.0f;
-    if( EnvMapIntensity < 0.0f )    EnvMapIntensity = 0.0f;
-*/
     // Get the easy stuff first.
+    mTile             = tiling;
     m_SurfaceZ        = SurfaceZ;
     m_WaveAmplitude   = WaveAmplitude;
     m_RemoveWetEdges  = RemoveWetEdges;
@@ -645,6 +638,7 @@ s32 fluid::IsFluidAtXY( f32 X, f32 Y ) const
     y -= (m_SquareY0 << 3);
 
     // If we're outside the range and not tiling, ignore it.
+    // TODO: Change that again when tiling with infinite flood.
     if(!mTile)
     {
       if(x < 0 || x > 2047)
