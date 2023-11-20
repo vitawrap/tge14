@@ -395,4 +395,27 @@ public:
 extern ProcessList gClientProcessList;
 extern ProcessList gServerProcessList;
 
+// Time interval system
+namespace Interval
+{
+    // Must be a power of 2
+    enum {
+        Count = 8
+    };
+
+    extern int Interval;
+
+    // Expensive detail objects can use the interval system to
+    // avoid computing their state for a tick
+    inline bool Matches(GameBase* gb)
+    {
+        return (gb->getId() & (Interval::Count - 1)) == Interval;
+    }
+
+    inline void Advance()
+    {
+        ++Interval;
+    }
+}
+
 #endif
