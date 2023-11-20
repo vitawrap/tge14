@@ -13,6 +13,8 @@
 
 //----------------------------------------------------------------------------
 
+S32 Interval::Interval = 0;
+
 ProcessList gClientProcessList(false);
 ProcessList gServerProcessList(true);
 
@@ -200,6 +202,7 @@ bool ProcessList::advanceClientTime(SimTime timeDelta)
       obj->advanceTime(dt);
 
    mLastTime = targetTime;
+   Interval::Advance();
    PROFILE_END();
    return tickCount != 0;
 }
