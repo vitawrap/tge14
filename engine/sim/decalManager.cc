@@ -37,7 +37,7 @@ int QSORT_CALLBACK cmpDecalInstance(const void* p1, const void* p2)
 //--------------------------------------------------------------------------
 
 // This assumes center was set
-void DecalInstance::makeUVs()
+void DecalInstance::makeUVsZRotated()
 {
     ClippedPolyList::Poly* p;
     ClippedPolyList::VertexList& vertList = polyList.mVertexList;
@@ -46,12 +46,12 @@ void DecalInstance::makeUVs()
     F32 size = decalData->size;
     F32 hsize = size * .5f;
     F32 isize = 1.f / size;
-    Point3F vecX, vecY;
-    MatrixF rot(true);
 
     uv.clear();
     uv.reserve(vertList.size());
-    
+
+    MatrixF rot(true);
+    Point3F vecX, vecY;
     for (p = pList.begin(); p != pList.end(); p++) {
         Point3F& norm = p->plane;
         norm.normalizeSafe();
@@ -81,6 +81,45 @@ void DecalInstance::makeUVs()
         {
             Point3F pt = center - vertList[indexList[i]].point;
             rot.mulP(pt);
+            uv[indexList[i]] = Point2F(pt[x] + size, pt[y] + size) * isize * .5f;
+        }
+    }
+}
+
+void DecalInstance::makeUVs()
+{
+    ClippedPolyList::Poly* p;
+    ClippedPolyList::VertexList& vertList = polyList.mVertexList;
+    ClippedPolyList::IndexList& indexList = polyList.mIndexList;
+    ClippedPolyList::PolyList& pList = polyList.mPolyList;
+    F32 size = decalData->size;
+    F32 hsize = size * .5f;
+    F32 isize = 1.f / size;
+
+    uv.clear();
+    uv.reserve(vertList.size());
+
+    for (p = pList.begin(); p != pList.end(); p++) {
+        Point3F& norm = p->plane;
+        norm.normalizeSafe();
+        F32 dots[] = {
+            mAbs(mDot(norm, Point3F(1,0,0))),
+            mAbs(mDot(norm, Point3F(0,1,0))),
+            mAbs(mDot(norm, Point3F(0,0,1)))
+        };
+
+        S32 x, y;
+        if (dots[0] > dots[1] && dots[0] > dots[2])
+        { x = 1; y = 2; }
+        else if (dots[1] > dots[0] && dots[1] > dots[2])
+        { x = 0; y = 2; }
+        else
+        { x = 0; y = 1; }
+
+        S32 vertEnd = p->vertexStart + p->vertexCount;
+        for (S32 i = p->vertexStart; i < vertEnd; ++i)
+        {
+            Point3F pt = center - vertList[indexList[i]].point;
             uv[indexList[i]] = Point2F(pt[x] + size, pt[y] + size) * isize * .5f;
         }
     }
@@ -328,7 +367,7 @@ void DecalManager::addDecal(const Point3F& pos,
       polyList->mPlaneList[5].set(position + ext, VectorF(0, 0, 1));
       if (gClientContainer.buildPolyList(B, STATIC_COLLISION_MASK, polyList))
       {
-          newDecal->makeUVs();
+          newDecal->makeUVsZRotated();
           mDecalQueue.push_back(newDecal);
           mQueueDirty = true;
       }
