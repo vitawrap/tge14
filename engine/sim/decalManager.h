@@ -12,6 +12,9 @@
 #ifndef _GTEXMANAGER_H_
 #include "dgl/gTexManager.h"
 #endif
+#ifndef _CLIPPEDPOLYLIST_H_
+#include "collision/clippedPolyList.h"
+#endif
 
 /// DataBlock implementation for decals.
 class DecalData : public SimDataBlock
@@ -20,8 +23,7 @@ class DecalData : public SimDataBlock
 
    //-------------------------------------- Console set variables
   public:
-   F32               sizeX;
-   F32               sizeY;
+   F32               size;
    StringTableEntry  textureName;
 
    //-------------------------------------- load set variables
@@ -45,11 +47,15 @@ DECLARE_CONSOLETYPE(DecalData)
 struct DecalInstance
 {
    DecalData* decalData;
-   Point3F    point[4];
+   ClippedPolyList polyList;
+   Vector<Point2F> uv;
 
+   Point3F        center;
    U32            allocTime;
    F32            fade;
    DecalInstance* next;
+
+   void makeUVs();
 };
 
 /// Manage decals in the world.

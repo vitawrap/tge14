@@ -10,6 +10,7 @@
 #include "ts/tsShapeInstance.h"
 #include "core/bitStream.h"
 #include "console/consoleTypes.h"
+#include "collision/clippedPolyList.h"
 
 bool DecalManager::smDecalsOn = true;
 
@@ -33,12 +34,55 @@ int QSORT_CALLBACK cmpDecalInstance(const void* p1, const void* p2)
 
 } // namespace {}
 
+//--------------------------------------------------------------------------
+
+// This assumes center was set
+void DecalInstance::makeUVs()
+{
+    ClippedPolyList::Poly* p;
+    ClippedPolyList::VertexList& vertList = polyList.mVertexList;
+    ClippedPolyList::IndexList& indexList = polyList.mIndexList;
+    ClippedPolyList::PolyList& pList = polyList.mPolyList;
+    F32 size = decalData->size;
+    F32 hsize = size * .5f;
+    F32 isize = 1.f / size;
+
+    uv.clear();
+    uv.reserve(vertList.size());
+
+    for (p = pList.begin(); p != pList.end(); p++) {
+        Point3F& norm = p->plane;
+        norm.normalizeSafe();
+        F32 dots[] = {
+            mAbs(mDot(norm, Point3F(1,0,0))), 
+            mAbs(mDot(norm, Point3F(0,1,0))), 
+            mAbs(mDot(norm, Point3F(0,0,1)))
+        };
+
+        S32 x, y;
+        if (dots[0] > dots[1] && dots[0] > dots[2])
+        { x = 1; y = 2; }
+        else if (dots[1] > dots[0] && dots[1] > dots[2])
+        { x = 0; y = 2; }
+        else
+        { x = 0; y = 1; }
+
+        S32 vertEnd = p->vertexStart + p->vertexCount;
+        for (S32 i = p->vertexStart; i < vertEnd; ++i)
+        {
+            Point3F const& pt = center - vertList[indexList[i]].point;
+            //Point3F pro = p->plane.project(pt);
+            uv[indexList[i]] = Point2F(pt[x] + size, pt[y] + size) * isize * .5f;
+        }
+    }
+    //glDrawElements(GL_POLYGON, p->vertexCount,
+    //    GL_UNSIGNED_INT, &indexList[p->vertexStart]);
+}
 
 //--------------------------------------------------------------------------
 DecalData::DecalData()
 {
-   sizeX = 1;
-   sizeY = 1;
+   size = 1;
    textureName = "";
 }
 
@@ -53,8 +97,7 @@ void DecalData::packData(BitStream* stream)
 {
    Parent::packData(stream);
 
-   stream->write(sizeX);
-   stream->write(sizeY);
+   stream->write(size);
    stream->writeString(textureName);
 }
 
@@ -62,8 +105,7 @@ void DecalData::unpackData(BitStream* stream)
 {
    Parent::unpackData(stream);
 
-   stream->read(&sizeX);
-   stream->read(&sizeY);
+   stream->read(&size);
    textureName = stream->readSTString();
 }
 
@@ -72,13 +114,9 @@ bool DecalData::preload(bool server, char errorBuffer[ErrorBufferSize])
    if (Parent::preload(server, errorBuffer) == false)
       return false;
 
-   if (sizeX < 0.0) {
-      Con::warnf("DecalData::preload: sizeX < 0");
-      sizeX = 0;
-   }
-   if (sizeY < 0.0) {
-      Con::warnf("DecalData::preload: sizeX < 0");
-      sizeY = 0;
+   if (size < 0.0) {
+      Con::warnf("DecalData::preload: size < 0");
+      size = 0;
    }
    if (textureName == NULL || textureName[0] == '\0') {
       Con::errorf("No texture name for decal!");
@@ -102,8 +140,8 @@ IMPLEMENT_GETDATATYPE(DecalData)
 
 void DecalData::initPersistFields()
 {
-   addField("sizeX",       TypeF32,       Offset(sizeX,       DecalData));
-   addField("sizeY",       TypeF32,       Offset(sizeY,       DecalData));
+   addField("size", TypeF32, Offset(size, DecalData));
+   addField("sizeX", TypeF32, Offset(size, DecalData)); // Alias for compatibility
    addField("textureName", TypeFilename,  Offset(textureName, DecalData));
 }
 
@@ -150,6 +188,7 @@ DecalInstance* DecalManager::allocateDecalInstance()
    AssertFatal(mFreePool != NULL, "Error, should always have a free pool available here!");
 
    DecalInstance* pRet = mFreePool;
+   pRet->polyList.mPlaneList.setSize(6);
    mFreePool = pRet->next;
    pRet->next = NULL;
    return pRet;
@@ -160,6 +199,8 @@ void DecalManager::freeDecalInstance(DecalInstance* trash)
 {
    AssertFatal(trash != NULL, "Error, no trash pointer to free!");
 
+   trash->polyList.clear();
+   trash->polyList.mPlaneList.clear();  // Size of 6 is still kept
    trash->next = mFreePool;
    mFreePool = trash;
 }
@@ -200,34 +241,29 @@ void DecalManager::addDecal(const Point3F& pos,
       freeDecalInstance(holder);
    }
 
-   Point3F vecX, vecY;
+   normal.normalizeSafe();
+   Point3F position = pos;
+   Point3F ext(decalData->size, decalData->size, decalData->size);
+
    DecalInstance* newDecal = allocateDecalInstance();
    newDecal->decalData = decalData;
    newDecal->allocTime = Platform::getVirtualMilliseconds();
+   Box3F B(position - ext, position + ext, true);
+   newDecal->center = position;
 
-   if(mFabs(normal.z) > 0.9f)
-      mCross(normal, Point3F(0.0f, 1.0f, 0.0f), &vecX);
-   else
-      mCross(normal, Point3F(0.0f, 0.0f, 1.0f), &vecX);
-
-   mCross(vecX, normal, &vecY);
-
-   normal.normalizeSafe();
-   Point3F position = Point3F(pos.x + (normal.x * 0.008), pos.y + (normal.y * 0.008), pos.z + (normal.z * 0.008));
-
-   vecX.normalizeSafe();
-   vecY.normalizeSafe();
-
-   vecX *= decalData->sizeX;
-   vecY *= decalData->sizeY;
-
-   newDecal->point[0] = position + vecX + vecY;
-   newDecal->point[1] = position + vecX - vecY;
-   newDecal->point[2] = position - vecX - vecY;
-   newDecal->point[3] = position - vecX + vecY;
-
-   mDecalQueue.push_back(newDecal);
-   mQueueDirty = true;
+   ClippedPolyList* polyList = &newDecal->polyList;
+   polyList->mPlaneList[0].set(position - ext, VectorF(-1, 0, 0));
+   polyList->mPlaneList[1].set(position - ext, VectorF(0, -1, 0));
+   polyList->mPlaneList[2].set(position - ext, VectorF(0, 0, -1));
+   polyList->mPlaneList[3].set(position + ext, VectorF(1, 0, 0));
+   polyList->mPlaneList[4].set(position + ext, VectorF(0, 1, 0));
+   polyList->mPlaneList[5].set(position + ext, VectorF(0, 0, 1));
+   if (gClientContainer.buildPolyList(B, STATIC_COLLISION_MASK, polyList))
+   {
+       newDecal->makeUVs();
+       mDecalQueue.push_back(newDecal);
+       mQueueDirty = true;
+   }
 }
 
 void DecalManager::addDecal(const Point3F& pos,
@@ -260,32 +296,33 @@ void DecalManager::addDecal(const Point3F& pos,
          freeDecalInstance(holder);
       }
 
-      Point3F vecX, vecY;
+      normal.normalize();
+      Point3F position = pos;
+      Point3F ext(decalData->size, decalData->size, decalData->size);
+
+      ext *= scale;
       DecalInstance* newDecal = allocateDecalInstance();
       newDecal->decalData = decalData;
       newDecal->allocTime = Platform::getVirtualMilliseconds();
+      Box3F B(position - ext, position + ext, true);
+      newDecal->center = position;
 
-      mCross(rot, normal, &vecX);
-      mCross(normal, vecX, &vecY);
-
-      normal.normalize();
-      Point3F position = Point3F(pos.x + (normal.x * 0.008), pos.y + (normal.y * 0.008), pos.z + (normal.z * 0.008));
-
-      vecX.normalize();
-      vecX.convolve( scale );
-      vecY.normalize();
-      vecY.convolve( scale );
-
-      vecX *= decalData->sizeX;
-      vecY *= decalData->sizeY;
-
-      newDecal->point[0] = position + vecX + vecY;
-      newDecal->point[1] = position + vecX - vecY;
-      newDecal->point[2] = position - vecX - vecY;
-      newDecal->point[3] = position - vecX + vecY;
-
-      mDecalQueue.push_back(newDecal);
-      mQueueDirty = true;
+      ClippedPolyList* polyList = &newDecal->polyList;
+      polyList->clear();
+      polyList->mPlaneList.clear();
+      polyList->mPlaneList.setSize(6);
+      polyList->mPlaneList[0].set(position - ext, VectorF(-1, 0, 0));
+      polyList->mPlaneList[1].set(position - ext, VectorF(0, -1, 0));
+      polyList->mPlaneList[2].set(position - ext, VectorF(0, 0, -1));
+      polyList->mPlaneList[3].set(position + ext, VectorF(1, 0, 0));
+      polyList->mPlaneList[4].set(position + ext, VectorF(0, 1, 0));
+      polyList->mPlaneList[5].set(position + ext, VectorF(0, 0, 1));
+      if (gClientContainer.buildPolyList(B, STATIC_COLLISION_MASK, polyList))
+      {
+          newDecal->makeUVs();
+          mDecalQueue.push_back(newDecal);
+          mQueueDirty = true;
+      }
    }
 }
 
@@ -379,27 +416,41 @@ void DecalManager::renderDecal()
    glEnable(GL_ALPHA_TEST);
    glDepthMask(GL_FALSE);
    glAlphaFunc(GL_GREATER, 0.1f);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   glEnable(GL_POLYGON_OFFSET_FILL);
+   glPolygonOffset(-1.1f, -1.1f);
 
    DecalData* pLastData = NULL;
    for (S32 x = 0; x < mDecalQueue.size(); x++)
    {
-      if (mDecalQueue[x]->decalData != pLastData)
+      DecalInstance* di = mDecalQueue[x];
+
+      if (di->decalData != pLastData)
       {
-         glBindTexture(GL_TEXTURE_2D, mDecalQueue[x]->decalData->textureHandle.getGLName());
-         pLastData = mDecalQueue[x]->decalData;
+         glBindTexture(GL_TEXTURE_2D, di->decalData->textureHandle.getGLName());
+         pLastData = di->decalData;
       }
 
-      glColor4f(1, 1, 1, mDecalQueue[x]->fade);
-      glBegin(GL_TRIANGLE_FAN); {
-         glTexCoord2f(0, 0); glVertex3fv(mDecalQueue[x]->point[0]);
-         glTexCoord2f(0, 1); glVertex3fv(mDecalQueue[x]->point[1]);
-         glTexCoord2f(1, 1); glVertex3fv(mDecalQueue[x]->point[2]);
-         glTexCoord2f(1, 0); glVertex3fv(mDecalQueue[x]->point[3]);
-      } glEnd();
+      glColor4f(1, 1, 1, di->fade);
+
+      ClippedPolyList::Poly* p;
+      ClippedPolyList::VertexList& vertList = di->polyList.mVertexList;
+      ClippedPolyList::PolyList& polyList = di->polyList.mPolyList;
+      ClippedPolyList::IndexList& indexList = di->polyList.mIndexList;
+      glVertexPointer(3, GL_FLOAT, sizeof(ClippedPolyList::Vertex), vertList.address());
+      glTexCoordPointer(2, GL_FLOAT, sizeof(Point2F), di->uv.address());
+      for (p = polyList.begin(); p < polyList.end(); p++) {
+          glDrawElements(GL_POLYGON, p->vertexCount,
+              GL_UNSIGNED_INT, &indexList[p->vertexStart]);
+      }
    }
 
+   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+   glDisableClientState(GL_VERTEX_ARRAY);
+   glDisable(GL_POLYGON_OFFSET_FILL);
    glDepthMask(GL_TRUE);
    glDisable(GL_BLEND);
    glDisable(GL_TEXTURE_2D);
