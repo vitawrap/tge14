@@ -57,6 +57,7 @@ struct DecalInstance
    DecalInstance* next;
 
    void makeUVs();
+   void makeUVsZRotated();  // The workaround for now (footsteps)
 };
 
 /// Manage decals in the world.
