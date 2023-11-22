@@ -46,10 +46,12 @@ void DecalInstance::makeUVs()
     F32 size = decalData->size;
     F32 hsize = size * .5f;
     F32 isize = 1.f / size;
+    Point3F vecX, vecY;
+    MatrixF rot(true);
 
     uv.clear();
     uv.reserve(vertList.size());
-
+    
     for (p = pList.begin(); p != pList.end(); p++) {
         Point3F& norm = p->plane;
         norm.normalizeSafe();
@@ -67,16 +69,21 @@ void DecalInstance::makeUVs()
         else
         { x = 0; y = 1; }
 
+        // Create a basis to transform the UV point
+        mCross(xdir, norm, &vecX);
+        mCross(norm, vecX, &vecY);
+        rot.setColumn(0, vecX);
+        rot.setColumn(1, -vecY);
+        rot.setColumn(2, norm);
+
         S32 vertEnd = p->vertexStart + p->vertexCount;
         for (S32 i = p->vertexStart; i < vertEnd; ++i)
         {
-            Point3F const& pt = center - vertList[indexList[i]].point;
-            //Point3F pro = p->plane.project(pt);
+            Point3F pt = center - vertList[indexList[i]].point;
+            rot.mulP(pt);
             uv[indexList[i]] = Point2F(pt[x] + size, pt[y] + size) * isize * .5f;
         }
     }
-    //glDrawElements(GL_POLYGON, p->vertexCount,
-    //    GL_UNSIGNED_INT, &indexList[p->vertexStart]);
 }
 
 //--------------------------------------------------------------------------
@@ -250,6 +257,7 @@ void DecalManager::addDecal(const Point3F& pos,
    newDecal->allocTime = Platform::getVirtualMilliseconds();
    Box3F B(position - ext, position + ext, true);
    newDecal->center = position;
+   newDecal->xdir = Point3F(1,0,0);
 
    ClippedPolyList* polyList = &newDecal->polyList;
    polyList->mPlaneList[0].set(position - ext, VectorF(-1, 0, 0));
@@ -278,7 +286,7 @@ void DecalManager::addDecal(const Point3F& pos,
 }
 
 void DecalManager::addDecal(const Point3F& pos,
-                            const Point3F& rot,
+                            const Point3F& rot, // dir vector, natural cross of normal
                             Point3F normal,
                             const Point3F& scale,
                             DecalData* decalData)
@@ -306,6 +314,7 @@ void DecalManager::addDecal(const Point3F& pos,
       newDecal->allocTime = Platform::getVirtualMilliseconds();
       Box3F B(position - ext, position + ext, true);
       newDecal->center = position;
+      newDecal->xdir = rot;
 
       ClippedPolyList* polyList = &newDecal->polyList;
       polyList->clear();
@@ -431,6 +440,8 @@ void DecalManager::renderDecal()
       if (di->decalData != pLastData)
       {
          glBindTexture(GL_TEXTURE_2D, di->decalData->textureHandle.getGLName());
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
          pLastData = di->decalData;
       }
 

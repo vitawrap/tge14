@@ -50,6 +50,7 @@ struct DecalInstance
    ClippedPolyList polyList;
    Vector<Point2F> uv;
 
+   Point3F        xdir;
    Point3F        center;
    U32            allocTime;
    F32            fade;
