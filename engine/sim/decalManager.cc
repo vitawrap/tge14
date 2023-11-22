@@ -389,8 +389,6 @@ bool DecalManager::prepRenderImage(SceneState* state, const U32 stateKey,
 
 void DecalManager::renderObject(SceneState* state, SceneRenderImage*)
 {
-   if (!smDecalsOn) return;
-
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on entry");
 
    RectI viewport;
