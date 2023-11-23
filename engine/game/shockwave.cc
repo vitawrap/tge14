@@ -351,8 +351,6 @@ bool Shockwave::onAdd()
 //--------------------------------------------------------------------------
 void Shockwave::onRemove()
 {
-   Parent::onRemove();
-
    for( int i=0; i<ShockwaveData::NUM_EMITTERS; i++ )
    {
       if( mEmitterList[i] )
