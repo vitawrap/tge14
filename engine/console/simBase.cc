@@ -639,6 +639,7 @@ ConsoleMethod(SimObject,dump, void, 2, 2, "obj.dump()")
    const AbstractClassRep::FieldList &list = object->getFieldList();
    char expandedBuffer[1024];
 
+   Con::printf("Class: %s", object->getClassName());
    Con::printf("Member Fields:");
    Vector<const AbstractClassRep::Field *> flist(__FILE__, __LINE__);
 
