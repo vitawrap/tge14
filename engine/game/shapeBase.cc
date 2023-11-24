@@ -4142,6 +4142,16 @@ ConsoleMethod( ShapeBase, getSkinName, const char*, 2, 2, "")
    return object->getSkinName();
 }
 
+ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
+{
+    TSShapeInstance* inst = object->getShapeInstance();
+    TSShape const* shape = object->getShape();
+    S32 mat;
+    if ((mat = shape->findIflMaterial(argv[2])) != -1)
+        return inst->mIflMaterialInstances[mat].frame;
+    return 0;   // Pretend it's the first frame otherwise
+}
+
 //----------------------------------------------------------------------------
 void ShapeBase::consoleInit()
 {
