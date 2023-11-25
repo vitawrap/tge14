@@ -21,14 +21,26 @@ AbstractClassRep **                AbstractClassRep::classTable[NetClassGroupsCo
 U32                                AbstractClassRep::classCRC[NetClassGroupsCount] = {INITIAL_CRC_VALUE, };
 bool                               AbstractClassRep::initialized = false;
 
+
+
 //--------------------------------------
 const AbstractClassRep::Field *AbstractClassRep::findField(StringTableEntry name) const
 {
-   for(U32 i = 0; i < mFieldList.size(); i++)
-      if(mFieldList[i].pFieldname == name)
-         return &mFieldList[i];
-
-   return NULL;
+    // [2023] this was an ugly linear search before,
+    // now we take advantage of STE's for a bsearch.
+    S32 begin = 0;
+    S32 end = mFieldList.size() - 1;
+    AbstractClassRep::Field* fields = mFieldList.address();
+    while (begin <= end)
+    {
+        S32 half = (begin + end) >> 1;
+        if (name == fields[half].pFieldname)
+            return &fields[half];
+        else if (name > fields[half].pFieldname)
+            begin = half + 1;
+        else end = half - 1;
+    }
+    return NULL;
 }
 
 //--------------------------------------
@@ -92,6 +104,15 @@ static S32 QSORT_CALLBACK ACRCompare(const void *aptr, const void *bptr)
    return dStrcmp(a->getClassName(), b->getClassName());
 }
 
+static S32 QSORT_CALLBACK ACRFieldCompare(const void* aptr, const void* bptr)
+{
+    // fieldnames are StringTableEntries, so their ptrs can be sorted for searching later
+    const AbstractClassRep::Field* a = (const AbstractClassRep::Field*)aptr;
+    const AbstractClassRep::Field* b = (const AbstractClassRep::Field*)bptr;
+
+    return a->pFieldname - b->pFieldname;
+}
+
 void AbstractClassRep::initialize()
 {
    AssertFatal(!initialized, "Duplicate call to AbstractClassRep::initialize()!");
@@ -117,7 +138,10 @@ void AbstractClassRep::initialize()
 
       // So if we have things in it, copy it over...
       if (sg_tempFieldList.size() != 0)
+      {
+         dQsort(sg_tempFieldList.address(), sg_tempFieldList.size(), sizeof(AbstractClassRep::Field), ACRFieldCompare);
          walk->mFieldList = sg_tempFieldList;
+      }
 
       // And of course delete it every round.
       sg_tempFieldList.clear();
