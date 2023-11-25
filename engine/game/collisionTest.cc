@@ -35,6 +35,7 @@ CollisionTest::~CollisionTest()
 
 void CollisionTest::consoleInit()
 {
+#ifdef TORQUE_DEBUG
    Con::addVariable("Collision::boxSize",TypeF32,&BoxSize);
 
    Con::addVariable("Collision::testPolytope",TypeBool,&testPolytope);
@@ -45,11 +46,12 @@ void CollisionTest::consoleInit()
    Con::addVariable("Collision::depthSort",TypeBool,&depthSort);
    Con::addVariable("Collision::depthRender",TypeBool,&depthRender);
    Con::addVariable("Collision::renderAlways",TypeBool,&renderAlways);
+#endif
 }
 
 void CollisionTest::collide(const MatrixF& transform)
 {
-   //
+#ifdef TORQUE_DEBUG
    Point3F pos;
    transform.getColumn(3,&pos);
    boundingBox.min = pos - Point3F(BoxSize,BoxSize,BoxSize);
@@ -152,10 +154,12 @@ void CollisionTest::collide(const MatrixF& transform)
    if (testExtrudedPolyList) {
       extrudedList.adjustCollisionTime();
    }
+#endif
 }
 
 void CollisionTest::callback(SceneObject* obj, void *thisPtr)
 {
+#ifdef TORQUE_DEBUG
    CollisionTest* ptr = reinterpret_cast<CollisionTest*>(thisPtr);
 
    if (testPolytope) {
@@ -171,12 +175,14 @@ void CollisionTest::callback(SceneObject* obj, void *thisPtr)
    if (testDepthSortList) {
       obj->buildPolyList(&ptr->depthSortList,ptr->mDepthBox,ptr->mDepthSphere);
    }
+#endif // DEBUG
 }
 
 extern void wireCube(F32 size,Point3F pos);
 
 void CollisionTest::render()
 {
+#ifdef TORQUE_DEBUG
    bool collision = false;
    if (testPolytope || renderAlways) {
       if (volume.didIntersect())
@@ -210,5 +216,6 @@ void CollisionTest::render()
 
    if (collision || renderAlways)
      wireCube(BoxSize,testPos);
+#endif
 }
 
