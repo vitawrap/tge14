@@ -110,7 +110,11 @@ static S32 QSORT_CALLBACK ACRFieldCompare(const void* aptr, const void* bptr)
     const AbstractClassRep::Field* a = (const AbstractClassRep::Field*)aptr;
     const AbstractClassRep::Field* b = (const AbstractClassRep::Field*)bptr;
 
-    return a->pFieldname - b->pFieldname;
+    // narrowing-safe return
+    S64 ptr = a->pFieldname - b->pFieldname;
+    if (ptr < 0)        return -1;
+    else if (ptr > 0)   return 1;
+    return 0;
 }
 
 void AbstractClassRep::initialize()
