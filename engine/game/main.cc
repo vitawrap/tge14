@@ -624,11 +624,11 @@ void DemoGame::processTimeEvent(TimeEvent *event)
 {
    PROFILE_START(ProcessTimeEvent);
    U32 elapsedTime = event->elapsedTime;
-   // cap the elapsed time to one second
-   // if it's more than that we're probably in a bad catch-up situation
 
-   if(elapsedTime > 1024)
-      elapsedTime = 1024;
+   // cap the elapsed time to four seconds (previously one, bad with timescale)
+   // if it's more than that we're probably in a bad catch-up situation
+   if(elapsedTime > 4096)
+      elapsedTime = 4096;
 
    U32 timeDelta;
 
