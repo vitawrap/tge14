@@ -259,6 +259,7 @@ void shutdown()
    active = false;
 
    consoleLogFile.close();
+   AbstractClassRep::shutdown();
    Namespace::shutdown();
 
 #ifdef TORQUE_MULTITHREAD
