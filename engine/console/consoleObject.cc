@@ -11,6 +11,9 @@
 #include "console/consoleInternal.h"
 #include "console/typeValidators.h"
 
+AbstractClassRep **                AbstractClassRep::classNameTable = NULL;
+U32                                AbstractClassRep::classNameCount = 0;
+
 AbstractClassRep *                 AbstractClassRep::classLinkList = NULL;
 static AbstractClassRep::FieldList sg_tempFieldList;
 U32                                AbstractClassRep::NetClassCount  [NetClassGroupsCount][NetClassTypesCount] = {{0, },};
@@ -20,8 +23,6 @@ AbstractClassRep **                AbstractClassRep::classTable[NetClassGroupsCo
 
 U32                                AbstractClassRep::classCRC[NetClassGroupsCount] = {INITIAL_CRC_VALUE, };
 bool                               AbstractClassRep::initialized = false;
-
-
 
 //--------------------------------------
 const AbstractClassRep::Field *AbstractClassRep::findField(StringTableEntry name) const
@@ -67,9 +68,14 @@ ConsoleObject* AbstractClassRep::create(const char* in_pClassName)
    AssertFatal(initialized,
       "AbstractClassRep::create() - Tried to create an object before AbstractClassRep::initialize().");
 
-   for (AbstractClassRep *walk = classLinkList; walk; walk = walk->nextClass)
-      if (!dStrcmp(walk->getClassName(), in_pClassName))
-         return walk->create();
+   StringTableEntry steInName = StringTable->insert(in_pClassName, true);
+   AbstractClassRep* walk = classNameTable[HashPointer(steInName) % classNameCount];
+   while (walk)
+   {
+       if (StringTable->insert(walk->getClassName(), true) == steInName)
+           return walk->create();
+       walk = walk->bucketNextClass;
+   }
 
    AssertWarn(0, avar("Couldn't find class rep for dynamic class: %s", in_pClassName));
    return NULL;
@@ -124,12 +130,14 @@ void AbstractClassRep::initialize()
 
    AbstractClassRep *walk;
 
-   // Initialize namespace references...
+   // Initialize namespace references and save class count to build a name table...
    for (walk = classLinkList; walk; walk = walk->nextClass)
    {
-      walk->mNamespace = Con::lookupNamespace(StringTable->insert(walk->getClassName()));
+      walk->mNamespace = Con::lookupNamespace(walk->getClassName());
       walk->mNamespace->mClassRep = walk;
+      ++classNameCount;
    }
+   classNameTable = new AbstractClassRep * [classNameCount] ();
 
    // Initialize field lists... (and perform other console registration).
    for (walk = classLinkList; walk; walk = walk->nextClass)
@@ -149,6 +157,19 @@ void AbstractClassRep::initialize()
 
       // And of course delete it every round.
       sg_tempFieldList.clear();
+
+      // Insert it into the name table, for constructors in script
+      S32 pos = HashPointer(StringTable->insert(walk->getClassName(), true)) % classNameCount;
+      AbstractClassRep* link = classNameTable[pos];
+      AbstractClassRep* valid = NULL;
+      while (link)
+      {
+          valid = link;
+          link = link->bucketNextClass;
+      }
+      if (valid)
+          valid->bucketNextClass = walk;
+      else classNameTable[pos] = walk;
    }
 
    // Calculate counts and bit sizes for the various NetClasses.
@@ -195,6 +216,11 @@ void AbstractClassRep::initialize()
    // Ok, we're golden!
    initialized = true;
 
+}
+
+void AbstractClassRep::shutdown()
+{
+    delete[] classNameTable;
 }
 
 //------------------------------------------------------------------------------

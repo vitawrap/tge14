@@ -161,6 +161,7 @@ public:
    {
       VECTOR_SET_ASSOCIATION(mFieldList);
       parentClass  = NULL;
+      bucketNextClass = NULL;
    }
    virtual ~AbstractClassRep() { }
 
@@ -205,7 +206,8 @@ protected:
    virtual void init() const = 0;
 
    const char *       mClassName;
-   AbstractClassRep * nextClass;
+   AbstractClassRep * bucketNextClass;  // Used for classNameTable
+   AbstractClassRep * nextClass;        // Used for classTable, etc
    AbstractClassRep * parentClass;
    Namespace *        mNamespace;
 
@@ -251,6 +253,8 @@ public:
    /// @{
 
 protected:
+   static U32                 classNameCount;
+   static AbstractClassRep ** classNameTable;
    static AbstractClassRep ** classTable[NetClassGroupsCount][NetClassTypesCount];
    static AbstractClassRep *  classLinkList;
    static U32                 classCRC[NetClassGroupsCount];
@@ -265,7 +269,7 @@ public:
 
    static void registerClassRep(AbstractClassRep*);
    static void initialize(); // Called from Con::init once on startup
-
+   static void shutdown();
 
    /// @}
 };
