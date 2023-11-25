@@ -453,32 +453,6 @@ int DemoGame::main(int argc, const char **argv)
 
    gShuttingDown = true;
 
-#if 0
-// tg: Argh! This OS version check should be part of Platform, not here...
-//
-   // check os
-   OSVERSIONINFO osInfo;
-   dMemset(&osInfo, 0, sizeof(OSVERSIONINFO));
-   osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-   // see if osversioninfoex fails
-   if(!GetVersionEx((OSVERSIONINFO*)&osInfo))
-   {
-      osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-      if(!GetVersionEx((OSVERSIONINFO*)&osInfo))
-         return 0;
-   }
-
-   // terminate the process if win95 only!
-   if((osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) &&      // 95, 98, ME
-      (osInfo.dwMajorVersion == 4) &&                             // 95, 98, ME, NT
-      (osInfo.dwMinorVersion == 0))                               // 95
-   {
-      AssertWarn(0, "Forcing termination of app (Win95)!  Upgrade your OS now!");
-      TerminateProcess(GetCurrentProcess(), 0xffffffff);
-   }
-#endif
-
    return 0;
 }
 
