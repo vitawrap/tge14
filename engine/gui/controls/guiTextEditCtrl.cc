@@ -77,7 +77,6 @@ void GuiTextEditCtrl::initPersistFields()
    addField("tabComplete",       TypeBool,      Offset(mTabComplete,       GuiTextEditCtrl));     
    addField("deniedSound",       TypeAudioProfilePtr, Offset(mDeniedSound, GuiTextEditCtrl));
    addField("sinkAllKeyEvents",  TypeBool,      Offset(mSinkAllKeyEvents,  GuiTextEditCtrl));
-   addField("password",          TypeBool,      Offset(mPasswordText,      GuiTextEditCtrl));
    addField("passwordMask",      TypeString,    Offset(mPasswordMask,      GuiTextEditCtrl)); 
 }
 
