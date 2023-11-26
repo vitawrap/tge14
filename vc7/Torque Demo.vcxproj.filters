@@ -1351,9 +1351,6 @@
     <ClInclude Include="..\engine\console\dynamicTypes.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\console\objectTypes.h">
-      <Filter>Source Files\console</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\console\simBase.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
