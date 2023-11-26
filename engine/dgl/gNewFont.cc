@@ -310,6 +310,17 @@ ConsoleFunction(duplicateCachedFont, void, 4, 4, "(oldFontName, oldFontSize, new
    }
 }
 
+ConsoleFunction(registerFont, bool, 2, 2, "(string filename) - Add font file to local font registry")
+{
+    char filename[1024]{};
+    if (!Con::expandScriptFilename(filename, 1023, argv[1]))
+        Con::warnf("registerFont: Failed to expand filename, attempting loading anyway...");
+    if (ResourceManager->findFile(filename))
+        return registerFontFile(filename);
+    Con::warnf("registerFont: Font \"%s\" was not found.", filename);
+    return false;
+}
+
 ResourceInstance* constructNewFont(Stream& stream)
 {
    GFont *ret = new GFont;

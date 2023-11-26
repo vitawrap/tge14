@@ -103,6 +103,11 @@ XFontStruct *loadFont(const char *name, S32 size, Display *display,
   return fontInfo;
 }
 
+bool registerFontFile(char const* fname)
+{
+	return false;
+}
+
 GOldFont *createFont(const char *name, dsize_t size, U32 charset)
 {
   Display *display = XOpenDisplay(getenv("DISPLAY"));

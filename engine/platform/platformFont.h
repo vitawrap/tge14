@@ -40,6 +40,6 @@ public:
 };
 
 extern PlatformFont *createPlatformFont(const char *name, U32 size, U32 charset = TGE_ANSI_CHARSET);
-
+extern bool registerFontFile(char const* fontfile);
 
 #endif // _PLATFORMFONT_H_
