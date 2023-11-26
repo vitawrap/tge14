@@ -213,6 +213,18 @@ WinFont::~WinFont()
     }
 }
 
+bool registerFontFile(char const* fname)
+{
+#ifdef UNICODE
+    UTF16 ufn[512];
+    convertUTF8toUTF16((UTF8*)fname, ufn, sizeof(ufn));
+    
+    return AddFontResourceEx((LPCWSTR)ufn, FR_PRIVATE, 0);
+#else
+    return AddFontResourceEx(fname, FR_PRIVATE, 0);
+#endif
+}
+
 bool WinFont::create(const char *name, U32 size, U32 charset /* = TGE_ANSI_CHARSET */)
 {
     if(name == NULL || size < 1)
