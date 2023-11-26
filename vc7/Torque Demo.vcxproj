@@ -693,7 +693,6 @@
     <ClInclude Include="..\engine\console\consoleParser.h" />
     <ClInclude Include="..\engine\console\consoleTypes.h" />
     <ClInclude Include="..\engine\console\dynamicTypes.h" />
-    <ClInclude Include="..\engine\console\objectTypes.h" />
     <ClInclude Include="..\engine\console\simBase.h" />
     <ClInclude Include="..\engine\console\simDictionary.h" />
     <ClInclude Include="..\engine\console\stringStack.h" />
