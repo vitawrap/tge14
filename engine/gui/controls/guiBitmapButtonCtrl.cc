@@ -207,10 +207,10 @@ void GuiBitmapButtonTextCtrl::onRender(Point2I offset, const RectI& updateRect)
          break;
       case INACTIVE:
          texture = mTextureInactive;
-         if(!texture)
-            texture = mTextureNormal;
          break;
    }
+   if (!texture)
+       texture = mTextureNormal;
    if (texture)
    {
       RectI rect(offset, mBounds.extent);
@@ -224,7 +224,7 @@ void GuiBitmapButtonTextCtrl::onRender(Point2I offset, const RectI& updateRect)
       // Make sure we take the profile's textOffset into account.
       textPos += mProfile->mTextOffset;
 
-      dglSetBitmapModulation( mProfile->mFontColor );
+      dglSetBitmapModulation( mActive? (mMouseOver? mProfile->mFontColorHL : mProfile->mFontColor) : mProfile->mFontColorNA );
       renderJustifiedText(textPos, mBounds.extent, mButtonText);
 
       renderChildControls( offset, updateRect);
