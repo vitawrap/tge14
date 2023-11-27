@@ -394,6 +394,9 @@ public:
 
    StringTableEntry  shapeName;
    StringTableEntry  cloakTexName;
+   
+   StringTableEntry  envTexName;
+   TextureHandle     envTex;
 
    /// @name Destruction
    ///
