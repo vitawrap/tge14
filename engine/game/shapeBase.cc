@@ -55,6 +55,7 @@ ShapeBaseData::ShapeBaseData()
 {
    shapeName = "";
    cloakTexName = "";
+   envTexName = "";
    mass = 1;
    drag = 0;
    density = 1;
@@ -86,6 +87,7 @@ ShapeBaseData::ShapeBaseData()
    underwaterExplosionID = 0;
    firstPersonOnly = false;
    useEyePoint = false;
+
 
    observeThroughObject = false;
    computeCRC = false;
@@ -295,6 +297,10 @@ bool ShapeBaseData::preload(bool server, char errorBuffer[ErrorBufferSize])
          if(hudImageNameEnemy[i] && hudImageNameEnemy[i][0])
             hudImageEnemy[i] = TextureHandle(hudImageNameEnemy[i], BitmapTexture);
       }
+
+      // Load custom env texture
+      if (envTexName && envTexName[0])
+        envTex = TextureHandle(envTexName, MeshTexture);
    }
 
    return !shapeError;
@@ -308,6 +314,7 @@ void ShapeBaseData::initPersistFields()
    addGroup("Render");
    addField("shapeFile",      TypeFilename, Offset(shapeName,      ShapeBaseData));
    addField("cloakTexture",   TypeFilename, Offset(cloakTexName,      ShapeBaseData));
+   addField("etex",           TypeFilename, Offset(envTexName,       ShapeBaseData));
    addField("emap",           TypeBool,       Offset(emap,           ShapeBaseData));
    endGroup("Render");
 
@@ -480,7 +487,9 @@ void ShapeBaseData::packData(BitStream* stream)
                              debris->getId(),DataBlockObjectIdFirst,DataBlockObjectIdLast);
    }
 
-   stream->writeFlag(emap);
+   if (stream->writeFlag(emap))
+       stream->writeString(envTexName);
+   
    stream->writeFlag(isInvincible);
    stream->writeFlag(renderWhenDestroyed);
 
@@ -563,7 +572,9 @@ void ShapeBaseData::unpackData(BitStream* stream)
       debrisID = stream->readRangedU32( DataBlockObjectIdFirst, DataBlockObjectIdLast );
    }
 
-   emap = stream->readFlag();
+   if (emap = stream->readFlag())
+       envTexName = stream->readSTString();
+
    isInvincible = stream->readFlag();
    renderWhenDestroyed = stream->readFlag();
 
@@ -2495,7 +2506,7 @@ void ShapeBase::renderImage(SceneState* state, SceneRenderImage* image)
       }
 
       if (mCloakLevel == 0.0 && (mDataBlock->emap && gRenderEnvMaps) && state->getEnvironmentMap().getGLName() != 0) {
-         mShapeInstance->setEnvironmentMap(state->getEnvironmentMap());
+         mShapeInstance->setEnvironmentMap(mDataBlock->envTexName[0]? mDataBlock->envTex : state->getEnvironmentMap());
          mShapeInstance->setEnvironmentMapOn(true, 1.0);
       } else {
          mShapeInstance->setEnvironmentMapOn(false, 1.0);
