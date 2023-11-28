@@ -12,7 +12,7 @@
 #include "platform/platformInput.h"
 #include "platformX86UNIX/platformX86UNIX.h"
 
-#include <SDL/SDL_events.h>
+#include <SDL2/SDL_events.h>
 
 #define NUM_KEYS ( KEY_OEM_102 + 1 )
 #define KEY_FIRST KEY_ESCAPE

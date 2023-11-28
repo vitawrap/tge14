@@ -67,7 +67,7 @@ LINK.LIBS.VORBIS  =  ../lib/xiph/linux/libogg.so.0 ../lib/xiph/linux/libvorbis.s
 # There are nasty bugs in SDL1. Reverting to system SDL should not
 # break the commands below... shame if it does.
 #LINK.LIBS.SDL_S=,../lib/sdl/linux/libSDL.a
-LINK.LIBS.SDL_D	= -lSDL
+LINK.LIBS.SDL_D	= -lSDL2
 
 # GLU must be statically linked, otherwise torque will crash.
 # JMQNOTE: aside from gluProject/unProject, GLU doesn't work.  
