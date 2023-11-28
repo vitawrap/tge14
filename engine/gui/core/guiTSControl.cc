@@ -120,8 +120,8 @@ void GuiTSCtrl::onRender(Point2I offset, const RectI &updateRect)
    }
    else
    {
-      F32 wwidth = newCam.nearPlane * mTan(newCam.fov / 2);
-      F32 wheight = F32(mBounds.extent.y) / F32(mBounds.extent.x) * wwidth;
+      F32 wheight = newCam.nearPlane * mTan(newCam.fov / 2);
+      F32 wwidth = F32(mBounds.extent.x) / F32(mBounds.extent.y) * wheight;
 
       F32 hscale = wwidth * 2 / F32(mBounds.extent.x);
       F32 vscale = wheight * 2 / F32(mBounds.extent.y);
