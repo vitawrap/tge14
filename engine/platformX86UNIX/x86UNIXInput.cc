@@ -18,7 +18,7 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #ifdef LOG_INPUT
 #include <time.h>
@@ -437,7 +437,7 @@ const char* XClipboard::getClipboard()
 
    // request that the owner convert the selection to a string
    XConvertSelection(display, targetSelection, 
-      XA_STRING, mClipboardProperty, x86UNIXState->getWindow(), CurrentTime);
+      XA_STRING, mClipboardProperty, x86UNIXState->getXWindow(), CurrentTime);
 
    // flush the output buffer to make sure the selection request event gets 
    // sent now
@@ -451,7 +451,7 @@ const char* XClipboard::getClipboard()
    // loop in x86Unixwindow.  So look for selection request events in
    // the event queue immediately and handle them.
    while (XCheckTypedWindowEvent(display, 
-             x86UNIXState->getWindow(), SelectionRequest, &xevent))
+             x86UNIXState->getXWindow(), SelectionRequest, &xevent))
       handleSelectionRequest(xevent.xselectionrequest);
   
    // poll for the SelectionNotify event for 5 seconds.  in most cases 
@@ -459,7 +459,7 @@ const char* XClipboard::getClipboard()
    U32 startTime = Platform::getRealMilliseconds();
    bool timeOut = false;
    while (!XCheckTypedWindowEvent(display, 
-             x86UNIXState->getWindow(), SelectionNotify, &xevent) &&
+             x86UNIXState->getXWindow(), SelectionNotify, &xevent) &&
       !timeOut)
    {
       // we'll be spinning here, but who cares
@@ -490,7 +490,7 @@ const char* XClipboard::getClipboard()
    // million bytes of returned data.
    int numToRetrieve = 250000;
    int status = XGetWindowProperty(display, 
-      x86UNIXState->getWindow(),
+      x86UNIXState->getXWindow(),
       mClipboardProperty, 0, numToRetrieve, True, XA_STRING, 
       &actual_type, &actual_format, &nitems, &bytes_after, &mXData);
 
@@ -541,7 +541,7 @@ bool XClipboard::setClipboard(const char *text)
    // tell X that we own the clipboard.  (we'll get events
    // if an app tries to paste)
    XSetSelectionOwner(display, mClipboard, 
-      x86UNIXState->getWindow(), CurrentTime);
+      x86UNIXState->getXWindow(), CurrentTime);
 
    return true;
 }
@@ -565,7 +565,7 @@ void XClipboard::handleSelectionRequest(XSelectionRequestEvent& request)
 
    // make sure the owner is our window, and that the
    // requestor wants the clipboard
-   if (request.owner == x86UNIXState->getWindow() && 
+   if (request.owner == x86UNIXState->getXWindow() && 
       request.selection == mClipboard)
    {
       notify.property = request.property;
