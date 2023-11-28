@@ -653,6 +653,8 @@ void Platform::shutdown()
 //------------------------------------------------------------------------------
 void Platform::init()
 {
+   XInitThreads();
+
    // Set the platform variable for the scripts
    Con::setVariable( "$platform", "x86UNIX" );
 #if defined(__linux__)
