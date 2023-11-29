@@ -392,6 +392,7 @@ int DemoGame::main(int argc, const char **argv)
    // We only want to run the binary to force-compile scripts, then exit.
    if (argc > 2 && !dStrcmp(argv[1], "-compile"))
    {
+       ResourceManager->setWriteablePath("");
        char const* res = Con::executef(2, "compile", argv[2]);
        return res[0] == '0';    // Don't free anything!
    }
