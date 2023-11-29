@@ -388,6 +388,15 @@ int DemoGame::main(int argc, const char **argv)
    if(!initLibraries())
       return 0;
 
+#ifdef TORQUE_DEBUG
+   // We only want to run the binary to force-compile scripts, then exit.
+   if (argc > 2 && !dStrcmp(argv[1], "-compile"))
+   {
+       char const* res = Con::executef(2, "compile", argv[2]);
+       return res[0] == '0';    // Don't free anything!
+   }
+#endif
+
 #ifdef IHVBUILD
    char* pVer = new char[sgVerStringLen + 1];
    U32 hi;
