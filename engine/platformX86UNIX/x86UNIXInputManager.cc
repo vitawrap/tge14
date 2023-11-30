@@ -55,6 +55,8 @@ DECLSPEC Uint16 SDLCALL X11_KeyToUnicode(SDL_Scancode key, SDL_Keymod mod)
          capital = !capital;
       }
       return (Uint16) ((capital ? 'A' : 'a') + (key - SDL_SCANCODE_A));
+   } else if (SDL_SCANCODE_SPACE == key) {
+      return ' ';
    }
 
    return (Uint16) key;
@@ -600,7 +602,6 @@ void UInputManager::joyButtonEvent(const SDL_Event& event)
 
 //------------------------------------------------------------------------------
 void UInputManager::joyButtonEvent(U8 deviceID, U8 buttonNum, bool pressed)
-
 {
    S32 action = pressed ? SI_MAKE : SI_BREAK;
    S32 objInst = buttonNum + KEY_BUTTON0;
