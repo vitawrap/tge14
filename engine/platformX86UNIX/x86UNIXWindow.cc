@@ -161,7 +161,7 @@ Window x86UNIXPlatformState::getXWindow() const
 //------------------------------------------------------------------------------
 static bool InitSDL()
 {
-   if (SDL_Init(SDL_INIT_VIDEO) != 0)
+   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
       return false;
 
    atexit(SDL_Quit);
@@ -222,10 +222,21 @@ static void ProcessSYSWMEvent(const SDL_Event& event)
 }
 
 //------------------------------------------------------------------------------
-static void SetAppState()
+enum class AppState
+{
+   Inactive,
+   Active,
+   FigureItOut
+};
+
+static void SetAppState(AppState appState = AppState::FigureItOut)
 {
    U8 state = SDL_GetWindowFlags(x86UNIXState->getWindow());
-   bool hasInputFocus = state & SDL_WINDOW_INPUT_FOCUS;
+   bool hasInputFocus = false;
+   if (appState == AppState::FigureItOut)
+      hasInputFocus = state & (SDL_WINDOW_INPUT_FOCUS|SDL_WINDOW_MOUSE_FOCUS);
+   else
+      hasInputFocus = (bool)appState;
    bool isActive = (state & SDL_WINDOW_SHOWN) && !(state & SDL_WINDOW_MINIMIZED);
 
    // if we're not active but we have appactive and inputfocus, set window
@@ -326,14 +337,10 @@ static bool ProcessMessages()
          case SDL_QUIT:
             return false;
             break;
-         case SDL_WINDOWEVENT_RESIZED:
-         case SDL_WINDOWEVENT_EXPOSED:
-            Game->refreshWindow();
-            break;
          case SDL_USEREVENT:
             if (event.user.code == TORQUE_SETVIDEOMODE)
             {
-               SetAppState();
+               SetAppState(AppState::Active);
                // SDL will send a motion event to restore the mouse position
                // on the new window.  Ignore that if the window is locked.
                if (x86UNIXState->windowLocked())
@@ -344,12 +351,23 @@ static bool ProcessMessages()
                }
             }
             break;
-         case SDL_WINDOWEVENT_FOCUS_GAINED:
-         case SDL_WINDOWEVENT_FOCUS_LOST:
-            SetAppState();
-            break;          
          case SDL_SYSWMEVENT:
             ProcessSYSWMEvent(event);
+            break;
+         case SDL_WINDOWEVENT:
+            switch (event.window.event)
+            {
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+               SetAppState(AppState::Active);
+               break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+               SetAppState(AppState::Inactive);
+               break;
+            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_EXPOSED:
+               Game->refreshWindow();
+               break;
+            }
             break;
       }
    }
@@ -575,7 +593,14 @@ void Platform::process()
    if (x86UNIXState->windowCreated())
    {
 #ifndef DEDICATED
-      // process window events
+      // with SDL2 input processing has to be done first
+      // because ProcessMessage will consume all events.
+      // SDL1 used to have an event mask to prevent this.
+      PROFILE_START(XUX_InputProcess);
+      Input::process();
+      PROFILE_END();
+
+      // process window events after input
       PROFILE_START(XUX_ProcessMessages);
       bool quit = !ProcessMessages();
       PROFILE_END();
@@ -586,11 +611,6 @@ void Platform::process()
          quitEvent.type = QuitEventType;
          Game->postEvent(quitEvent);
       }
-
-      // process input events
-      PROFILE_START(XUX_InputProcess);
-      Input::process();
-      PROFILE_END();
 
       // poll redbook state
       PROFILE_START(XUX_PollRedbookDevices);
