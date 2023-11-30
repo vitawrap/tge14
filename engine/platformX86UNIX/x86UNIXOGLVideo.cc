@@ -104,6 +104,7 @@ void OpenGLDevice::initDevice()
 {
    mDeviceName = "OpenGL";
    mFullScreenOnly = false;
+   mGLC = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -191,6 +192,11 @@ bool OpenGLDevice::activate( U32 width, U32 height, U32 bpp, bool fullScreen )
 void OpenGLDevice::shutdown()
 {
    // Shutdown is deferred to Platform::shutdown()
+   if (mGLC)
+   {
+      SDL_GL_DeleteContext(mGLC);
+      mGLC = NULL;
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -296,6 +302,12 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
       needResurrect = true;
    }
 
+   if (mGLC)
+   {
+      SDL_GL_DeleteContext(mGLC);
+      mGLC = NULL;
+   }
+
    // Set the desired GL Attributes
    SDL_GL_SetSwapInterval(1);
    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -336,6 +348,8 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
       return false;
    }
 
+   mGLC = (void*) SDL_GL_CreateContext(win);
+   SDL_GL_MakeCurrent(win, mGLC);
    PrintGLAttributes();
 
    // clear screen here to prevent buffer garbage from being displayed when
