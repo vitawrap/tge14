@@ -499,14 +499,20 @@ void UInputManager::lockInput()
    if (x86UNIXState->windowActive() && x86UNIXState->windowLocked() && 
       mLocking &&
       !SDL_GetWindowGrab(x86UNIXState->getWindow()))
+   {
+      SDL_SetRelativeMouseMode(SDL_TRUE);
       SDL_SetWindowGrab(x86UNIXState->getWindow(), SDL_TRUE);
+   }
 }
 
 //------------------------------------------------------------------------------
 void UInputManager::unlockInput()
 {
    if (SDL_GetWindowGrab(x86UNIXState->getWindow()))
+   {
+      SDL_SetRelativeMouseMode(SDL_FALSE);
       SDL_SetWindowGrab(x86UNIXState->getWindow(), SDL_FALSE);
+   }
 }
 
 //------------------------------------------------------------------------------
