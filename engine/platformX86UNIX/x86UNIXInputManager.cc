@@ -950,6 +950,8 @@ const char* getKeyName( U16 key )
 void UInputManager::keyEvent(const SDL_Event& event)
 {
    S32 action = (event.type == SDL_KEYDOWN) ? SI_MAKE : SI_BREAK;
+   SDL_Keycode keycode = event.key.keysym.sym;
+   Uint16 keymods = event.key.keysym.mod;
    InputEvent ievent;
 
    ievent.deviceInst = 0;
@@ -963,13 +965,13 @@ void UInputManager::keyEvent(const SDL_Event& event)
    ievent.action = action;
    ievent.fValue = (action == SI_MAKE || action == SI_REPEAT) ? 1.0 : 0.0;
    ievent.ascii = 0;
-   if (!(event.key.keysym.sym & SDLK_SCANCODE_MASK))
+   if ((keycode != SDLK_ESCAPE) && !(keycode & SDLK_SCANCODE_MASK) && !(keymods & SDL_Keymod::KMOD_CTRL))
       ievent.ascii = event.key.keysym.sym;
 
    // We catch this before processKeyEvent because Torque doesn't know how to deal with that!
-   if (action == SI_MAKE && event.key.keysym.mod == SDL_Keymod::KMOD_MODE)
+   if (action == SI_MAKE && (keymods & SDL_Keymod::KMOD_MODE))
       mModifierKeys |= SI_CTRL|SI_ALT;
-   else if (action == SI_BREAK && event.key.keysym.mod == SDL_Keymod::KMOD_MODE)
+   else if (action == SI_BREAK && (keymods & SDL_Keymod::KMOD_MODE))
       mModifierKeys &= ~(SI_CTRL|SI_ALT);
 
    processKeyEvent(ievent);
