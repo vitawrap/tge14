@@ -24,6 +24,7 @@
 typedef void (*LockFunc_t)(void);
 
 class DisplayPtrManager;
+struct SDL_Window;
 
 class x86UNIXPlatformState
 {
@@ -34,7 +35,7 @@ class x86UNIXPlatformState
       Point2I              mWindowSize;
       S32                  mDesktopBpp;
       Display              *mDisplay;
-      Window               mCurrentWindow;
+      SDL_Window*          mCurrentWindow;
       Screen               *mScreenPointer;
       int                  mScreenNumber;
       char                 mWindowName[40];
@@ -82,8 +83,8 @@ class x86UNIXPlatformState
           { mDesktopSize.set( horizontal, vertical ); }
       Point2I getDesktopSize() { return mDesktopSize; }
 
-      void setWindow( Window newWindow ) { mCurrentWindow = newWindow; }
-      Window getWindow() { return mCurrentWindow; }
+      void setWindow( SDL_Window* newWindow ) { mCurrentWindow = newWindow; }
+      SDL_Window* getWindow() const { return mCurrentWindow; }
 
       void setWindowSize (S32 horizontal, S32 vertical ) 
           { mWindowSize.set ( horizontal, vertical ); }
@@ -123,6 +124,8 @@ class x86UNIXPlatformState
           { mWindowActive = windowActive; }
       void setWindowLocked(bool windowLocked) 
           { mWindowLocked = windowLocked; }
+
+      Window getXWindow() const;
 
       bool isXWindowsRunning() { return mXWindowsRunning; }
       void setXWindowsRunning(bool running) { mXWindowsRunning = running; }
@@ -167,25 +170,27 @@ class DisplayPtrManager
       // static interface
    private:
       static bool sgDisplayLocked;
-      static LockFunc_t sgLockFunc;
-      static LockFunc_t sgUnlockFunc;
+      //static LockFunc_t sgLockFunc;
+      //static LockFunc_t sgUnlockFunc;
 
-      static bool lockDisplay() 
+      static bool lockDisplay(Display* d) 
       { 
-         if (!sgDisplayLocked && sgLockFunc) 
+         if (!sgDisplayLocked /* && sgLockFunc*/) 
          {
-            sgLockFunc(); 
+            //sgLockFunc();
+            XLockDisplay(d);
             sgDisplayLocked = true;
             return true;
          }
          else 
             return false;
       }
-      static void unlockDisplay() 
+      static void unlockDisplay(Display* d) 
       {
-         if (sgDisplayLocked && sgUnlockFunc) 
+         if (sgDisplayLocked /* && sgUnlockFunc*/) 
          {
-            sgUnlockFunc();
+            //sgUnlockFunc();
+            XUnlockDisplay(d);
             sgDisplayLocked = false;
          }
       }
@@ -193,10 +198,12 @@ class DisplayPtrManager
       //friend Display* x86UNIXPlatformState::getDisplayPointer();
      
    public:
+      /*
       static void setDisplayLockFunction(LockFunc_t lockFunc) 
           { sgLockFunc = lockFunc; }
       static void setDisplayUnlockFunction(LockFunc_t unlockFunc) 
           { sgUnlockFunc = unlockFunc; }
+      */
 
       // nonstatic interface
    private:
@@ -242,7 +249,7 @@ class DisplayPtrManager
       {
          if (mAcquiredLock)
          {
-            DisplayPtrManager::unlockDisplay();
+            DisplayPtrManager::unlockDisplay(mDisplay);
             mAcquiredLock = false;
          }
          closeDisplay();
@@ -254,7 +261,8 @@ class DisplayPtrManager
          if (display == NULL)
             return openDisplay();
 
-         mAcquiredLock = DisplayPtrManager::lockDisplay();
+         mDisplay = display;
+         mAcquiredLock = DisplayPtrManager::lockDisplay(display);
          return display;
       }
 };
