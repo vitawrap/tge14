@@ -18,45 +18,60 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 // ascii table
 AsciiData AsciiTable[NUM_KEYS];
 
 // keymap table
-static const U32 SDLtoTKeyMapSize = SDLK_LAST;
+static const U32 SDLtoTKeyMapSize = SDL_NUM_SCANCODES;
 static U8 SDLtoTKeyMap[SDLtoTKeyMapSize];
 static bool keyMapsInitialized = false;
 
 // helper functions
 static void MapKey(Uint16 SDLkey, U8 tkey, KeySym xkeysym);
 static void InitKeyMaps();
-static inline U8 TranslateSDLKeytoTKey(SDLKey keysym);
+static inline U8 TranslateSDLKeytoTKey(SDL_Scancode keysym);
 
 // unix platform state
 extern x86UNIXPlatformState * x86UNIXState;
 
 // constants
 
-static const U32 MouseMask = SDL_MOUSEEVENTMASK;
-static const U32 KeyboardMask = SDL_KEYUPMASK | SDL_KEYDOWNMASK;
-static const U32 JoystickMask = SDL_JOYEVENTMASK;
+// ported from SDL with adjustments for SDL2.
+DECLSPEC Uint16 SDLCALL X11_KeyToUnicode(SDL_Scancode key, SDL_Keymod mod)
+{
+   // SDL2 completely switched around numeric key order...
+   char numkTable[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 
-static const U32 AllInputEvents = MouseMask | KeyboardMask | JoystickMask;
+   if (((int) key) >= 127) {
+      return 0;
+   } else if ((key >= SDL_SCANCODE_1) && (key <= SDL_SCANCODE_0)) {
+      return (Uint16) ('0' + numkTable[key - SDL_SCANCODE_1]);
+   } else if ((key >= SDL_SCANCODE_A) && (key <= SDL_SCANCODE_Z)) {
+      const int shifted = ((mod & (KMOD_LSHIFT|KMOD_RSHIFT)) != 0) ? 1 : 0;
+      int capital = ((mod & KMOD_CAPS) != 0) ? 1 : 0;
+      if (shifted) {
+         capital = !capital;
+      }
+      return (Uint16) ((capital ? 'A' : 'a') + (key - SDL_SCANCODE_A));
+   } else if (SDL_SCANCODE_SPACE == key) {
+      return ' ';
+   }
 
-// defined in SDL
-extern "C" Uint16 X11_KeyToUnicode( SDLKey keysym, SDLMod modifiers );
+   return (Uint16) key;
+}
 
 //==============================================================================
 // Static helper functions
 //==============================================================================
-static void MapKey(Uint16 SDLkey, U8 tkey, KeySym xkeysym)
+static void MapKey(Uint16 SDL_scan, U8 tkey, KeySym xkeysym)
 {
-   SDLtoTKeyMap[SDLkey] = tkey; 
+   SDLtoTKeyMap[SDL_scan] = tkey; 
 
    Uint16 key = 0;
-   SDLKey skey = (SDLKey)SDLkey;
-   SDLMod mod = KMOD_NONE;
+   SDL_Scancode skey = (SDL_Scancode)SDL_scan;
+   SDL_Keymod mod = KMOD_NONE;
    // lower case
    key = X11_KeyToUnicode( skey, mod );
    AsciiTable[tkey].lower.ascii = key;
@@ -131,106 +146,110 @@ void InitKeyMaps()
    
    // set up the X to Torque key map
    // stuff
-   MapKey(SDLK_BACKSPACE, KEY_BACKSPACE, XK_BackSpace);
-   MapKey(SDLK_TAB, KEY_TAB, XK_Tab);
-   MapKey(SDLK_RETURN, KEY_RETURN, XK_Return);
-   MapKey(SDLK_PAUSE, KEY_PAUSE, XK_Pause);
-   MapKey(SDLK_CAPSLOCK, KEY_CAPSLOCK, XK_Caps_Lock);
-   MapKey(SDLK_ESCAPE, KEY_ESCAPE, XK_Escape);
+   MapKey(SDL_SCANCODE_BACKSPACE, KEY_BACKSPACE, XK_BackSpace);
+   MapKey(SDL_SCANCODE_TAB, KEY_TAB, XK_Tab);
+   MapKey(SDL_SCANCODE_RETURN, KEY_RETURN, XK_Return);
+   MapKey(SDL_SCANCODE_PAUSE, KEY_PAUSE, XK_Pause);
+   MapKey(SDL_SCANCODE_CAPSLOCK, KEY_CAPSLOCK, XK_Caps_Lock);
+   MapKey(SDL_SCANCODE_ESCAPE, KEY_ESCAPE, XK_Escape);
 
    // more stuff
-   MapKey(SDLK_SPACE, KEY_SPACE, XK_space);
-   MapKey(SDLK_PAGEDOWN, KEY_PAGE_DOWN, XK_Page_Down);
-   MapKey(SDLK_PAGEUP, KEY_PAGE_UP, XK_Page_Up);
-   MapKey(SDLK_END, KEY_END, XK_End);
-   MapKey(SDLK_HOME, KEY_HOME, XK_Home);
-   MapKey(SDLK_LEFT, KEY_LEFT, XK_Left);
-   MapKey(SDLK_UP, KEY_UP, XK_Up);
-   MapKey(SDLK_RIGHT, KEY_RIGHT, XK_Right);
-   MapKey(SDLK_DOWN, KEY_DOWN, XK_Down);
-   MapKey(SDLK_PRINT, KEY_PRINT, XK_Print);
-   MapKey(SDLK_INSERT, KEY_INSERT, XK_Insert);
-   MapKey(SDLK_DELETE, KEY_DELETE, XK_Delete);
+   MapKey(SDL_SCANCODE_SPACE, KEY_SPACE, XK_space);
+   MapKey(SDL_SCANCODE_PAGEDOWN, KEY_PAGE_DOWN, XK_Page_Down);
+   MapKey(SDL_SCANCODE_PAGEUP, KEY_PAGE_UP, XK_Page_Up);
+   MapKey(SDL_SCANCODE_END, KEY_END, XK_End);
+   MapKey(SDL_SCANCODE_HOME, KEY_HOME, XK_Home);
+   MapKey(SDL_SCANCODE_LEFT, KEY_LEFT, XK_Left);
+   MapKey(SDL_SCANCODE_UP, KEY_UP, XK_Up);
+   MapKey(SDL_SCANCODE_RIGHT, KEY_RIGHT, XK_Right);
+   MapKey(SDL_SCANCODE_DOWN, KEY_DOWN, XK_Down);
+   MapKey(SDL_SCANCODE_PRINTSCREEN, KEY_PRINT, XK_Print);
+   MapKey(SDL_SCANCODE_INSERT, KEY_INSERT, XK_Insert);
+   MapKey(SDL_SCANCODE_DELETE, KEY_DELETE, XK_Delete);
    
    S32 keysym;
    S32 tkeycode;
    KeySym xkey;
    // main numeric keys
-   for (keysym = SDLK_0, tkeycode = KEY_0, xkey = XK_0;
-        keysym <= SDLK_9; 
-        ++keysym, ++tkeycode, ++xkey)
-      MapKey(static_cast<SDLKey>(keysym), tkeycode, xkey);
+#define MapNumericKey(num) MapKey(SDL_SCANCODE_##num, KEY_##num, XK_##num)
+   MapNumericKey(0); MapNumericKey(1);
+   MapNumericKey(2); MapNumericKey(3);
+   MapNumericKey(4); MapNumericKey(5);
+   MapNumericKey(6); MapNumericKey(7);
+   MapNumericKey(8); MapNumericKey(9);
    
    // lowercase letters
-   for (keysym = SDLK_a, tkeycode = KEY_A, xkey = XK_a; 
-        keysym <= SDLK_z; 
+   for (keysym = SDL_SCANCODE_A, tkeycode = KEY_A, xkey = XK_a; 
+        keysym <= SDL_SCANCODE_Z; 
         ++keysym, ++tkeycode, ++xkey)
-      MapKey(static_cast<SDLKey>(keysym), tkeycode, xkey);
+      MapKey(static_cast<SDL_Scancode>(keysym), tkeycode, xkey);
 
    // various punctuation
-   MapKey('|', KEY_TILDE, XK_grave);
-   MapKey(SDLK_WORLD_18, KEY_TILDE, XK_grave);  // French superscript 2
-   MapKey(SDLK_BACKQUOTE, KEY_TILDE, XK_grave);
-   MapKey(SDLK_MINUS, KEY_MINUS, XK_minus);
-   MapKey(SDLK_EQUALS, KEY_EQUALS, XK_equal);
-   MapKey(SDLK_LEFTBRACKET, KEY_LBRACKET, XK_bracketleft);
-   MapKey('{', KEY_LBRACKET, XK_braceleft);
-   MapKey('(', KEY_LBRACKET, XK_parenleft);
-   MapKey(SDLK_RIGHTBRACKET, KEY_RBRACKET, XK_bracketright);
-   MapKey('}', KEY_RBRACKET, XK_braceright);
-   MapKey(')', KEY_RBRACKET, XK_parenright);
-   MapKey(SDLK_BACKSLASH, KEY_BACKSLASH, XK_backslash);
-   MapKey(SDLK_SEMICOLON, KEY_SEMICOLON, XK_semicolon);
-   MapKey(SDLK_QUOTE, KEY_APOSTROPHE, XK_apostrophe);
-   MapKey(SDLK_COMMA, KEY_COMMA, XK_comma);
-   MapKey(SDLK_PERIOD, KEY_PERIOD, XK_period);
-   MapKey(SDLK_SLASH, KEY_SLASH, XK_slash);
+   MapKey(SDL_SCANCODE_GRAVE, KEY_TILDE, XK_grave);
+   //MapKey(SDL_scancode_, KEY_TILDE, XK_grave);  // French superscript 2
+   //MapKey(SDL_SCANCODE_BACKQUOTE, KEY_TILDE, XK_grave);
+   MapKey(SDL_SCANCODE_MINUS, KEY_MINUS, XK_minus);
+   MapKey(SDL_SCANCODE_EQUALS, KEY_EQUALS, XK_equal);
+   MapKey(SDL_SCANCODE_LEFTBRACKET, KEY_LBRACKET, XK_bracketleft);
+   MapKey(SDL_SCANCODE_KP_LEFTBRACE, KEY_LBRACKET, XK_braceleft);
+   MapKey(SDL_SCANCODE_KP_LEFTPAREN, KEY_LBRACKET, XK_parenleft);
+   MapKey(SDL_SCANCODE_RIGHTBRACKET, KEY_RBRACKET, XK_bracketright);
+   MapKey(SDL_SCANCODE_KP_RIGHTBRACE, KEY_RBRACKET, XK_braceright);
+   MapKey(SDL_SCANCODE_KP_RIGHTPAREN, KEY_RBRACKET, XK_parenright);
+   MapKey(SDL_SCANCODE_BACKSLASH, KEY_BACKSLASH, XK_backslash);
+   MapKey(SDL_SCANCODE_SEMICOLON, KEY_SEMICOLON, XK_semicolon);
+   MapKey(SDL_SCANCODE_APOSTROPHE, KEY_APOSTROPHE, XK_apostrophe);
+   MapKey(SDL_SCANCODE_COMMA, KEY_COMMA, XK_comma);
+   MapKey(SDL_SCANCODE_PERIOD, KEY_PERIOD, XK_period);
+   MapKey(SDL_SCANCODE_SLASH, KEY_SLASH, XK_slash);
 
    // Might be french only 
-   MapKey(SDLK_COLON, KEY_SLASH, XK_colon);
-   MapKey(SDLK_QUOTEDBL, KEY_APOSTROPHE, XK_quotedbl);
+   //MapKey(SDL_SCANCODE_COLON, KEY_SLASH, XK_colon);
+   //MapKey(SDL_SCANCODE_QUOTEDBL, KEY_APOSTROPHE, XK_quotedbl);
 
    // numpad numbers
-   for (keysym = SDLK_KP0, tkeycode = KEY_NUMPAD0, xkey = XK_KP_0; 
-        keysym <= SDLK_KP9; 
-        ++keysym, ++tkeycode, ++xkey)
-      MapKey(static_cast<SDLKey>(keysym), tkeycode, xkey);
+#define MapNumpadKey(num) MapKey(SDL_SCANCODE_KP_##num, KEY_NUMPAD##num, XK_KP_##num)
+   MapNumpadKey(0); MapNumpadKey(1);
+   MapNumpadKey(2); MapNumpadKey(3);
+   MapNumpadKey(4); MapNumpadKey(5);
+   MapNumpadKey(6); MapNumpadKey(7);
+   MapNumpadKey(8); MapNumpadKey(9);
 
    // other numpad stuff
-   MapKey(SDLK_KP_MULTIPLY, KEY_MULTIPLY, XK_KP_Multiply);
-   MapKey(SDLK_KP_PLUS, KEY_ADD, XK_KP_Add);
-   MapKey(SDLK_KP_EQUALS, KEY_SEPARATOR, XK_KP_Separator);
-   MapKey(SDLK_KP_MINUS, KEY_SUBTRACT, XK_KP_Subtract);
-   MapKey(SDLK_KP_PERIOD, KEY_DECIMAL, XK_KP_Decimal);
-   MapKey(SDLK_KP_DIVIDE, KEY_DIVIDE, XK_KP_Divide);
-   MapKey(SDLK_KP_ENTER, KEY_NUMPADENTER, XK_KP_Enter);
+   MapKey(SDL_SCANCODE_KP_MULTIPLY, KEY_MULTIPLY, XK_KP_Multiply);
+   MapKey(SDL_SCANCODE_KP_PLUS, KEY_ADD, XK_KP_Add);
+   MapKey(SDL_SCANCODE_KP_EQUALS, KEY_SEPARATOR, XK_KP_Separator);
+   MapKey(SDL_SCANCODE_KP_MINUS, KEY_SUBTRACT, XK_KP_Subtract);
+   MapKey(SDL_SCANCODE_KP_PERIOD, KEY_DECIMAL, XK_KP_Decimal);
+   MapKey(SDL_SCANCODE_KP_DIVIDE, KEY_DIVIDE, XK_KP_Divide);
+   MapKey(SDL_SCANCODE_KP_ENTER, KEY_NUMPADENTER, XK_KP_Enter);
 
    // F keys
-   for (keysym = SDLK_F1, tkeycode = KEY_F1, xkey = XK_F1; 
-        keysym <= SDLK_F15; 
+   for (keysym = SDL_SCANCODE_F1, tkeycode = KEY_F1, xkey = XK_F1; 
+        keysym <= SDL_SCANCODE_F12; 
         ++keysym, ++tkeycode, ++xkey)
-      MapKey(static_cast<SDLKey>(keysym), tkeycode, xkey);
+      MapKey(static_cast<SDL_Scancode>(keysym), tkeycode, xkey);
 
    // various modifiers
-   MapKey(SDLK_NUMLOCK, KEY_NUMLOCK, XK_Num_Lock);
-   MapKey(SDLK_SCROLLOCK, KEY_SCROLLLOCK, XK_Scroll_Lock);
-   MapKey(SDLK_LCTRL, KEY_LCONTROL, XK_Control_L);
-   MapKey(SDLK_RCTRL, KEY_RCONTROL, XK_Control_R);
-   MapKey(SDLK_LALT, KEY_LALT, XK_Alt_L);
-   MapKey(SDLK_RALT, KEY_RALT, XK_Alt_R);
-   MapKey(SDLK_LSHIFT, KEY_LSHIFT, XK_Shift_L);
-   MapKey(SDLK_RSHIFT, KEY_RSHIFT, XK_Shift_R);
-   MapKey(SDLK_LSUPER, KEY_WIN_LWINDOW, 0);
-   MapKey(SDLK_RSUPER, KEY_WIN_RWINDOW, 0);
-   MapKey(SDLK_MENU, KEY_WIN_APPS, 0);
-   MapKey(SDLK_MODE, KEY_ALT, XK_Mode_switch);
-   MapKey(SDLK_MODE, KEY_OEM_102, XK_Mode_switch);
+   MapKey(SDL_SCANCODE_NUMLOCKCLEAR, KEY_NUMLOCK, XK_Num_Lock);
+   MapKey(SDL_SCANCODE_SCROLLLOCK, KEY_SCROLLLOCK, XK_Scroll_Lock);
+   MapKey(SDL_SCANCODE_LCTRL, KEY_LCONTROL, XK_Control_L);
+   MapKey(SDL_SCANCODE_RCTRL, KEY_RCONTROL, XK_Control_R);
+   MapKey(SDL_SCANCODE_LALT, KEY_LALT, XK_Alt_L);
+   MapKey(SDL_SCANCODE_RALT, KEY_RALT, XK_Alt_R);
+   MapKey(SDL_SCANCODE_LSHIFT, KEY_LSHIFT, XK_Shift_L);
+   MapKey(SDL_SCANCODE_RSHIFT, KEY_RSHIFT, XK_Shift_R);
+   MapKey(SDL_SCANCODE_RGUI, KEY_WIN_LWINDOW, 0);
+   MapKey(SDL_SCANCODE_RGUI, KEY_WIN_RWINDOW, 0);
+   MapKey(SDL_SCANCODE_MENU, KEY_WIN_APPS, 0);
+   MapKey(SDL_SCANCODE_MODE, KEY_ALT, XK_Mode_switch);
+   MapKey(SDL_SCANCODE_MODE, KEY_OEM_102, XK_Mode_switch);
 
    keyMapsInitialized = true;
 };
 
 //------------------------------------------------------------------------------
-U8 TranslateSDLKeytoTKey(SDLKey keysym)
+U8 TranslateSDLKeytoTKey(SDL_Scancode keysym)
 {
    if (!keyMapsInitialized)
    {
@@ -298,9 +317,12 @@ bool UInputManager::enable()
    mMouseEnabled = true;
    mKeyboardEnabled = true;
 
+   // Done by default in SDL2 I believe?
+   /*
    SDL_EnableKeyRepeat(
       SDL_DEFAULT_REPEAT_DELAY, 
       SDL_DEFAULT_REPEAT_INTERVAL);
+   */
 
    return true;     
 }
@@ -453,11 +475,14 @@ void UInputManager::resetInputState()
 
    // JMQTODO: make event arrays be members
    // dispose of any lingering SDL input events
+   
+   // [2023] Transposed the AllInputEvents mask to
+   // the entire range of kb, mouse and joy events
    static const int MaxEvents = 255;
    static SDL_Event events[MaxEvents];
    SDL_PumpEvents();
    SDL_PeepEvents(events, MaxEvents, SDL_GETEVENT, 
-      AllInputEvents);
+      SDL_KEYDOWN, SDL_JOYBATTERYUPDATED);
 }
 
 //------------------------------------------------------------------------------
@@ -475,15 +500,21 @@ void UInputManager::lockInput()
 {
    if (x86UNIXState->windowActive() && x86UNIXState->windowLocked() && 
       mLocking &&
-      SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_OFF)
-      SDL_WM_GrabInput(SDL_GRAB_ON);
+      !SDL_GetWindowGrab(x86UNIXState->getWindow()))
+   {
+      SDL_SetRelativeMouseMode(SDL_TRUE);
+      SDL_SetWindowGrab(x86UNIXState->getWindow(), SDL_TRUE);
+   }
 }
 
 //------------------------------------------------------------------------------
 void UInputManager::unlockInput()
 {
-   if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
-      SDL_WM_GrabInput(SDL_GRAB_OFF);
+   if (SDL_GetWindowGrab(x86UNIXState->getWindow()))
+   {
+      SDL_SetRelativeMouseMode(SDL_FALSE);
+      SDL_SetWindowGrab(x86UNIXState->getWindow(), SDL_FALSE);
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -571,7 +602,6 @@ void UInputManager::joyButtonEvent(const SDL_Event& event)
 
 //------------------------------------------------------------------------------
 void UInputManager::joyButtonEvent(U8 deviceID, U8 buttonNum, bool pressed)
-
 {
    S32 action = pressed ? SI_MAKE : SI_BREAK;
    S32 objInst = buttonNum + KEY_BUTTON0;
@@ -920,23 +950,28 @@ const char* getKeyName( U16 key )
 void UInputManager::keyEvent(const SDL_Event& event)
 {
    S32 action = (event.type == SDL_KEYDOWN) ? SI_MAKE : SI_BREAK;
+   SDL_Keycode keycode = event.key.keysym.sym;
+   Uint16 keymods = event.key.keysym.mod;
    InputEvent ievent;
 
    ievent.deviceInst = 0;
    ievent.deviceType = KeyboardDeviceType;
    ievent.objType = SI_KEY;
-   ievent.objInst = TranslateSDLKeytoTKey(event.key.keysym.sym);
+   ievent.objInst = TranslateSDLKeytoTKey(event.key.keysym.scancode);
    // if the action is a make but this key is already pressed, 
    // count it as a repeat
    if (action == SI_MAKE && mKeyboardState[ievent.objInst])
       action = SI_REPEAT;
    ievent.action = action;
    ievent.fValue = (action == SI_MAKE || action == SI_REPEAT) ? 1.0 : 0.0;
+   ievent.ascii = 0;
+   if ((keycode != SDLK_ESCAPE) && !(keycode & SDLK_SCANCODE_MASK) && !(keymods & SDL_Keymod::KMOD_CTRL))
+      ievent.ascii = event.key.keysym.sym;
 
    // We catch this before processKeyEvent because Torque doesn't know how to deal with that!
-   if (action == SI_MAKE && event.key.keysym.mod == SDLMod::KMOD_MODE)
+   if (action == SI_MAKE && (keymods & SDL_Keymod::KMOD_MODE))
       mModifierKeys |= SI_CTRL|SI_ALT;
-   else if (action == SI_BREAK && event.key.keysym.mod == SDLMod::KMOD_MODE)
+   else if (action == SI_BREAK && (keymods & SDL_Keymod::KMOD_MODE))
       mModifierKeys &= ~(SI_CTRL|SI_ALT);
 
    processKeyEvent(ievent);
@@ -1078,7 +1113,9 @@ bool UInputManager::processKeyEvent( InputEvent &event )
       state = STATE_UPPER;
    }
 
-   event.ascii = Input::getAscii( event.objInst, state );
+   // Couldn't get good ascii from SDL2, try searching in Torque keys
+   if (!event.ascii)
+      event.ascii = Input::getAscii( event.objInst, state );
 
    return modKey;
 }
@@ -1096,7 +1133,7 @@ void UInputManager::setWindowLocked(bool locked)
       // suddenly warp to someplace unexpected on screen.  To fix this, we 
       // warp the mouse to the last known Torque abs mouse position.
       if (mLastMouseX != -1 && mLastMouseY != -1)
-         SDL_WarpMouse(mLastMouseX, mLastMouseY);
+         SDL_WarpMouseGlobal(mLastMouseX, mLastMouseY);
    }
 }
 
@@ -1110,18 +1147,25 @@ void UInputManager::process()
    static const int MaxEvents = 255;
    static SDL_Event events[MaxEvents];
 
-   U32 mask = 0;
+   U32 evtMin = 0;
+   U32 evtMax = 0;
 
    // process keyboard and mouse events
-   if (mMouseActive)
-      mask |= MouseMask;
    if (mKeyboardActive)
-      mask |= KeyboardMask;
+   {
+      evtMin = SDL_KEYDOWN;
+      evtMax = SDL_TEXTEDITING_EXT;
+   }
+   if (mMouseActive)
+   {
+      evtMin = evtMin == 0 ? SDL_MOUSEMOTION : evtMin;
+      evtMax = SDL_MOUSEWHEEL;
+   }
 
-   if (mask != 0)
+   if (evtMax > evtMin)
    {
       SDL_PumpEvents();
-      S32 numEvents = SDL_PeepEvents(events, MaxEvents, SDL_GETEVENT, mask);
+      S32 numEvents = SDL_PeepEvents(events, MaxEvents, SDL_GETEVENT, evtMin, evtMax);
 
       for (int i = 0; i < numEvents; ++i)
       {
@@ -1468,7 +1512,7 @@ bool JoystickInputDevice::deactivate()
 //------------------------------------------------------------------------------
 const char* JoystickInputDevice::getName()
 {
-   return SDL_JoystickName(mDeviceID);
+   return SDL_JoystickNameForIndex(mDeviceID);
 }
 
 //------------------------------------------------------------------------------

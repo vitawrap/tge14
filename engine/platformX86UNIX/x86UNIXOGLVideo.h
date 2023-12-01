@@ -16,6 +16,7 @@ class OpenGLDevice : public DisplayDevice
 {
       static bool smCanSwitchBitDepth;
 
+      void* mGLC; // SDL_GLContext
       bool mRestoreGamma;
       U16  mOriginalRamp[256*3];
 

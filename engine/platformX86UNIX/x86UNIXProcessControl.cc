@@ -19,7 +19,7 @@
 #include <signal.h>
 
 #ifndef DEDICATED
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #endif
 
 extern void SendQuitEvent();
