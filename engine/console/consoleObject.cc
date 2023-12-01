@@ -126,7 +126,8 @@ static S32 QSORT_CALLBACK ACRFieldCompare(const void* aptr, const void* bptr)
 void AbstractClassRep::initialize()
 {
    AssertFatal(!initialized, "Duplicate call to AbstractClassRep::initialize()!");
-   Vector<AbstractClassRep *> dynamicTable(__FILE__, __LINE__);
+   Vector<AbstractClassRep *> dynamicTable;
+   VECTOR_SET_ASSOCIATION(dynamicTable);
 
    AbstractClassRep *walk;
 
