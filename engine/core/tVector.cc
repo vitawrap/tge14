@@ -16,7 +16,9 @@ bool VectorResize(U32 *aSize, U32 *aCount, void **arrayPtr, U32 newCount, U32 el
          blocks++;
       S32 mem_size = blocks * VectorBlockSize * elemSize;
 
-      if (*arrayPtr != NULL)
+      // TODO: Critical: sometimes *arrayPtr is not NULL, but *aSize = 0 (so assumed null nonetheless)
+      // This is a temporary bodge until I can find out what's going on
+      if ((*arrayPtr != NULL) && (*aSize != 0))
       {
          *arrayPtr = dRealloc(*arrayPtr,mem_size);
       }
@@ -52,7 +54,7 @@ bool VectorResize(U32 *aSize, U32 *aCount, void **arrayPtr, U32 newCount, U32 el
       if (newCount % VectorBlockSize)
          blocks++;
       S32 mem_size = blocks * VectorBlockSize * elemSize;
-      *arrayPtr = *arrayPtr ? dRealloc(*arrayPtr,mem_size) :
+      *arrayPtr = (*arrayPtr && *aSize) ? dRealloc(*arrayPtr,mem_size) :
          dMalloc(mem_size);
 
       *aCount = newCount;
