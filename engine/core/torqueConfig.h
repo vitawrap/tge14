@@ -90,6 +90,7 @@
 
 #ifdef TORQUE_SHIPPING
  // TORQUE_SHIPPING flags here.
+#undef TORQUE_DEBUG_GUARD
 #else
    // enable the profiler by default, if we're not doing a shipping build
 #  define TORQUE_ENABLE_PROFILER
