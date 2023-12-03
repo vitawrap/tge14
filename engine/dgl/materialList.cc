@@ -9,6 +9,8 @@
 #include "core/stream.h"
 #include "dgl/materialList.h"
 
+StringTableEntry gDefaultShapeMaterialPath = "";
+
 //--------------------------------------
 MaterialList::MaterialList()
 {
@@ -80,7 +82,7 @@ MaterialList::~MaterialList()
 
 
 //--------------------------------------
-void MaterialList::load(U32 index, const char* path)
+bool MaterialList::load(U32 index, const char* path)
 {
    AssertFatal(index < size(), "MaterialList:: index out of range.");
    if (index < size())
@@ -94,10 +96,10 @@ void MaterialList::load(U32 index, const char* path)
             if (path) {
                char buffer[512];
                dSprintf(buffer, sizeof(buffer), "%s/%s", path , name);
-               handle.set(buffer, mTextureType, mClampToEdge);
+               return handle.set(buffer, mTextureType, mClampToEdge);
             }
             else
-               handle.set(name, mTextureType, mClampToEdge);
+               return handle.set(name, mTextureType, mClampToEdge);
          }
       }
    }
@@ -109,8 +111,9 @@ bool MaterialList::load(const char* path)
 {
    AssertFatal(mMaterialNames.size() == mMaterials.size(), "MaterialList::load: internal vectors out of sync.");
 
-   for(S32 i=0; i < mMaterials.size(); i++)
-      load(i,path);
+   for (S32 i = 0; i < mMaterials.size(); i++)
+       if (!load(i, path))
+           load(i, gDefaultShapeMaterialPath);  // TODO: a less exploitable system perhaps
 
    for(S32 i=0; i < mMaterials.size(); i++)
    {

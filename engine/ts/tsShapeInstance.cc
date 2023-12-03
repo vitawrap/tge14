@@ -125,6 +125,7 @@ void TSShapeInstance::init()
    Con::addVariable("$pref::TS::skipRenderDLs", TypeS32,  &smNumSkipRenderDetails);
    Con::addVariable("$pref::TS::screenError",   TypeF32,  &smScreenError);
    Con::addVariable("$pref::TS::UseTriangles",  TypeBool, &TSMesh::smUseTriangles);
+   Con::addVariable("$pref::TS::DefaultTexPath", TypeFilename, &gDefaultShapeMaterialPath);
 }
 
 void TSShapeInstance::destroy()

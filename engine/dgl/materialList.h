@@ -60,7 +60,7 @@ public:
    U32  push_back(const char *filename);
    U32  push_back(const char *filename, GBitmap *bmp, TextureHandleType type, bool clampToEdge = false);
 
-   virtual void load(U32 index, const char* path = 0);
+   virtual bool load(U32 index, const char* path = 0);
    bool load(const char* path = 0);
    bool load(TextureHandleType type, const char* path = 0, bool clampToEdge = false);
    void unload();
@@ -94,8 +94,8 @@ inline bool MaterialList::load(TextureHandleType type, const char* path, bool cl
    return load(path);
 }
 
-
 extern ResourceInstance* constructMaterialList(Stream &stream);
 
+extern StringTableEntry gDefaultShapeMaterialPath;
 
 #endif

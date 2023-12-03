@@ -136,7 +136,7 @@ void TSMaterialList::setFlags(U32 index, U32 value)
    mFlags[index] = value;
 }
 
-void TSMaterialList::load(U32 index,const char* path)
+bool TSMaterialList::load(U32 index,const char* path)
 {
    AssertFatal(index < getMaterialCount(),"TSMaterialList::getFlags: index out of range");
 
@@ -147,7 +147,7 @@ void TSMaterialList::load(U32 index,const char* path)
    else
       mTextureType = MeshTexture;
 
-   Parent::load(index,path);
+   return Parent::load(index,path);
 }
 
 bool TSMaterialList::write(Stream & s)
