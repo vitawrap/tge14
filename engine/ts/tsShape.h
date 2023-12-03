@@ -550,7 +550,7 @@ class TSMaterialList : public MaterialList
    ~TSMaterialList();
    void free();
 
-   void load(U32 index, const char* path = 0);
+   virtual bool load(U32 index, const char* path = 0) override;
    bool load(TextureHandleType type, const char* path = 0,bool clampToEdge = false) { return Parent::load(type,path,clampToEdge); }
 
    /// @name Lookups
