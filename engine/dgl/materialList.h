@@ -96,6 +96,4 @@ inline bool MaterialList::load(TextureHandleType type, const char* path, bool cl
 
 extern ResourceInstance* constructMaterialList(Stream &stream);
 
-extern StringTableEntry gDefaultShapeMaterialPath;
-
 #endif
