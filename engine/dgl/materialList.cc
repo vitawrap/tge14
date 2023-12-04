@@ -339,9 +339,15 @@ ResourceInstance* constructMaterialList(Stream &stream)
 // Console functions
 //--------------------------------------
 
-ConsoleFunction(setMaterialListFallbackDir, void, 2, 2, "(string path) - path to dir in torque format")
+ConsoleFunction(setMaterialListFallbackDir, char const *, 2, 2, "(string path) - path to dir in torque format")
 {
+    // Save previous value
+    char* prev = Con::getReturnBuffer(dStrlen(gFallbackShapeMaterialPath) + 1);
+    dStrcpy(prev, gFallbackShapeMaterialPath);
+    
+    // Renew value and return prev
     char tryExpandFileName[1024];
     if (Con::expandScriptFilename(tryExpandFileName, 1023, argv[1]))
         dStrncpy(gFallbackShapeMaterialPath, tryExpandFileName, 1023);
+    return prev;
 }
