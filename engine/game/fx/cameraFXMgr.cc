@@ -127,9 +127,10 @@ void CameraRecoil::update(F32 dt)
     F32 recoilSlope = interpolate(completionRatio);
 
     VectorF rotAngles;
-    rotAngles.x = recoilSlope * mRecoilOffset.x * M_2PI_F;
-    rotAngles.y = recoilSlope * mRecoilOffset.y * M_2PI_F;
-    rotAngles.z = recoilSlope * mRecoilOffset.z * M_2PI_F;
+    const F32 angle = M_2PI_F / 180.0;
+    rotAngles.x = recoilSlope * mRecoilOffset.x * angle;
+    rotAngles.y = recoilSlope * mRecoilOffset.y * angle;
+    rotAngles.z = recoilSlope * mRecoilOffset.z * angle;
 
     MatrixF rotMatrix(EulerF(rotAngles.x, rotAngles.y, rotAngles.z));
 
