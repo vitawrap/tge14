@@ -108,8 +108,8 @@ CameraRecoil::CameraRecoil()
 }
 
 F32 CameraRecoil::interpolate(F32 x) {
-    // 8.f * x * expf(1 - (8.f * x)) - .0073f;
-    return -8.f * expf(1.f - 8.f * x) * (8.f * x - 1.f);
+    return 8.f * x * expf(1.f - (8.f * x)) - .0073f;
+    //return -8.f * expf(1.f - 8.f * x) * (8.f * x - 1.f);
 }
 
 void CameraRecoil::init()
@@ -123,7 +123,7 @@ void CameraRecoil::update(F32 dt)
 {
     Parent::update(dt);
 
-    F32 completionRatio = (mDuration - (mDuration - mElapsedTime) / mDuration);
+    F32 completionRatio = mElapsedTime / mDuration;
     F32 recoilSlope = interpolate(completionRatio);
 
     VectorF rotAngles;
