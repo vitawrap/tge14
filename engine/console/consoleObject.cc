@@ -145,7 +145,7 @@ void AbstractClassRep::initialize()
    {
       // sg_tempFieldList is used as a staging area for field lists
       // (see addField, addGroup, etc.)
-      sg_tempFieldList.setSize(0);
+      sg_tempFieldList.clear();
 
       walk->init();
 
@@ -153,11 +153,10 @@ void AbstractClassRep::initialize()
       if (sg_tempFieldList.size() != 0)
       {
          dQsort(sg_tempFieldList.address(), sg_tempFieldList.size(), sizeof(AbstractClassRep::Field), ACRFieldCompare);
+         dPrintf("[class %s]: array %s, size %d, count %d \n", 
+            walk->getClassName(), walk->mFieldList.address(), walk->mFieldList.memSize(), walk->mFieldList.size());
          walk->mFieldList = sg_tempFieldList;
       }
-
-      // And of course delete it every round.
-      sg_tempFieldList.clear();
 
       // Insert it into the name table, for constructors in script
       S32 pos = HashPointer(StringTable->insert(walk->getClassName(), true)) % classNameCount;
@@ -172,6 +171,9 @@ void AbstractClassRep::initialize()
           valid->bucketNextClass = walk;
       else classNameTable[pos] = walk;
    }
+
+   // Clear it one final time, hopefully purging the memory.
+   sg_tempFieldList.setSize(0);
 
    // Calculate counts and bit sizes for the various NetClasses.
    for (U32 group = 0; group < NetClassGroupsCount; group++)
