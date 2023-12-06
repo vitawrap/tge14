@@ -665,7 +665,7 @@ ConsoleMethod(SimObject,dump, void, 2, 2, "obj.dump()")
          else
             dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s[%d] = \"", f->pFieldname, j);
          expandEscape(expandedBuffer + dStrlen(expandedBuffer), val);
-         Con::printf("%s\"", expandedBuffer);
+         Con::printf("%s\"   %s", expandedBuffer, f->pFieldDocs? f->pFieldDocs : "");
       }
    }
 
