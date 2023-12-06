@@ -35,8 +35,6 @@ SOURCE.COLLISION=\
 SOURCE.CONSOLE=\
 	console/astAlloc.cc \
 	console/astNodes.cc \
-	console/BASscan.cc \
-	console/BASgram.cc \
 	console/codeBlock.cc \
 	console/compiledEval.cc  \
 	console/compiler.cc \

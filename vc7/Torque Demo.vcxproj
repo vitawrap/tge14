@@ -296,8 +296,6 @@
     <ClCompile Include="..\engine\collision\polytope.cc" />
     <ClCompile Include="..\engine\console\astAlloc.cc" />
     <ClCompile Include="..\engine\console\astNodes.cc" />
-    <ClCompile Include="..\engine\console\BASgram.cc" />
-    <ClCompile Include="..\engine\console\BASscan.cc" />
     <ClCompile Include="..\engine\console\CMDgram.cc" />
     <ClCompile Include="..\engine\console\CMDscan.cc" />
     <ClCompile Include="..\engine\console\codeBlock.cc" />
@@ -682,7 +680,6 @@
     <ClInclude Include="..\engine\collision\polyhedron.h" />
     <ClInclude Include="..\engine\collision\polytope.h" />
     <ClInclude Include="..\engine\console\ast.h" />
-    <ClInclude Include="..\engine\console\basgram.h" />
     <ClInclude Include="..\engine\console\cmdgram.h" />
     <ClInclude Include="..\engine\console\codeBlock.h" />
     <ClInclude Include="..\engine\console\compiler.h" />
@@ -990,46 +987,6 @@
     <ClInclude Include="..\engine\util\triBoxCheck.h" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\engine\console\BASgram.y">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating TorqueBasic parser with bison...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating TorqueBasic parser with bison...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">call "%(RootDir)%(Directory)\bison.bat" BAS BASgram.c BASgram.y "%(RootDir)%(Directory)" BASgram.cc</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">call "%(RootDir)%(Directory)\bison.bat" BAS BASgram.c BASgram.y "%(RootDir)%(Directory)" BASgram.cc</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RootDir)%(Directory)\BASgram.cc;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(RootDir)%(Directory)\BASgram.cc;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating TorqueBasic parser with bison...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating TorqueBasic parser with bison...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">call "%(RootDir)%(Directory)\bison.bat" BAS BASgram.c BASgram.y "%(RootDir)%(Directory)"  BASgram.cc</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">call "%(RootDir)%(Directory)\bison.bat" BAS BASgram.c BASgram.y "%(RootDir)%(Directory)"  BASgram.cc</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RootDir)%(Directory)\BASgram.cc;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(RootDir)%(Directory)\BASgram.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\engine\console\BASscan.l">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating TorqueBasic lexer with flex...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating TorqueBasic lexer with flex...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(ProjectDir)..\bin\flex\flex" -PBAS -o"%(RootDir)%(Directory)\BASscan.cc" "%(FullPath)"
-</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(ProjectDir)..\bin\flex\flex" -PBAS -o"%(RootDir)%(Directory)\BASscan.cc" "%(FullPath)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RootDir)%(Directory)\BASscan.cc;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(RootDir)%(Directory)\BASscan.cc;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating TorqueBasic lexer with flex...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating TorqueBasic lexer with flex...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(ProjectDir)..\bin\flex\flex" -PBAS -o"%(RootDir)%(Directory)\BASscan.cc" "%(FullPath)"
-</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(ProjectDir)..\bin\flex\flex" -PBAS -o"%(RootDir)%(Directory)\BASscan.cc" "%(FullPath)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RootDir)%(Directory)\BASscan.cc;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(RootDir)%(Directory)\BASscan.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <CustomBuild Include="..\engine\console\CMDgram.y">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

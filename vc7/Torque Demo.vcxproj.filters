@@ -167,12 +167,6 @@
     <ClCompile Include="..\engine\console\astNodes.cc">
       <Filter>Source Files\console</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\console\BASgram.cc">
-      <Filter>Source Files\console</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\console\BASscan.cc">
-      <Filter>Source Files\console</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\console\CMDgram.cc">
       <Filter>Source Files\console</Filter>
     </ClCompile>
@@ -1318,9 +1312,6 @@
     <ClInclude Include="..\engine\console\ast.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\console\basgram.h">
-      <Filter>Source Files\console</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\console\cmdgram.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
@@ -2268,12 +2259,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\engine\console\BASgram.y">
-      <Filter>Source Files\console</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\engine\console\BASscan.l">
-      <Filter>Source Files\console</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\engine\console\CMDgram.y">
       <Filter>Source Files\console</Filter>
     </CustomBuild>
