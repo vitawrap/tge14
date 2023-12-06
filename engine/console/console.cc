@@ -26,7 +26,6 @@ bool gWarnUndefinedScriptVariables;
 static char scratchBuffer[4096];
 
 CON_DECLARE_PARSER(CMD);
-CON_DECLARE_PARSER(BAS);
 
 // TO-DO: Console debugger stuff to be cleaned up later
 static S32 dbgGetCurrentFrame(void)
@@ -232,7 +231,6 @@ void init()
    // Set up the parser(s)
    // TODO: Gut TorqueBasic from the compiler...
    CON_ADD_PARSER(CMD,   "cs",   true);   // TorqueScript
-   CON_ADD_PARSER(BAS,   "bas",  false);  // TorqueBasic
 
    // Variables
    setVariable("Con::prompt", "% ");
