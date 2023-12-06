@@ -45,7 +45,10 @@ public:
    {
        Parent::setVisible(vis);
        if (fadeWhenVisible && vis)
+       {
            wakeTime = Platform::getRealMilliseconds();
+           done = false;
+       }
    }
    void onPreRender()
    {
@@ -67,6 +70,7 @@ public:
       if(!Parent::onWake())
          return false;
       wakeTime = Platform::getRealMilliseconds();
+      done = false;
       return true;
    }
    void onRender(Point2I offset, const RectI &updateRect)
@@ -97,20 +101,23 @@ public:
          done = true;
       }
 
-      if (fadeAlpha)
+      if (fadeAlpha && !done)
         mFramebufferTexture.update();
 
       Parent::onRender(offset, updateRect);
 
       if (fadeAlpha)
       {
-          ColorI oldMod;
-          dglGetBitmapModulation(&oldMod);
-          ColorI color(255,255,255,alpha);
-          dglSetBitmapModulation(color);
-          dglSetClipRect(updateRect);
-          dglDrawBitmap(mFramebufferTexture.getTextureHandle(), offset, GFlip_Y);
-          dglSetBitmapModulation(oldMod);
+          if (!done)
+          {
+              ColorI oldMod;
+              dglGetBitmapModulation(&oldMod);
+              ColorI color(255,255,255,alpha);
+              dglSetBitmapModulation(color);
+              dglSetClipRect(updateRect);
+              dglDrawBitmap(mFramebufferTexture.getTextureHandle(), offset, GFlip_Y);
+              dglSetBitmapModulation(oldMod);
+          }
       }
       else
       {
