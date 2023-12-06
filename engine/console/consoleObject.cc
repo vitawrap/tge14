@@ -153,8 +153,6 @@ void AbstractClassRep::initialize()
       if (sg_tempFieldList.size() != 0)
       {
          dQsort(sg_tempFieldList.address(), sg_tempFieldList.size(), sizeof(AbstractClassRep::Field), ACRFieldCompare);
-         dPrintf("[class %s]: array %s, size %d, count %d \n", 
-            walk->getClassName(), walk->mFieldList.address(), walk->mFieldList.memSize(), walk->mFieldList.size());
          walk->mFieldList = sg_tempFieldList;
       }
 
