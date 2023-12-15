@@ -39,7 +39,7 @@ LINK.cc         =ld
 #    but it is disabled by default
 # -fno-check-new is not tested
 CFLAGS.GENERAL    = -DUSE_FILE_REDIRECT -I/usr/X11R6/include/ -MD -mtune=generic \
-		    `freetype-config --cflags` -mtune=generic -ffast-math -pipe -mpreferred-stack-boundary=4
+		    `pkg-config freetype2 --cflags` -mtune=generic -ffast-math -pipe -mpreferred-stack-boundary=4
 
 		    #-w -fno-exceptions -fno-check-new 
 CFLAGS.RELEASE    = -O2 -finline-functions -fomit-frame-pointer 
@@ -63,19 +63,13 @@ LINK.LIBS.VORBIS  =  ../lib/xiph/linux/libogg.so.0 ../lib/xiph/linux/libvorbis.s
 # the following uses the system libraries 
 #LINK.LIBS.VORBIS = -logg -lvorbis
 
-# Link against SDL1.2 to SDL2 compat layer instead of system SDL1...
-# There are nasty bugs in SDL1. Reverting to system SDL should not
-# break the commands below... shame if it does.
-#LINK.LIBS.SDL_S=,../lib/sdl/linux/libSDL.a
-LINK.LIBS.SDL_D	= -lSDL2
-
 # GLU must be statically linked, otherwise torque will crash.
 # JMQNOTE: aside from gluProject/unProject, GLU doesn't work.  
 # calling a GLU function that calls a GL function will cause a 
 # crash.  let me know if you have a fix :)
-LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU$(LINK.LIBS.SDL_S) -Wl,-dy -lX11 $(LINK.LIBS.SDL_D) -lpthread -ldl # -lefence
+LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -Wl,-dy -lX11 -lSDL2 -lpthread -ldl # -lefence
 
-LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU$(LINK.LIBS.SDL_S) -Wl,-dy -lX11 $(LINK.LIBS.SDL_D) -lpthread -ldl # -lefence
+LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -Wl,-dy -lX11 -lSDL2 -lpthread -ldl # -lefence
 # -lefence is useful for finding memory corruption problems
 LINK.LIBS.SERVER  = $(LINK.LIBS.VORBIS) -lpthread
 LINK.LIBS.RELEASE =  -lXft
