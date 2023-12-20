@@ -910,14 +910,12 @@ const char *execute(S32 argc, const char *argv[])
 //------------------------------------------------------------------------------
 const char *execute(SimObject *object, S32 argc, const char *argv[])
 {
-   static char idBuf[16];
    if(argc < 2)
       return "";
 
    if(object->getNamespace())
    {
-      dSprintf(idBuf, sizeof(idBuf), "%d", object->getId());
-      argv[1] = idBuf;
+      argv[1] = object->getIdString();
 
       StringTableEntry funcName = StringTable->insert(argv[0]);
       Namespace::Entry *ent = object->getNamespace()->lookup(funcName);

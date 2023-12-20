@@ -839,7 +839,7 @@ void SimObject::setHidden(bool b = true)
 
 const char* SimObject::getIdString() const
 {
-   static char IDbuffer[12];
+   static char IDbuffer[32];
    dSprintf(IDbuffer, sizeof(IDbuffer), "%d", mId);
    return IDbuffer;
 }
