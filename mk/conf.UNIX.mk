@@ -39,7 +39,7 @@ LINK.cc         =ld
 #    but it is disabled by default
 # -fno-check-new is not tested
 CFLAGS.GENERAL    = -DUSE_FILE_REDIRECT -I/usr/X11R6/include/ -MD -mtune=generic \
-		    `pkg-config freetype2 --cflags` -mtune=generic -ffast-math -pipe -mpreferred-stack-boundary=4
+		    `pkg-config freetype2 --cflags` -mtune=generic -ffast-math -pipe #-mpreferred-stack-boundary=4
 
 		    #-w -fno-exceptions -fno-check-new 
 CFLAGS.RELEASE    = -O2 -finline-functions -fomit-frame-pointer 
