@@ -56,9 +56,9 @@ void DecalInstance::makeUVsZRotated()
         Point3F& norm = p->plane;
         norm.normalizeSafe();
         F32 dots[] = {
-            mAbs(mDot(norm, Point3F(1,0,0))), 
-            mAbs(mDot(norm, Point3F(0,1,0))), 
-            mAbs(mDot(norm, Point3F(0,0,1)))
+            static_cast<F32>(mAbs(mDot(norm, Point3F(1,0,0)))), 
+            static_cast<F32>(mAbs(mDot(norm, Point3F(0,1,0)))), 
+            static_cast<F32>(mAbs(mDot(norm, Point3F(0,0,1))))
         };
 
         S32 x, y;
@@ -103,9 +103,9 @@ void DecalInstance::makeUVs()
         Point3F& norm = p->plane;
         norm.normalizeSafe();
         F32 dots[] = {
-            mAbs(mDot(norm, Point3F(1,0,0))),
-            mAbs(mDot(norm, Point3F(0,1,0))),
-            mAbs(mDot(norm, Point3F(0,0,1)))
+            static_cast<F32>(mAbs(mDot(norm, Point3F(1,0,0)))),
+            static_cast<F32>(mAbs(mDot(norm, Point3F(0,1,0)))),
+            static_cast<F32>(mAbs(mDot(norm, Point3F(0,0,1))))
         };
 
         S32 x, y;
