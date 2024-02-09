@@ -3,6 +3,9 @@
 // Copyright (c) 2002 GarageGames.Com
 //-----------------------------------------------------------------------------
 
+// TangoSans CC0 font by Sandylukee
+registerFont("~/client/fonts/TangoSans.ttf");
+
 new GuiControlProfile (GuiDefaultProfile)
 {
    tab = false;
