@@ -12,225 +12,143 @@
 #include "platformX86UNIX/x86UNIXFont.h"
 
 // Needed by createFont
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xos.h>
-#include <X11/Xatom.h>
-#include <X11/Xft/Xft.h>
-#include <X11/extensions/Xrender.h> // For XRenderColor
+// https://stackoverflow.com/questions/62374506/how-do-i-align-glyphs-along-the-baseline-with-freetype
+#include <freetype/ftmodapi.h>
+#include <fontconfig/fontconfig.h>
+#include <fontconfig/fcfreetype.h>
 
 // Needed for getenv in createFont
 #include <stdlib.h>
 
-S32 mapSize(char *fontname, S32 size)
+static FT_MemoryRec_ memRec = {
+  NULL,
+  [](FT_Memory, long size) -> void* { return dMalloc(size); },
+  [](FT_Memory, void* ptr) -> void { return dFree(ptr); },
+  [](FT_Memory, long csize, long nsize, void* block) -> void* { return dRealloc(block, nsize); }
+};
+static FT_Library gFT = NULL;
+static FcConfig* gFc = NULL;
+
+S32 mapSize(char const*fontname, S32 size)
 {
   // warning!  hacking ahead
   S32 newSize = size;
+  char* fname = const_cast<char*>(fontname);
 
   // if the size is >= 12, do a size - 2 adjustment
   // (except for courier.)
   // fonts seem to be too big otherwise, but this might be
   // system/font specific
-  if (newSize >= 12 && !stristr(fontname, "courier"))
+  if (newSize >= 12 && !stristr(fname, "courier"))
     newSize = newSize - 2;
 
   // adobe helvetica and courier look like crap at 22
   // (probably scaled bitmap problem)
   if (newSize == 22 &&
-      (stristr(fontname, "helvetica") == 0 ||
-       stristr(fontname, "courier") == 0))
+      (stristr(fname, "helvetica") == 0 ||
+       stristr(fname, "courier") == 0))
     newSize = 24;
 
   return newSize;
 }
 
-XFontStruct *loadFont(const char *name, S32 size, Display *display,
-                      char *pickedFontName, int pickedFontNameSize)
+// We use fontconfig to abstract away the path differences between linux distros...
+FT_Face findFont(char const* fontname, char *foundFontName, int size)
 {
-  XFontStruct *fontInfo = NULL;
-  char *fontname = const_cast<char *>(name);
-  if (dStrlen(fontname) == 0)
-    fontname = "arial";
-  else if (stristr(const_cast<char *>(name), "arial") != NULL)
-    fontname = "arial";
-  else if (stristr(const_cast<char *>(name), "lucida console") != NULL)
-    fontname = "lucida console";
+  // configure the search pattern
+  FcPattern* pat = FcNameParse((const FcChar8*)fontname);
+  FcConfigSubstitute(gFc, pat, FcMatchPattern);
+  FcDefaultSubstitute(pat);
 
-  char *weight = "medium";
-  char *slant = "r"; // no slant
+  // find the font
+  FT_Face face = NULL;
+  FcResult res;
+  FcPattern* font = FcFontMatch(gFc, pat, &res);
+  if (font)
+  {
+    FcChar8* file = NULL;
+    if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
+    {
+      dStrncpy(foundFontName, (const char*)file, size);
+      FT_New_Face(gFT, foundFontName, 0, &face);
+    }
+    FcPatternDestroy(font);
+  }
+  FcPatternDestroy(pat);
+  return face;
+}
+
+FT_Face loadFont(const char *name, S32 size, char *pickedFontName, int pickedFontNameSize)
+{
+  // This is a fancier strategy than the old Xft system.
+  // Basically findFont goes into fontconfig to get a best match for a fontface
+  // given a name. If a match is made (should always happen) pickedFontName is written to here.
+  // This also means we're no longer potentially failing on a Microsoft font and calling for
+  // a completely random replacement (which may not even exist either).
+  char const* fontname = name;
 
   int newSize = mapSize(fontname, size);
-
-  // look for bold or italic
-  if (stristr(const_cast<char *>(name), "bold") != NULL)
-    weight = "bold";
-  if (stristr(const_cast<char *>(name), "italic") != NULL)
-    slant = "o";
-
-  const int xfontNameSize = 512;
-  char xfontName[xfontNameSize];
-  char *fontFormat = "-*-%s-%s-%s-*-*-%d-*-*-*-*-*-*-*";
-  dSprintf(xfontName, xfontNameSize, fontFormat, fontname, weight, slant, newSize);
-  // lowercase the whole thing
-  strtolwr(xfontName);
-
-  fontInfo = XLoadQueryFont(display, xfontName);
-
-  if (fontInfo == NULL)
-  {
-    // Couldn't load the requested font.  This probably will be common
-    // since many unix boxes don't have arial or lucida console installed.
-    // Attempt to map the font name into a font we're pretty sure exists
-    if (stristr(const_cast<char *>(name), "arial") != NULL)
-      fontname = "helvetica";
-    else if (stristr(const_cast<char *>(name), "lucida console") != NULL)
-      fontname = "courier";
-    else
-      // to helvetica with you!
-      fontname = "helvetica";
-
-    newSize = mapSize(fontname, size);
-
-    // change the font format so that we get adobe fonts
-    fontFormat = "-adobe-%s-%s-%s-*-*-%d-*-*-*-*-*-*-*";
-    dSprintf(xfontName, xfontNameSize, fontFormat, fontname, weight, slant, newSize);
-    fontInfo = XLoadQueryFont(display, xfontName);
-  }
-
-  if (fontInfo != NULL && pickedFontName && pickedFontNameSize > 0)
-    dSprintf(pickedFontName, pickedFontNameSize, "%s", xfontName);
+  FT_Face fontInfo = findFont(fontname, pickedFontName, pickedFontNameSize);
+  FT_Error sizeRet;
+  if (fontInfo)
+    sizeRet = FT_Set_Char_Size(fontInfo, 0, size, 0, 0);
 
   return fontInfo;
 }
 
 bool registerFontFile(char const* fname)
 {
+  // TODO: Register the font in FcConfig
 	return false;
 }
 
 GOldFont *createFont(const char *name, dsize_t size, U32 charset)
 {
-  Display *display = XOpenDisplay(getenv("DISPLAY"));
-  int screen;
-
-  if (!display)
-    AssertFatal(false, "createFont: cannot connect to X server");
-
-  screen = DefaultScreen(display);
-
   // load the font
   const int pickedFontNameSize = 512;
   char pickedFontName[pickedFontNameSize];
 
-  XFontStruct *fontInfo = loadFont(name, size, display, pickedFontName, pickedFontNameSize);
-  XftFont *font = XftFontOpenXlfd(display, screen, pickedFontName);
-
-  if (!fontInfo || !font)
+  FT_Face face = loadFont(name, size, pickedFontName, pickedFontNameSize);
+  if (!face)
     AssertFatal(false, "createFont: cannot load font");
 
   Con::printf("CreateFont: request for %s %d, using %s", name, size, pickedFontName);
 
-  // Create the pixmap to draw on.
-  Pixmap pixmap = XCreatePixmap(display,
-                                DefaultRootWindow(display),
-                                font->max_advance_width,
-                                font->height,
-                                DefaultDepth(display, screen));
-
-  // And the Xft wrapper around it.
-  XftDraw *draw = XftDrawCreate(display,
-                                pixmap,
-                                DefaultVisual(display, screen),
-                                DefaultColormap(display, screen));
-
-  // Allocate some colors, we don't use XftColorAllocValue here as that
-  // Don't appear to function correctly (or I'm using it wrong) As we only do
-  // this twice per new un cached font it isn't that big of a penalty. (Each
-  // call to XftColorAllocName involves a round trip to the X Server)
-
-  XftColor black, white;
-
-  XftColorAllocName(display,
-                    DefaultVisual(display, screen),
-                    DefaultColormap(display, screen),
-                    "black",
-                    &black);
-
-  // White
-
-  XftColorAllocName(display,
-                    DefaultVisual(display, screen),
-                    DefaultColormap(display, screen),
-                    "white",
-                    &white);
+  // We need to draw white glyphs on a black background.
+  FT_GlyphSlot slot = face->glyph;
 
   // The font.
-
   GOldFont *retFont = new GOldFont;
-  static U8 scratchPad[65536];
+  U8 scratchPad[65536] {0};
   int x, y;
 
   // insert bitmaps into the font for each character
   for (U16 i = 32; i < 256; i++)
   {
-    XGlyphInfo extent;
-    U32 glyph;
-    if (!XftCharExists(display, font, i))
+    U32 glyph = FT_Get_Char_Index(face, i);
+    if (FT_Load_Glyph(face, glyph, FT_LOAD_RENDER) != FT_Err_Ok)
     {
-      retFont->insertBitmap(i, scratchPad, 0, 0, 0, 0, 0, font->max_advance_width);
+      retFont->insertBitmap(i, scratchPad, 0, 0, 0, 0, 0, face->max_advance_width);
       continue;
     }
 
     // Get the glyph and its extents.
+    FT_Glyph_Metrics extent = slot->metrics;
+    FT_Bitmap bitmap = slot->bitmap;
 
-    glyph = XftCharIndex(display, font, i);
-    XftGlyphExtents(display, font, &glyph, 1, &extent);
-
-    // Clear the bounding box and draw the glyph
-    XftDrawRect(draw, &black, 0, 0, font->max_advance_width, font->height);
-    XftDrawGlyphs(draw, &white, font, 0, font->ascent, &glyph, 1);
-
-    // Grab the rendered image ...
-    XImage *ximage = XGetImage(display, pixmap, 0, 0,
-                               extent.xOff, font->height,
-                               AllPlanes, XYPixmap);
-
-    if (ximage == NULL)
-      AssertFatal(false, "cannot get x image");
-
-    // And store each pixel in the scratchPad for insertion into the bitmap.
-    // We grab the full height of the pixmap.
-    for (y = 0; y < font->height; y++)
-    {
-      // and the width of the glyph and its padding.
-      for (x = 0; x < extent.xOff; x++)
-        scratchPad[y * extent.xOff + x] = static_cast<U8>(XGetPixel(ximage, x, y));
-    }
-
-    // Done with the image.
-    XDestroyImage(ximage);
-
-    // Add it to the bitmap.
+    // As it turns out, Freetype already creates a grayscale U8 alpha bitmap.
     retFont->insertBitmap(i, // index
-                          scratchPad, // src
-                          extent.xOff, // stride
-                          extent.xOff, // width
-                          font->height, // height
+                          bitmap.buffer, // src
+                          bitmap.pitch, // stride
+                          bitmap.width, // width
+                          face->height, // height
                           0, // xOrigin
-                          font->ascent, // yOrigin
-                          extent.xOff); // xIncrement
+                          face->ascender, // yOrigin
+                          extent.width); // xIncrement
   }
 
-  retFont->pack(font->height, font->ascent);
-
-  XftFontClose(display, font);
-  XftColorFree(display, DefaultVisual(display, screen),
-               DefaultColormap(display, screen), &black);
-  XftColorFree(display, DefaultVisual(display, screen),
-               DefaultColormap(display, screen), &white);
-  XftDrawDestroy(draw);
-  XFreePixmap(display, pixmap);
-  XCloseDisplay(display);
+  retFont->pack(face->height, face->ascender);
+  FT_Done_Face(face);
   return retFont;
 }
 
@@ -248,40 +166,40 @@ PlatformFont *createPlatformFont(const char *name, U32 size, U32 charset /* = TG
 
 x86UNIXFont::x86UNIXFont()
 {
+  if (! gFT)
+  {
+    gFc = FcInitLoadConfigAndFonts();
+    FT_New_Library(&memRec, &gFT);
+    FT_Add_Default_Modules(gFT);
+  }
+  FT_Reference_Library(gFT);
 }
 
 x86UNIXFont::~x86UNIXFont()
 {
+  FT_Done_Library(gFT);
 }
 
 bool x86UNIXFont::create(const char *name, U32 size, U32 charset)
 {
-  Display *display = XOpenDisplay(getenv("DISPLAY"));
-
-  if (display == NULL)
-    AssertFatal(false, "createFont: cannot connect to X server");
-
   const int pickedFontNameSize = 512;
   char pickedFontName[pickedFontNameSize];
 
-  int screen = DefaultScreen(display);
-  XFontStruct *fontInfo = loadFont(name, size, display, pickedFontName, pickedFontNameSize);
-  XftFont *font = XftFontOpenXlfd(display, screen, pickedFontName);
+  FT_Face fontInfo = loadFont(name, size, pickedFontName, pickedFontNameSize);
 
-  if (!fontInfo || !font)
+  if (!fontInfo)
   {
     Con::errorf("Error: Could not load font -%s-", name);
     return false;
   }
 
   // store some info about the font
-  baseline = font->ascent;
-  height = font->height;
+  baseline = fontInfo->ascender;
+  height = fontInfo->height;
   mFontName = StringTable->insert(pickedFontName);
+  mFontSize = pickedFontNameSize;
 
-  XftFontClose(display, font);
-  // DISPLAY
-  XCloseDisplay(display);
+  FT_Done_Face(fontInfo);
 
   return true;
 }
@@ -303,11 +221,6 @@ bool x86UNIXFont::isValidChar(const UTF8 *str) const
 
 PlatformFont::CharInfo &x86UNIXFont::getCharInfo(const UTF16 ch) const
 {
-  Display *display = XOpenDisplay(getenv("DISPLAY"));
-
-  if (!display)
-    AssertFatal(false, "createFont: cannot connect to X server");
-
   static PlatformFont::CharInfo c;
   dMemset(&c, 0, sizeof(c));
 
@@ -315,86 +228,46 @@ PlatformFont::CharInfo &x86UNIXFont::getCharInfo(const UTF16 ch) const
   c.xOffset = 0;
   c.yOffset = 0;
 
-  XftFont *fontInfo = XftFontOpenXlfd(display, DefaultScreen(display), mFontName);
+  // By now mFontFace should point to a path that we retrieved from Fontconfig.
+  FT_Face face = NULL;
+  FT_Error ret = FT_New_Face(gFT, mFontName, 0, &face);
+  if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot load font");
 
-  if (!fontInfo)
-    AssertFatal(false, "createFont: cannot load font");
+  ret = FT_Set_Char_Size(face, 0, mFontSize, 0, 0);
+  if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot load size");
 
-  int screen = DefaultScreen(display);
+  ret = FT_Load_Char(face, ch, FT_LOAD_RENDER);
+  if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot load glyph");
 
-  // Create the pixmap to draw on.
-  Drawable pixmap = XCreatePixmap(display,
-                                  DefaultRootWindow(display),
-                                  fontInfo->max_advance_width,
-                                  fontInfo->height,
-                                  DefaultDepth(display, screen));
-  // And the Xft wrapper around it.
-  XftDraw *draw = XftDrawCreate(display,
-                                pixmap,
-                                DefaultVisual(display, screen),
-                                DefaultColormap(display, screen));
-  // Allocate some colors, we don't use XftColorAllocValue here as that
-  // Don't appear to function correctly (or I'm using it wrong) As we only do
-  // this twice per new un cached font it isn't that big of a penalty. (Each
-  // call to XftColorAllocName involves a round trip to the X Server)
+  // Another round of getting a glyph grayscale bitmap
+  FT_GlyphSlot slot = face->glyph;
+  FT_Glyph_Metrics metrics = slot->metrics;
+  FT_Bitmap bitmap = slot->bitmap;
 
-  XftColor black, white;
-  XftColorAllocName(display,
-                    DefaultVisual(display, screen),
-                    DefaultColormap(display, screen),
-                    "black",
-                    &black);
-
-  // White
-  XftColorAllocName(display,
-                    DefaultVisual(display, screen),
-                    DefaultColormap(display, screen),
-                    "white",
-                    &white);
-
-  XGlyphInfo charinfo;
-  XftTextExtents16(display, fontInfo, &ch, 1, &charinfo);
-  c.height = fontInfo->height;
+  c.height = face->height;
   c.xOrigin = 0;
-  c.yOrigin = fontInfo->ascent;
-  c.xIncrement = charinfo.xOff;
-  c.width = charinfo.xOff;
+  c.yOrigin = face->ascender;
+  c.xIncrement = metrics.horiAdvance;
+  c.width = metrics.width;
 
   // kick out early if the character is undrawable
   if (c.width == 0 || c.height == 0)
     return c;
 
   // allocate a greyscale bitmap and clear it.
-  int bitmapDataSize = c.width * c.height;
+  int bitmapDataSize = bitmap.rows * bitmap.pitch;
   c.bitmapData = new U8[bitmapDataSize];
   dMemset(c.bitmapData, 0, bitmapDataSize);
-  XftDrawRect(draw, &black, 0, 0, fontInfo->max_advance_width, fontInfo->height);
-  XftDrawString16(draw, &white, fontInfo, 0, fontInfo->ascent, &ch, 1);
-
-  // grab the pixmap image
-  XImage *ximage = XGetImage(display, pixmap, 0, 0,
-                             charinfo.xOff, fontInfo->height,
-                             AllPlanes, XYPixmap);
-  if (!ximage)
-    AssertFatal(false, "cannot get x image");
 
   int x, y;
   // grab each pixel and store it in the scratchPad
-  for (y = 0; y < fontInfo->height; y++)
+  for (y = 0; y < bitmap.rows; y++)
   {
-    for (x = 0; x < charinfo.xOff; x++)
-      c.bitmapData[y * charinfo.xOff + x] = static_cast<U8>(XGetPixel(ximage, x, y));
+    for (x = 0; x < bitmap.width; x++)
+      c.bitmapData[y * bitmap.width + x] = static_cast<U8>(bitmap.buffer[y * bitmap.width + x]);
   }
 
-  XDestroyImage(ximage);
-  XftColorFree(display, DefaultVisual(display, screen),
-               DefaultColormap(display, screen), &black);
-  XftColorFree(display, DefaultVisual(display, screen),
-               DefaultColormap(display, screen), &white);
-  XftDrawDestroy(draw);
-  XFreePixmap(display, pixmap);
-  XCloseDisplay(display);
-
+  FT_Done_Face(face);
   return c;
 }
 

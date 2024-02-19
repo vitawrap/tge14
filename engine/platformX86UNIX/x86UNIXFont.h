@@ -11,10 +11,8 @@
 #ifndef _X86UNIXFONT_H_
 #define _X86UNIXFONT_H_
 // Needed by createFont
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xos.h>
-#include <X11/Xatom.h>
+#include <ft2build.h>
+#include <freetype/freetype.h>
 
 class x86UNIXFont : public PlatformFont
 {
@@ -22,6 +20,7 @@ class x86UNIXFont : public PlatformFont
 		int baseline;
 		int height;
 		StringTableEntry  mFontName;
+		int	mFontSize;
 	public:
 		x86UNIXFont();
 		virtual ~x86UNIXFont();
