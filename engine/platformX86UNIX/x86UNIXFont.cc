@@ -53,7 +53,7 @@ S32 mapSize(char const*fontname, S32 size)
 }
 
 // We use fontconfig to abstract away the path differences between linux distros...
-FT_Face findFont(char const* fontname, char *foundFontName, int size)
+FT_Face findFont(char const* fontname, char *foundFontName, int bufSize)
 {
   // configure the search pattern
   FcPattern* pat = FcNameParse((const FcChar8*)fontname);
@@ -69,7 +69,7 @@ FT_Face findFont(char const* fontname, char *foundFontName, int size)
     FcChar8* file = NULL;
     if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
     {
-      dStrncpy(foundFontName, (const char*)file, size);
+      dStrncpy(foundFontName, (const char*)file, bufSize);
       FT_New_Face(gFT, foundFontName, 0, &face);
     }
     FcPatternDestroy(font);
@@ -78,7 +78,7 @@ FT_Face findFont(char const* fontname, char *foundFontName, int size)
   return face;
 }
 
-FT_Face loadFont(const char *name, S32 size, char *pickedFontName, int pickedFontNameSize)
+FT_Face loadFont(const char *name, S32& size, char *pickedFontName, int pickedFontNameSize)
 {
   // This is a fancier strategy than the old Xft system.
   // Basically findFont goes into fontconfig to get a best match for a fontface
@@ -91,8 +91,9 @@ FT_Face loadFont(const char *name, S32 size, char *pickedFontName, int pickedFon
   FT_Face fontInfo = findFont(fontname, pickedFontName, pickedFontNameSize);
   FT_Error sizeRet;
   if (fontInfo)
-    sizeRet = FT_Set_Char_Size(fontInfo, 0, size, 0, 0);
+    sizeRet = FT_Set_Pixel_Sizes(fontInfo, 0, newSize);
 
+  size = newSize;
   return fontInfo;
 }
 
@@ -102,13 +103,14 @@ bool registerFontFile(char const* fname)
 	return false;
 }
 
-GOldFont *createFont(const char *name, dsize_t size, U32 charset)
+GOldFont *createFont(const char *name, size_t size, U32 charset)
 {
   // load the font
   const int pickedFontNameSize = 512;
   char pickedFontName[pickedFontNameSize];
 
-  FT_Face face = loadFont(name, size, pickedFontName, pickedFontNameSize);
+  S32 fsize = size;
+  FT_Face face = loadFont(name, fsize, pickedFontName, pickedFontNameSize);
   if (!face)
     AssertFatal(false, "createFont: cannot load font");
 
@@ -173,6 +175,7 @@ x86UNIXFont::x86UNIXFont()
     FT_Add_Default_Modules(gFT);
   }
   FT_Reference_Library(gFT);
+  mFontSize = 12;
 }
 
 x86UNIXFont::~x86UNIXFont()
@@ -185,7 +188,7 @@ bool x86UNIXFont::create(const char *name, U32 size, U32 charset)
   const int pickedFontNameSize = 512;
   char pickedFontName[pickedFontNameSize];
 
-  FT_Face fontInfo = loadFont(name, size, pickedFontName, pickedFontNameSize);
+  FT_Face fontInfo = loadFont(name, mFontSize, pickedFontName, pickedFontNameSize);
 
   if (!fontInfo)
   {
@@ -194,10 +197,9 @@ bool x86UNIXFont::create(const char *name, U32 size, U32 charset)
   }
 
   // store some info about the font
-  baseline = fontInfo->ascender;
-  height = fontInfo->height;
+  baseline = (fontInfo->ascender + 63) >> 6;
+  height = (fontInfo->height + 63) >> 6;
   mFontName = StringTable->insert(pickedFontName);
-  mFontSize = pickedFontNameSize;
 
   FT_Done_Face(fontInfo);
 
@@ -233,22 +235,26 @@ PlatformFont::CharInfo &x86UNIXFont::getCharInfo(const UTF16 ch) const
   FT_Error ret = FT_New_Face(gFT, mFontName, 0, &face);
   if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot load font");
 
-  ret = FT_Set_Char_Size(face, 0, mFontSize, 0, 0);
+  ret = FT_Set_Pixel_Sizes(face, 0, mFontSize);
   if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot load size");
 
-  ret = FT_Load_Char(face, ch, FT_LOAD_RENDER);
+  U32 glyph = FT_Get_Char_Index(face, ch);
+  ret = FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT);
   if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot load glyph");
 
+  ret = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+  if (ret != FT_Err_Ok) AssertFatal(false, "createFont: cannot render glyph");
+
   // Another round of getting a glyph grayscale bitmap
+  FT_Glyph_Metrics metrics = face->glyph->metrics;
   FT_GlyphSlot slot = face->glyph;
-  FT_Glyph_Metrics metrics = slot->metrics;
   FT_Bitmap bitmap = slot->bitmap;
 
-  c.height = face->height;
+  c.height = (metrics.height + 63) >> 6;
   c.xOrigin = 0;
-  c.yOrigin = face->ascender;
-  c.xIncrement = metrics.horiAdvance;
-  c.width = metrics.width;
+  c.yOrigin = (face->ascender - metrics.height) >> 6;
+  c.xIncrement = (metrics.horiAdvance + 63) >> 6;
+  c.width = (metrics.width + 63) >> 6;
 
   // kick out early if the character is undrawable
   if (c.width == 0 || c.height == 0)
@@ -264,7 +270,7 @@ PlatformFont::CharInfo &x86UNIXFont::getCharInfo(const UTF16 ch) const
   for (y = 0; y < bitmap.rows; y++)
   {
     for (x = 0; x < bitmap.width; x++)
-      c.bitmapData[y * bitmap.width + x] = static_cast<U8>(bitmap.buffer[y * bitmap.width + x]);
+      c.bitmapData[y * c.width + x] = static_cast<U8>(bitmap.buffer[y * bitmap.width + x]);
   }
 
   FT_Done_Face(face);
