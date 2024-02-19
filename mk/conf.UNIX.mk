@@ -48,7 +48,7 @@ CFLAGS.DEBUGFAST  = -O -g -finline-functions
 
 ASMFLAGS          = -f elf -dLINUX
 
-LFLAGS.GENERAL    = 
+LFLAGS.GENERAL    = `pkg-config freetype2 --libs`
 LFLAGS.RELEASE    =
 LFLAGS.DEBUG      =
 
@@ -63,13 +63,15 @@ LINK.LIBS.VORBIS  =  ../lib/xiph/linux/libogg.so.0 ../lib/xiph/linux/libvorbis.s
 # the following uses the system libraries 
 #LINK.LIBS.VORBIS = -logg -lvorbis
 
+# lexpat and luuid are needed by fontconfig
+
 # GLU must be statically linked, otherwise torque will crash.
 # JMQNOTE: aside from gluProject/unProject, GLU doesn't work.  
 # calling a GLU function that calls a GL function will cause a 
 # crash.  let me know if you have a fix :)
-LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -Wl,-dy -lX11 -lSDL2 -lpthread -ldl # -lefence
+LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
 
-LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -Wl,-dy -lX11 -lSDL2 -lpthread -ldl # -lefence
+LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
 # -lefence is useful for finding memory corruption problems
 LINK.LIBS.SERVER  = $(LINK.LIBS.VORBIS) -lpthread
 LINK.LIBS.RELEASE =  -lXft
