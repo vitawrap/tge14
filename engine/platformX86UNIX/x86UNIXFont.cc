@@ -252,7 +252,7 @@ PlatformFont::CharInfo &x86UNIXFont::getCharInfo(const UTF16 ch) const
 
   c.height = (metrics.height + 63) >> 6;
   c.xOrigin = 0;
-  c.yOrigin = (face->ascender - metrics.height) >> 6;
+  c.yOrigin = (face->ascender + metrics.height) >> 6;
   c.xIncrement = (metrics.horiAdvance + 63) >> 6;
   c.width = (metrics.width + 63) >> 6;
 
