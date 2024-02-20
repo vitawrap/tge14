@@ -251,7 +251,7 @@ PlatformFont::CharInfo &x86UNIXFont::getCharInfo(const UTF16 ch) const
   FT_Bitmap bitmap = slot->bitmap;
 
   c.height = (metrics.height + 63) >> 6;
-  c.xOrigin = 0;
+  c.xOrigin = metrics.horiBearingX >> 6;
   c.yOrigin = metrics.horiBearingY >> 6;
   c.xIncrement = (metrics.horiAdvance + 63) >> 6;
   c.width = (metrics.width + 63) >> 6;
