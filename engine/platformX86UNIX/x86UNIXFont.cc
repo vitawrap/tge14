@@ -188,20 +188,25 @@ bool x86UNIXFont::create(const char *name, U32 size, U32 charset)
   const int pickedFontNameSize = 512;
   char pickedFontName[pickedFontNameSize];
 
-  FT_Face fontInfo = loadFont(name, mFontSize, pickedFontName, pickedFontNameSize);
+  mFontSize = size;
+  FT_Face face = loadFont(name, mFontSize, pickedFontName, pickedFontNameSize);
 
-  if (!fontInfo)
+  if (!face)
   {
     Con::errorf("Error: Could not load font -%s-", name);
     return false;
   }
 
   // store some info about the font
-  baseline = (fontInfo->ascender + 63) >> 6;
-  height = (fontInfo->height + 63) >> 6;
-  mFontName = StringTable->insert(pickedFontName);
+  float fontSize = mFontSize * face->units_per_EM / 72.f;
+  float ascenderPx = ((face->ascender >> 5) * fontSize) / face->units_per_EM;
+  float descenderPx = ((face->descender >> 5) * fontSize) / face->units_per_EM;
 
-  FT_Done_Face(fontInfo);
+  baseline = ascenderPx;
+  height = ascenderPx - descenderPx;
+
+  mFontName = StringTable->insert(pickedFontName);
+  FT_Done_Face(face);
 
   return true;
 }
