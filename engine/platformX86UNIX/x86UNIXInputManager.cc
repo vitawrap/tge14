@@ -482,7 +482,7 @@ void UInputManager::resetInputState()
    static SDL_Event events[MaxEvents];
    SDL_PumpEvents();
    SDL_PeepEvents(events, MaxEvents, SDL_GETEVENT, 
-      SDL_KEYDOWN, SDL_JOYBATTERYUPDATED);
+      SDL_KEYDOWN, SDL_JOYDEVICEREMOVED);
 }
 
 //------------------------------------------------------------------------------
@@ -1154,7 +1154,7 @@ void UInputManager::process()
    if (mKeyboardActive)
    {
       evtMin = SDL_KEYDOWN;
-      evtMax = SDL_TEXTEDITING_EXT;
+      evtMax = SDL_TEXTEDITING;
    }
    if (mMouseActive)
    {
