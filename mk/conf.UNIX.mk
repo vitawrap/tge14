@@ -27,6 +27,10 @@ LINK.cc         =ld
 
 # Noteworthy compiler options:
 
+# The good practice is to do `pkg-config freetype2 --cflags` in order to determine cflags, however
+# Freetype2 tries to include the system-wide libpng16 headers which conflict with Torque's...
+CFLAGS.FREETYPE2  = -I/usr/include/freetype2
+
 # -DUSE_FILE_REDIRECT: enable fileio redirection to home directory.  The 
 #   exact location is ~/.PREF_DIR_ROOT/PREF_DIR_GAME_NAME.  These are set in
 #   platformX86UNIX.h.  You can disable redirection at run time with the
@@ -39,7 +43,7 @@ LINK.cc         =ld
 #    but it is disabled by default
 # -fno-check-new is not tested
 CFLAGS.GENERAL    = -DUSE_FILE_REDIRECT -I/usr/X11R6/include/ -MD -mtune=generic \
-		    `pkg-config freetype2 --cflags` -mtune=generic -ffast-math -pipe #-mpreferred-stack-boundary=4
+		    $(CFLAGS.FREETYPE2) -mtune=generic -ffast-math -pipe #-mpreferred-stack-boundary=4
 
 		    #-w -fno-exceptions -fno-check-new 
 CFLAGS.RELEASE    = -O2 -finline-functions -fomit-frame-pointer 
