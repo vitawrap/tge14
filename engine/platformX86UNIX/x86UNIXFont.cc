@@ -198,10 +198,8 @@ bool x86UNIXFont::create(const char *name, U32 size, U32 charset)
   }
 
   // store some info about the font
-  float fontSize = mFontSize * face->units_per_EM / 72.f;
-  float ascenderPx = ((face->ascender >> 5) * fontSize) / face->units_per_EM;
-  float descenderPx = ((face->descender >> 5) * fontSize) / face->units_per_EM;
-
+  float ascenderPx = face->size->metrics.ascender >> 6;
+  float descenderPx = face->size->metrics.descender >> 6;
   baseline = ascenderPx;
   height = ascenderPx - descenderPx;
 
