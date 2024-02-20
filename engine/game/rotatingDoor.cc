@@ -50,6 +50,7 @@ bool RotatingDoorData::onAdd()
 {
 	if (!Parent::onAdd())
 		return false;
+	return true;
 }
 
 bool RotatingDoorData::preload(bool server, char errorBuffer[ErrorBufferSize])

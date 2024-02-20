@@ -103,6 +103,7 @@ bool MaterialList::load(U32 index, const char* path)
          }
       }
    }
+   return false;
 }
 
 
