@@ -27,6 +27,10 @@ LINK.cc         =ld
 
 # Noteworthy compiler options:
 
+# The good practice is to do `pkg-config freetype2 --cflags` in order to determine cflags, however
+# Freetype2 tries to include the system-wide libpng16 headers which conflict with Torque's...
+CFLAGS.FREETYPE2  = -I/usr/include/freetype2
+
 # -DUSE_FILE_REDIRECT: enable fileio redirection to home directory.  The 
 #   exact location is ~/.PREF_DIR_ROOT/PREF_DIR_GAME_NAME.  These are set in
 #   platformX86UNIX.h.  You can disable redirection at run time with the
@@ -39,7 +43,7 @@ LINK.cc         =ld
 #    but it is disabled by default
 # -fno-check-new is not tested
 CFLAGS.GENERAL    = -DUSE_FILE_REDIRECT -I/usr/X11R6/include/ -MD -mtune=generic \
-		    `pkg-config freetype2 --cflags` -mtune=generic -ffast-math -pipe #-mpreferred-stack-boundary=4
+		    $(CFLAGS.FREETYPE2) -mtune=generic -ffast-math -pipe #-mpreferred-stack-boundary=4
 
 		    #-w -fno-exceptions -fno-check-new 
 CFLAGS.RELEASE    = -O2 -finline-functions -fomit-frame-pointer 
@@ -48,7 +52,7 @@ CFLAGS.DEBUGFAST  = -O -g -finline-functions
 
 ASMFLAGS          = -f elf -dLINUX
 
-LFLAGS.GENERAL    = 
+LFLAGS.GENERAL    = `pkg-config freetype2 --libs`
 LFLAGS.RELEASE    =
 LFLAGS.DEBUG      =
 
@@ -63,13 +67,15 @@ LINK.LIBS.VORBIS  =  ../lib/xiph/linux/libogg.so.0 ../lib/xiph/linux/libvorbis.s
 # the following uses the system libraries 
 #LINK.LIBS.VORBIS = -logg -lvorbis
 
+# lexpat and luuid are needed by fontconfig
+
 # GLU must be statically linked, otherwise torque will crash.
 # JMQNOTE: aside from gluProject/unProject, GLU doesn't work.  
 # calling a GLU function that calls a GL function will cause a 
 # crash.  let me know if you have a fix :)
-LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -Wl,-dy -lX11 -lSDL2 -lpthread -ldl # -lefence
+LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
 
-LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -Wl,-dy -lX11 -lSDL2 -lpthread -ldl # -lefence
+LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
 # -lefence is useful for finding memory corruption problems
 LINK.LIBS.SERVER  = $(LINK.LIBS.VORBIS) -lpthread
 LINK.LIBS.RELEASE =  -lXft
