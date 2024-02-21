@@ -78,7 +78,7 @@ LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-
 LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
 # -lefence is useful for finding memory corruption problems
 LINK.LIBS.SERVER  = $(LINK.LIBS.VORBIS) -lpthread
-LINK.LIBS.RELEASE =  -lXft
-LINK.LIBS.DEBUG   =  -lXft
+LINK.LIBS.RELEASE =
+LINK.LIBS.DEBUG   =
 
 PATH.H.SYS        =
