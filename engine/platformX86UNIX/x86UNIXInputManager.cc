@@ -13,11 +13,6 @@
 #include "platformX86UNIX/x86UNIXInputManager.h"
 #include "math/mMathFn.h"
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <X11/keysym.h>
-
 #include <SDL2/SDL.h>
 
 // ascii table
@@ -29,7 +24,7 @@ static U8 SDLtoTKeyMap[SDLtoTKeyMapSize];
 static bool keyMapsInitialized = false;
 
 // helper functions
-static void MapKey(Uint16 SDLkey, U8 tkey, KeySym xkeysym);
+static void MapKey(Uint16 SDLkey, U8 tkey);
 static void InitKeyMaps();
 static inline U8 TranslateSDLKeytoTKey(SDL_Scancode keysym);
 
@@ -39,7 +34,7 @@ extern x86UNIXPlatformState * x86UNIXState;
 // constants
 
 // ported from SDL with adjustments for SDL2.
-DECLSPEC Uint16 SDLCALL X11_KeyToUnicode(SDL_Scancode key, SDL_Keymod mod)
+DECLSPEC Uint16 SDLCALL KeyToUnicode(SDL_Scancode key, SDL_Keymod mod)
 {
    // SDL2 completely switched around numeric key order...
    char numkTable[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
@@ -65,7 +60,7 @@ DECLSPEC Uint16 SDLCALL X11_KeyToUnicode(SDL_Scancode key, SDL_Keymod mod)
 //==============================================================================
 // Static helper functions
 //==============================================================================
-static void MapKey(Uint16 SDL_scan, U8 tkey, KeySym xkeysym)
+static void MapKey(Uint16 SDL_scan, U8 tkey)
 {
    SDLtoTKeyMap[SDL_scan] = tkey; 
 
@@ -73,69 +68,16 @@ static void MapKey(Uint16 SDL_scan, U8 tkey, KeySym xkeysym)
    SDL_Scancode skey = (SDL_Scancode)SDL_scan;
    SDL_Keymod mod = KMOD_NONE;
    // lower case
-   key = X11_KeyToUnicode( skey, mod );
+   key = KeyToUnicode( skey, mod );
    AsciiTable[tkey].lower.ascii = key;
    // upper case
    mod = KMOD_LSHIFT;
-   key = X11_KeyToUnicode( skey, mod );
+   key = KeyToUnicode( skey, mod );
    AsciiTable[tkey].upper.ascii = key;
    // goofy (i18n) case
    mod = KMOD_MODE;
-   key = X11_KeyToUnicode( skey, mod );
+   key = KeyToUnicode( skey, mod );
    AsciiTable[tkey].goofy.ascii = key;
-
-#if 0
-   DisplayPtrManager xdisplay;
-   Display* display = xdisplay.getDisplayPointer();
-
-   if (xkeysym == 0)
-      return;
-
-   XKeyPressedEvent fooKey;
-   const int keybufSize = 256;
-   char keybuf[keybufSize];
-
-   // find the x keycode for the keysym
-   KeyCode xkeycode = XKeysymToKeycode(
-      display, xkeysym);
-
-//   Display *dpy = XOpenDisplay(NULL);
-//    KeyCode xkeycode = XKeysymToKeycode(
-//       dpy, xkeysym);
-
-   if (!xkeycode)
-      return;     
-
-   // create an event with the keycode
-   dMemset(&fooKey, 0, sizeof(fooKey));
-   fooKey.type = KeyPress;
-   fooKey.display = display;
-   fooKey.window = DefaultRootWindow(display);
-   fooKey.time = CurrentTime;
-   fooKey.keycode = xkeycode;
-
-   // translate the event with no modifiers (yields lowercase)
-   KeySym dummyKeySym;
-   int numChars = XLookupString(
-      &fooKey, keybuf, keybufSize, &dummyKeySym, NULL);
-   if (numChars)
-   {
-      //Con::printf("assigning lowercase string %c", *keybuf);
-      // ignore everything but first char
-      AsciiTable[tkey].lower.ascii = *keybuf;
-      AsciiTable[tkey].goofy.ascii = *keybuf;
-   }
-         
-   // translate the event with shift modifier (yields uppercase)
-   fooKey.state |= ShiftMask;
-   numChars = XLookupString(&fooKey, keybuf, keybufSize, &dummyKeySym, NULL);
-   if (numChars)
-   {
-      //Con::printf("assigning uppercase string %c", *keybuf);
-      // ignore everything but first char
-      AsciiTable[tkey].upper.ascii = *keybuf;
-   }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -146,32 +88,32 @@ void InitKeyMaps()
    
    // set up the X to Torque key map
    // stuff
-   MapKey(SDL_SCANCODE_BACKSPACE, KEY_BACKSPACE, XK_BackSpace);
-   MapKey(SDL_SCANCODE_TAB, KEY_TAB, XK_Tab);
-   MapKey(SDL_SCANCODE_RETURN, KEY_RETURN, XK_Return);
-   MapKey(SDL_SCANCODE_PAUSE, KEY_PAUSE, XK_Pause);
-   MapKey(SDL_SCANCODE_CAPSLOCK, KEY_CAPSLOCK, XK_Caps_Lock);
-   MapKey(SDL_SCANCODE_ESCAPE, KEY_ESCAPE, XK_Escape);
+   MapKey(SDL_SCANCODE_BACKSPACE, KEY_BACKSPACE);
+   MapKey(SDL_SCANCODE_TAB, KEY_TAB);
+   MapKey(SDL_SCANCODE_RETURN, KEY_RETURN);
+   MapKey(SDL_SCANCODE_PAUSE, KEY_PAUSE);
+   MapKey(SDL_SCANCODE_CAPSLOCK, KEY_CAPSLOCK);
+   MapKey(SDL_SCANCODE_ESCAPE, KEY_ESCAPE);
 
    // more stuff
-   MapKey(SDL_SCANCODE_SPACE, KEY_SPACE, XK_space);
-   MapKey(SDL_SCANCODE_PAGEDOWN, KEY_PAGE_DOWN, XK_Page_Down);
-   MapKey(SDL_SCANCODE_PAGEUP, KEY_PAGE_UP, XK_Page_Up);
-   MapKey(SDL_SCANCODE_END, KEY_END, XK_End);
-   MapKey(SDL_SCANCODE_HOME, KEY_HOME, XK_Home);
-   MapKey(SDL_SCANCODE_LEFT, KEY_LEFT, XK_Left);
-   MapKey(SDL_SCANCODE_UP, KEY_UP, XK_Up);
-   MapKey(SDL_SCANCODE_RIGHT, KEY_RIGHT, XK_Right);
-   MapKey(SDL_SCANCODE_DOWN, KEY_DOWN, XK_Down);
-   MapKey(SDL_SCANCODE_PRINTSCREEN, KEY_PRINT, XK_Print);
-   MapKey(SDL_SCANCODE_INSERT, KEY_INSERT, XK_Insert);
-   MapKey(SDL_SCANCODE_DELETE, KEY_DELETE, XK_Delete);
+   MapKey(SDL_SCANCODE_SPACE, KEY_SPACE);
+   MapKey(SDL_SCANCODE_PAGEDOWN, KEY_PAGE_DOWN);
+   MapKey(SDL_SCANCODE_PAGEUP, KEY_PAGE_UP);
+   MapKey(SDL_SCANCODE_END, KEY_END);
+   MapKey(SDL_SCANCODE_HOME, KEY_HOME);
+   MapKey(SDL_SCANCODE_LEFT, KEY_LEFT);
+   MapKey(SDL_SCANCODE_UP, KEY_UP);
+   MapKey(SDL_SCANCODE_RIGHT, KEY_RIGHT);
+   MapKey(SDL_SCANCODE_DOWN, KEY_DOWN);
+   MapKey(SDL_SCANCODE_PRINTSCREEN, KEY_PRINT);
+   MapKey(SDL_SCANCODE_INSERT, KEY_INSERT);
+   MapKey(SDL_SCANCODE_DELETE, KEY_DELETE);
    
    S32 keysym;
    S32 tkeycode;
-   KeySym xkey;
+
    // main numeric keys
-#define MapNumericKey(num) MapKey(SDL_SCANCODE_##num, KEY_##num, XK_##num)
+#define MapNumericKey(num) MapKey(SDL_SCANCODE_##num, KEY_##num)
    MapNumericKey(0); MapNumericKey(1);
    MapNumericKey(2); MapNumericKey(3);
    MapNumericKey(4); MapNumericKey(5);
@@ -179,36 +121,36 @@ void InitKeyMaps()
    MapNumericKey(8); MapNumericKey(9);
    
    // lowercase letters
-   for (keysym = SDL_SCANCODE_A, tkeycode = KEY_A, xkey = XK_a; 
+   for (keysym = SDL_SCANCODE_A, tkeycode = KEY_A; 
         keysym <= SDL_SCANCODE_Z; 
-        ++keysym, ++tkeycode, ++xkey)
-      MapKey(static_cast<SDL_Scancode>(keysym), tkeycode, xkey);
+        ++keysym, ++tkeycode)
+      MapKey(static_cast<SDL_Scancode>(keysym), tkeycode);
 
    // various punctuation
-   MapKey(SDL_SCANCODE_GRAVE, KEY_TILDE, XK_grave);
+   MapKey(SDL_SCANCODE_GRAVE, KEY_TILDE);
    //MapKey(SDL_scancode_, KEY_TILDE, XK_grave);  // French superscript 2
    //MapKey(SDL_SCANCODE_BACKQUOTE, KEY_TILDE, XK_grave);
-   MapKey(SDL_SCANCODE_MINUS, KEY_MINUS, XK_minus);
-   MapKey(SDL_SCANCODE_EQUALS, KEY_EQUALS, XK_equal);
-   MapKey(SDL_SCANCODE_LEFTBRACKET, KEY_LBRACKET, XK_bracketleft);
-   MapKey(SDL_SCANCODE_KP_LEFTBRACE, KEY_LBRACKET, XK_braceleft);
-   MapKey(SDL_SCANCODE_KP_LEFTPAREN, KEY_LBRACKET, XK_parenleft);
-   MapKey(SDL_SCANCODE_RIGHTBRACKET, KEY_RBRACKET, XK_bracketright);
-   MapKey(SDL_SCANCODE_KP_RIGHTBRACE, KEY_RBRACKET, XK_braceright);
-   MapKey(SDL_SCANCODE_KP_RIGHTPAREN, KEY_RBRACKET, XK_parenright);
-   MapKey(SDL_SCANCODE_BACKSLASH, KEY_BACKSLASH, XK_backslash);
-   MapKey(SDL_SCANCODE_SEMICOLON, KEY_SEMICOLON, XK_semicolon);
-   MapKey(SDL_SCANCODE_APOSTROPHE, KEY_APOSTROPHE, XK_apostrophe);
-   MapKey(SDL_SCANCODE_COMMA, KEY_COMMA, XK_comma);
-   MapKey(SDL_SCANCODE_PERIOD, KEY_PERIOD, XK_period);
-   MapKey(SDL_SCANCODE_SLASH, KEY_SLASH, XK_slash);
+   MapKey(SDL_SCANCODE_MINUS, KEY_MINUS);
+   MapKey(SDL_SCANCODE_EQUALS, KEY_EQUALS);
+   MapKey(SDL_SCANCODE_LEFTBRACKET, KEY_LBRACKET);
+   MapKey(SDL_SCANCODE_KP_LEFTBRACE, KEY_LBRACKET);
+   MapKey(SDL_SCANCODE_KP_LEFTPAREN, KEY_LBRACKET);
+   MapKey(SDL_SCANCODE_RIGHTBRACKET, KEY_RBRACKET);
+   MapKey(SDL_SCANCODE_KP_RIGHTBRACE, KEY_RBRACKET);
+   MapKey(SDL_SCANCODE_KP_RIGHTPAREN, KEY_RBRACKET);
+   MapKey(SDL_SCANCODE_BACKSLASH, KEY_BACKSLASH);
+   MapKey(SDL_SCANCODE_SEMICOLON, KEY_SEMICOLON);
+   MapKey(SDL_SCANCODE_APOSTROPHE, KEY_APOSTROPHE);
+   MapKey(SDL_SCANCODE_COMMA, KEY_COMMA);
+   MapKey(SDL_SCANCODE_PERIOD, KEY_PERIOD);
+   MapKey(SDL_SCANCODE_SLASH, KEY_SLASH);
 
    // Might be french only 
    //MapKey(SDL_SCANCODE_COLON, KEY_SLASH, XK_colon);
    //MapKey(SDL_SCANCODE_QUOTEDBL, KEY_APOSTROPHE, XK_quotedbl);
 
    // numpad numbers
-#define MapNumpadKey(num) MapKey(SDL_SCANCODE_KP_##num, KEY_NUMPAD##num, XK_KP_##num)
+#define MapNumpadKey(num) MapKey(SDL_SCANCODE_KP_##num, KEY_NUMPAD##num)
    MapNumpadKey(0); MapNumpadKey(1);
    MapNumpadKey(2); MapNumpadKey(3);
    MapNumpadKey(4); MapNumpadKey(5);
@@ -216,34 +158,34 @@ void InitKeyMaps()
    MapNumpadKey(8); MapNumpadKey(9);
 
    // other numpad stuff
-   MapKey(SDL_SCANCODE_KP_MULTIPLY, KEY_MULTIPLY, XK_KP_Multiply);
-   MapKey(SDL_SCANCODE_KP_PLUS, KEY_ADD, XK_KP_Add);
-   MapKey(SDL_SCANCODE_KP_EQUALS, KEY_SEPARATOR, XK_KP_Separator);
-   MapKey(SDL_SCANCODE_KP_MINUS, KEY_SUBTRACT, XK_KP_Subtract);
-   MapKey(SDL_SCANCODE_KP_PERIOD, KEY_DECIMAL, XK_KP_Decimal);
-   MapKey(SDL_SCANCODE_KP_DIVIDE, KEY_DIVIDE, XK_KP_Divide);
-   MapKey(SDL_SCANCODE_KP_ENTER, KEY_NUMPADENTER, XK_KP_Enter);
+   MapKey(SDL_SCANCODE_KP_MULTIPLY, KEY_MULTIPLY);
+   MapKey(SDL_SCANCODE_KP_PLUS, KEY_ADD);
+   MapKey(SDL_SCANCODE_KP_EQUALS, KEY_SEPARATOR);
+   MapKey(SDL_SCANCODE_KP_MINUS, KEY_SUBTRACT);
+   MapKey(SDL_SCANCODE_KP_PERIOD, KEY_DECIMAL);
+   MapKey(SDL_SCANCODE_KP_DIVIDE, KEY_DIVIDE);
+   MapKey(SDL_SCANCODE_KP_ENTER, KEY_NUMPADENTER);
 
    // F keys
-   for (keysym = SDL_SCANCODE_F1, tkeycode = KEY_F1, xkey = XK_F1; 
+   for (keysym = SDL_SCANCODE_F1, tkeycode = KEY_F1; 
         keysym <= SDL_SCANCODE_F12; 
-        ++keysym, ++tkeycode, ++xkey)
-      MapKey(static_cast<SDL_Scancode>(keysym), tkeycode, xkey);
+        ++keysym, ++tkeycode)
+      MapKey(static_cast<SDL_Scancode>(keysym), tkeycode);
 
    // various modifiers
-   MapKey(SDL_SCANCODE_NUMLOCKCLEAR, KEY_NUMLOCK, XK_Num_Lock);
-   MapKey(SDL_SCANCODE_SCROLLLOCK, KEY_SCROLLLOCK, XK_Scroll_Lock);
-   MapKey(SDL_SCANCODE_LCTRL, KEY_LCONTROL, XK_Control_L);
-   MapKey(SDL_SCANCODE_RCTRL, KEY_RCONTROL, XK_Control_R);
-   MapKey(SDL_SCANCODE_LALT, KEY_LALT, XK_Alt_L);
-   MapKey(SDL_SCANCODE_RALT, KEY_RALT, XK_Alt_R);
-   MapKey(SDL_SCANCODE_LSHIFT, KEY_LSHIFT, XK_Shift_L);
-   MapKey(SDL_SCANCODE_RSHIFT, KEY_RSHIFT, XK_Shift_R);
-   MapKey(SDL_SCANCODE_RGUI, KEY_WIN_LWINDOW, 0);
-   MapKey(SDL_SCANCODE_RGUI, KEY_WIN_RWINDOW, 0);
-   MapKey(SDL_SCANCODE_MENU, KEY_WIN_APPS, 0);
-   MapKey(SDL_SCANCODE_MODE, KEY_ALT, XK_Mode_switch);
-   MapKey(SDL_SCANCODE_MODE, KEY_OEM_102, XK_Mode_switch);
+   MapKey(SDL_SCANCODE_NUMLOCKCLEAR, KEY_NUMLOCK);
+   MapKey(SDL_SCANCODE_SCROLLLOCK, KEY_SCROLLLOCK);
+   MapKey(SDL_SCANCODE_LCTRL, KEY_LCONTROL);
+   MapKey(SDL_SCANCODE_RCTRL, KEY_RCONTROL);
+   MapKey(SDL_SCANCODE_LALT, KEY_LALT);
+   MapKey(SDL_SCANCODE_RALT, KEY_RALT);
+   MapKey(SDL_SCANCODE_LSHIFT, KEY_LSHIFT);
+   MapKey(SDL_SCANCODE_RSHIFT, KEY_RSHIFT);
+   MapKey(SDL_SCANCODE_RGUI, KEY_WIN_LWINDOW);
+   MapKey(SDL_SCANCODE_RGUI, KEY_WIN_RWINDOW);
+   MapKey(SDL_SCANCODE_MENU, KEY_WIN_APPS);
+   MapKey(SDL_SCANCODE_MODE, KEY_ALT);
+   MapKey(SDL_SCANCODE_MODE, KEY_OEM_102);
 
    keyMapsInitialized = true;
 };
