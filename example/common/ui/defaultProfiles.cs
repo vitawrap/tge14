@@ -433,7 +433,7 @@ if(!isObject(GuiToolTipProfile)) new GuiControlProfile (GuiToolTipProfile)
 
 if(!isObject(GuiConsoleProfile)) new GuiControlProfile ("GuiConsoleProfile")
 {
-   fontType = ($platform $= "macos") ? "Monaco" : "Lucida Console";
+   fontType = ($platform $= "macos") ? "Monaco" : "Consolas";
    fontSize = ($platform $= "macos") ? 13 : 12;
    fontColor = "0 0 0";
    fontColorHL = "130 130 130";
@@ -446,7 +446,7 @@ if(!isObject(GuiConsoleProfile)) new GuiControlProfile ("GuiConsoleProfile")
 
 if(!isObject(GuiConEditProfile)) new GuiControlProfile (GuiConEditProfile : GuiTextEditProfile)
 {
-   fontType = ($platform $= "macos") ? "Monaco" : "Lucida Console";
+   fontType = ($platform $= "macos") ? "Monaco" : "Consolas";
    fontSize = ($platform $= "macos") ? 13 : 12;
    opaque = true;
    fillColor = "255 255 255";
