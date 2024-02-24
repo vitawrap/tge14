@@ -1023,18 +1023,18 @@ bool classLinkNamespaces(Namespace *parent, Namespace *child)
    return false;
 }
 
-void setData(S32 type, void *dptr, S32 index, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag)
+void setData(S32 type, void *dptr, S32 index, S32 argc, const char **argv, EnumTable *tbl)
 {
    ConsoleBaseType *cbt = ConsoleBaseType::getType(type);
    AssertFatal(cbt, "Con::setData - could not resolve type ID!");
-   cbt->setData((void *) (((const char *)dptr) + index * cbt->getTypeSize()),argc, argv, tbl, flag);
+   cbt->setData((void *) (((const char *)dptr) + index * cbt->getTypeSize()),argc, argv, tbl);
 }
 
-const char *getData(S32 type, void *dptr, S32 index, EnumTable *tbl, BitSet32 flag)
+const char *getData(S32 type, void *dptr, S32 index, EnumTable *tbl)
 {
    ConsoleBaseType *cbt = ConsoleBaseType::getType(type);
    AssertFatal(cbt, "Con::getData - could not resolve type ID!");
-   return cbt->getData((void *) (((const char *)dptr) + index * cbt->getTypeSize()), tbl, flag);
+   return cbt->getData((void *) (((const char *)dptr) + index * cbt->getTypeSize()), tbl);
 }
 
 } // end of Console namespace

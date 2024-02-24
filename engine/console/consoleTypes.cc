@@ -350,32 +350,6 @@ ConsoleSetType( TypeEnum )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// TypeFlag
-//////////////////////////////////////////////////////////////////////////
-ConsoleType( flag, TypeFlag, sizeof(S32) )
-
-ConsoleGetType( TypeFlag )
-{
-   BitSet32 tempFlags = *(BitSet32 *)dptr;
-   if (tempFlags.test(flag)) return "true";
-   else return "false";
-}
-
-ConsoleSetType( TypeFlag )
-{
-   bool value = true;
-   if (argc != 1)
-   {
-      Con::printf("flag must be true or false");
-   }
-   else
-   {
-      value = dAtob(argv[0]);
-   }
-   ((BitSet32 *)dptr)->set(flag, value);
-}
-
-//////////////////////////////////////////////////////////////////////////
 // TypeColorF
 //////////////////////////////////////////////////////////////////////////
 ConsoleType( ColorF, TypeColorF, sizeof(ColorF) )
