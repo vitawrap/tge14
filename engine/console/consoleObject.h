@@ -236,7 +236,6 @@ public:
       U32            offset;        ///< Memory offset from beginning of class for this field.
       S32            elementCount;  ///< Number of elements, if this is an array.
       EnumTable *    table;         ///< If this is an enum, this points to the table defining it.
-      BitSet32       flag;          ///< Stores various flags
       TypeValidator *validator;     ///< Validator, if any.
    };
    typedef Vector<Field> FieldList;
@@ -622,8 +621,7 @@ inline bool ConsoleObject::setField(const char *fieldName, const char *value)
       0,
       1,
       &value,
-      myField->table,
-      myField->flag);
+      myField->table);
 
    return true;
 }

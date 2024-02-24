@@ -330,7 +330,7 @@ void SimObject::assignFieldsFrom(SimObject *parent)
          const AbstractClassRep::Field* f = &list[i];
          if(f->elementCount == 1)
          {
-            const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), 0, f->table, f->flag);
+            const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), 0, f->table);
             if(fieldVal)
                Con::setData(f->type, (void *) (((const char *)this) + f->offset), 0, 1, &fieldVal, f->table);
          }
@@ -338,7 +338,7 @@ void SimObject::assignFieldsFrom(SimObject *parent)
          {
             for(U32 j = 0; j < f->elementCount; j++)
             {
-               const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table, f->flag);
+               const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table);
                if(fieldVal)
                   Con::setData(f->type, (void *) (((const char *)this) + f->offset), j, 1, &fieldVal, f->table);
             }
@@ -372,7 +372,7 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         const char *val = Con::getData(f->type, (void *) (((const char *)this) + f->offset), j, f->table, f->flag);
+         const char *val = Con::getData(f->type, (void *) (((const char *)this) + f->offset), j, f->table);
          if(!val || !*val)
             continue;
          if(f->elementCount == 1)
@@ -657,7 +657,7 @@ ConsoleMethod(SimObject,dump, void, 2, 2, "obj.dump()")
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         const char *val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table, f->flag);
+         const char *val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table);
          if(!val /*|| !*val*/)
             continue;
          if(f->elementCount == 1)
@@ -762,9 +762,9 @@ const char *SimObject::getDataField(StringTableEntry slotName, const char *array
       if(fld)
       {
          if(array1 == -1 && fld->elementCount == 1)
-            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), 0, fld->table, fld->flag);
+            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), 0, fld->table);
          if(array1 >= 0 && array1 < fld->elementCount)
-            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table, fld->flag);// + typeSizes[fld.type] * array1));
+            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table);// + typeSizes[fld.type] * array1));
          return "";
       }
    }

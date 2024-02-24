@@ -63,8 +63,8 @@ public:
    void setInspectorFieldType(const char *type) { mInspectorFieldType = type; }
    const char *getInspectorFieldType() { return mInspectorFieldType; }
 
-   virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag)=0;
-   virtual const char *getData(void *dptr, EnumTable *tbl, BitSet32 flag )=0;
+   virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl)=0;
+   virtual const char *getData(void *dptr, EnumTable *tbl)=0;
    virtual const char *getTypeClassName()=0;
    virtual const bool isDatablock() { return false; };
 };
@@ -76,26 +76,26 @@ public:
    { \
    public: \
       ConsoleType##type (const S32 aSize, S32 *idPtr, const char *aTypeName) : ConsoleBaseType(aSize, idPtr, aTypeName) { } \
-      virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag); \
-      virtual const char *getData(void *dptr, EnumTable *tbl, BitSet32 flag ); \
+      virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl); \
+      virtual const char *getData(void *dptr, EnumTable *tbl); \
       virtual const char *getTypeClassName() { return #typeName ; } \
    }; \
    S32 type = -1; \
    ConsoleType##type gConsoleType##type##Instance(size,&type,#type); \
 
 #define ConsoleSetType( type ) \
-   void ConsoleType##type::setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag)
+   void ConsoleType##type::setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl)
 
 #define ConsoleGetType( type ) \
-   const char *ConsoleType##type::getData(void *dptr, EnumTable *tbl, BitSet32 flag )
+   const char *ConsoleType##type::getData(void *dptr, EnumTable *tbl )
 
 #define DatablockConsoleType( typeName, type, size, className ) \
    class ConsoleType##type : public ConsoleBaseType \
    { \
    public: \
       ConsoleType##type (const S32 aSize, S32 *idPtr, const char *aTypeName) : ConsoleBaseType(aSize, idPtr, aTypeName) { } \
-      virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag); \
-      virtual const char *getData(void *dptr, EnumTable *tbl, BitSet32 flag ); \
+      virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl); \
+      virtual const char *getData(void *dptr, EnumTable *tbl ); \
       virtual const char *getTypeClassName() { return #className; }; \
       virtual const bool isDatablock() { return true; }; \
    }; \
