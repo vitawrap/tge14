@@ -785,7 +785,9 @@ U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    if(type == TypeReqNone)
       return ip;
 
-    codeStream[ip++] = arrayIndex ? OP_LOADIMMED_IDENT : OP_SETCURVAR;
+    CompiledInstructions cur = local? OP_SETCURLOCAL : OP_SETCURVAR;
+
+    codeStream[ip++] = arrayIndex ? OP_LOADIMMED_IDENT : cur;
     codeStream[ip] = STEtoU64(varName, ip);
     ip++;
     if(arrayIndex)
@@ -793,7 +795,7 @@ U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
         codeStream[ip++] = OP_ADVANCE_STR;
         ip = arrayIndex->compile(codeStream, ip, TypeReqString);
         codeStream[ip++] = OP_REWIND_STR;
-        codeStream[ip++] = OP_SETCURVAR_ARRAY;
+        codeStream[ip++] = local ? OP_SETCURLOCAL_ARRAY : OP_SETCURVAR_ARRAY;
     }
    switch(type)
    {
@@ -1035,13 +1037,13 @@ U32 AssignExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       codeStream[ip++] = OP_ADVANCE_STR;
       ip = arrayIndex->compile(codeStream, ip, TypeReqString);
       codeStream[ip++] = OP_REWIND_STR;
-      codeStream[ip++] = OP_SETCURVAR_ARRAY_CREATE;
+      codeStream[ip++] = local? OP_SETCURLOCAL_ARRAY_CREATE : OP_SETCURVAR_ARRAY_CREATE;
       if(subType == TypeReqString)
          codeStream[ip++] = OP_TERMINATE_REWIND_STR;
    }
    else
    {
-      codeStream[ip++] = OP_SETCURVAR_CREATE;
+      codeStream[ip++] = local ? OP_SETCURLOCAL_CREATE : OP_SETCURVAR_CREATE;
       codeStream[ip] = STEtoU64(varName, ip);
       ip++;
    }
@@ -1157,7 +1159,7 @@ U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    ip = expr->compile(codeStream, ip, subType);
    if(!arrayIndex)
    {
-      codeStream[ip++] = OP_SETCURVAR_CREATE;
+      codeStream[ip++] = local? OP_SETCURLOCAL_CREATE : OP_SETCURVAR_CREATE;
       codeStream[ip] = STEtoU64(varName, ip);
       ip++;
    }
@@ -1169,7 +1171,7 @@ U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       codeStream[ip++] = OP_ADVANCE_STR;
       ip = arrayIndex->compile(codeStream, ip, TypeReqString);
       codeStream[ip++] = OP_REWIND_STR;
-      codeStream[ip++] = OP_SETCURVAR_ARRAY_CREATE;
+      codeStream[ip++] = local? OP_SETCURLOCAL_ARRAY_CREATE : OP_SETCURVAR_ARRAY_CREATE;
    }
    codeStream[ip++] = (subType == TypeReqFloat) ? OP_LOADVAR_FLT : OP_LOADVAR_UINT;
    codeStream[ip++] = operand;

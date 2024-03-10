@@ -231,6 +231,7 @@ struct FloatUnaryExprNode : ExprNode
 
 struct VarNode : ExprNode
 {
+   bool local;
    StringTableEntry varName;
    ExprNode *arrayIndex;
 
@@ -289,6 +290,7 @@ struct ConstantNode : ExprNode
 
 struct AssignExprNode : ExprNode
 {
+   bool local;
    StringTableEntry varName;
    ExprNode *expr;
    ExprNode *arrayIndex;
@@ -309,6 +311,7 @@ struct AssignDecl
 
 struct AssignOpExprNode : ExprNode
 {
+   bool local;
    StringTableEntry varName;
    ExprNode *expr;
    ExprNode *arrayIndex;

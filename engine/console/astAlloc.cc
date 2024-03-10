@@ -154,6 +154,7 @@ VarNode *VarNode::alloc(StringTableEntry varName, ExprNode *arrayIndex)
 {
    VarNode *ret = (VarNode *) consoleAlloc(sizeof(VarNode));
    constructInPlace(ret);
+   ret->local = varName[0] == '%';
    ret->varName = varName;
    ret->arrayIndex = arrayIndex;
    return ret;
@@ -209,6 +210,7 @@ AssignExprNode *AssignExprNode::alloc(StringTableEntry varName, ExprNode *arrayI
 {
    AssignExprNode *ret = (AssignExprNode *) consoleAlloc(sizeof(AssignExprNode));
    constructInPlace(ret);
+   ret->local = varName[0] == '%';
    ret->varName = varName;
    ret->expr = expr;
    ret->arrayIndex = arrayIndex;
@@ -220,6 +222,7 @@ AssignOpExprNode *AssignOpExprNode::alloc(StringTableEntry varName, ExprNode *ar
 {
    AssignOpExprNode *ret = (AssignOpExprNode *) consoleAlloc(sizeof(AssignOpExprNode));
    constructInPlace(ret);
+   ret->local = varName[0] == '%';
    ret->varName = varName;
    ret->expr = expr;
    ret->arrayIndex = arrayIndex;
