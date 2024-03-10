@@ -299,6 +299,8 @@ public:
     Vector<Dictionary> stack;
     void setCurVarName(StringTableEntry name);
     void setCurVarNameCreate(StringTableEntry name);
+    void setCurLocalName(StringTableEntry name);
+    void setCurLocalNameCreate(StringTableEntry name);
     S32 getIntVariable();
     F64 getFloatVariable();
     const char *getStringVariable();
