@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------------
 
 #include "util/frustrumCuller.h"
+#include "console/consoleTypes.h"
 #include "sceneGraph/sceneGraph.h"
 #include "sceneGraph/sgUtil.h"
 #include "terrain/sky.h"
@@ -15,10 +16,18 @@ U32         FrustrumCuller::smNumClipPlanes;
 F32         FrustrumCuller::smFarDistance;
 PlaneF      FrustrumCuller::smClipPlane[MaxClipPlanes];
 
+bool        FrustrumCuller::smLockFrustrum = false;
+
 void FrustrumCuller::init(SceneState *state)
 {
-   if(Con::getBoolVariable("$lockFrustrum", false))
-      return;
+    static bool lockFrustumVarInitialized = false;
+    if (!lockFrustumVarInitialized)
+    {
+        Con::addVariable("$lockFrustrum", TypeBool, &FrustrumCuller::smLockFrustrum);
+        lockFrustumVarInitialized = true;
+    }
+    if (smLockFrustrum)
+        return;
 
    // Set up some general info.
    smSceneState = state;

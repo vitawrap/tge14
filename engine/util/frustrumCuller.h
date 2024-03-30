@@ -30,6 +30,7 @@ namespace FrustrumCuller
    extern F32         smFarDistance;
    extern U32         smNumClipPlanes;
    extern PlaneF      smClipPlane[MaxClipPlanes];
+   extern bool        smLockFrustrum;
 
    void init(SceneState *state);
    S32  testBoxVisibility(const Box3F &bounds, const S32 mask, const F32 expand);
