@@ -47,9 +47,6 @@ public:
    char *globalStrings;
    char *functionStrings;
 
-   F64 *globalFloats;
-   F64 *functionFloats;
-
    U64 codeSize;
    U64 *code;
 

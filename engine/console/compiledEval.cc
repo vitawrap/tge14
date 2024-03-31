@@ -213,7 +213,7 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
    U32 i;
 
    incRefCount();
-   F64 *curFloatTable;
+   FloatIntConv conv;
    char *curStringTable;
    STR.clearFunctionOffset();
    StringTableEntry thisFunctionName = NULL;
@@ -262,12 +262,10 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
          gEvalState.setStringVariable(argv[i+1]);
       }
       ip = ip + fnArgc + 6;
-      curFloatTable = functionFloats;
       curStringTable = functionStrings;
    }
    else
    {
-      curFloatTable = globalFloats;
       curStringTable = globalStrings;
 
       // Do we want this code to execute using a new stack frame?
@@ -906,7 +904,8 @@ breakContinue:
             break;
 
          case OP_LOADIMMED_FLT:
-            floatStack[FLT+1] = curFloatTable[code[ip]];
+            conv.i = code[ip];
+            floatStack[FLT+1] = conv.f;
             ip++;
             FLT++;
             break;
@@ -1215,9 +1214,7 @@ execFinished:
    else
    {
       delete[] const_cast<char*>(globalStrings);
-      delete[] globalFloats;
       globalStrings = NULL;
-      globalFloats = NULL;
    }
    smCurrentCodeBlock = saveCodeBlock;
    if(saveCodeBlock && saveCodeBlock->name)

@@ -174,7 +174,8 @@ namespace Con
       /// 11/03/05 - BJG - 35->36 Integrated new debugger code.
       /// 03/24/23 - viw - 36->37 64bit compatibility.
       /// 03/10/24 - viw - 37->38 Compile-time variable scope evaluation.
-      DSOVersion = 38,
+      /// 03/30/24 - viw - 38->39 Float table elimination.
+      DSOVersion = 39,
 
       MaxLineLength = 512,  ///< Maximum length of a line of console input.
       MaxDataTypes = 256    ///< Maximum number of registered data types.

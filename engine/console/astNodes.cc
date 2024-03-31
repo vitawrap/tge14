@@ -825,13 +825,13 @@ U32 IntNode::precompile(TypeReq type)
       return 0;
    if(type == TypeReqString)
       index = getCurrentStringTable()->addIntString(value);
-   else if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(value);
    return 2;
 }
 
 U32 IntNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = value;
    switch(type)
    {
    case TypeReqUInt:
@@ -844,7 +844,7 @@ U32 IntNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;
    }
    return ip;
@@ -863,13 +863,13 @@ U32 FloatNode::precompile(TypeReq type)
       return 0;
    if(type == TypeReqString)
       index = getCurrentStringTable()->addFloatString(value);
-   else if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(value);
    return 2;
 }
 
 U32 FloatNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = value;
    switch(type)
    {
    case TypeReqUInt:
@@ -882,7 +882,7 @@ U32 FloatNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;
    }
    return ip;
@@ -906,13 +906,13 @@ U32 StrConstNode::precompile(TypeReq type)
       return 0;
 
    fVal = consoleStringToNumber(str, dbgFileName, dbgLineNumber);
-   if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(fVal);
    return 2;
 }
 
 U32 StrConstNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = fVal;
    switch(type)
    {
    case TypeReqString:
@@ -925,7 +925,7 @@ U32 StrConstNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;      
    }
    return ip;
@@ -949,13 +949,13 @@ U32 ConstantNode::precompile(TypeReq type)
       return 0;
 
    fVal = consoleStringToNumber(value, dbgFileName, dbgLineNumber);
-   if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(fVal);
    return 2;
 }
 
 U32 ConstantNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = fVal;
    switch(type)
    {
    case TypeReqString:
@@ -969,7 +969,7 @@ U32 ConstantNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;      
    }
    return ip;
@@ -1625,7 +1625,6 @@ U32 FunctionDeclStmtNode::precompileStmt(U32)
    // code
    // OP_RETURN
    setCurrentStringTable(&getFunctionStringTable());
-   setCurrentFloatTable(&getFunctionFloatTable());
 
    argc = 0;
    for(VarNode *walk = args; walk; walk = (VarNode *)((StmtNode*)walk)->getNext())
@@ -1646,7 +1645,6 @@ U32 FunctionDeclStmtNode::precompileStmt(U32)
    CodeBlock::smInFunction = false;
 
    setCurrentStringTable(&getGlobalStringTable());
-   setCurrentFloatTable(&getGlobalFloatTable());
 
    endOffset = argc + subSize + 8;
    return endOffset;
