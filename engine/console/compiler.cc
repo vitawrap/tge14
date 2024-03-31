@@ -41,7 +41,6 @@ namespace Compiler
    //------------------------------------------------------------
 
    CompilerStringTable *gCurrentStringTable, gGlobalStringTable, gFunctionStringTable;
-   CompilerFloatTable  *gCurrentFloatTable,  gGlobalFloatTable,  gFunctionFloatTable;
    DataChunker          gConsoleAllocator;
    CompilerIdentTable   gIdentTable;
    CodeBlock           *gCurBreakBlock;
@@ -80,12 +79,6 @@ namespace Compiler
 
    void setCurrentStringTable (CompilerStringTable* cst) { gCurrentStringTable  = cst; }
 
-   CompilerFloatTable *getCurrentFloatTable()    { return gCurrentFloatTable;   }
-   CompilerFloatTable &getGlobalFloatTable()     { return gGlobalFloatTable;    }
-   CompilerFloatTable &getFunctionFloatTable()   { return gFunctionFloatTable; }
-
-   void setCurrentFloatTable (CompilerFloatTable* cst) { gCurrentFloatTable  = cst; }
-
    CompilerIdentTable &getIdentTable() { return gIdentTable; }
 
    void precompileIdent(StringTableEntry ident)
@@ -97,10 +90,7 @@ namespace Compiler
    void resetTables()
    {
       setCurrentStringTable(&gGlobalStringTable);
-      setCurrentFloatTable(&gGlobalFloatTable);
-      getGlobalFloatTable().reset();
       getGlobalStringTable().reset();
-      getFunctionFloatTable().reset();
       getFunctionStringTable().reset();
       getIdentTable().reset();
    }
@@ -183,43 +173,6 @@ void CompilerStringTable::write(Stream &st)
    st.write(totalLen);
    for(Entry *walk = list; walk; walk = walk->next)
       st.write(walk->len, walk->string);
-}
-
-//------------------------------------------------------------
-
-U32 CompilerFloatTable::add(F64 value)
-{
-   Entry **walk;
-   U32 i = 0;
-   for(walk = &list; *walk; walk = &((*walk)->next), i++)
-      if(value == (*walk)->val)
-         return i;
-   Entry *newFloat = (Entry *) consoleAlloc(sizeof(Entry));
-   newFloat->val = value;
-   newFloat->next = NULL;
-   count++;
-   *walk = newFloat;
-   return count-1;
-}
-void CompilerFloatTable::reset()
-{
-   list = NULL;
-   count = 0;
-}
-F64 *CompilerFloatTable::build()
-{
-   F64 *ret = new F64[count];
-   U32 i = 0;
-   for(Entry *walk = list; walk; walk = walk->next, i++)
-      ret[i] = walk->val;
-   return ret;
-}
-
-void CompilerFloatTable::write(Stream &st)
-{
-   st.write(count);
-   for(Entry *walk = list; walk; walk = walk->next)
-      st.write(walk->val);
 }
 
 //------------------------------------------------------------
