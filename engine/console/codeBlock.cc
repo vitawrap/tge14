@@ -21,8 +21,6 @@ CodeBlock::CodeBlock()
 {
    globalStrings = NULL;
    functionStrings = NULL;
-   globalFloats = NULL;
-   functionFloats = NULL;
    lineBreakPairs = NULL;
    breakList = NULL;
    breakListSize = 0;
@@ -43,8 +41,6 @@ CodeBlock::~CodeBlock()
       removeFromCodeList();
    delete[] const_cast<char*>(globalStrings);
    delete[] const_cast<char*>(functionStrings);
-   delete[] globalFloats;
-   delete[] functionFloats;
    delete[] code;
    delete[] breakList;
 }
@@ -326,20 +322,6 @@ bool CodeBlock::read(StringTableEntry fileName, Stream &st)
       functionStrings = new char[size];
       st.read(size, functionStrings);
    }
-   st.read(&size);
-   if(size)
-   {
-      globalFloats = new F64[size];
-      for(U32 i = 0; i < size; i++)
-         st.read(&globalFloats[i]);
-   }
-   st.read(&size);
-   if(size)
-   {
-      functionFloats = new F64[size];
-      for(U32 i = 0; i < size; i++)
-         st.read(&functionFloats[i]);
-   }
    U64 codeSize;
    st.read(&codeSize);
    st.read(&lineBreakPairCount);
@@ -441,10 +423,6 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    getGlobalStringTable().write(st);
    getFunctionStringTable().write(st);
 
-   // Write float table data...
-   getGlobalFloatTable().write(st);
-   getFunctionFloatTable().write(st);
-
    smBreakLineCount = 0;
    U32 lastIp;
    if(statementList)
@@ -524,8 +502,6 @@ const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string
 
    globalStrings   = getGlobalStringTable().build();
    functionStrings = getFunctionStringTable().build();
-   globalFloats    = getGlobalFloatTable().build();
-   functionFloats  = getFunctionFloatTable().build();
 
    code = new U64[codeSize + lineBreakPairCount * 2];
    lineBreakPairs = code + codeSize;

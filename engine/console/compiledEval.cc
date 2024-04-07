@@ -119,27 +119,31 @@ namespace Con
 
 inline void ExprEvalState::setCurVarName(StringTableEntry name)
 {
-   if(name[0] == '$')
-      currentVariable = globalVars.lookup(name);
-   else if(stack.size())
-      currentVariable = stack.last().lookup(name);
-   if(!currentVariable && gWarnUndefinedScriptVariables)
-	   Con::warnf(ConsoleLogEntry::Script, "Variable referenced before assignment: %s", name);
+    currentVariable = globalVars.lookup(name);
 }
 
 inline void ExprEvalState::setCurVarNameCreate(StringTableEntry name)
 {
-   // 13/07/22: Screw the dictionary for non-array local variables, numerically map them to a table instead.
+    currentVariable = globalVars.add(name);
+}
 
-   if(name[0] == '$')
-      currentVariable = globalVars.add(name);
-   else if(stack.size())
-      currentVariable = stack.last().add(name);
-   else
-   {
-      currentVariable = NULL;
-      Con::warnf(ConsoleLogEntry::Script, "Accessing local variable in global scope... failed: %s", name);
-   }
+inline void ExprEvalState::setCurLocalName(StringTableEntry name)
+{
+    if (stack.size())
+        currentVariable = stack.last().lookup(name);
+    if (!currentVariable && gWarnUndefinedScriptVariables)
+        Con::warnf(ConsoleLogEntry::Script, "Variable referenced before assignment: %s", name);
+}
+
+inline void ExprEvalState::setCurLocalNameCreate(StringTableEntry name)
+{
+    if (stack.size())
+        currentVariable = stack.last().add(name);
+    else
+    {
+        currentVariable = NULL;
+        Con::warnf(ConsoleLogEntry::Script, "Accessing local variable in global scope... failed: %s", name);
+    }
 }
 
 //------------------------------------------------------------
@@ -209,7 +213,7 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
    U32 i;
 
    incRefCount();
-   F64 *curFloatTable;
+   FloatIntConv conv;
    char *curStringTable;
    STR.clearFunctionOffset();
    StringTableEntry thisFunctionName = NULL;
@@ -254,16 +258,14 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
       for(i = 0; i < argc; i++) // We know the static arg layout starts at 0 due to FunctionDeclStmtNode::compile
       {
          StringTableEntry var = U64toSTE(code[ip + i + 6]);
-         gEvalState.setCurVarNameCreate(var);
+         gEvalState.setCurLocalNameCreate(var);
          gEvalState.setStringVariable(argv[i+1]);
       }
       ip = ip + fnArgc + 6;
-      curFloatTable = functionFloats;
       curStringTable = functionStrings;
    }
    else
    {
-      curFloatTable = globalFloats;
       curStringTable = globalStrings;
 
       // Do we want this code to execute using a new stack frame?
@@ -720,27 +722,51 @@ breakContinue:
             floatStack[FLT] = -floatStack[FLT];
             break;
 
-         case OP_SETCURVAR:                 // Can be optimized
+        // GLOBAL VARIABLES
+         case OP_SETCURVAR:
             var = U64toSTE(code[ip]);
             ip++;
             gEvalState.setCurVarName(var);
             break;
 
-         case OP_SETCURVAR_CREATE:          // Can be optimized
+         case OP_SETCURVAR_CREATE:
             var = U64toSTE(code[ip]);
             ip++;
             gEvalState.setCurVarNameCreate(var);
             break;
 
-         case OP_SETCURVAR_ARRAY:          // Can be optimized
+         case OP_SETCURVAR_ARRAY:
             var = STR.getSTValue();
             gEvalState.setCurVarName(var);
             break;
 
-         case OP_SETCURVAR_ARRAY_CREATE:   // Can be optimized
+         case OP_SETCURVAR_ARRAY_CREATE:
             var = STR.getSTValue();
             gEvalState.setCurVarNameCreate(var);
             break;
+
+        // LOCAL VARIABLES
+         case OP_SETCURLOCAL:
+             var = U64toSTE(code[ip]);
+             ip++;
+             gEvalState.setCurLocalName(var);
+             break;
+
+         case OP_SETCURLOCAL_CREATE:
+             var = U64toSTE(code[ip]);
+             ip++;
+             gEvalState.setCurLocalNameCreate(var);
+             break;
+
+         case OP_SETCURLOCAL_ARRAY:
+             var = STR.getSTValue();
+             gEvalState.setCurLocalName(var);
+             break;
+
+         case OP_SETCURLOCAL_ARRAY_CREATE:
+             var = STR.getSTValue();
+             gEvalState.setCurLocalNameCreate(var);
+             break;
 
          case OP_LOADVAR_UINT:
             intStack[UINT+1] = gEvalState.getIntVariable();
@@ -878,7 +904,8 @@ breakContinue:
             break;
 
          case OP_LOADIMMED_FLT:
-            floatStack[FLT+1] = curFloatTable[code[ip]];
+            conv.i = code[ip];
+            floatStack[FLT+1] = conv.f;
             ip++;
             FLT++;
             break;
@@ -905,7 +932,7 @@ breakContinue:
             fnName      = U64toSTE(code[ip]);
 
             // Try to look it up.
-            ns = Namespace::find(fnNamespace);
+            ns = Namespace::find(fnNamespace);  // Awful.
             nsEntry = ns->lookup(fnName);
             if(!nsEntry)
             {
@@ -1115,7 +1142,7 @@ breakContinue:
             STR.rewind();
             break;
 
-         case OP_TERMINATE_REWIND_STR:
+         case OP_TERMINATE_REWIND_STR:  // Can be called after dynamic variable name lookup ($a[b])
             STR.rewindTerminate();
             break;
 
@@ -1187,9 +1214,7 @@ execFinished:
    else
    {
       delete[] const_cast<char*>(globalStrings);
-      delete[] globalFloats;
       globalStrings = NULL;
-      globalFloats = NULL;
    }
    smCurrentCodeBlock = saveCodeBlock;
    if(saveCodeBlock && saveCodeBlock->name)

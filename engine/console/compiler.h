@@ -23,6 +23,13 @@ class DataChunker;
 
 namespace Compiler
 {
+   /// Float -> int bit conversion utility
+   union FloatIntConv
+   {
+       U64 i;
+       F64 f;
+   };
+
    /// The opcodes for the TorqueScript VM.
    enum CompiledInstructions
    {
@@ -68,6 +75,12 @@ namespace Compiler
       
       OP_SETCURVAR_ARRAY,
       OP_SETCURVAR_ARRAY_CREATE,
+
+      OP_SETCURLOCAL,
+      OP_SETCURLOCAL_CREATE,
+
+      OP_SETCURLOCAL_ARRAY,
+      OP_SETCURLOCAL_ARRAY_CREATE,
 
       OP_LOADVAR_UINT,
       OP_LOADVAR_FLT,
@@ -176,24 +189,6 @@ namespace Compiler
 
    //------------------------------------------------------------
 
-   struct CompilerFloatTable
-   {
-      struct Entry
-      {
-         F64 val;
-         Entry *next;
-      };
-      U32 count;
-      Entry *list;
-
-      U32 add(F64 value);
-      void reset();
-      F64 *build();
-      void write(Stream &st);
-   };
-
-   //------------------------------------------------------------
-
    inline StringTableEntry U64toSTE(U64 u)  // x64 conversion hazard
    {
       return *((StringTableEntry *) &u);
@@ -209,12 +204,6 @@ namespace Compiler
    CompilerStringTable &getFunctionStringTable();
 
    void setCurrentStringTable (CompilerStringTable* cst);
-
-   CompilerFloatTable *getCurrentFloatTable();
-   CompilerFloatTable &getGlobalFloatTable();
-   CompilerFloatTable &getFunctionFloatTable();
-
-   void setCurrentFloatTable (CompilerFloatTable* cst);
 
    CompilerIdentTable &getIdentTable();
 

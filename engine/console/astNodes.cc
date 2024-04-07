@@ -785,7 +785,9 @@ U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    if(type == TypeReqNone)
       return ip;
 
-    codeStream[ip++] = arrayIndex ? OP_LOADIMMED_IDENT : OP_SETCURVAR;
+    CompiledInstructions cur = local? OP_SETCURLOCAL : OP_SETCURVAR;
+
+    codeStream[ip++] = arrayIndex ? OP_LOADIMMED_IDENT : cur;
     codeStream[ip] = STEtoU64(varName, ip);
     ip++;
     if(arrayIndex)
@@ -793,7 +795,7 @@ U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
         codeStream[ip++] = OP_ADVANCE_STR;
         ip = arrayIndex->compile(codeStream, ip, TypeReqString);
         codeStream[ip++] = OP_REWIND_STR;
-        codeStream[ip++] = OP_SETCURVAR_ARRAY;
+        codeStream[ip++] = local ? OP_SETCURLOCAL_ARRAY : OP_SETCURVAR_ARRAY;
     }
    switch(type)
    {
@@ -823,13 +825,13 @@ U32 IntNode::precompile(TypeReq type)
       return 0;
    if(type == TypeReqString)
       index = getCurrentStringTable()->addIntString(value);
-   else if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(value);
    return 2;
 }
 
 U32 IntNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = value;
    switch(type)
    {
    case TypeReqUInt:
@@ -842,7 +844,7 @@ U32 IntNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;
    }
    return ip;
@@ -861,13 +863,13 @@ U32 FloatNode::precompile(TypeReq type)
       return 0;
    if(type == TypeReqString)
       index = getCurrentStringTable()->addFloatString(value);
-   else if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(value);
    return 2;
 }
 
 U32 FloatNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = value;
    switch(type)
    {
    case TypeReqUInt:
@@ -880,7 +882,7 @@ U32 FloatNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;
    }
    return ip;
@@ -904,13 +906,13 @@ U32 StrConstNode::precompile(TypeReq type)
       return 0;
 
    fVal = consoleStringToNumber(str, dbgFileName, dbgLineNumber);
-   if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(fVal);
    return 2;
 }
 
 U32 StrConstNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = fVal;
    switch(type)
    {
    case TypeReqString:
@@ -923,7 +925,7 @@ U32 StrConstNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;      
    }
    return ip;
@@ -947,13 +949,13 @@ U32 ConstantNode::precompile(TypeReq type)
       return 0;
 
    fVal = consoleStringToNumber(value, dbgFileName, dbgLineNumber);
-   if(type == TypeReqFloat)
-      index = getCurrentFloatTable()->add(fVal);
    return 2;
 }
 
 U32 ConstantNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   FloatIntConv conv;
+   conv.f = fVal;
    switch(type)
    {
    case TypeReqString:
@@ -967,7 +969,7 @@ U32 ConstantNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    case TypeReqFloat:
       codeStream[ip++] = OP_LOADIMMED_FLT;
-      codeStream[ip++] = index;
+      codeStream[ip++] = conv.i;
       break;      
    }
    return ip;
@@ -1035,13 +1037,13 @@ U32 AssignExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       codeStream[ip++] = OP_ADVANCE_STR;
       ip = arrayIndex->compile(codeStream, ip, TypeReqString);
       codeStream[ip++] = OP_REWIND_STR;
-      codeStream[ip++] = OP_SETCURVAR_ARRAY_CREATE;
+      codeStream[ip++] = local? OP_SETCURLOCAL_ARRAY_CREATE : OP_SETCURVAR_ARRAY_CREATE;
       if(subType == TypeReqString)
          codeStream[ip++] = OP_TERMINATE_REWIND_STR;
    }
    else
    {
-      codeStream[ip++] = OP_SETCURVAR_CREATE;
+      codeStream[ip++] = local ? OP_SETCURLOCAL_CREATE : OP_SETCURVAR_CREATE;
       codeStream[ip] = STEtoU64(varName, ip);
       ip++;
    }
@@ -1157,7 +1159,7 @@ U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    ip = expr->compile(codeStream, ip, subType);
    if(!arrayIndex)
    {
-      codeStream[ip++] = OP_SETCURVAR_CREATE;
+      codeStream[ip++] = local? OP_SETCURLOCAL_CREATE : OP_SETCURVAR_CREATE;
       codeStream[ip] = STEtoU64(varName, ip);
       ip++;
    }
@@ -1169,7 +1171,7 @@ U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       codeStream[ip++] = OP_ADVANCE_STR;
       ip = arrayIndex->compile(codeStream, ip, TypeReqString);
       codeStream[ip++] = OP_REWIND_STR;
-      codeStream[ip++] = OP_SETCURVAR_ARRAY_CREATE;
+      codeStream[ip++] = local? OP_SETCURLOCAL_ARRAY_CREATE : OP_SETCURVAR_ARRAY_CREATE;
    }
    codeStream[ip++] = (subType == TypeReqFloat) ? OP_LOADVAR_FLT : OP_LOADVAR_UINT;
    codeStream[ip++] = operand;
@@ -1623,7 +1625,6 @@ U32 FunctionDeclStmtNode::precompileStmt(U32)
    // code
    // OP_RETURN
    setCurrentStringTable(&getFunctionStringTable());
-   setCurrentFloatTable(&getFunctionFloatTable());
 
    argc = 0;
    for(VarNode *walk = args; walk; walk = (VarNode *)((StmtNode*)walk)->getNext())
@@ -1644,7 +1645,6 @@ U32 FunctionDeclStmtNode::precompileStmt(U32)
    CodeBlock::smInFunction = false;
 
    setCurrentStringTable(&getGlobalStringTable());
-   setCurrentFloatTable(&getGlobalFloatTable());
 
    endOffset = argc + subSize + 8;
    return endOffset;
