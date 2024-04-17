@@ -3040,11 +3040,8 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
          stream->write(mInvincibleTime);
          stream->write(mInvincibleSpeed);
       }
-
       if (stream->writeFlag(mask & SkinMask)) {
-
          con->packStringHandleU(stream, mSkinNameHandle);
-
       }
    }
 
@@ -3227,23 +3224,13 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
          StringHandle skinDesiredNameHandle = con->unpackStringHandleU(stream);;
 
          if (mSkinNameHandle != skinDesiredNameHandle) {
-
             mSkinNameHandle = skinDesiredNameHandle;
-
             if (mShapeInstance) {
-
                mShapeInstance->reSkin(mSkinNameHandle);
-
-               if (mSkinNameHandle.isValidString()) {
-
+               if (mSkinNameHandle.isValidString())
                   mSkinHash = _StringTable::hashString(mSkinNameHandle.getString());
-
-               }
-
             }
-
          }
-
       }
    }
 
