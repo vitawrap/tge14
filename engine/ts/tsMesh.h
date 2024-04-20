@@ -18,6 +18,9 @@
 #ifndef _TVECTOR_H_
 #include "core/tVector.h"
 #endif
+#ifndef _COLOR_H_
+#include "core/color.h"
+#endif
 #ifndef _MATERIALLIST_H_
 #include "dgl/materialList.h"
 #endif
@@ -139,10 +142,10 @@ class TSMesh
    /// @name Render Methods
    /// @{
 
-   virtual void fillVB(S32 vb, S32 frame, S32 matFrame, TSMaterialList *materials);
-   virtual void morphVB(S32 vb, S32 morph, S32 frame, S32 matFrame, TSMaterialList *materials);
-   virtual void renderVB(S32 frame, S32 matFrame, TSMaterialList *materials);
-   virtual void render(S32 frame, S32 matFrame, TSMaterialList *);
+   virtual void fillVB(S32 vb, S32 frame, S32 matFrame, TSMaterialList *materials, ColorF const&);
+   virtual void morphVB(S32 vb, S32 morph, S32 frame, S32 matFrame, TSMaterialList *materials, ColorF const&);
+   virtual void renderVB(S32 frame, S32 matFrame, TSMaterialList *materials, ColorF const&);
+   virtual void render(S32 frame, S32 matFrame, TSMaterialList *, ColorF const&);
    virtual void renderShadow(S32 frame, const MatrixF & mat, S32 dim, U32 * bits, TSMaterialList *);
    void renderEnvironmentMap(S32 frame, S32 matFrame, TSMaterialList *);
    void renderDetailMap(S32 frame, S32 matFrame, TSMaterialList *);
@@ -158,7 +161,7 @@ class TSMesh
    static void resetEnvironmentMapMaterials();
    static void initDetailMapMaterials();
    static void resetDetailMapMaterials();
-   static void setMaterial(S32 matIndex, TSMaterialList *);
+   static void setMaterial(S32 matIndex, TSMaterialList *, ColorF const& color);
    static void setFade(F32 fadeValue);
    static void clearFade();
    static void setOverrideFade(F32 fadeValue){ overrideFadeVal = fadeValue; }
@@ -279,7 +282,7 @@ public:
    void updateSkin();
 
    // render methods..
-   void render(S32 frame, S32 matFrame, TSMaterialList *);
+   void render(S32 frame, S32 matFrame, TSMaterialList *, ColorF const& color);
    void renderShadow(S32 frame, const MatrixF & mat, S32 dim, U32 * bits, TSMaterialList *);
 
    // collision methods...

@@ -165,7 +165,7 @@ void TSMesh::restoreMergeNormals()
 // TSMesh render methods
 //-----------------------------------------------------
 
-void TSMesh::fillVB(S32 vb, S32 frame, S32 matFrame, TSMaterialList *materials)
+void TSMesh::fillVB(S32 vb, S32 frame, S32 matFrame, TSMaterialList *materials, ColorF const& color)
 {
    S32 firstVert  = vertsPerFrame * frame;
    S32 firstTVert = vertsPerFrame * matFrame;
@@ -184,12 +184,12 @@ void TSMesh::fillVB(S32 vb, S32 frame, S32 matFrame, TSMaterialList *materials)
    // we do this to enable texturing -- if necessary
    if (((TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) &
        (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial)) != 0)
-      setMaterial(draw.matIndex,materials);
+      setMaterial(draw.matIndex,materials,color);
 
    glFillVertexBufferEXT(vb,0,vertsPerFrame);
 }
 
-void TSMesh::morphVB(S32 vb, S32 morph, S32 frame, S32 matFrame, TSMaterialList *materials)
+void TSMesh::morphVB(S32 vb, S32 morph, S32 frame, S32 matFrame, TSMaterialList *materials, ColorF const& color)
 {
    S32 firstVert  = vertsPerFrame * (frame+1) - morph;
    S32 firstTVert = vertsPerFrame * (matFrame+1) - morph;
@@ -210,15 +210,16 @@ void TSMesh::morphVB(S32 vb, S32 morph, S32 frame, S32 matFrame, TSMaterialList 
    // we do this to enable texturing -- if necessary
    if (((TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) &
        (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial)) != 0)
-      setMaterial(draw.matIndex,materials);
+      setMaterial(draw.matIndex,materials,color);
 
    glFillVertexBufferEXT(vb,0,morph);
 
    restoreMergeNormals();
 }
 
-void TSMesh::renderVB(S32 frame, S32 matFrame, TSMaterialList *materials)
+void TSMesh::renderVB(S32 frame, S32 matFrame, TSMaterialList *materials, ColorF const& color)
 {
+/*
    S32 firstVert  = vertsPerFrame * frame;
    S32 firstTVert = vertsPerFrame * matFrame;
 
@@ -261,9 +262,10 @@ void TSMesh::renderVB(S32 frame, S32 matFrame, TSMaterialList *materials)
    // unlock...
    if (lockArrays)
       glUnlockArraysEXT();
+*/
 }
 
-void TSMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials)
+void TSMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials, ColorF const& color)
 {
    if( vertsPerFrame <= 0 ) {
       return;
@@ -309,11 +311,14 @@ void TSMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials)
       // material change?
       if ( ((TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) &
             (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial)) != 0)
-         setMaterial(draw.matIndex,materials);
+         setMaterial(draw.matIndex,materials, color);
 
       S32 drawType = getDrawType(draw.matIndex>>30);
 
+      //glEnable(GL_COLOR_MATERIAL);
+      //glColor3fv(color);
       glDrawElements(drawType,draw.numElements,GL_UNSIGNED_SHORT,&indices[draw.start]);
+      //glDisable(GL_COLOR_MATERIAL);
    }
 
    // unlock...
@@ -758,7 +763,7 @@ void TSMesh::resetMaterials()
 // set up materials for mesh rendering
 // keeps track of flags via TSShapeInstance::smRenderData.materialFlags and only changes what needs to be changed
 // keeps track of material index via TSShapeInstance::smRenderData.materialIndex
-void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials)
+void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials, ColorF const& color)
 {
    if ((matIndex|TSShapeInstance::smRenderData.materialIndex) & TSDrawPrimitive::NoMaterial)
    {
@@ -990,12 +995,15 @@ void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials)
       TSShapeInstance::smRenderData.vertexAlpha.emap = 1.0f;
    else
       TSShapeInstance::smRenderData.vertexAlpha.emap = TSShapeInstance::smRenderData.environmentMapAlpha * materials->getReflectionAmount(matIndex);
+   
+   // TODO: Figure out how to merge MeshObject color with vertex alpha below...
+   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+   
    // handle vertex alpha
    if (TSShapeInstance::smRenderData.vertexAlpha.set())
    {
-      Point4F v(1,1,1,TSShapeInstance::smRenderData.vertexAlpha.current);
-      glColor4fv(v);
-      glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,v);
+       Point4F v(1, 1, 1, TSShapeInstance::smRenderData.vertexAlpha.current);
+       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, v);
    }
 
    // set up fade
@@ -1023,7 +1031,6 @@ void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials)
          glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
       }
 
-
       ColorF curColor;
       glGetFloatv( GL_FOG_COLOR, (GLfloat*)&curColor );
       curColor.alpha = overrideFadeVal;
@@ -1033,8 +1040,6 @@ void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials)
       glTexEnvi(GL_TEXTURE_ENV,GL_COMBINE_ALPHA,GL_REPLACE);
       glTexEnvi(GL_TEXTURE_ENV,GL_SOURCE0_ALPHA,GL_CONSTANT);
       glTexEnvi(GL_TEXTURE_ENV,GL_OPERAND0_ALPHA,GL_SRC_ALPHA);
-
-
    }
 }
 
@@ -2081,13 +2086,13 @@ void TSSkinMesh::updateSkin()
    }
 }
 
-void TSSkinMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials)
+void TSSkinMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials, ColorF const& color)
 {
    // update verts and normals...
    updateSkin();
 
    // render...
-   Parent::render(frame,matFrame,materials);
+   Parent::render(frame,matFrame,materials,color);
 }
 
 void TSSkinMesh::renderShadow(S32 frame, const MatrixF & mat, S32 dim, U32 * bits, TSMaterialList * materials)

@@ -210,6 +210,7 @@ void TSShapeInstance::buildInstanceData(TSShape * _shape, bool loadMaterials)
          objInst->meshList = NULL;
 
       objInst->object = obj;
+      objInst->color = ColorF(1.f, 1.f, 1.f);   // 2024
    }
 
    // set up decal objects
@@ -516,6 +517,22 @@ void TSShapeInstance::reSkin(StringHandle& newBaseHandle)
          pMatList->mMaterials[j] = TextureHandle(pathName, MeshTexture, false);
       }
    }
+}
+
+void TSShapeInstance::reColor(char const* meshName, const ColorF& color)
+{
+    Vector<MeshObjectInstance>::iterator iter = mMeshObjects.begin();
+    for (; iter != mMeshObjects.end(); iter++)
+    {
+        S32 nameIndex = iter->object->nameIndex;
+        const char* name = mShape->names[nameIndex];
+
+        if (dStrcmp(meshName, name) == 0)
+        {
+            iter->color = color;
+            return;
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1759,7 +1776,7 @@ void TSShapeInstance::MeshObjectInstance::fillVB(S32 vb, TSMaterialList *materia
 
    for (S32 f = 0; f < mesh->numFrames; ++f)
       for (S32 m = 0; m < mesh->numMatFrames; ++m)
-         mesh->fillVB(vb,f,m,materials);
+         mesh->fillVB(vb,f,m,materials,color);
 }
 
 void TSShapeInstance::MeshObjectInstance::morphVB(S32 vb, S32 &previousMerge, S32 objectDetail, TSMaterialList *materials)
@@ -1794,7 +1811,7 @@ void TSShapeInstance::MeshObjectInstance::morphVB(S32 vb, S32 &previousMerge, S3
             previousMerge = merge;
 
          glOffsetVertexBufferEXT(vb,m0->vbOffset + foffset + merge);
-         mesh->morphVB(vb,morphSize,frame,matFrame,materials);
+         mesh->morphVB(vb,morphSize,frame,matFrame,materials,color);
       }
    }
 }
@@ -1847,14 +1864,14 @@ void TSShapeInstance::MeshObjectInstance::renderVB(S32 vb, S32 objectDetail, TSM
 
                glScalef(bv,bv,bv);
             }
-            mesh->renderVB(frame,matFrame,materials);
+            mesh->renderVB(frame,matFrame,materials,color);
             if (TSShapeInstance::smRenderData.balloonShape)
                glPopMatrix();
          }
          else
          {
             mesh->setFade(visible);
-            mesh->renderVB(frame,matFrame,materials);
+            mesh->renderVB(frame,matFrame,materials,color);
             mesh->clearFade();
          }
       }
@@ -1888,14 +1905,14 @@ void TSShapeInstance::MeshObjectInstance::render(S32 objectDetail, TSMaterialLis
                F32 & bv = TSShapeInstance::smRenderData.balloonValue;
                glScalef(bv,bv,bv);
             }
-            mesh->render(frame,matFrame,materials);
+            mesh->render(frame,matFrame,materials,color);
             if (TSShapeInstance::smRenderData.balloonShape)
                glPopMatrix();
          }
          else
          {
             mesh->setFade(visible);
-            mesh->render(frame,matFrame,materials);
+            mesh->render(frame,matFrame,materials,color);
             mesh->clearFade();
          }
       }

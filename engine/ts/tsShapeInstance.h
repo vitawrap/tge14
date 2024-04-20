@@ -132,6 +132,7 @@ class TSShapeInstance
       S32 frame;
       S32 matFrame;
       F32 visible;
+      ColorF color;             ///< 2024, Part texturing
 
       S32 getSizeVB(S32 size);
       bool hasMergeIndices();
@@ -354,6 +355,8 @@ class TSShapeInstance
    bool ownMaterialList() const { return mOwnMaterialList; }
 
    void reSkin(StringHandle& newBaseHandle);
+
+   void reColor(char const* name, ColorF const& color );
 
    enum
    {
