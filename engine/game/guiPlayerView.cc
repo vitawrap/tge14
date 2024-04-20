@@ -74,6 +74,24 @@ ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( name )" )
    object->setPlayerSeq( argv[2] );
 }
 
+ConsoleMethod(GuiPlayerView, setModelColor, void, 4, 4, "playerView.setModelColor( nodeName, colorF )")
+{
+    argc;
+    ColorF color(1.f, 1.f, 1.f, 1.f);
+    dSscanf(argv[3], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
+
+    object->setModelColor(argv[2], color);
+}
+
+ConsoleMethod(GuiPlayerView, setImageColor, void, 5, 5, "playerView.setImageColor( mountPoint, nodeName, colorF )")
+{
+    argc;
+    ColorF color(1.f, 1.f, 1.f, 1.f);
+    dSscanf(argv[4], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
+
+    object->setImageColor(dAtoi(argv[2]), argv[3], color);
+}
+
 //------------------------------------------------------------------------------
 bool GuiPlayerView::onWake()
 {
@@ -187,6 +205,27 @@ void GuiPlayerView::setCamera()
     {
         mOrbitPos.set(0, 0, 0);
         mOrbitDist = 3.5f;
+    }
+}
+
+void GuiPlayerView::setModelColor(const char* object, const ColorF& color)
+{
+    if (!mModel)
+        return;
+
+    mModel->reColor(object, color);
+}
+
+void GuiPlayerView::setImageColor(S32 mountPoint, const char* object, const ColorF& color)
+{
+    if (!mModel)
+        return;
+
+    for (U32 i = 0; i < mImages.size(); ++i)
+    {
+        PreviewImage& img = mImages[i];
+        if (img.shape && img.shapeNode == mountPoint)
+            img.shape->reColor(object, color);
     }
 }
 

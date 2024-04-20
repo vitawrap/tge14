@@ -92,6 +92,8 @@ class GuiPlayerView : public GuiTSCtrl
       void onRightMouseUp( const GuiEvent &event );
       void onRightMouseDragged( const GuiEvent &event );
 
+      void setModelColor( const char* object, const ColorF& color );
+      void setImageColor( S32 mountPoint, const char* object, const ColorF& color );
       void setPlayerModel( const char* shape, const char* skin );
       void setImage( const char* shape, const char* skin, S32 shapeNode );
       void setPlayerSeq( const char* seq );
