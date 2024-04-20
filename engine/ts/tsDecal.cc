@@ -70,7 +70,7 @@ void TSDecalMesh::render(S32 frame, S32 decalFrame, TSMaterialList * materials)
 
    // material change?  We only need to do this once.
    if ( (TSShapeInstance::smRenderData.materialIndex ^ materialIndex) & (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial))
-      TSMesh::setMaterial(materialIndex,materials,ColorF(1.f, 1.f, 1.f));
+      TSMesh::setMaterial(materialIndex,materials);
 
    S32 i;
    S32 a = startPrimitive[decalFrame];

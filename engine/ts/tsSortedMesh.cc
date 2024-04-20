@@ -86,7 +86,7 @@ void TSSortedMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials)
          // material change?
          if ( (TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) & (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial))
          {
-            setMaterial(draw.matIndex,materials,ColorF(1.f, 1.f, 1.f));
+            setMaterial(draw.matIndex,materials);
             if (alwaysWriteDepth)
                glDepthMask(GL_TRUE);
          }

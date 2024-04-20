@@ -161,7 +161,7 @@ class TSMesh
    static void resetEnvironmentMapMaterials();
    static void initDetailMapMaterials();
    static void resetDetailMapMaterials();
-   static void setMaterial(S32 matIndex, TSMaterialList *, ColorF const& color);
+   static void setMaterial(S32 matIndex, TSMaterialList *);
    static void setFade(F32 fadeValue);
    static void clearFade();
    static void setOverrideFade(F32 fadeValue){ overrideFadeVal = fadeValue; }

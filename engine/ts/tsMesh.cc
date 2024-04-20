@@ -184,7 +184,7 @@ void TSMesh::fillVB(S32 vb, S32 frame, S32 matFrame, TSMaterialList *materials, 
    // we do this to enable texturing -- if necessary
    if (((TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) &
        (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial)) != 0)
-      setMaterial(draw.matIndex,materials,color);
+      setMaterial(draw.matIndex,materials);
 
    glFillVertexBufferEXT(vb,0,vertsPerFrame);
 }
@@ -210,7 +210,7 @@ void TSMesh::morphVB(S32 vb, S32 morph, S32 frame, S32 matFrame, TSMaterialList 
    // we do this to enable texturing -- if necessary
    if (((TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) &
        (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial)) != 0)
-      setMaterial(draw.matIndex,materials,color);
+      setMaterial(draw.matIndex,materials);
 
    glFillVertexBufferEXT(vb,0,morph);
 
@@ -311,14 +311,17 @@ void TSMesh::render(S32 frame, S32 matFrame, TSMaterialList * materials, ColorF 
       // material change?
       if ( ((TSShapeInstance::smRenderData.materialIndex ^ draw.matIndex) &
             (TSDrawPrimitive::MaterialMask|TSDrawPrimitive::NoMaterial)) != 0)
-         setMaterial(draw.matIndex,materials, color);
+         setMaterial(draw.matIndex,materials);
 
       S32 drawType = getDrawType(draw.matIndex>>30);
 
-      //glEnable(GL_COLOR_MATERIAL);
-      //glColor3fv(color);
+      // Compute material color (some data was changed by the material)
+      ColorF finalColor(color.red, color.green, color.blue, color.alpha);
+      finalColor.alpha *= TSShapeInstance::smRenderData.vertexAlpha.current;
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, finalColor);
+      
+      // Draw
       glDrawElements(drawType,draw.numElements,GL_UNSIGNED_SHORT,&indices[draw.start]);
-      //glDisable(GL_COLOR_MATERIAL);
    }
 
    // unlock...
@@ -763,7 +766,7 @@ void TSMesh::resetMaterials()
 // set up materials for mesh rendering
 // keeps track of flags via TSShapeInstance::smRenderData.materialFlags and only changes what needs to be changed
 // keeps track of material index via TSShapeInstance::smRenderData.materialIndex
-void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials, ColorF const& color)
+void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials)
 {
    if ((matIndex|TSShapeInstance::smRenderData.materialIndex) & TSDrawPrimitive::NoMaterial)
    {
@@ -995,10 +998,7 @@ void TSMesh::setMaterial(S32 matIndex, TSMaterialList* materials, ColorF const& 
       TSShapeInstance::smRenderData.vertexAlpha.emap = 1.0f;
    else
       TSShapeInstance::smRenderData.vertexAlpha.emap = TSShapeInstance::smRenderData.environmentMapAlpha * materials->getReflectionAmount(matIndex);
-   
-   // TODO: Figure out how to merge MeshObject color with vertex alpha below...
-   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
-   
+
    // handle vertex alpha
    if (TSShapeInstance::smRenderData.vertexAlpha.set())
    {

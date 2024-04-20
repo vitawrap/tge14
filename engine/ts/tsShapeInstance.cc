@@ -527,7 +527,7 @@ void TSShapeInstance::reColor(char const* meshName, const ColorF& color)
         S32 nameIndex = iter->object->nameIndex;
         const char* name = mShape->names[nameIndex];
 
-        if (dStrcmp(meshName, name) == 0)
+        if (dStricmp(meshName, name) == 0)
         {
             iter->color = color;
             return;
