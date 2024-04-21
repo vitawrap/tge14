@@ -263,6 +263,7 @@ static S32 QSORT_CALLBACK UQECompare(const void *a,const void *b)
    return (ret < 0) ? -1 : ((ret > 0) ? 1 : 0);
 }
 
+// This is where ghost updates are packed.
 void NetConnection::ghostWritePacket(BitStream *bstream, PacketNotify *notify)
 {
 #ifdef    TORQUE_DEBUG_NET
