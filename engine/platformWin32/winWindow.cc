@@ -1581,6 +1581,7 @@ bool Platform::setLoginPassword( const char* password )
    return( false );
 }
 
+/*
 //--------------------------------------
 // Silly Korean registry key checker:
 //--------------------------------------
@@ -1601,3 +1602,4 @@ ConsoleFunction( isKoreanBuild, bool, 1, 1, "isKoreanBuild()" )
 
    return( result );
 }
+*/
