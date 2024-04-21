@@ -3136,15 +3136,10 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
             // StringHandle scriptDesiredAnimPrefix = con->unpackStringHandleU(stream);
 
             image.wet = stream->readFlag();
-
             image.ammo = stream->readFlag();
-
             image.loaded = stream->readFlag();
-
             image.target = stream->readFlag();
-
             image.triggerDown = stream->readFlag();
-
             int count = stream->readInt(3);
 
             if ((image.dataBlock != imageData) || (image.skinNameHandle != skinDesiredNameHandle)) {
