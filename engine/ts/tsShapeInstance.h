@@ -356,7 +356,10 @@ class TSShapeInstance
 
    void reSkin(StringHandle& newBaseHandle);
 
-   void reColor(char const* name, ColorF const& color );
+   bool reColor(char const* name, ColorF const& color );
+   bool reColor(S32 meshIndex, ColorF const& color );
+   ColorF const& getColor(char const* name) const;
+   ColorF const& getColor(S32 meshIndex) const;
 
    enum
    {
