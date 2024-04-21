@@ -96,7 +96,7 @@ void NetObject::collapseDirtyList()
    for(NetObject *obj = mDirtyList; obj; )
    {
       NetObject *next = obj->mNextDirtyList;
-      U32 orMask = obj->mDirtyMaskBits;
+      U64 orMask = obj->mDirtyMaskBits;
 
       obj->mNextDirtyList = NULL;
       obj->mPrevDirtyList = NULL;
