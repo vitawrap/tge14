@@ -164,7 +164,7 @@ class Precipitation : public GameBase
    ~Precipitation();
    void inspectPostApply();
 
-   enum
+   enum PrecipitationMaskBits : U64
    {
       DataMask       = Parent::NextFreeMask << 0,
       PercentageMask = Parent::NextFreeMask << 1,

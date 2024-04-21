@@ -43,7 +43,7 @@ class StaticShape: public ShapeBase
    void onUnmount(ShapeBase* obj,S32 node);
 
   protected:
-   enum MaskBits {
+   enum MaskBits : U64 {
       PositionMask = Parent::NextFreeMask,
       NextFreeMask = Parent::NextFreeMask << 1
    };

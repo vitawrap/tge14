@@ -2944,7 +2944,7 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
 
    if (mask & InitialUpdateMask) {
       // mask off sounds that aren't playing
-      S32 i;
+      U64 i;
       for (i = 0; i < MaxSoundThreads; i++)
          if (!mSoundThread[i].play)
             mask &= ~(SoundMaskN << i);
@@ -2972,7 +2972,7 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
    }
 
    if (stream->writeFlag(mask & ThreadMask)) {
-      for (int i = 0; i < MaxScriptThreads; i++) {
+      for (U64 i = 0; i < MaxScriptThreads; i++) {
          Thread& st = mScriptThread[i];
          if (stream->writeFlag(st.sequence != -1 && (mask & (ThreadMaskN << i)))) {
             stream->writeInt(st.sequence,ThreadSequenceBits);
@@ -2984,7 +2984,7 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
    }
 
    if (stream->writeFlag(mask & SoundMask)) {
-      for (int i = 0; i < MaxSoundThreads; i++) {
+      for (U64 i = 0; i < MaxSoundThreads; i++) {
          Sound& st = mSoundThread[i];
          if (stream->writeFlag(mask & (SoundMaskN << i)))
             if (stream->writeFlag(st.play))
@@ -2994,7 +2994,7 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
    }
 
    if (stream->writeFlag(mask & ImageMask)) {
-      for (int i = 0; i < MaxMountedImages; i++)
+      for (U64 i = 0; i < MaxMountedImages; i++)
          if (stream->writeFlag(mask & (ImageMaskN << i))) {
             MountedImage& image = mMountedImageList[i];
             if (stream->writeFlag(image.dataBlock))

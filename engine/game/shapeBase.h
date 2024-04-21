@@ -968,7 +968,7 @@ public:
    /// @{
 
    ///
-   enum ShapeBaseMasks {
+   enum ShapeBaseMasks : U64 {
       NameMask        = Parent::NextFreeMask,
       DamageMask      = Parent::NextFreeMask << 1,
       NoWarpMask      = Parent::NextFreeMask << 2,
@@ -983,7 +983,7 @@ public:
       NextFreeMask    = ImageMaskN  << MaxMountedImages
    };
 
-   enum BaseMaskConstants {
+   enum BaseMaskConstants : U64 {
       SoundMask      = (SoundMaskN << MaxSoundThreads) - SoundMaskN,
       ThreadMask     = (ThreadMaskN << MaxScriptThreads) - ThreadMaskN,
       ImageMask      = (ImageMaskN << MaxMountedImages) - ImageMaskN

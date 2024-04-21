@@ -132,7 +132,7 @@ public:
       ExcessVelDirBits     = 7,
       MaxLivingTicks       = 4095,
    };
-   enum UpdateMasks {
+   enum UpdateMasks : U64 {
       BounceMask    = Parent::NextFreeMask,
       ExplosionMask = Parent::NextFreeMask << 1,
       NextFreeMask  = Parent::NextFreeMask << 2

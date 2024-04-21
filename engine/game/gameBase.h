@@ -185,7 +185,7 @@ class GameBase : public SceneObject
    GameBase();
    virtual ~GameBase();
 
-   enum GameBaseMasks {
+   enum GameBaseMasks : U64 {
       InitialUpdateMask =     Parent::NextFreeMask,
       DataBlockMask =         InitialUpdateMask << 1,
       ExtendedInfoMask =      DataBlockMask << 1,

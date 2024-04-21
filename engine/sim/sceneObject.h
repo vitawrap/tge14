@@ -259,7 +259,7 @@ public:
       Done = 2
    };
    
-   enum SceneObjectMasks 
+   enum SceneObjectMasks : U64
    {
       ScaleMask    = BIT(0),
       NextFreeMask = BIT(1)

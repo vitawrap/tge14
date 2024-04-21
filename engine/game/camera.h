@@ -28,7 +28,7 @@ class Camera: public ShapeBase
 {
    typedef ShapeBase Parent;
 
-   enum MaskBits {
+   enum MaskBits : U64 {
       MoveMask     = Parent::NextFreeMask,
       NextFreeMask = Parent::NextFreeMask << 1
    };

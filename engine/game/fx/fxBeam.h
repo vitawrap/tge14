@@ -68,7 +68,7 @@ protected:
     Point3F mBeamNormal;
 
     /// Bit masks for different types of events
-    enum MaskBits {
+    enum MaskBits : U64 {
         InitialUpdateMask = Parent::NextFreeMask << 0,
         TransformUpdateMask = Parent::NextFreeMask << 1,
         UpdateAttachmentMask = Parent::NextFreeMask << 2

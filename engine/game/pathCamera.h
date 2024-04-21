@@ -42,7 +42,7 @@ public:
 private:
    typedef ShapeBase Parent;
 
-   enum MaskBits {
+   enum MaskBits : U64 {
       WindowMask     = Parent::NextFreeMask,
       PositionMask   = Parent::NextFreeMask + 1,
       TargetMask     = Parent::NextFreeMask + 2,

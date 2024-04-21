@@ -50,7 +50,7 @@ class PathedInterior : public GameBase
    PathedInteriorData *mDataBlock;
 
 public:
-   enum UpdateMasks {
+   enum UpdateMasks : U64 {
       NewTargetMask = Parent::NextFreeMask,
       NewPositionMask = Parent::NextFreeMask << 1,
       NextFreeMask = Parent::NextFreeMask << 2,

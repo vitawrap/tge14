@@ -205,7 +205,7 @@ public:
    void unpackUpdate(NetConnection *conn,           BitStream *stream);
 
 
-   enum UpdateMaskBits {
+   enum UpdateMaskBits : U64 {
       InitMask       = BIT(0),
       TransformMask  = BIT(1),
       AlarmMask      = BIT(2),
@@ -224,7 +224,7 @@ public:
       AudioMask      = BIT(12),
       NextFreeMask   = BIT(13)
    };
-   enum Constants {
+   enum Constants : U64 {
       LightUpdateBitStart = 3,
       LightUpdateBitEnd   = 10
    };

@@ -42,7 +42,7 @@ class MissionMarker : public ShapeBase
       typedef ShapeBase          Parent;
 
    protected:
-      enum MaskBits {
+      enum MaskBits : U64 {
          PositionMask = Parent::NextFreeMask,
          NextFreeMask = Parent::NextFreeMask << 1
       };
@@ -141,7 +141,7 @@ class SpawnSphere : public MissionMarker
       void inspectPostApply();
 
       // NetObject
-      enum SpawnSphereMasks {
+      enum SpawnSphereMasks : U64 {
          UpdateSphereMask = Parent::NextFreeMask,
          NextFreeMask = Parent::NextFreeMask << 1
       };

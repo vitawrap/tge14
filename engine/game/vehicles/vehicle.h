@@ -127,7 +127,7 @@ class Vehicle: public ShapeBase
       BodyCollision =  0x1,
       WheelCollision = 0x2,
    };
-   enum MaskBits {
+   enum MaskBits : U64 {
       PositionMask = Parent::NextFreeMask << 0,
       EnergyMask   = Parent::NextFreeMask << 1,
       NextFreeMask = Parent::NextFreeMask << 2
