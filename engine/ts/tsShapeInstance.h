@@ -132,7 +132,7 @@ class TSShapeInstance
       S32 frame;
       S32 matFrame;
       F32 visible;
-      ColorF color;             ///< 2024, Part texturing
+      ColorF color;             ///< 2024, Part coloring
 
       S32 getSizeVB(S32 size);
       bool hasMergeIndices();
@@ -356,7 +356,7 @@ class TSShapeInstance
 
    void reSkin(StringHandle& newBaseHandle);
 
-   bool reColor(char const* name, ColorF const& color );
+   S32 reColor(char const* name, ColorF const& color );
    bool reColor(S32 meshIndex, ColorF const& color );
    ColorF const& getColor(char const* name) const;
    ColorF const& getColor(S32 meshIndex) const;

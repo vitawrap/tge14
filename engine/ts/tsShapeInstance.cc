@@ -519,19 +519,18 @@ void TSShapeInstance::reSkin(StringHandle& newBaseHandle)
    }
 }
 
-bool TSShapeInstance::reColor(char const* meshName, const ColorF& color)
+S32 TSShapeInstance::reColor(char const* meshName, const ColorF& color)
 {
-    Vector<MeshObjectInstance>::iterator iter = mMeshObjects.begin();
-    for (; iter != mMeshObjects.end(); iter++)
+    for (S32 i = 0; i < mMeshObjects.size(); i++)
     {
-        S32 nameIndex = iter->object->nameIndex;
+        S32 nameIndex = mMeshObjects[i].object->nameIndex;
         if (dStricmp(meshName, mShape->names[nameIndex]) == 0)
         {
-            iter->color = color;
-            return true;
+            mMeshObjects[i].color = color;
+            return i;
         }
     }
-    return false;
+    return -1;
 }
 
 bool TSShapeInstance::reColor(S32 meshIndex, const ColorF& color)
