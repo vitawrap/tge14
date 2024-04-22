@@ -4216,6 +4216,11 @@ ConsoleMethod(ShapeBase, setColor, void, 4, 4, "(string nodeName, int paletteEnt
     object->setColor(argv[2], dAtoi(argv[3]));
 }
 
+ConsoleMethod(ShapeBase, setColorAt, void, 4, 4, "(int meshIndex, int paletteEntry)")
+{
+    object->setColor(dAtoi(argv[2]), dAtoi(argv[3]));
+}
+
 ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
 {
     TSShapeInstance* inst = object->getShapeInstance();
