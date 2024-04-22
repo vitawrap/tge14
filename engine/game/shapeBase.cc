@@ -88,7 +88,6 @@ ShapeBaseData::ShapeBaseData()
    firstPersonOnly = false;
    useEyePoint = false;
 
-
    observeThroughObject = false;
    computeCRC = false;
 
@@ -108,6 +107,11 @@ ShapeBaseData::ShapeBaseData()
       hudRenderDistance[j] = false;
       hudRenderName[j] = false;
    }
+
+   // Initialize all palette colors to white just to be safe
+   paletteSize = 1;
+   for (U32 j = 0; j < MaxPaletteColors; ++j)
+       palette[j] = ColorF(1.f, 1.f, 1.f);
 }
 
 static ShapeBaseData gShapeBaseDataProto;
@@ -313,9 +317,11 @@ void ShapeBaseData::initPersistFields()
 
    addGroup("Render");
    addField("shapeFile",      TypeFilename, Offset(shapeName,      ShapeBaseData));
-   addField("cloakTexture",   TypeFilename, Offset(cloakTexName,      ShapeBaseData));
-   addField("etex",           TypeFilename, Offset(envTexName,       ShapeBaseData));
-   addField("emap",           TypeBool,       Offset(emap,           ShapeBaseData));
+   addField("cloakTexture",   TypeFilename, Offset(cloakTexName,   ShapeBaseData));
+   addField("etex",           TypeFilename, Offset(envTexName,     ShapeBaseData));
+   addField("emap",           TypeBool,     Offset(emap,           ShapeBaseData));
+   addField("palette",        TypeColorF,   Offset(palette,        ShapeBaseData), MaxPaletteColors);
+   addField("paletteSize",    TypeS32,      Offset(paletteSize,    ShapeBaseData));
    endGroup("Render");
 
    addGroup("Destruction", "Parameters related to the destruction effects of this object.");
@@ -506,6 +512,14 @@ void ShapeBaseData::packData(BitStream* stream)
    stream->writeFlag(inheritEnergyFromMount);
    stream->writeFlag(firstPersonOnly);
    stream->writeFlag(useEyePoint);
+   
+   // Send actual colors from color palette over (sparingly)
+   // 7 bits for palette size to support '64'
+   if (paletteSize > MaxPaletteColors)
+       paletteSize = MaxPaletteColors;
+   stream->writeInt(paletteSize, 7);
+   for (S32 i = 0; i < paletteSize; ++i)
+       stream->write(palette[i].getRGBAPack());
 }
 
 void ShapeBaseData::unpackData(BitStream* stream)
@@ -591,6 +605,17 @@ void ShapeBaseData::unpackData(BitStream* stream)
    inheritEnergyFromMount = stream->readFlag();
    firstPersonOnly = stream->readFlag();
    useEyePoint = stream->readFlag();
+
+   // Unpack colors the same way
+   paletteSize = stream->readInt(7);
+   if (paletteSize > MaxPaletteColors)
+       paletteSize = MaxPaletteColors;
+   for (S32 i = 0; i < paletteSize; ++i)
+   {
+       U32 rgba;
+       stream->read(&rgba);
+       palette[i] = ColorF(rgba);
+   }
 }
 
 
@@ -690,6 +715,11 @@ ShapeBase::ShapeBase()
    mFlipFadeVal = false;
    mLightTime = 0;
    damageDir.set(0, 0, 1);
+
+   // Mark all dirty for net init, and use pal entry 0 (always white).
+   mColorDirtyMask = 0xFFFFFFFF;
+   for (U32 i = 0; i < ColorPaletteBits; ++i)
+       mColors[i] = 0;
 }
 
 
@@ -2962,7 +2992,7 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
 
    if(!stream->writeFlag(mask & (NameMask | DamageMask | SoundMask |
          ThreadMask | ImageMask | CloakMask | MountedMask | InvincibleMask |
-         ShieldMask | SkinMask)))
+         ShieldMask | ColorMask | SkinMask)))
       return retMask;
 
    if (stream->writeFlag(mask & DamageMask)) {
@@ -3064,6 +3094,16 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
    }
    else
       stream->writeFlag(false);
+
+   // Write new palette index for each mesh
+   if (stream->writeFlag(mask & ColorMask))
+   {
+       stream->write(mColorDirtyMask);
+       for (U32 i = 0; i < ColorPaletteBits; ++i)
+           if (mColorDirtyMask & (1 << i))
+               stream->writeInt(mColors[i], 6);
+       mColorDirtyMask = 0;
+   }
 
    return retMask;
 }
@@ -3243,6 +3283,15 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
       }
       else
          unmount();
+   }
+
+   // Color mask was dirty (no need to clean it on the client)
+   if (stream->readFlag()) {
+       stream->read(&mColorDirtyMask);
+       for (U32 i = 0; i < ColorPaletteBits; ++i)
+           if (mColorDirtyMask & (1 << i))
+               setColor(i, stream->readInt(6));
+       //mColorDirtyMask = 0;
    }
 }
 
@@ -3503,6 +3552,34 @@ void ShapeBase::setSkinName(const char* name)
       }
       setMaskBits(SkinMask);
    }
+}
+
+void ShapeBase::setColor(const char* meshName, const U8 palEntry)
+{
+    if (palEntry >= ShapeBaseData::MaxPaletteColors || !mShapeInstance)
+        return;
+
+    S32 meshIndex = mShapeInstance->reColor(meshName, mDataBlock->palette[palEntry]);
+    if (meshIndex != -1 && meshIndex < ColorPaletteBits && isServerObject())
+    {
+        mColors[meshIndex] = palEntry;
+        mColorDirtyMask |= 1 << meshIndex;
+        setMaskBits(ColorMask);
+    }
+}
+
+void ShapeBase::setColor(S32 meshIndex, const U8 palEntry)
+{
+    if (palEntry >= ShapeBaseData::MaxPaletteColors || !mShapeInstance)
+        return;
+
+    bool recolored = mShapeInstance->reColor(meshIndex, mDataBlock->palette[palEntry]);
+    if (recolored && isServerObject())
+    {
+        mColors[meshIndex] = palEntry;
+        mColorDirtyMask |= 1 << meshIndex;
+        setMaskBits(ColorMask);
+    }
 }
 
 //--------------------------------------------------------------------------
@@ -4129,10 +4206,14 @@ ConsoleMethod( ShapeBase, getShapeName, const char*, 2, 2, "")
    return object->getShapeName();
 }
 
-
 ConsoleMethod( ShapeBase, getSkinName, const char*, 2, 2, "")
 {
    return object->getSkinName();
+}
+
+ConsoleMethod(ShapeBase, setColor, void, 4, 4, "(string nodeName, int paletteEntry)")
+{
+    object->setColor(argv[2], dAtoi(argv[3]));
 }
 
 ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")

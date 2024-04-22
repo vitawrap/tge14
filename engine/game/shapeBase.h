@@ -389,7 +389,8 @@ public:
       NumMountPoints = 32,
       NumMountPointBits = 5,
       MaxCollisionShapes = 8,
-      AIRepairNode = 31
+      AIRepairNode = 31,
+      MaxPaletteColors = 64,    ///< 64 colors for now
    };
 
    StringTableEntry  shapeName;
@@ -507,6 +508,16 @@ public:
    F32 noShadowLevel;
    /// @}
 
+   /// @name Palette Array
+   ///
+   /// The palette is a table of colors which are used
+   /// when the shape calls 'setColor' with a palette entry.
+   /// 
+   /// @{
+   ColorF   palette[MaxPaletteColors];   ///< Array of colors.
+   U32      paletteSize;                 ///< Size of this array
+   /// @}
+
    /// @name Misc. Settings
    /// @{
    bool emap;                       ///< Enable environment mapping?
@@ -570,6 +581,7 @@ public:
       MaxImageEmitters = 3,
       NumImageBits = 3,
       ShieldNormalBits = 8,
+      ColorPaletteBits = 16,           ///< first 16 meshes have full color replication
       CollisionTimeoutValue = 250      ///< Timeout in ms.
    };
 
@@ -867,6 +879,8 @@ protected:
    F32 mLastRenderDistance;
    U32 mSkinHash;
 
+   U16 mColorDirtyMask;             ///< For now only replicate the first 16 colors of the shape...
+   U8 mColors[ColorPaletteBits];    ///< Palette indices for each of those meshes, in order.
 
    /// This recalculates the total mass of the object, and all mounted objects
    void updateMass();
@@ -977,7 +991,8 @@ public:
       ShieldMask      = Parent::NextFreeMask << 5,
       InvincibleMask  = Parent::NextFreeMask << 6,
       SkinMask        = Parent::NextFreeMask << 7,
-      SoundMaskN      = Parent::NextFreeMask << 8,       ///< Extends + MaxSoundThreads bits
+      ColorMask       = Parent::NextFreeMask << 8,
+      SoundMaskN      = Parent::NextFreeMask << 9,       ///< Extends + MaxSoundThreads bits
       ThreadMaskN     = SoundMaskN  << MaxSoundThreads,  ///< Extends + MaxScriptThreads bits
       ImageMaskN      = ThreadMaskN << MaxScriptThreads, ///< Extends + MaxMountedImage bits
       NextFreeMask    = ImageMaskN  << MaxMountedImages
@@ -1013,6 +1028,14 @@ public:
    const char* getShapeName();
    void setSkinName(const char*);
    const char* getSkinName();
+   /// @}
+
+   /// @name Shape recoloring using datablock palette entries
+   /// @{
+   /// Change color of mesh using mesh name.
+   void setColor(const char* meshName, const U8 palEntry);
+   /// Change color of mesh using mesh index.
+   void setColor(S32 meshIndex, const U8 palEntry);
    /// @}
 
    /// @name Basic attributes
