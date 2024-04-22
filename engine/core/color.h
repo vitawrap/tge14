@@ -25,6 +25,7 @@ class ColorF
 
   public:
    ColorF() { }
+   ColorF(const U32 rgba);
    ColorF(const ColorF& in_rCopy);
    ColorF(const F32 in_r,
           const F32 in_g,
@@ -139,6 +140,14 @@ inline void ColorF::set(const F32 in_r,
    green = in_g;
    blue  = in_b;
    alpha = in_a;
+}
+
+inline ColorF::ColorF(const U32 rgba)
+{
+    alpha   = (F32(rgba & 0xff) - 0.5) * 0.003921f;
+    red     = (F32((rgba >> 24) & 0xff) - 0.5) * 0.003921f;
+    green   = (F32((rgba >> 16) & 0xff) - 0.5) * 0.003921f;
+    blue    = (F32((rgba >> 8)  & 0xff) - 0.5) * 0.003921f;
 }
 
 inline ColorF::ColorF(const ColorF& in_rCopy)
