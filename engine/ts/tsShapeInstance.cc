@@ -519,6 +519,17 @@ void TSShapeInstance::reSkin(StringHandle& newBaseHandle)
    }
 }
 
+S32 TSShapeInstance::findMesh(char const* meshName)
+{
+    for (S32 i = 0; i < mMeshObjects.size(); i++)
+    {
+        S32 nameIndex = mMeshObjects[i].object->nameIndex;
+        if (dStricmp(meshName, mShape->names[nameIndex]) == 0)
+            return i;
+    }
+    return -1;
+}
+
 S32 TSShapeInstance::reColor(char const* meshName, const ColorF& color)
 {
     for (S32 i = 0; i < mMeshObjects.size(); i++)

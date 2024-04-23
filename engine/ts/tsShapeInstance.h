@@ -356,6 +356,8 @@ class TSShapeInstance
 
    void reSkin(StringHandle& newBaseHandle);
 
+   S32 findMesh(char const* name);
+
    S32 reColor(char const* name, ColorF const& color );
    bool reColor(S32 meshIndex, ColorF const& color );
    ColorF const& getColor(char const* name) const;
