@@ -358,6 +358,13 @@ struct ShapeBaseImageData: public GameBaseData {
    StateData state[MaxStates];   ///< Array of states.
    bool      statesLoaded;       ///< Are the states loaded yet?
    /// @}
+   
+   /// @name Color slot
+   ///
+   /// @{
+   StringTableEntry colorableMesh; ///< Filled in datablock by user
+   S32 defaultColor;               ///< U8 filled by user for default image color
+   /// @}
 
    /// @name Infrastructure
    ///
@@ -722,7 +729,14 @@ public:
          SimObjectPtr<ParticleEmitter> emitter;
       };
       ImageEmitter emitter[MaxImageEmitters];
+      /// @}
 
+      /// @name Colors
+      ///
+      /// Handle coloring using the wearer ShapeBase.
+      /// @{
+      U32 colorMeshIndex;             ///< Filled when unpacking
+      U8 color;                       ///< Palette entry of ShapeBase holder
       /// @}
 
       void registerImageLights(LightManager * lightManager, bool lightingScene, const Point3F &objectPosition, U32 startTime);
@@ -1036,6 +1050,8 @@ public:
    void setColor(const char* meshName, const U8 palEntry);
    /// Change color of mesh using mesh index.
    void setColor(S32 meshIndex, const U8 palEntry);
+   /// Change color of image mesh using mounted image mesh index.
+   void setImageColor(S32 image, const U8 palEntry);
    /// @}
 
    /// @name Basic attributes

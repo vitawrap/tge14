@@ -169,6 +169,8 @@ ShapeBaseImageData::ShapeBaseImageData()
    shellExitVariance = 20.0;
    shellVelocity = 1.0;
 
+   colorableMesh = "";
+   defaultColor = 0;
 }
 
 ShapeBaseImageData::~ShapeBaseImageData()
@@ -341,7 +343,6 @@ bool ShapeBaseImageData::preload(bool server, char errorBuffer[ErrorBufferSize])
       }
    }
 
-
    TSShapeInstance* pDummy = new TSShapeInstance(shape, !server);
    delete pDummy;
    return true;
@@ -360,7 +361,7 @@ S32 ShapeBaseImageData::lookupState(const char* name)
 
 static EnumTable::Enums imageLightEnum[] =
 {
-	{ ShapeBaseImageData::NoLight,           "NoLight" },
+   { ShapeBaseImageData::NoLight,           "NoLight" },
    { ShapeBaseImageData::ConstantLight,     "ConstantLight" },
    { ShapeBaseImageData::PulsingLight,      "PulsingLight" },
    { ShapeBaseImageData::WeaponFireLight,   "WeaponFireLight" }
@@ -374,6 +375,8 @@ void ShapeBaseImageData::initPersistFields()
 
    addField("emap", TypeBool, Offset(emap, ShapeBaseImageData));
    addField("shapeFile", TypeFilename, Offset(shapeName, ShapeBaseImageData));
+   addField("colorableMesh", TypeString, Offset(colorableMesh, ShapeBaseImageData));
+   addField("defaultColor", TypeS32, Offset(defaultColor, ShapeBaseImageData));
 
    addField("projectile", TypeProjectileDataPtr, Offset(projectile, ShapeBaseImageData));
 
@@ -502,6 +505,10 @@ void ShapeBaseImageData::packData(BitStream* stream)
    mathWrite(*stream, camRecoilSpread);
    stream->write(camRecoilDuration);
 
+   // Colorable mesh name
+   stream->writeString(colorableMesh);
+   stream->writeInt(defaultColor, 6);
+
    for (U32 i = 0; i < MaxStates; i++)
       if (stream->writeFlag(state[i].name && state[i].name[0])) {
          StateData& s = state[i];
@@ -619,6 +626,10 @@ void ShapeBaseImageData::unpackData(BitStream* stream)
    mathRead(*stream, &camRecoilOffset);
    mathRead(*stream, &camRecoilSpread);
    stream->read(&camRecoilDuration);
+
+   // Colorable mesh name
+   colorableMesh = stream->readSTString();
+   defaultColor = stream->readInt(6);
 
    for (U32 i = 0; i < MaxStates; i++) {
       if (stream->readFlag()) {
@@ -755,6 +766,9 @@ ShapeBase::MountedImage::MountedImage()
    loaded = false;
    fireCount = 0;
    wet = false;
+
+   colorMeshIndex = 0;
+   color = 0;
 }
 
 ShapeBase::MountedImage::~MountedImage()
@@ -790,7 +804,7 @@ bool ShapeBase::mountImage(ShapeBaseImageData* imageData,U32 imageSlot,bool load
    //
    setImage(imageSlot,imageData,skinNameHandle,loaded);
 
-	//see if the image has a light source
+   //see if the image has a light source
    if (imageData->lightType != ShapeBaseImageData::NoLight)
 	   Sim::getLightSet()->addObject(this);
 
@@ -1417,6 +1431,13 @@ void ShapeBase::setImage(U32 imageSlot, ShapeBaseImageData* imageData, StringHan
       }
    }
 
+   // On the client and server we cache data for recolors (if the colorableMesh is none, default to first)
+   if (image.shapeInstance)
+   {
+       image.colorMeshIndex = imageData->colorableMesh[0]? image.shapeInstance->findMesh(imageData->colorableMesh) : 0;
+       image.color = imageData->defaultColor;   // Sent by setMaskBits up above
+   }
+
    // Set the image to its starting state.
    setImageState(imageSlot, 0, true);
 
@@ -1431,6 +1452,21 @@ void ShapeBase::setImage(U32 imageSlot, ShapeBaseImageData* imageData, StringHan
    // Done.
 }
 
+void ShapeBase::setImageColor(S32 imageNode, const U8 palEntry)
+{
+    if (palEntry >= ShapeBaseData::MaxPaletteColors || !mShapeInstance)
+        return;
+
+    MountedImage* image = getImageStruct(imageNode);
+    if (image && image->shapeInstance && image->colorMeshIndex != -1) {
+        bool done = image->shapeInstance->reColor(image->colorMeshIndex, mDataBlock->palette[palEntry]);
+        if (done && isServerObject())
+        {
+            image->color = palEntry;
+            setMaskBits(ImageMaskN << imageNode);
+        }
+    }
+}
 
 //----------------------------------------------------------------------------
 

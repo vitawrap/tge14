@@ -3037,6 +3037,7 @@ U64 ShapeBase::packUpdate(NetConnection *con, U64 mask, BitStream *stream)
             stream->writeFlag(image.target);
             stream->writeFlag(image.triggerDown);
             stream->writeInt(image.fireCount,3);
+            stream->writeInt(image.color, 6); // in unpackUpdate, colorMeshIndex may only be known starting from here
             if (mask & InitialUpdateMask)
                stream->writeFlag(isImageFiring(i));
          }
@@ -3173,8 +3174,6 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
 
             StringHandle skinDesiredNameHandle = con->unpackStringHandleU(stream);
 
-            // StringHandle scriptDesiredAnimPrefix = con->unpackStringHandleU(stream);
-
             image.wet = stream->readFlag();
             image.ammo = stream->readFlag();
             image.loaded = stream->readFlag();
@@ -3183,10 +3182,11 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
             int count = stream->readInt(3);
 
             if ((image.dataBlock != imageData) || (image.skinNameHandle != skinDesiredNameHandle)) {
-
                setImage(i, imageData, skinDesiredNameHandle, image.loaded, image.ammo, image.triggerDown);
-
             }
+
+            image.color = stream->readInt(6);
+            setImageColor(i, image.color);
 
             if (isProperlyAdded()) {
                // Normal processing
@@ -4219,6 +4219,12 @@ ConsoleMethod(ShapeBase, setColor, void, 4, 4, "(string nodeName, int paletteEnt
 ConsoleMethod(ShapeBase, setColorAt, void, 4, 4, "(int meshIndex, int paletteEntry)")
 {
     object->setColor(dAtoi(argv[2]), dAtoi(argv[3]));
+}
+
+ConsoleMethod(ShapeBase, setImageColor, void, 4, 4, "(int imageSlot, int paletteEntry)")
+{
+    // Mod the argument as a quick measure to prevent setMaskBits(ImageMaskN << arbitraryShift)
+    object->setImageColor(dAtoi(argv[2]) & (ShapeBase::MaxMountedImages-1), dAtoi(argv[3]));
 }
 
 ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
