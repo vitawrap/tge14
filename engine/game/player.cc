@@ -1365,12 +1365,15 @@ void Player::updateState()
                mRecoverTicks = mReversePending;
                mActionAnimation.forward = false;
 
-               S32 seq = mDataBlock->actionList[mActionAnimation.action].sequence;
-               F32 pos = mShapeInstance->getPos(mActionAnimation.thread);
-
-               mShapeInstance->setTimeScale(mActionAnimation.thread, -sLandReverseScale);
-               mShapeInstance->transitionToSequence(mActionAnimation.thread,
-                                                    seq, pos, sAnimationTransitionTime, true);
+               // careful! it's possible we have no action animation thread
+               if (mActionAnimation.thread)
+               {
+                   S32 seq = mDataBlock->actionList[mActionAnimation.action].sequence;
+                   F32 pos = mShapeInstance->getPos(mActionAnimation.thread);
+                   mShapeInstance->setTimeScale(mActionAnimation.thread, -sLandReverseScale);
+                   mShapeInstance->transitionToSequence(mActionAnimation.thread,
+                                                        seq, pos, sAnimationTransitionTime, true);
+               }
                mReversePending = 0;
             }
             else
