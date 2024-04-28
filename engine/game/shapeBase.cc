@@ -2264,7 +2264,7 @@ bool ShapeBase::prepRenderImage(SceneState* state, const U32 stateKey,
       for (U32 i = 0; i < MaxMountedImages; i++)
       {
          MountedImage& image = mMountedImageList[i];
-         if (image.dataBlock && image.shapeInstance)
+         if (image.dataBlock && image.shapeInstance && (image.dataBlock->firstPerson? true : !isFirstPerson()))
          {
             DetailManager::selectPotentialDetails(image.shapeInstance,dist,invScale);
 
