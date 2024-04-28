@@ -2348,8 +2348,11 @@ void Player::setHeadUp(bool value)
     if (isServerObject())
         setMaskBits(ActionMask);
 
-    mShapeInstance->setTimeScale(mHeadUpThread, value? 1.f : -1.f);
-    mShapeInstance->setPos(mHeadUpThread, value ? 1.f : 0.f);
+    if (mHeadUpThread)
+    {
+        mShapeInstance->setTimeScale(mHeadUpThread, value? 1.f : -1.f);
+        mShapeInstance->setPos(mHeadUpThread, value ? 1.f : 0.f);
+    }
 }
 
 //----------------------------------------------------------------------------
