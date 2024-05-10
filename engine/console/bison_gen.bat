@@ -1,3 +1,3 @@
 echo Using new flex/bison script...
 bison -o CMDgram.cc CMDgram.y --defines
-flex -f CMDscan.l
+flex -8f CMDscan.l
