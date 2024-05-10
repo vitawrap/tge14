@@ -680,7 +680,7 @@
     <ClInclude Include="..\engine\collision\polyhedron.h" />
     <ClInclude Include="..\engine\collision\polytope.h" />
     <ClInclude Include="..\engine\console\ast.h" />
-    <ClInclude Include="..\engine\console\cmdgram.h" />
+    <ClInclude Include="..\engine\console\CMDgram.hh" />
     <ClInclude Include="..\engine\console\codeBlock.h" />
     <ClInclude Include="..\engine\console\compiler.h" />
     <ClInclude Include="..\engine\console\console.h" />

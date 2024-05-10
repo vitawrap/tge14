@@ -10,6 +10,7 @@
 using namespace Compiler;
 
 #define YY_NEVER_INTERACTIVE 1
+#define YY_NO_UNISTD_H 1
 
 // Some basic parsing primitives...
 static int Sc_ScanString(int ret);
@@ -25,8 +26,8 @@ static int Sc_ScanHex();
 #endif
 
 // Install our own input code...
-#undef CMDgetc
-int CMDgetc();
+#undef cmdgetc
+int cmdgetc();
 
 // Hack to make windows lex happy.
 #ifndef isatty
@@ -38,7 +39,7 @@ inline int isatty(int) { return 0; }
    { \
       int c = '*', n; \
       for ( n = 0; n < max_size && \
-            (c = CMDgetc()) != EOF && c != '\n'; ++n ) \
+            (c = cmdgetc()) != EOF && c != '\n'; ++n ) \
          buf[n] = (char) c; \
       if ( c == '\n' ) \
          buf[n++] = (char) c; \
@@ -53,12 +54,16 @@ void CMDSetScanBuffer(const char *sb, const char *fn);
 const char * CMDgetFileLine(int &lineNumber);
 
 // Error reporting
-void CMDerror(char * s, ...);
+void cmderror(char * s, ...);
 
 // Reset the parser.
-void CMDrestart(FILE *in);
+void cmdrestart(FILE *in);
 
 %}
+
+%option nounistd
+%option prefix="CMD"
+%option outfile="CMDscan.cc"
 
 DIGIT    [0-9]
 INTEGER  {DIGIT}+
@@ -83,43 +88,43 @@ HEXDIGIT [a-fA-F0-9]
 [\n]        {lineIndex++;}
 \"(\\.|[^\\"\n\r])*\"      { return(Sc_ScanString(STRATOM)); }
 \'(\\.|[^\\'\n\r])*\'      { return(Sc_ScanString(TAGATOM)); }
-"=="        return(CMDlval.i = opEQ);
-"!="        return(CMDlval.i = opNE);
-">="        return(CMDlval.i = opGE);
-"<="        return(CMDlval.i = opLE);
-"&&"        return(CMDlval.i = opAND);
-"||"        return(CMDlval.i = opOR);
-"::"        return(CMDlval.i = opCOLONCOLON);
-"--"        return(CMDlval.i = opMINUSMINUS);
-"++"        return(CMDlval.i = opPLUSPLUS);
-"$="        return(CMDlval.i = opSTREQ);
-"!$="       return(CMDlval.i = opSTRNE);
-"<<"        return(CMDlval.i = opSHL);
-">>"        return(CMDlval.i = opSHR);
-"+="        return(CMDlval.i = opPLASN);
-"-="        return(CMDlval.i = opMIASN);
-"*="        return(CMDlval.i = opMLASN);
-"/="        return(CMDlval.i = opDVASN);
-"%="        return(CMDlval.i = opMODASN);
-"&="        return(CMDlval.i = opANDASN);
-"^="        return(CMDlval.i = opXORASN);
-"|="        return(CMDlval.i = opORASN);
-"<<="       return(CMDlval.i = opSLASN);
-">>="       return(CMDlval.i = opSRASN);
-"NL"        {CMDlval.i = '\n'; return '@'; }
-"TAB"       {CMDlval.i = '\t'; return '@'; }
-"SPC"       {CMDlval.i = ' '; return '@'; }
-"@"         {CMDlval.i = 0; return '@'; }
+"=="        return(cmdlval.i = opEQ);
+"!="        return(cmdlval.i = opNE);
+">="        return(cmdlval.i = opGE);
+"<="        return(cmdlval.i = opLE);
+"&&"        return(cmdlval.i = opAND);
+"||"        return(cmdlval.i = opOR);
+"::"        return(cmdlval.i = opCOLONCOLON);
+"--"        return(cmdlval.i = opMINUSMINUS);
+"++"        return(cmdlval.i = opPLUSPLUS);
+"$="        return(cmdlval.i = opSTREQ);
+"!$="       return(cmdlval.i = opSTRNE);
+"<<"        return(cmdlval.i = opSHL);
+">>"        return(cmdlval.i = opSHR);
+"+="        return(cmdlval.i = opPLASN);
+"-="        return(cmdlval.i = opMIASN);
+"*="        return(cmdlval.i = opMLASN);
+"/="        return(cmdlval.i = opDVASN);
+"%="        return(cmdlval.i = opMODASN);
+"&="        return(cmdlval.i = opANDASN);
+"^="        return(cmdlval.i = opXORASN);
+"|="        return(cmdlval.i = opORASN);
+"<<="       return(cmdlval.i = opSLASN);
+">>="       return(cmdlval.i = opSRASN);
+"NL"        {cmdlval.i = '\n'; return '@'; }
+"TAB"       {cmdlval.i = '\t'; return '@'; }
+"SPC"       {cmdlval.i = ' '; return '@'; }
+"@"         {cmdlval.i = 0; return '@'; }
 "/*"		{
 				register int c;
 				for ( ; ; )
 				{
-					while ( (c = CMDgetc()) != '*' && c != EOF )
+					while ( (c = cmdgetc()) != '*' && c != EOF )
 					; /* eat up text of comment */
 
 					if ( c == '*' )
 					{
-						while ( (c = CMDgetc()) == '*' )
+						while ( (c = cmdgetc()) == '*' )
 						;
 						if ( c == '/' )
 							break; /* found the end */
@@ -127,7 +132,7 @@ HEXDIGIT [a-fA-F0-9]
 
 					if ( c == EOF )
 					{
-						CMDerror( "EOF in comment" );
+						cmderror( "EOF in comment" );
 						break;
 					}
 				}
@@ -155,31 +160,31 @@ HEXDIGIT [a-fA-F0-9]
 "%" |
 "^" |
 "~" |
-"=" {       return(CMDlval.i = CMDtext[0]); }
-"or"        { CMDlval.i = lineIndex; return(rwCASEOR); }
-"break"     { CMDlval.i = lineIndex; return(rwBREAK); }
-"return"    { CMDlval.i = lineIndex; return(rwRETURN); }
-"else"      { CMDlval.i = lineIndex; return(rwELSE); }
-"while"     { CMDlval.i = lineIndex; return(rwWHILE); }
-"do"        { CMDlval.i = lineIndex; return(rwDO); }
-"if"        { CMDlval.i = lineIndex; return(rwIF); }
-"for"       { CMDlval.i = lineIndex; return(rwFOR); }
-"continue"  { CMDlval.i = lineIndex; return(rwCONTINUE); }
-"function"  { CMDlval.i = lineIndex; return(rwDEFINE); }
-"new"       { CMDlval.i = lineIndex; return(rwDECLARE); }
-"datablock" { CMDlval.i = lineIndex; return(rwDATABLOCK); }
-"case"      { CMDlval.i = lineIndex; return(rwCASE); }
-"switch$"   { CMDlval.i = lineIndex; return(rwSWITCHSTR); }
-"switch"    { CMDlval.i = lineIndex; return(rwSWITCH); }
-"default"   { CMDlval.i = lineIndex; return(rwDEFAULT); }
-"package"   { CMDlval.i = lineIndex; return(rwPACKAGE); }
-"namespace" { CMDlval.i = lineIndex; return(rwNAMESPACE); }
-"true"      { CMDlval.i = 1; return INTCONST; }
-"false"     { CMDlval.i = 0; return INTCONST; }
+"=" {       return(cmdlval.i = CMDtext[0]); }
+"or"        { cmdlval.i = lineIndex; return(rwCASEOR); }
+"break"     { cmdlval.i = lineIndex; return(rwBREAK); }
+"return"    { cmdlval.i = lineIndex; return(rwRETURN); }
+"else"      { cmdlval.i = lineIndex; return(rwELSE); }
+"while"     { cmdlval.i = lineIndex; return(rwWHILE); }
+"do"        { cmdlval.i = lineIndex; return(rwDO); }
+"if"        { cmdlval.i = lineIndex; return(rwIF); }
+"for"       { cmdlval.i = lineIndex; return(rwFOR); }
+"continue"  { cmdlval.i = lineIndex; return(rwCONTINUE); }
+"function"  { cmdlval.i = lineIndex; return(rwDEFINE); }
+"new"       { cmdlval.i = lineIndex; return(rwDECLARE); }
+"datablock" { cmdlval.i = lineIndex; return(rwDATABLOCK); }
+"case"      { cmdlval.i = lineIndex; return(rwCASE); }
+"switch$"   { cmdlval.i = lineIndex; return(rwSWITCHSTR); }
+"switch"    { cmdlval.i = lineIndex; return(rwSWITCH); }
+"default"   { cmdlval.i = lineIndex; return(rwDEFAULT); }
+"package"   { cmdlval.i = lineIndex; return(rwPACKAGE); }
+"namespace" { cmdlval.i = lineIndex; return(rwNAMESPACE); }
+"true"      { cmdlval.i = 1; return INTCONST; }
+"false"     { cmdlval.i = 0; return INTCONST; }
 {VAR}       return(Sc_ScanVar());
-{ID}        { CMDtext[CMDleng] = 0; CMDlval.s = StringTable->insert(CMDtext); return(IDENT); }
+{ID}        { CMDtext[CMDleng] = 0; cmdlval.s = StringTable->insert(CMDtext); return(IDENT); }
 0[xX]{HEXDIGIT}+ return(Sc_ScanHex());
-{INTEGER}   { CMDtext[CMDleng] = 0; CMDlval.i = dAtoi(CMDtext); return INTCONST; }
+{INTEGER}   { CMDtext[CMDleng] = 0; cmdlval.i = dAtoi(CMDtext); return INTCONST; }
 {FLOAT}     return Sc_ScanNum();
 {ILID}      return(ILLEGAL_TOKEN);
 .           return(ILLEGAL_TOKEN);
@@ -199,7 +204,7 @@ int CMDGetCurrentLine()
    return lineIndex;
 }
 
-void CMDerror(char *, ...)
+void cmderror(char *, ...)
 {
    gSyntaxError = true;
    if(fileName)
@@ -217,7 +222,7 @@ void CMDSetScanBuffer(const char *sb, const char *fn)
    lineIndex = 1;
 }
 
-int CMDgetc()
+int cmdgetc()
 {
    int ret = scanBuffer[scanIndex];
    if(ret)
@@ -238,7 +243,7 @@ static int Sc_ScanVar()
    CMDtext[CMDleng] = 0;
    
    // Make it a stringtable string!
-   CMDlval.s = StringTable->insert(CMDtext);
+   cmdlval.s = StringTable->insert(CMDtext);
    return(VAR);
 }
 
@@ -273,8 +278,8 @@ static int Sc_ScanString(int ret)
    CMDtext[CMDleng - 1] = 0;
    if(!collapseEscape(CMDtext+1))
       return -1;
-   CMDlval.str = (char *) consoleAlloc(dStrlen(CMDtext));
-   dStrcpy(CMDlval.str, CMDtext + 1);
+   cmdlval.str = (char *) consoleAlloc(dStrlen(CMDtext));
+   dStrcpy(cmdlval.str, CMDtext + 1);
    return(ret);
 }
 
@@ -448,7 +453,7 @@ bool collapseEscape(char *buf)
 static int Sc_ScanNum()
 {
    CMDtext[CMDleng] = 0;
-   CMDlval.f = dAtof(CMDtext);
+   cmdlval.f = dAtof(CMDtext);
    return(FLTCONST);
 }
 
@@ -456,7 +461,7 @@ static int Sc_ScanHex()
 {
    S32 val = 0;
    dSscanf(CMDtext, "%x", &val);
-   CMDlval.i = val;
+   cmdlval.i = val;
    return INTCONST;
 }
 

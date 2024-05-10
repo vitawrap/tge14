@@ -1312,9 +1312,6 @@
     <ClInclude Include="..\engine\console\ast.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\console\cmdgram.h">
-      <Filter>Source Files\console</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\console\codeBlock.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
@@ -2256,6 +2253,9 @@
     </ClInclude>
     <ClInclude Include="..\engine\ai\aiNavigation.h">
       <Filter>Source Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\console\CMDgram.hh">
+      <Filter>Source Files\console</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -23,25 +23,37 @@ extern int serrors;
 #define YY_ARGS(x)   x
  
 int CMDlex();
-void CMDerror(char *, ...); 
+void cmderror(char *, ...); 
 
 #define alloca dMalloc
 
+/* Prefix arbitrarily switches cases between defines... */
+#ifdef yyparse
+#undef yyparse
+#define yyparse CMDparse
+#endif
+
+/* Prefix arbitrarily switches cases between defines... */
+#ifdef yylex
+#undef yylex
+#define yylex CMDlex
+#endif
+
 %}
-%{
-        /* Reserved Word Definitions */
-%}
-%token <i> rwDEFINE rwENDDEF rwDECLARE
-%token <i> rwBREAK rwELSE rwCONTINUE rwGLOBAL
-%token <i> rwIF rwNIL rwRETURN rwWHILE rwDO
-%token <i> rwENDIF rwENDWHILE rwENDFOR rwDEFAULT
+%define api.prefix {cmd}
+
+   /* Reserved Word Definitions */
+
+%token <i> rwDEFINE rwDECLARE
+%token <i> rwBREAK rwELSE rwCONTINUE
+%token <i> rwIF rwRETURN rwWHILE rwDO
+%token <i> rwDEFAULT rwNAMESPACE
 %token <i> rwFOR rwDATABLOCK rwSWITCH rwCASE rwSWITCHSTR
-%token <i> rwCASEOR rwPACKAGE rwNAMESPACE rwCLASS
+%token <i> rwCASEOR rwPACKAGE
 %token ILLEGAL_TOKEN
-%{
-        /* Constants and Identifier Definitions */
-%}
-%token <c>   CHRCONST
+
+   /* Constants and Identifier Definitions */
+
 %token <i>   INTCONST
 %token <s>   TTAG
 %token <s>   VAR
@@ -50,15 +62,13 @@ void CMDerror(char *, ...);
 %token <str> TAGATOM
 %token <f>   FLTCONST
 
-%{
-        /* Operator Definitions */
-%}
+   /* Operator Definitions */
+
 %token <i> '+' '-' '*' '/' '<' '>' '=' '.' '|' '&' '%'
 %token <i> '(' ')' ',' ':' ';' '{' '}' '^' '~' '!' '@'
 %token <i> opMINUSMINUS opPLUSPLUS
-%token <i> STMT_SEP
 %token <i> opSHL opSHR opPLASN opMIASN opMLASN opDVASN opMODASN opANDASN
-%token <i> opXORASN opORASN opSLASN opSRASN opCAT
+%token <i> opXORASN opORASN opSLASN opSRASN
 %token <i> opEQ opNE opGE opLE opAND opOR opSTREQ
 %token <i> opCOLONCOLON
 
