@@ -132,6 +132,16 @@ CommaCatExprNode *CommaCatExprNode::alloc(ExprNode *left, ExprNode *right)
    return ret;
 }
 
+InstanceOfExprNode* InstanceOfExprNode::alloc(ExprNode* left, ExprNode* right)
+{
+    InstanceOfExprNode* ret = (InstanceOfExprNode*)consoleAlloc(sizeof(InstanceOfExprNode));
+    constructInPlace(ret);
+    ret->left = left;
+    ret->right = right;
+
+    return ret;
+}
+
 IntUnaryExprNode *IntUnaryExprNode::alloc(S32 op, ExprNode *expr)
 {
    IntUnaryExprNode *ret = (IntUnaryExprNode *) consoleAlloc(sizeof(IntUnaryExprNode));

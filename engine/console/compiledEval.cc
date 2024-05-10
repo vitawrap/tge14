@@ -555,6 +555,25 @@ breakContinue:
             break;
          }
 
+         case OP_INSTANCEOF_OBJECT:
+         {
+            var = STR.getSTValue();
+            SimObject* object = NULL;
+            bool found = false;
+            if (Sim::findObject((SimObjectId)intStack[UINT], object))
+            {
+                Namespace* ns = object->getNamespace();
+                for (; ns; ns = ns->mParent)
+                    if (ns->mName == var)
+                    {
+                        found = true;
+                        break;
+                    }
+            }
+            intStack[UINT] = found;
+            break;
+         }
+
          case OP_JMPIFFNOT:
             if(floatStack[FLT--])
             {

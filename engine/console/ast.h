@@ -206,6 +206,15 @@ struct CommaCatExprNode : BinaryExprNode
    TypeReq getPreferredType();
 };
 
+struct InstanceOfExprNode : BinaryExprNode
+{
+    static InstanceOfExprNode* alloc(ExprNode* left, ExprNode* right);
+
+    U32 precompile(TypeReq type);
+    U32 compile(U64* codeStream, U64 ip, TypeReq type);
+    TypeReq getPreferredType();
+};
+
 struct IntUnaryExprNode : ExprNode
 {
    S32 op;

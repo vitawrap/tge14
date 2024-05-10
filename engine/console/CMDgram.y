@@ -135,7 +135,7 @@ void cmderror(char *, ...);
 %left '&'
 %left opEQ opNE
 %left '<' opLE '>' opGE
-%left '@' opCAT opSTREQ opSTRNE
+%left '@' opCAT opSTREQ opSTRNE opINSTANCE
 %left opSHL opSHR
 %left '+' '-'
 %left '*' '/' '%'
@@ -401,6 +401,8 @@ expr
       { $$ = StreqExprNode::alloc($1, $3, false); }
    | expr '@' expr
       { $$ = StrcatExprNode::alloc($1, $3, $2); }
+   | expr opINSTANCE expr
+      { $$ = InstanceOfExprNode::alloc($1, $3); }
    | '!' expr
       { $$ = IntUnaryExprNode::alloc($1, $2); }
    | '~' expr
