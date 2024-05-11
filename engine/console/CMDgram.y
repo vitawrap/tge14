@@ -230,6 +230,8 @@ var_list
 datablock_decl
    : rwDATABLOCK IDENT '(' IDENT parent_block ')'  '{' slot_assign_list '}' ';'
       { $$ = ObjectDeclNode::alloc(ConstantNode::alloc($2), ConstantNode::alloc($4), NULL, $5, $8, NULL, true); }
+   | rwDATABLOCK IDENT '(' IDENT parent_block ')'  '{' '}' ';'
+      { $$ = ObjectDeclNode::alloc(ConstantNode::alloc($2), ConstantNode::alloc($4), NULL, $5, NULL, NULL, true); }
    ;
    
 object_decl
