@@ -18,7 +18,7 @@ class DataChunker;
 // (We can't stick include guards in it without patching bison.)
 #ifndef _CMDGRAM_H_
 #define _CMDGRAM_H_
-#include "console/cmdgram.hh"
+#include "console/CMDgram.hh"
 #endif
 
 namespace Compiler
