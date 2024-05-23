@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: configure
-      run: make -f mk/configure.mk BUILD=RELEASE COMPILER=CLANG OS=LINUX
+      run: mkdir engine/out.CLANG.RELEASE && make -f mk/configure.mk BUILD=RELEASE COMPILER=CLANG OS=LINUX
     - name: make
       run: make
     - name: make check
