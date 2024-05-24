@@ -57,6 +57,7 @@ struct StringStack
    }
    StringStack()
    {
+      mArgBufferSize = 0;
       mBufferSize = 0;
       mBuffer = NULL;
       mNumFrames = 0;
