@@ -280,7 +280,6 @@ SOURCE.PLATFORMWIN32=\
 	platformWin32/winStrings.cc \
 	platformWin32/winThread.cc \
 	platformWin32/winTime.cc \
-	platformWin32/winV2Video.cc \
 	platformWin32/winWindow.cc \
 
 SOURCE.SIM=\

@@ -33,7 +33,6 @@ struct CardProfile
 	bool deleteContext;		// delete rendering context
 	bool texCompress;			// allow texture compression
 	bool interiorLock;		// lock arrays for Interior render
-	bool skipFirstFog;		// skip first two-pass fogging (dumb 3Dfx hack)
 	bool only16;				// inhibit 32-bit resolutions
 	bool noArraysAlpha;	// don't use glDrawArrays with a GL_ALPHA texture
 
@@ -83,11 +82,10 @@ static SettingProfile sSettingProfiles[] =
 };
 
 //------------------------------------------------------------------------------
-ConsoleFunction( addCardProfile, void, 16, 16, "(string vendor, string renderer,"
+ConsoleFunction( addCardProfile, void, 15, 15, "(string vendor, string renderer,"
                 "bool safeMode, bool lockArray, bool subImage, bool fogTexture,"
                 "bool noEnvColor, bool clipHigh, bool deleteContext, bool texCompress"
-                "bool interiorLock, bool skipFirstFog, bool only16,"
-                "bool noArraysAlpha, string proFile)"
+                "bool interiorLock, bool only16, bool noArraysAlpha, string proFile)"
                 ""
                 "Register a card profile with the card profile manager.\n\n"
                 "Most of the parameters are fairly self-explanatory and very internal"
@@ -111,12 +109,11 @@ ConsoleFunction( addCardProfile, void, 16, 16, "(string vendor, string renderer,
 	profile.deleteContext = dAtob(argv[9]);
 	profile.texCompress = dAtob(argv[10]);
 	profile.interiorLock = dAtob(argv[11]);
-	profile.skipFirstFog = dAtob(argv[12]);
-	profile.only16 = dAtob(argv[13]);
-	profile.noArraysAlpha = dAtob(argv[14]);
+	profile.only16 = dAtob(argv[12]);
+	profile.noArraysAlpha = dAtob(argv[13]);
 
-	if (strcmp(argv[15],""))
-		profile.proFile = dStrdup(argv[15]);
+	if (strcmp(argv[14],""))
+		profile.proFile = dStrdup(argv[14]);
 	else
 		profile.proFile = NULL;
 
@@ -263,7 +260,6 @@ static void profileSystem(const char *vendor, const char *renderer)
 				Con::setBoolVariable("$pref::Video::deleteContext", true);
 			Con::setBoolVariable("$pref::OpenGL::disableARBTextureCompression", !sCardProfiles[i].texCompress);
 			Con::setBoolVariable("$pref::Interior::lockArrays", sCardProfiles[i].interiorLock);
-			Con::setBoolVariable("$pref::TS::skipFirstFog", sCardProfiles[i].skipFirstFog);
 			Con::setBoolVariable("$pref::Video::only16", sCardProfiles[i].only16);
 			Con::setBoolVariable("$pref::OpenGL::noDrawArraysAlpha", sCardProfiles[i].noArraysAlpha);
 
@@ -298,7 +294,6 @@ static void profileSystem(const char *vendor, const char *renderer)
 		Con::setBoolVariable("$pref::Video::deleteContext", true);
 		Con::setBoolVariable("$pref::OpenGL::disableARBTextureCompression", false);
 		Con::setBoolVariable("$pref::Interior::lockArrays", true);
-		Con::setBoolVariable("$pref::TS::skipFirstFog", false);
 		Con::setBoolVariable("$pref::Video::only16", false);
 		Con::setBoolVariable("$pref::OpenGL::noDrawArraysAlpha", false);
    }

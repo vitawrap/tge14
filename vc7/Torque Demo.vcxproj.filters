@@ -779,9 +779,6 @@
     <ClCompile Include="..\engine\platformWin32\winTime.cc">
       <Filter>Source Files\platformWin32</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\platformWin32\winV2Video.cc">
-      <Filter>Source Files\platformWin32</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\platformWin32\winWindow.cc">
       <Filter>Source Files\platformWin32</Filter>
     </ClCompile>
@@ -1801,9 +1798,6 @@
     <ClInclude Include="..\engine\math\mTrig.h">
       <Filter>Source Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\platform\3DFX.H">
-      <Filter>Source Files\platform</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\platform\event.h">
       <Filter>Source Files\platform</Filter>
     </ClInclude>
@@ -1880,9 +1874,6 @@
       <Filter>Source Files\platformWin32</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\platformWin32\winOGLVideo.h">
-      <Filter>Source Files\platformWin32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\engine\platformWin32\winV2Video.h">
       <Filter>Source Files\platformWin32</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\sceneGraph\detailManager.h">

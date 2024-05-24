@@ -582,7 +582,6 @@
     <ClCompile Include="..\engine\platformWin32\winStrings.cc" />
     <ClCompile Include="..\engine\platformWin32\winThread.cc" />
     <ClCompile Include="..\engine\platformWin32\winTime.cc" />
-    <ClCompile Include="..\engine\platformWin32\winV2Video.cc" />
     <ClCompile Include="..\engine\platformWin32\winWindow.cc" />
     <ClCompile Include="..\engine\platform\gameInterface.cc" />
     <ClCompile Include="..\engine\platform\platform.cc" />
@@ -919,8 +918,6 @@
     <ClInclude Include="..\engine\platformWin32\winDInputDevice.h" />
     <ClInclude Include="..\engine\platformWin32\winDirectInput.h" />
     <ClInclude Include="..\engine\platformWin32\winOGLVideo.h" />
-    <ClInclude Include="..\engine\platformWin32\winV2Video.h" />
-    <ClInclude Include="..\engine\platform\3DFX.H" />
     <ClInclude Include="..\engine\platform\event.h" />
     <ClInclude Include="..\engine\platform\gameInterface.h" />
     <ClInclude Include="..\engine\platform\GLCoreFunc.h" />

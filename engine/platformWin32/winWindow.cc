@@ -8,7 +8,6 @@
 #include "platformWin32/platformGL.h"
 #include "platform/platformVideo.h"
 #include "platformWin32/winOGLVideo.h"
-#include "platformWin32/winV2Video.h"
 #include "platform/event.h"
 #include "console/console.h"
 #include "platformWin32/winConsole.h"
@@ -1301,10 +1300,10 @@ void Platform::initWindow(const Point2I &initialSize, const char *name)
    //else
    //   Con::printf( "   Accelerated D3D device not detected." );
 
-   if ( Video::installDevice( Voodoo2Device::create() ) )
-      Con::printf( "   Voodoo 2 display device detected." );
-   else
-      Con::printf( "   Voodoo 2 display device not detected." );
+   //if ( Video::installDevice( Voodoo2Device::create() ) )
+   //   Con::printf( "   Voodoo 2 display device detected." );
+   //else
+   //   Con::printf( "   Voodoo 2 display device not detected." );
    Con::printf( "" );
 
    gWindowCreated = true;
