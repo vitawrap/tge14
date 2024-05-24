@@ -41,19 +41,19 @@ struct StringStack
 
    void validateBufferSize(U32 size)
    {
-      if(size > mBufferSize)
-      {
-         mBufferSize = size + 2048;
-         mBuffer = (char *) dRealloc(mBuffer, mBufferSize);
-      }
+      bool mustRealloc = false;
+      while(size > mBufferSize)
+        mustRealloc = mBufferSize = size + 2048;
+      if (mustRealloc)
+        mBuffer = (char *) dRealloc(mBuffer, mBufferSize);
    }
    void validateArgBufferSize(U32 size)
    {
+      bool mustRealloc = false;
       if(size > mArgBufferSize)
-      {
-         mArgBufferSize = size + 2048;
-         mArgBuffer = (char *) dRealloc(mArgBuffer, mArgBufferSize);
-      }
+        mustRealloc = mArgBufferSize = size + 2048;
+      if (mustRealloc)
+        mArgBuffer = (char *) dRealloc(mArgBuffer, mArgBufferSize);
    }
    StringStack()
    {
