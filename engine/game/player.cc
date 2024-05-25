@@ -2454,7 +2454,7 @@ void Player::updateActionThread()
          mat.mulP(Point3F(offset,0.0f,0.0f), &pos);
          if (gClientContainer.castRay(Point3F(pos.x, pos.y, pos.z + 0.01f),
             Point3F(pos.x, pos.y, pos.z - 2.0f ),
-            TerrainObjectType | InteriorObjectType | VehicleObjectType, &rInfo))
+            STATIC_COLLISION_MASK | VehicleObjectType, &rInfo))
          {
             S32 sound = -1;
             // Only put footpuffs and prints on the terrain
@@ -2465,7 +2465,8 @@ void Player::updateActionThread()
                // Footpuffs, if we can get the material color...
                S32 mapIndex = tBlock->mMPMIndex[0];
                if (mapIndex != -1) {
-                  MaterialPropertyMap* pMatMap = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
+                  static SimObjectPtr<MaterialPropertyMap> pMatMap; // viw: Only bother with Sim::findObject if we need to.
+                  if (pMatMap.isNull()) pMatMap = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
                   const MaterialPropertyMap::MapEntry* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
                   if(pEntry)
                   {
@@ -2506,8 +2507,9 @@ void Player::updateActionThread()
                   mSceneManager->getCurrentDecalManager()->addDecal(rInfo.point, rot,
                      Point3F(rInfo.normal), getScale(), mDataBlock->decalData);
             }
-            else
-               if ( rInfo.object->getTypeMask() & VehicleObjectType)
+            else if ( rInfo.object->getTypeMask() & StaticObjectType)
+                  sound = 1; // Play hard sound
+            else if ( rInfo.object->getTypeMask() & VehicleObjectType)
                   sound = 2; // Play metal sound
 
             // Play footstep sounds
