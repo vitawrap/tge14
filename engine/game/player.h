@@ -426,6 +426,8 @@ protected:
    void updateMove(const Move *move);
    ///Interpolate movement
    bool updatePos(const F32 travelTime = TickSec);
+   ///Update player box utility
+   void updateBox(const Point3F& boxSize);
    ///Update head animation
    void updateLookAnimation();
    ///Update other animations

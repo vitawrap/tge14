@@ -1082,26 +1082,33 @@ bool Player::onNewDataBlock(GameBaseData* dptr)
    mActionAnimation.thread = mShapeInstance->addThread();
    updateAnimationTree(!isGhost());
 
-   mObjBox.max.x = mDataBlock->boxSize.x * 0.5;
-   mObjBox.max.y = mDataBlock->boxSize.y * 0.5;
-   mObjBox.max.z = mDataBlock->boxSize.z;
-   mObjBox.min.x = -mObjBox.max.x;
-   mObjBox.min.y = -mObjBox.max.y;
-   mObjBox.min.z = 0;
-
-   // Setup the box for our convex object...
-   mObjBox.getCenter(&mConvex.mCenter);
-   mConvex.mSize.x = mObjBox.len_x() / 2.0;
-   mConvex.mSize.y = mObjBox.len_y() / 2.0;
-   mConvex.mSize.z = mObjBox.len_z() / 2.0;
-
-   // Initialize our scaled attributes as well
-   onScaleChanged();
+   // Update box
+   updateBox(mDataBlock->boxSize);
 
    scriptOnNewDataBlock();
    return true;
 }
 
+//----------------------------------------------------------------------------
+
+void Player::updateBox(const Point3F& boxSize)
+{
+    mObjBox.max.x = boxSize.x * 0.5;
+    mObjBox.max.y = boxSize.y * 0.5;
+    mObjBox.max.z = boxSize.z;
+    mObjBox.min.x = -mObjBox.max.x;
+    mObjBox.min.y = -mObjBox.max.y;
+    mObjBox.min.z = 0;
+
+    // Setup the box for our convex object...
+    mObjBox.getCenter(&mConvex.mCenter);
+    mConvex.mSize.x = mObjBox.len_x() / 2.0;
+    mConvex.mSize.y = mObjBox.len_y() / 2.0;
+    mConvex.mSize.z = mObjBox.len_z() / 2.0;
+
+    // Initialize our scaled attributes as well
+    onScaleChanged();
+}
 
 //----------------------------------------------------------------------------
 
@@ -1796,8 +1803,34 @@ void Player::updateMove(const Move* move)
    {
        setCrouching(true);
    }
-   else
-       setCrouching(false);
+   else if (mCrouching && !move->trigger[3])
+   {
+       // Still crouching but shouldn't anymore, test world geometry
+       // with box temporarily changed to standing size... horrible.
+       updateBox(mDataBlock->boxSize);
+
+       Box3F wBox = mObjBox;
+       wBox.min += getPosition();
+       wBox.max += getPosition();
+
+       EarlyOutPolyList polyList;
+       polyList.mNormal.set(0, 0, 0);
+       polyList.mPlaneList.clear();
+       polyList.mPlaneList.setSize(6);
+       polyList.mPlaneList[0].set(wBox.min, VectorF(-1, 0, 0));
+       polyList.mPlaneList[1].set(wBox.max, VectorF(0, 1, 0));
+       polyList.mPlaneList[2].set(wBox.max, VectorF(1, 0, 0));
+       polyList.mPlaneList[3].set(wBox.min, VectorF(0, -1, 0));
+       polyList.mPlaneList[4].set(wBox.min, VectorF(0, 0, -1));
+       polyList.mPlaneList[5].set(wBox.max, VectorF(0, 0, 1));
+
+       disableCollision();
+       if (!getContainer()->buildPolyList(wBox, sCollisionMoveMask, &polyList))
+           setCrouching(false);
+       else
+           updateBox(mDataBlock->boxCrouchSize);
+       enableCollision();
+   }
 
    // Acceleration from Jumping
    if (move->trigger[2] && !isMounted() && canJump())
@@ -2712,20 +2745,22 @@ void Player::setCrouching(bool val)
     if (isServerObject())
         setMaskBits(MoveMask);
 
-    mCrouching = val;
-    onScaleChanged();
-    if (!val)
+    if (mCrouching = val)
     {
-        if (mCrouchThread)
-            mShapeInstance->setTimeScale(mCrouchThread, -1.f);
-    }
-    else
-    {
+        updateBox(mDataBlock->boxCrouchSize);
+
         if (mCrouchThread)
         {
             mShapeInstance->setTimeScale(mCrouchThread, 1.f);
             mShapeInstance->setSequence(mCrouchThread, mCrouchSeq, 0.f);
         }
+    }
+    else
+    {
+        updateBox(mDataBlock->boxSize);
+
+        if (mCrouchThread)
+            mShapeInstance->setTimeScale(mCrouchThread, -1.f);
     }
 }
 
