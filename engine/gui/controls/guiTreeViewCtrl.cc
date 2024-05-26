@@ -971,7 +971,7 @@ bool GuiTreeViewCtrl::buildIconTable(const char * icons)
               "common/ui/hidden:"
               "common/ui/interior:"
               "common/ui/lightning:"
-              "common/ui/common/ui/shll_icon_passworded_hi:"
+              "common/ui/shll_icon_passworded_hi:"
               "common/ui/shll_icon_passworded:"
               "common/ui/mission_area:"
               "common/ui/particle:"
