@@ -79,6 +79,8 @@
 
 #ifdef TORQUE_DEBUG
 #  define TORQUE_GATHER_METRICS 0
+// enable the profiler by default, if we're not doing a shipping/release build
+#  define TORQUE_ENABLE_PROFILER
 #endif
 
 #ifdef TORQUE_RELEASE
@@ -91,9 +93,6 @@
 #ifdef TORQUE_SHIPPING
  // TORQUE_SHIPPING flags here.
 #undef TORQUE_DEBUG_GUARD
-#else
-   // enable the profiler by default, if we're not doing a shipping build
-#  define TORQUE_ENABLE_PROFILER
 #endif
 
 #ifdef TORQUE_LIB
