@@ -99,11 +99,13 @@ bool PathCamera::onAdd()
    if (getContainer())
       getContainer()->addObject(this);
 
+   scriptOnAdd();
    return true;
 }
 
 void PathCamera::onRemove()
 {
+   scriptOnRemove();
    if (getContainer())
       getContainer()->removeObject(this);
 
