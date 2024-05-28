@@ -161,11 +161,11 @@ struct PlayerData: public ShapeBaseData {
       // array instantiated in player.cc
       // The first five are selected in the move state based on velocity
       RootAnim,
-      CrouchRootAnim,
-
       RunForwardAnim,
       BackBackwardAnim,
       SideLeftAnim,
+
+      CrouchRootAnim,
       CrouchRunForwardAnim,
       CrouchBackBackwardAnim,
       CrouchSideLeftAnim,
@@ -178,7 +178,6 @@ struct PlayerData: public ShapeBaseData {
 
       //
       NumMoveActionAnims = SideLeftAnim + 1,
-      NumCrouchMoveActionAnims = CrouchSideLeftAnim + 1,
       NumTableActionAnims = LandAnim + 1,
       NumExtraActionAnims = 512,
       NumActionAnims = NumTableActionAnims + NumExtraActionAnims,
@@ -372,12 +371,10 @@ protected:
    TSThread* mHeadVThread;
    TSThread* mHeadHThread;
    TSThread* mRecoilThread;
-   TSThread* mCrouchThread;
    TSThread* mHeadUpThread;
    static Range mArmRange;
    static Range mHeadVRange;
    static Range mHeadHRange;
-   S32 mCrouchSeq;
    /// @}
 
    bool mInMissionArea;          ///< Are we in the mission area?

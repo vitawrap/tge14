@@ -116,16 +116,17 @@ PlayerData::ActionAnimationDef PlayerData::ActionAnimationList[NumTableActionAni
    // This array is indexed useing the enum values defined in player.h
 
    // Root is the default animation
-   { "root" },       // RootAnim,
-   { "crouch" },     // CrouchRootAnim,
+   { "root" },                      // RootAnim,
 
    // These are selected in the move state based on velocity
-   { "run",  { 0,+1,0 } },       // RunForwardAnim,
-   { "back", { 0,-1,0 } },       // BackBackwardAnim
-   { "side", { -1,0,0 } },       // SideLeftAnim,
-   { "crouchRun",  { 0,+1,0 } },       // CrouchRunForwardAnim,
-   { "crouchBack", { 0,-1,0 } },       // CrouchBackBackwardAnim
-   { "crouchSide", { -1,0,0 } },       // CrouchSideLeftAnim,
+   { "run",  { 0,+1,0 } },          // RunForwardAnim,
+   { "back", { 0,-1,0 } },          // BackBackwardAnim
+   { "side", { -1,0,0 } },          // SideLeftAnim,
+
+   { "crouch" },                    // CrouchRootAnim,
+   { "crouchRun",  { 0,+1,0 } },    // CrouchRunForwardAnim,
+   { "crouchBack", { 0,-1,0 } },    // CrouchBackBackwardAnim
+   { "crouchSide", { -1,0,0 } },    // CrouchSideLeftAnim,
 
    // These are set explicitly based on player actions
    { "fall" },       // FallAnim
@@ -837,7 +838,7 @@ Player::Player()
    mHead = delta.head;
    mVelocity.set(0,0,0);
    mDataBlock = 0;
-   mHeadHThread = mHeadVThread = mRecoilThread = mCrouchThread = mHeadUpThread = 0;
+   mHeadHThread = mHeadVThread = mRecoilThread = mHeadUpThread = 0;
    mArmAnimation.action = PlayerData::NullAnimation;
    mArmAnimation.thread = 0;
    mActionAnimation.action = PlayerData::NullAnimation;
@@ -863,7 +864,6 @@ Player::Player()
    dMemset( mSplashEmitter, 0, sizeof( mSplashEmitter ) );
 
    mHeadUp = false;
-   mCrouchSeq = -1;
 
    mImpactSound = 0;
    mRecoverTicks = 0;
@@ -1027,15 +1027,6 @@ bool Player::onNewDataBlock(GameBaseData* dptr)
 
    // Initialize head look thread
    TSShape const* shape = mShapeInstance->getShape();
-   mCrouchSeq = shape->findSequence("crouch");
-   if (mCrouchSeq != -1)
-   {
-       mCrouchThread = mShapeInstance->addThread();
-       mShapeInstance->setSequence(mCrouchThread, mCrouchSeq, 0);
-       mShapeInstance->setTimeScale(mCrouchThread, mCrouching);
-   }
-   else
-       mCrouchThread = 0;
 
    S32 headSeq = shape->findSequence("head");
    if (headSeq != -1) {
@@ -2627,9 +2618,7 @@ void Player::pickActionAnimation()
          F32 curMax = 0.1;
          VectorF vel;
          mWorldToObj.mulV(mVelocity,&vel);
-         U32 begin = mCrouching ? PlayerData::CrouchRunForwardAnim : PlayerData::RunForwardAnim;
-         U32 end = mCrouching ? PlayerData::NumCrouchMoveActionAnims : PlayerData::NumMoveActionAnims;
-         for (U32 i = begin; i < end; ++i)
+         for (U32 i = 1; i < PlayerData::NumMoveActionAnims; ++i)
          {
             PlayerData::ActionAnimation &anim = mDataBlock->actionList[i];
             if (anim.sequence != -1 && anim.speed) {
@@ -2643,7 +2632,7 @@ void Player::pickActionAnimation()
                else
                {
                   // Special case, re-use slide left animation to slide right
-                  if ((i == PlayerData::SideLeftAnim || i == PlayerData::CrouchSideLeftAnim) && -d > curMax)
+                  if (i == PlayerData::SideLeftAnim && -d > curMax)
                   {
                      curMax = -d;
                      action = i;
@@ -2654,6 +2643,12 @@ void Player::pickActionAnimation()
          }
       }
    }
+
+   if (mCrouching && (action >= PlayerData::RunForwardAnim) && (action <= PlayerData::SideLeftAnim))
+       action = PlayerData::CrouchRunForwardAnim + (action - PlayerData::RunForwardAnim);
+   else if (mCrouching && action == PlayerData::RootAnim)
+       action = PlayerData::CrouchRootAnim;
+
    setActionThread(action,forward,false,false);
 }
 
@@ -2691,12 +2686,6 @@ void Player::updateAnimation(F32 dt)
       mShapeInstance->advanceTime(dt,mActionAnimation.thread);
    if (mRecoilThread)
       mShapeInstance->advanceTime(dt,mRecoilThread);
-   if (mCrouchThread)
-   {
-       mShapeInstance->advanceTime(dt, mCrouchThread);
-       if (mShapeInstance->getPos(mCrouchThread) == 0.f && mShapeInstance->getTimeScale(mCrouchThread) != 1.f)
-           mShapeInstance->setSequence(mCrouchThread, 0, 0.f);
-   }
    if (mHeadUpThread)
        mShapeInstance->advanceTime(dt, mHeadUpThread);
 
@@ -2745,23 +2734,7 @@ void Player::setCrouching(bool val)
     if (isServerObject())
         setMaskBits(MoveMask);
 
-    if (mCrouching = val)
-    {
-        updateBox(mDataBlock->boxCrouchSize);
-
-        if (mCrouchThread)
-        {
-            mShapeInstance->setTimeScale(mCrouchThread, 1.f);
-            mShapeInstance->setSequence(mCrouchThread, mCrouchSeq, 0.f);
-        }
-    }
-    else
-    {
-        updateBox(mDataBlock->boxSize);
-
-        if (mCrouchThread)
-            mShapeInstance->setTimeScale(mCrouchThread, -1.f);
-    }
+    updateBox((mCrouching = val)? mDataBlock->boxCrouchSize : mDataBlock->boxSize);
 }
 
 bool Player::step(Point3F *pos,F32 *maxStep,F32 time)
