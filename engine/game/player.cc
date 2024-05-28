@@ -2641,13 +2641,12 @@ void Player::pickActionAnimation()
                }
             }
          }
+
+         // We're standing on something but when crouching we translate standing anims to crouching
+         if (mCrouching && (action >= PlayerData::RootAnim) && (action <= PlayerData::SideLeftAnim))
+             action = PlayerData::CrouchRootAnim + action;
       }
    }
-
-   if (mCrouching && (action >= PlayerData::RunForwardAnim) && (action <= PlayerData::SideLeftAnim))
-       action = PlayerData::CrouchRunForwardAnim + (action - PlayerData::RunForwardAnim);
-   else if (mCrouching && action == PlayerData::RootAnim)
-       action = PlayerData::CrouchRootAnim;
 
    setActionThread(action,forward,false,false);
 }
