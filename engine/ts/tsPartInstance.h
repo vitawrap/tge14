@@ -17,6 +17,7 @@ class TSPartInstance
    /// to source shapes's transforms or other animation properties will affect how the part instance displays.
    /// It is ok (even expected), however, to have many part instances accessing the same shape.
    TSShapeInstance * mSourceShape;
+   S32 mObjectIndex;
 
    /// @name Bounding info
    /// @{
@@ -87,6 +88,11 @@ public:
    Point3F & getCenter() { return mCenter; }
    Box3F & getBounds() { return mBounds; }
    F32 & getRadius() { return mRadius; }
+   Point3F const& getCenter() const { return mCenter; }
+   Box3F const& getBounds() const { return mBounds; }
+   F32 getRadius() const { return mRadius; }
+
+   MatrixF getTransform() const;
 
    void render(const Point3F * objectScale = NULL) { render(mCurrentObjectDetail,objectScale); }
    void render(S32 dl, const Point3F * objectScale = NULL);

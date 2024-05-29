@@ -36,6 +36,7 @@ void TSPartInstance::init(TSShapeInstance * sourceShape)
    mCurrentObjectDetail = 0;
    mCurrentIntraDL = 1.0f;
    mData = 0;
+   mObjectIndex = -1;
 }
 
 TSPartInstance::~TSPartInstance()
@@ -54,6 +55,7 @@ void TSPartInstance::addObject(S32 objectIndex)
       return;
 
    mMeshObjects.push_back(&mSourceShape->mMeshObjects[objectIndex]);
+   mObjectIndex = objectIndex;  // one object ref per part surely this can't go wrong
 
    // add any decals that are currently on?
    S32 decalIndex = mSourceShape->getShape()->objects[objectIndex].firstDecal;
@@ -84,6 +86,11 @@ void TSPartInstance::updateBounds()
    mCenter *= 0.5f;
    Point3F r = mBounds.max-mCenter;
    mRadius = mSqrt(mDot(r,r));
+}
+
+MatrixF TSPartInstance::getTransform() const
+{
+    return mSourceShape->mNodeTransforms[mSourceShape->mMeshObjects[mObjectIndex].nodeIndex];
 }
 
 //-------------------------------------------------------------------------------------
