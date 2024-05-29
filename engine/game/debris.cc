@@ -896,6 +896,10 @@ void Debris::renderObject(SceneState* state, SceneRenderImage* )
          {
             TSShapeInstance *parent = mPart->getSourceShapeInstance();
 
+            // It's important that body part origins are centered
+            Point3F pos = mPart->getCenter();
+            glTranslatef(-pos.x, -pos.y, -pos.z);
+
             parent->setupFog(fogAmount, state->getFogColor());
             TSMesh::setOverrideFade( alpha );
             mPart->render();
