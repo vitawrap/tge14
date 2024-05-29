@@ -2469,7 +2469,7 @@ void Player::updateActionThread()
          offset = mDataBlock->decalOffset;
       }
 
-      if (triggeredLeft || triggeredRight)
+      if ((mDamageState == Enabled) && (triggeredLeft || triggeredRight))
       {
          Point3F rot, pos;
          RayInfo rInfo;
