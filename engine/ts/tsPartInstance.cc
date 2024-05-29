@@ -94,7 +94,13 @@ void TSPartInstance::breakShape(TSShapeInstance * shape, S32 subShape, Vector<TS
 {
    AssertFatal(subShape>=0 && subShape<shape->mShape->subShapeFirstNode.size(),"TSPartInstance::breakShape: subShape out of range.");
 
+   // Node hierarchies (bones/skeletons) are contained in subshapes, so this tries to get the root skeleton node of default subshape (subshape 0)
    S32 start = shape->mShape->subShapeFirstNode[subShape];
+
+   // If the first node is the dumb dummy node, try to get to the next one
+   const TSShape::Node* node = &shape->mShape->nodes[start];
+   if (shape->mShape->getName(node->nameIndex) == StringTable->insert("Exp-Catch-Root"))
+       ++start;
 
    TSPartInstance::breakShape(shape, NULL, start, partList, probShatter, probBreak, probDepth);
 
