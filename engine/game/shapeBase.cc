@@ -1460,10 +1460,12 @@ void ShapeBase::blowUp()
    // Hack for a shape to look decent when debrisShape uses the same shapeName.
    Point3F center;
    MatrixF trans;
+   bool isSame = false;
    if (mDataBlock->shapeName == mDataBlock->debrisShapeName)
    {
        center = getPosition();
        trans = getTransform();
+       isSame = true;
    }
    else
    {
@@ -1514,6 +1516,11 @@ void ShapeBase::blowUp()
    {
       debShape = new TSShapeInstance( mDataBlock->debrisShape, true);
       debShape->reSkin( mSkinNameHandle );
+      
+      // Along with reskinning, copy colors over if it's the same shape
+      if (isSame)
+        for (U32 i = 0; i < debShape->getShape()->meshes.sz; ++i)
+            debShape->reColor(i, mShapeInstance->getColor(i));
    }
 
 
