@@ -1542,7 +1542,15 @@ void ShapeBase::blowUp()
       debris->setPartInstance( partList[i] );
       debris->init( center, randomDir );
       debris->onNewDataBlock( mDataBlock->debris );
-      debris->setTransform( trans );
+      if (isSame)
+      {
+          // correct, but needs to fix the rotation too. (needs full transformation)
+          //MatrixF corrected = trans;
+          //corrected.setColumn(3, trans.getPosition() + partList[i]->getCenter());
+          debris->setTransform( partList[i]->getTransform().mul(trans) );
+      }
+      else
+        debris->setTransform( trans );
 
       if( !debris->registerObject() )
       {
