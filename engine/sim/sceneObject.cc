@@ -216,7 +216,7 @@ ConsoleFunction( containerRayCast, const char*, 4, 5, "( Point3F start, Point3F 
       pExempt->disableCollision();
 
    RayInfo rinfo;
-   S32 ret = 0;
+   SimObjectId ret = 0;
    if (gServerContainer.castRay(start, end, mask, &rinfo) == true)
       ret = rinfo.object->getId();
 
@@ -226,7 +226,7 @@ ConsoleFunction( containerRayCast, const char*, 4, 5, "( Point3F start, Point3F 
    // add the hit position and normal?
    if(ret)
    {
-      dSprintf(returnBuffer, 256, "%d %g %g %g %g %g %g",
+      dSprintf(returnBuffer, 256, "%zu %g %g %g %g %g %g",
                ret, rinfo.point.x, rinfo.point.y, rinfo.point.z,
                rinfo.normal.x, rinfo.normal.y, rinfo.normal.z);
    }
