@@ -378,51 +378,6 @@ void ShapeBaseData::initPersistFields()
 
 }
 
-ConsoleMethod( ShapeBaseData, checkDeployPos, bool, 3, 3, "(Transform xform)")
-{
-   if (bool(object->shape) == false)
-      return false;
-
-   Point3F pos(0, 0, 0);
-   AngAxisF aa(Point3F(0, 0, 1), 0);
-   dSscanf(argv[2],"%g %g %g %g %g %g %g",
-           &pos.x,&pos.y,&pos.z,&aa.axis.x,&aa.axis.y,&aa.axis.z,&aa.angle);
-   MatrixF mat;
-   aa.setMatrix(&mat);
-   mat.setColumn(3,pos);
-
-   Box3F objBox = object->shape->bounds;
-   Point3F boxCenter = (objBox.min + objBox.max) * 0.5;
-   objBox.min = boxCenter + (objBox.min - boxCenter) * 0.9;
-   objBox.max = boxCenter + (objBox.max - boxCenter) * 0.9;
-
-   Box3F wBox = objBox;
-   mat.mul(wBox);
-
-   EarlyOutPolyList polyList;
-   polyList.mNormal.set(0,0,0);
-   polyList.mPlaneList.clear();
-   polyList.mPlaneList.setSize(6);
-   polyList.mPlaneList[0].set(objBox.min,VectorF(-1,0,0));
-   polyList.mPlaneList[1].set(objBox.max,VectorF(0,1,0));
-   polyList.mPlaneList[2].set(objBox.max,VectorF(1,0,0));
-   polyList.mPlaneList[3].set(objBox.min,VectorF(0,-1,0));
-   polyList.mPlaneList[4].set(objBox.min,VectorF(0,0,-1));
-   polyList.mPlaneList[5].set(objBox.max,VectorF(0,0,1));
-
-   for (U32 i = 0; i < 6; i++)
-   {
-      PlaneF temp;
-      mTransformPlane(mat, Point3F(1, 1, 1), polyList.mPlaneList[i], &temp);
-      polyList.mPlaneList[i] = temp;
-   }
-
-   if (gServerContainer.buildPolyList(wBox, InteriorObjectType | StaticShapeObjectType, &polyList))
-      return false;
-   return true;
-}
-
-
 ConsoleMethod(ShapeBaseData, getDeployTransform, const char *, 4, 4, "(Point3F pos, Point3F normal)")
 {
    Point3F position(argv[2]);
@@ -4250,6 +4205,56 @@ ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
     if ((mat = shape->findIflMaterial(argv[2])) != -1)
         return inst->mIflMaterialInstances[mat].frame;
     return 0;   // Pretend it's the first frame otherwise
+}
+
+ConsoleMethod(ShapeBase, checkDeployPos, bool, 3, 5, "(U32 mask, bool ignoreSelf=false, Transform xform=getTransform())")
+{
+    if (bool(object->getShape()) == false)
+        return false;
+
+    MatrixF mat;
+    if (argc > 4)
+    {
+        Point3F pos(0, 0, 0);
+        AngAxisF aa(Point3F(0, 0, 1), 0);
+        dSscanf(argv[4], "%g %g %g %g %g %g %g",
+            &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+        aa.setMatrix(&mat);
+        mat.setColumn(3, pos);
+    }
+    else mat = object->getTransform();
+
+    Box3F objBox = object->getShape()->bounds;
+    Point3F boxCenter = (objBox.min + objBox.max) * 0.5;
+    objBox.min = boxCenter + (objBox.min - boxCenter) * 0.9;
+    objBox.max = boxCenter + (objBox.max - boxCenter) * 0.9;
+
+    Box3F wBox = objBox;
+    mat.mul(wBox);
+
+    EarlyOutPolyList polyList;
+    polyList.mNormal.set(0, 0, 0);
+    polyList.mPlaneList.clear();
+    polyList.mPlaneList.setSize(6);
+    polyList.mPlaneList[0].set(objBox.min, VectorF(-1, 0, 0));
+    polyList.mPlaneList[1].set(objBox.max, VectorF(0, 1, 0));
+    polyList.mPlaneList[2].set(objBox.max, VectorF(1, 0, 0));
+    polyList.mPlaneList[3].set(objBox.min, VectorF(0, -1, 0));
+    polyList.mPlaneList[4].set(objBox.min, VectorF(0, 0, -1));
+    polyList.mPlaneList[5].set(objBox.max, VectorF(0, 0, 1));
+
+    for (U32 i = 0; i < 6; i++)
+    {
+        PlaneF temp;
+        mTransformPlane(mat, object->getScale(), polyList.mPlaneList[i], &temp);
+        polyList.mPlaneList[i] = temp;
+    }
+
+    bool ignoreSelf = argc > 3 ? dAtob(argv[3]) : false;
+    if (ignoreSelf) object->disableCollision();        //originally: InteriorObjectType | StaticShapeObjectType
+    bool result = !gServerContainer.buildPolyList(wBox, dAtoi(argv[2]), &polyList);
+    if (ignoreSelf) object->enableCollision();
+    return result;
 }
 
 //----------------------------------------------------------------------------
