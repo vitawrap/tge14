@@ -133,6 +133,15 @@ ConsoleMethod( SceneObject, getObjectBox, const char *, 2, 2, "Returns the bound
    return returnBuffer;
 }
 
+ConsoleMethod(SceneObject, getObjectBoxSize, const char*, 2, 2, "Returns the size of the bounding box for all axes in object coords.")
+{
+    char* returnBuffer = Con::getReturnBuffer(256);
+    const Box3F& box = object->getObjBox();
+    const Point3F diff = box.min + box.max;
+    dSprintf(returnBuffer, 256, "%g %g %g", diff.x, diff.y, diff.z);
+    return returnBuffer;
+}
+
 ConsoleFunctionGroupBegin( Containers,  "Functions for ray casting and spatial queries.\n\n"
                                         "@note These only work server-side.");
 
