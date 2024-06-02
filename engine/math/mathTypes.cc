@@ -489,7 +489,24 @@ ConsoleFunction( MatrixMulPoint, const char*, 3, 3, "(MatrixF xfrm, Point3F pnt)
 
 ConsoleFunctionGroupEnd(MatrixMath);
 
+//------------------------------------------------------------------------------
+
 ConsoleFunctionGroupBegin(PlaneMath, "Plane manipulation functions.");
+
+ConsoleFunction(Plane, const char*, 2, 3, "(Point3F normal, Point3F pos=\"0 0 0\") -> PlaneF")
+{
+    Point3F n(argv[1]);
+    Point3F p;
+    if (argc > 2)
+        p = Point3F(argv[2]);
+    else
+        p.set(0.f, 0.f, 0.f);
+
+    PlaneF plane(p, n);
+    char* ret = Con::getReturnBuffer(256);
+    dSprintf(ret, 255, "%g %g %g %g", plane.x, plane.y, plane.z, plane.d);
+    return ret;
+}
 
 ConsoleFunction(PlaneDist, F32, 3, 3, "(PlaneF plane, Point3F pt) Get signed distance of pt from plane.")
 {
