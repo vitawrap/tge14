@@ -60,6 +60,16 @@ ConsoleMethod( SceneObject, getPosition, const char*, 2, 2, "Get position of obj
    return returnBuffer;
 }
 
+ConsoleMethod(SceneObject, getRightVector, const char*, 2, 2, "Returns a vector indicating the right vector of this object.")
+{
+    char* returnBuffer = Con::getReturnBuffer(256);
+    const MatrixF& mat = object->getTransform();
+    Point3F dir;
+    mat.getColumn(0, &dir);
+    dSprintf(returnBuffer, 256, "%g %g %g", dir.x, dir.y, dir.z);
+    return returnBuffer;
+}
+
 ConsoleMethod( SceneObject, getForwardVector, const char*, 2, 2, "Returns a vector indicating the direction this object is facing.")
 {
    char *returnBuffer = Con::getReturnBuffer(256);
@@ -68,6 +78,16 @@ ConsoleMethod( SceneObject, getForwardVector, const char*, 2, 2, "Returns a vect
    mat.getColumn(1,&dir);
    dSprintf(returnBuffer,256,"%g %g %g",dir.x,dir.y,dir.z);
    return returnBuffer;
+}
+
+ConsoleMethod(SceneObject, getUpVector, const char*, 2, 2, "Returns a vector indicating the up vector of this object.")
+{
+    char* returnBuffer = Con::getReturnBuffer(256);
+    const MatrixF& mat = object->getTransform();
+    Point3F dir;
+    mat.getColumn(2, &dir);
+    dSprintf(returnBuffer, 256, "%g %g %g", dir.x, dir.y, dir.z);
+    return returnBuffer;
 }
 
 ConsoleMethod( SceneObject, setTransform, void, 3, 3, "(Transform T)")
