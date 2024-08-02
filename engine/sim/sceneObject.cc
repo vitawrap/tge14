@@ -1350,6 +1350,11 @@ bool Container::castRay(const Point3F &start, const Point3F &end, U32 mask, RayI
       F32 currStartX = normalStart.x;
 
       AssertFatal(currStartX != normalEnd.x, "This is going to cause problems in Container::castRay");
+      if (mIsNaN(currStartX))
+      {
+          PROFILE_END();
+          return false;
+      }
       while (currStartX != normalEnd.x)
       {
          F32 currEndX   = getMin(currStartX + csmTotalBinSize, normalEnd.x);
