@@ -187,6 +187,7 @@ U32 PathManager::allocatePathId()
 
 
 void PathManager::updatePath(const U32              id,
+                             Path*                  path,
                              const Vector<Point3F>& positions,
                              const Vector<QuatF>&   rotations,
                              const Vector<U32>&     times,
@@ -198,6 +199,7 @@ void PathManager::updatePath(const U32              id,
 
    PathEntry& rEntry = *mPaths[id];
 
+   rEntry.pathRef   = path;
    rEntry.positions = positions;
    rEntry.rotations = rotations;
    rEntry.msToNext  = times;

@@ -25,6 +25,7 @@
 
 class NetConnection;
 class BitStream;
+class Path;
 
 class PathManager
 {
@@ -32,6 +33,7 @@ class PathManager
 
   private:
    struct PathEntry {
+      Path*           pathRef;  // Server-only
       U32             totalTime;
 
       Vector<Point3F> positions;
@@ -82,7 +84,7 @@ class PathManager
    void transmitPath(U32);
 
    U32  allocatePathId();
-   void updatePath(const U32 id, const Vector<Point3F>&, const Vector<QuatF>&, const Vector<U32> &, const Vector<U32>&);
+   void updatePath(const U32 id, Path* path, const Vector<Point3F>&, const Vector<QuatF>&, const Vector<U32> &, const Vector<U32>&);
 
    //-------------------------------------- State dumping/reading
   public:
