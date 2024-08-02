@@ -65,6 +65,11 @@ class Box3F
    /// This is the average of min and max.
    void getCenter(Point3F* center) const;
 
+   /// Get the volume of this box.
+   ///
+   /// This is the subtraction of max with min.
+   F32 getVolume() const { return (max - min).len(); }
+
    /// Collide a line against the box.
    ///
    /// @param   start   Start of line.
