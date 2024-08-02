@@ -394,6 +394,10 @@ inline F64 mCeilD(const F64 val)
    return (F64) ceil(val);
 }
 
+inline F64 mIsNaN(const F64 val)
+{
+    return (F64) isnan(val);
+}
 
 //--------------------------------------
 #ifndef _MPOINT_H_
