@@ -76,7 +76,7 @@ void GameTSCtrl::onRender(Point2I offset, const RectI &updateRect)
    if(!skipRender)
       Parent::onRender(offset, updateRect);
 
-   dglSetViewport(updateRect);
+   dglSetViewportScaled(updateRect);
    CameraQuery camq = mLastCameraQuery;
    if(GameProcessCameraQuery(&camq))
       GameRenderFilters(camq);

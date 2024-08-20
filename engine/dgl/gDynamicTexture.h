@@ -25,8 +25,9 @@ private:
    RectI mUpdateRect;               ///< When you call update() this is the rect, in screen coordinates, that gets grabbed
    RectF mTextureCoords;            ///< This is the texturecoord information you need to know to create texturecoords
                                     ///< if you are not using dglDrawBitmap
-   bool mRTT;                       ///< Supports RTT emulation for Gui @see renderGuiControl
-   bool mHasUpdateRect;             ///< Lets this have a default constructor
+   bool mRTT: 1;                    ///< Supports RTT emulation for Gui @see renderGuiControl
+   bool mHasUpdateRect: 1;          ///< Lets this have a default constructor
+   bool mMustScale: 1;              ///< Should be affected by GUI scaling
 
    GuiControl *mGuiControl;         ///< If the object is registered as wanting a Gui update every frame, this is
                                     ///< the variable that contains the Gui control it will render
@@ -135,6 +136,9 @@ public:
    /// Manually enable or disable RTT mode
    void setEnableRTT( bool enable = true );
 
+   /// Manually enable or disable scaling tied to GUI
+   void setMustScale(bool enable) { mMustScale = enable; }
+
    /// Stores the pixels defined by the updateRect into a temporary
    /// DynamicTexture object so that they can be restored at a later
    /// time.
@@ -221,6 +225,7 @@ inline void DynamicTexture::initDT()
 {
    mTexCBHandle = TextureManager::registerEventCallback(dynamicTextureCB, this);
    mTextureHandle = NULL;
+   mMustScale = false;
    mRTT = false;
    mHasUpdateRect = false;
    mGuiControl = NULL;

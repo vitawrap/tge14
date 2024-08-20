@@ -67,6 +67,7 @@ protected:
    RectI      mOldUpdateRects[2];
    RectI      mCurUpdateRect;
    F32        rLastFrameTime;
+   F32        mScalingFactor;   ///< Factor for virtual scaling.
    /// @}
 
    /// @name Cursor Properties
@@ -171,6 +172,10 @@ public:
    /// sub-classes in case they wanted to do some custom code before the buffer
    /// flip occured.
    virtual void swapBuffers();
+
+   /// Set scaling factor of GUI in virtual scaling mode, (>1 doesn't work correctly :)).
+   void setScalingFactor(F32 f) { mScalingFactor = mClampF(f, 0.5f, 1.f); }
+   F32 getScalingFactor() const { return mScalingFactor; }
 
    /// @}
 

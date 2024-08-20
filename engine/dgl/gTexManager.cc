@@ -1225,7 +1225,7 @@ TextureObject* TextureManager::registerTexture(const char* textureName, GBitmap*
       ret->smallTexGLName = 0;
       ret->refCount       = 0;
       ret->type           = type;
-    ret->filterNearest= false;
+      ret->filterNearest  = type == BitmapKeepTexture; // Nicer for GUI.
 
       TextureDictionary::insert(ret);
    }

@@ -85,31 +85,37 @@ void DynamicTexture::update()
    if( !mHasUpdateRect )
       return;
 
-   RectI *rect = &mUpdateRect;
+   RectI rect = mUpdateRect;
 
-   // Different-rect updating provided it is the same size
-   if( 0 )
-   {
-      /// rect = something differing
-      AssertFatal( rect->extent.x <= mUpdateRect.extent.x &&
-                   rect->extent.y <= mUpdateRect.extent.x, "Cannot update a DynamicTexture with an update area larger than it's allocated area." );
-   }
-
+   if (rect.extent.x == 0 || rect.extent.y == 0)
+       return;
 
    // Do the screen copy
    glReadBuffer( GL_BACK );
    glBindTexture( GL_TEXTURE_2D, mTextureHandle->getGLName() );
    glCopyTexSubImage2D( GL_TEXTURE_2D, 0,          // 0 = no mipmaplevels
                         0, 0,                      // X and y offsets, see docs
-                        rect->point.x, rect->point.y,
-                        rect->extent.x, rect->extent.y );
+                        rect.point.x, rect.point.y,
+                        rect.extent.x, rect.extent.y );
 }
 
 //------------------------------------------------------------------------------
 
-void DynamicTexture::setUpdateRect( const RectI &newRect )
+void DynamicTexture::setUpdateRect( const RectI &_newRect )
 {
    mHasUpdateRect = true;
+
+   RectI newRect = _newRect;
+#if TORQUE_GUI_SCALING
+   // If GUI scaling is active we have to fix the scale here...
+   if (mMustScale)
+   {
+       newRect.point.x = (F32)_newRect.point.x * gScalingRatio.x;
+       newRect.point.y = (F32)_newRect.point.y * gScalingRatio.y;
+       newRect.extent.x = (F32)_newRect.extent.x * gScalingRatio.x;
+       newRect.extent.y = (F32)_newRect.extent.y * gScalingRatio.y;
+   }
+#endif
 
    // Check to see if this is being called as part of the constructor
    if( mTextureHandle == NULL )

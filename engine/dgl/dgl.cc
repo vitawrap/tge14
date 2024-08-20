@@ -612,6 +612,17 @@ void dglSetClipRect(const RectI &clipRect)
    U32 screenWidth  = Platform::getWindowSize().x;
    U32 screenHeight = Platform::getWindowSize().y;
 
+#if TORQUE_GUI_SCALING
+   RectI realRect(
+       (F32)clipRect.point.x * gScalingRatio.x,
+       (F32)clipRect.point.y * gScalingRatio.y,
+       (F32)clipRect.extent.x * gScalingRatio.x,
+       (F32)clipRect.extent.y * gScalingRatio.y
+   );
+#else
+   RectI realRect = clipRect;
+#endif
+
    glOrtho(clipRect.point.x, clipRect.point.x + clipRect.extent.x,
            clipRect.extent.y, 0,
            0, 1);
@@ -620,8 +631,8 @@ void dglSetClipRect(const RectI &clipRect)
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 
-   glViewport(clipRect.point.x, screenHeight - (clipRect.point.y + clipRect.extent.y),
-              clipRect.extent.x, clipRect.extent.y);
+   glViewport(realRect.point.x, screenHeight - (realRect.point.y + realRect.extent.y),
+       realRect.extent.x, realRect.extent.y);
 
    sgCurrentClipRect = clipRect;
 }

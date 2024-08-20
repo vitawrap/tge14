@@ -186,6 +186,11 @@ ConsoleMethod( GuiCanvas, setCursorPos, void, 3, 4, "(Point2I pos)")
    Canvas->setCursorPos(pos);
 }
 
+ConsoleMethod(GuiCanvas, setScalingFactor, void, 3, 3, "(F32 factor)")
+{
+    Canvas->setScalingFactor(dAtof(argv[2]));
+}
+
 ConsoleFunction( createCanvas, bool, 2, 2, "(string windowTitle)"
                 "Create the game window/canvas, with the specified window title.")
 {
@@ -209,6 +214,7 @@ GuiCanvas::GuiCanvas()
 {
    mBounds.set(0, 0, 640, 480);
    mAwake = true;
+   mScalingFactor = 1.0f;
    mPixelsPerMickey = 1.0f;
    lastCursorON = false;
    cursorON    = true;
@@ -321,16 +327,25 @@ void GuiCanvas::processMouseMoveEvent(const MouseMoveEvent *event)
 {
    if( cursorON )
    {
+#if TORQUE_GUI_SCALING
+        // pretend the window is smaller,
+        // this also fixes bad mouse re-centering.
+        S32 xPos = (F32)event->xPos * mScalingFactor;
+        S32 yPos = (F32)event->yPos * mScalingFactor;
+#else
+        S32 xPos = event->xPos, yPos = event->yPos;
+#endif
+
 		//copy the modifier into the new event
 		mLastEvent.modifier = event->modifier;
 
 		Point2F pt(cursorPt.x, cursorPt.y);
 
-		pt.x += ( F32(event->xPos - cursorPt.x) * mPixelsPerMickey);
-		cursorPt.x = getMax(0, getMin((S32)pt.x, mBounds.extent.x - 1));
+		pt.x += ( F32(xPos - cursorPt.x) * mPixelsPerMickey);
+		cursorPt.x = mClampF(pt.x, 0, mBounds.extent.x - 1);
 
-		pt.y += ( F32(event->yPos - cursorPt.y) * mPixelsPerMickey);
-		cursorPt.y = getMax(0, getMin((S32)pt.y, mBounds.extent.y - 1));
+		pt.y += ( F32(yPos - cursorPt.y) * mPixelsPerMickey);
+		cursorPt.y = mClampF(pt.y, 0, mBounds.extent.y - 1);
 
 		mLastEvent.mousePoint.x = S32(cursorPt.x);
 		mLastEvent.mousePoint.y = S32(cursorPt.y);
@@ -455,14 +470,14 @@ bool GuiCanvas::processInputEvent(const InputEvent *event)
          if (event->objType == SI_XAXIS)
          {
             pt.x += (event->fValue * mPixelsPerMickey);
-            cursorPt.x = getMax(0, getMin((S32)pt.x, mBounds.extent.x - 1));
+            cursorPt.x = mClampF(pt.x, 0, mBounds.extent.x - 1);
             if (oldpt.x != S32(cursorPt.x))
                moved = true;
          }
          else
          {
             pt.y += (event->fValue * mPixelsPerMickey);
-            cursorPt.y = getMax(0, getMin((S32)pt.y, mBounds.extent.y - 1));
+            cursorPt.y = mClampF(pt.y, 0, mBounds.extent.y - 1);
             if (oldpt.y != S32(cursorPt.y))
                moved = true;
          }
@@ -1102,13 +1117,22 @@ void GuiCanvas::renderFrame(bool preRenderOnly, bool bufferSwap /* = true */)
    // Render all RTT Gui's HERE
    //DynamicTexture::updateGuiTextures();
 
-   Point2I size = Platform::getWindowSize();
+#if TORQUE_GUI_SCALING
+   Point2I const& wSize = Platform::getWindowSize();
+   Point2I size(mScalingFactor * wSize.x, mScalingFactor * wSize.y);
+   mPixelsPerMickey = mScalingFactor;
+#else
+   Point2I const& size = Platform::getWindowSize();
+#endif
 
    if(size.x == 0 || size.y == 0)
       return;
 
    RectI screenRect(0, 0, size.x, size.y);
    mBounds = screenRect;
+
+   //compute viewport scaling ratio for this frame
+   dglComputeViewportScaling(size);
 
    //all bottom level controls should be the same dimensions as the canvas
    //this is necessary for passing mouse events accurately
@@ -1184,8 +1208,8 @@ void GuiCanvas::renderFrame(bool preRenderOnly, bool bufferSwap /* = true */)
    if (updateUnion.intersect(screenRect))
    {
       //fill in with black first
-      //glClearColor(0, 0, 0, 0);
-      //glClear(GL_COLOR_BUFFER_BIT);
+      glClearColor(0, 0, 0, 0);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       //render the dialogs
       iterator i;

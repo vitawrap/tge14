@@ -57,6 +57,7 @@ void dglGetProjection(MatrixF *m)
    m->transpose();
 }
 
+Point2F gScalingRatio{ 1.f, 1.f };
 static F64 frustLeft = 0, frustRight = 1, frustBottom, frustTop, frustNear, frustFar;
 static RectI viewPort;
 static F32 pixelScale;
@@ -108,17 +109,48 @@ bool dglIsOrtho()
    return isOrtho;
 }
 
-void dglSetViewport(const RectI &aViewPort)
+void dglComputeViewportScaling(const Point2I& virtualRes)
 {
-   viewPort = aViewPort;
-   U32 screenHeight = Platform::getWindowSize().y;
-   //glViewport(viewPort.point.x, viewPort.point.y + viewPort.extent.y,
-   //           viewPort.extent.x, -viewPort.extent.y);
+#if TORQUE_GUI_SCALING
+    U32 screenWidth = Platform::getWindowSize().x;
+    U32 screenHeight = Platform::getWindowSize().y;
 
-   glViewport(viewPort.point.x, screenHeight - (viewPort.point.y + viewPort.extent.y),
-              viewPort.extent.x, viewPort.extent.y);
-   pixelScale = viewPort.extent.x / 640.0;
-   worldToScreenScale = (frustNear * viewPort.extent.x) / (frustRight - frustLeft);
+    // calculate ratio of virtual res over real res
+    gScalingRatio = Point2F(1.f / ((F32)virtualRes.x / screenWidth), 1.f / ((F32)virtualRes.y / screenHeight));
+#endif
+}
+
+void dglSetViewport(const RectI& aViewPort)
+{
+    viewPort = aViewPort;
+    U32 screenHeight = Platform::getWindowSize().y;
+    //glViewport(viewPort.point.x, viewPort.point.y + viewPort.extent.y,
+    //           viewPort.extent.x, -viewPort.extent.y);
+
+    glViewport(viewPort.point.x, screenHeight - (viewPort.point.y + viewPort.extent.y),
+        viewPort.extent.x, viewPort.extent.y);
+    pixelScale = viewPort.extent.x / 640.0;
+    worldToScreenScale = (frustNear * viewPort.extent.x) / (frustRight - frustLeft);
+}
+
+void dglSetViewportScaled(RectI aViewPort)
+{
+#if TORQUE_GUI_SCALING
+    aViewPort.point.x *= gScalingRatio.x;
+    aViewPort.point.y *= gScalingRatio.y;
+    aViewPort.extent.x *= gScalingRatio.x;
+    aViewPort.extent.y *= gScalingRatio.y;
+#endif
+
+    viewPort = aViewPort;
+    U32 screenHeight = Platform::getWindowSize().y;
+    //glViewport(viewPort.point.x, viewPort.point.y + viewPort.extent.y,
+    //           viewPort.extent.x, -viewPort.extent.y);
+
+    glViewport(aViewPort.point.x, screenHeight - (aViewPort.point.y + aViewPort.extent.y),
+        aViewPort.extent.x, aViewPort.extent.y);
+    pixelScale = aViewPort.extent.x / 640.0;
+    worldToScreenScale = (frustNear * aViewPort.extent.x) / (frustRight - frustLeft);
 }
 
 void dglGetViewport(RectI* outViewport)

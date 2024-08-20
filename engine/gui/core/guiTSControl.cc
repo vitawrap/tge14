@@ -132,7 +132,7 @@ void GuiTSCtrl::onRender(Point2I offset, const RectI &updateRect)
       bottom   = wheight - vscale * (updateRect.point.y + updateRect.extent.y - offset.y);
    }
 
-   dglSetViewport(updateRect);
+   dglSetViewportScaled(updateRect);
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    dglSetFrustum(left, right, bottom, top, newCam.nearPlane,  (gClientSceneGraph ? (F64)gClientSceneGraph->getVisibleDistanceMod() : newCam.farPlane), newCam.ortho);
