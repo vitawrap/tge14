@@ -39,6 +39,7 @@ public:
    virtual void resize(const Point2I& newPosition, const Point2I& newExtent)
    {
        Parent::resize(newPosition, newExtent);
+       mFramebufferTexture.setMustScale(true);
        mFramebufferTexture.setUpdateRect(RectI(newPosition, newExtent));
    }
    virtual void setVisible(bool vis) override
@@ -115,7 +116,7 @@ public:
               ColorI color(255,255,255,alpha);
               dglSetBitmapModulation(color);
               dglSetClipRect(updateRect);
-              dglDrawBitmap(mFramebufferTexture.getTextureHandle(), offset, GFlip_Y);
+              dglDrawBitmapStretch(mFramebufferTexture.getTextureHandle(), updateRect, GFlip_Y);
               dglSetBitmapModulation(oldMod);
           }
       }

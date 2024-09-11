@@ -192,8 +192,12 @@ F32 dglProjectRadius(F32 dist, F32 radius);
 /// These functions set up the view cube of the window.
 /// @{
 
+/// compute GUI scaling ratio 
+void dglComputeViewportScaling(const Point2I& virtualRes);
 /// sets the viewport for the window
-void dglSetViewport(const RectI &aViewPort);
+void dglSetViewport(const RectI& aViewPort);
+/// sets a scaled viewport for the window (not used by SceneObjects, only for GUIs)
+void dglSetViewportScaled(RectI aViewPort);
 /// gets the current viewport of the window
 void dglGetViewport(RectI* outViewport);
 /// Sets the viewing frustrum.  This effectively creates the view volume and sets up the 6 clipping planes (near, far, left, right, top, bottom)
@@ -276,5 +280,8 @@ bool dglCheckState(const S32 mvDepth, const S32 pDepth,
 
 /// Number of full screen anti-aliasting samples
 extern signed int gFSAASamples;
+
+/// GUI scaling ratio
+extern Point2F gScalingRatio;
 
 #endif // _H_DGL

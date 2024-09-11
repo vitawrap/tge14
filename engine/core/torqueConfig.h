@@ -74,6 +74,9 @@
 /// default.
 //#define TORQUE_NO_OGGVORBIS
 
+/// Set to 0 to disable virtual scale support. This is an experimental update.
+#define TORQUE_GUI_SCALING 1
+
 // Finally, we define some dependent #defines. This enables some subsidiary
 // functionality to get automatically turned on in certain configurations.
 

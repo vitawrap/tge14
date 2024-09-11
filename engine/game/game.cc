@@ -64,7 +64,7 @@ ConsoleFunction(screenShot, void, 3, 3, "(string file, string format)"
 
    glReadBuffer(GL_FRONT);
 
-   Point2I extent = Canvas->getExtent();
+   Point2I const& extent = Platform::getWindowSize();
    U8 * pixels = new U8[extent.x * extent.y * 3];
    glReadPixels(0, 0, extent.x, extent.y, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
