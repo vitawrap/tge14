@@ -9,6 +9,7 @@
 #include "console/console.h"
 #include "console/consoleTypes.h"
 #include "game/gameConnection.h"
+#include "audio/audioCodec.h"
 #include "core/fileStream.h"
 #include "audio/audioStreamSourceFactory.h"
 
@@ -17,6 +18,11 @@
 #endif
 
 //-------------------------------------------------------------------------
+#define RECORD_SPEED          8000              // default rate for capturing
+#define RECORD_FORMAT         AL_FORMAT_MONO16  // capture format
+#define RECORD_BUFFERSIZE     1024              // 1k capture buffer size
+#define RECORD_SEC            4                 // 4seconds max capture time
+#define RECORD_LEN            (RECORD_SEC * 1000) 
 #define MAX_AUDIOSOURCES      16                // maximum number of concurrent sources
 #define MIN_GAIN              0.05f             // anything with lower gain will not be started
 #define MIN_UNCULL_PERIOD     500               // time before buffer is checked to be unculled
@@ -30,7 +36,8 @@
 static bool mDisableOuterFalloffs = false;      // forced max falloff?
 static F32 mInnerFalloffScale = 1.f;            // amount to scale inner falloffs
 
-static ALCdevice *mDevice   = NULL;             // active OpenAL device
+static F32 mCaptureGainScale = 1.f;             // amount to scale captured buffers before sending to server
+static ALCdevice *mDevice   = NULL;             // active OpenAL output device
 static ALCcontext *mContext = NULL;             // active OpenAL context
 F32 mAudioTypeVolume[Audio::NumAudioTypes];     // the attenuation for each of the channel types
 
@@ -65,6 +72,16 @@ struct LoopingImage
 };
 
 //-------------------------------------------------------------------------
+struct VoiceStream
+{
+    U32                           mClientId;
+    U8                            mCodecId;
+    U8                            mStreamId;
+    VoiceDecoderStream            mDecoderStream;
+    ALuint                        mBuffer;
+    AUDIOHANDLE                   mHandle;
+};
+
 static F32 mMasterVolume = 1.f;           // traped from AL_LISTENER gain (miles has difficulties with 3d sources)
 
 static ALuint                 mSource[MAX_AUDIOSOURCES];                   // ALSources
@@ -73,12 +90,20 @@ static Resource<AudioBuffer>  mBuffer[MAX_AUDIOSOURCES];                   // ea
 static F32                    mScore[MAX_AUDIOSOURCES];                    // for figuring out which sources to cull/uncull
 static F32                    mSourceVolume[MAX_AUDIOSOURCES];             // the samples current un-attenuated gain (not scaled by master/channel gains)
 static U32                    mType[MAX_AUDIOSOURCES];                     // the channel which this source belongs
+static bool                   mRecording = false;                          // currently recording?
+static bool                   mLocalCapture = false;                       // recording to local buffer?
+static ALCdevice*             mCaptureDevice = NULL;                       // capture initialized?
 
 static AudioSampleEnvironment*        mSampleEnvironment[MAX_AUDIOSOURCES];           // currently playing sample environments
 static bool                           mEnvironmentEnabled = false;                    // environment enabled?
 static SimObjectPtr<AudioEnvironment> mCurrentEnvironment;                            // the last environment set
 
-static ALuint mEnvironment = 0;                        // al environment handle
+#define LOCAL_CAPTURE_SIZE       (RECORD_LEN * RECORD_SPEED)
+static U8*              mLocalCaptureBuffer = 0;                 // buffer to contain captured data
+static U32              mLocalCaptureBufferPos = 0;              // current capture buffer pos (circular)
+static bool             mLocalCaptureFinished = false;           // finished capturing? (set in callback)
+static ALuint           mALCaptureBuffer = 0;                    // the buffer used to playback local capture data
+static ALuint           mEnvironment = 0;                        // al environment handle
 
 struct LoopingList : VectorPtr<LoopingImage*>
 {
@@ -108,15 +133,20 @@ static StreamingList mStreamingList;                 // all the streaming source
 static StreamingList mStreamingInactiveList;         // sources which have not been played yet
 static StreamingList mStreamingCulledList;           // sources which have been culled (alxPlay called)
 
-#define AUDIOHANDLE_LOOPING_BIT  (0x80000000)
-#define AUDIOHANDLE_STREAMING_BIT  (0x40000000)
-#define AUDIOHANDLE_INACTIVE_BIT (0x20000000)
-#define AUDIOHANDLE_LOADING_BIT  (0x10000000)
-#define HANDLE_MASK             ~(AUDIOHANDLE_LOOPING_BIT | AUDIOHANDLE_INACTIVE_BIT | AUDIOHANDLE_LOADING_BIT)
+static VectorPtr<VoiceStream*>   sVoiceStreams(__FILE__, __LINE__);
+static VectorPtr<VoiceStream*>   sVoiceStreams_free(__FILE__, __LINE__);
+
+static VoiceEncoderStream        mVoiceEncoderStream;
+
+#define AUDIOHANDLE_LOOPING_BIT   (0x80000000)
+#define AUDIOHANDLE_STREAMING_BIT (0x40000000)
+#define AUDIOHANDLE_INACTIVE_BIT  (0x20000000)
+#define AUDIOHANDLE_VOICE_BIT     (0x10000000)
+#define HANDLE_MASK             ~(AUDIOHANDLE_LOOPING_BIT | AUDIOHANDLE_INACTIVE_BIT)
 
 // keep the 'AUDIOHANDLE_LOOPING_BIT' on the handle returned to the caller so that
 // the handle can quickly be rejected from looping list queries
-#define RETURN_MASK             ~(AUDIOHANDLE_INACTIVE_BIT | AUDIOHANDLE_LOADING_BIT)
+#define RETURN_MASK             ~(AUDIOHANDLE_INACTIVE_BIT)
 static AUDIOHANDLE mLastHandle = NULL_AUDIOHANDLE;
 
 static bool mForceMaxDistanceUpdate = false;       // force gain setting for 3d distances
@@ -124,6 +154,9 @@ static U32  mNumSources = 0;                       // total number of sources to
 static U32  mRequestSources = MAX_AUDIOSOURCES;    // number of sources to request from openAL
 
 #define INVALID_SOURCE        0xffffffff
+#define CAPTURE_BUFFER_SIZE   (300)
+
+static U32 sCaptureTimeout = 0;
 
 inline bool areEqualHandles(AUDIOHANDLE a, AUDIOHANDLE b)
 {
@@ -789,7 +822,7 @@ AUDIOHANDLE alxCreateSource(const Audio::Description *desc,
        // Intangir> why is loading bit never used anywhere else?
        // comes in handy for my oggmixedstream
        // (prevents it from being deleted before it is loaded)
-       mHandle[index] |= AUDIOHANDLE_STREAMING_BIT | AUDIOHANDLE_LOADING_BIT;
+       mHandle[index] |= AUDIOHANDLE_STREAMING_BIT;
 
       AudioStreamSource * streamSource = createStreamingSource(filename);
       if (streamSource)
@@ -859,17 +892,17 @@ AUDIOHANDLE alxPlay(AUDIOHANDLE handle)
       // play if not already playing
       if(mHandle[index] & AUDIOHANDLE_INACTIVE_BIT)
       {
-			mHandle[index] &= ~(AUDIOHANDLE_INACTIVE_BIT | AUDIOHANDLE_LOADING_BIT);
+			mHandle[index] &= ~(AUDIOHANDLE_INACTIVE_BIT);
 
          // make sure the looping image also clears it's inactive bit
          LoopingList::iterator itr = mLoopingList.findImage(handle);
          if(itr)
-            (*itr)->mHandle &= ~(AUDIOHANDLE_INACTIVE_BIT | AUDIOHANDLE_LOADING_BIT);
+            (*itr)->mHandle &= ~(AUDIOHANDLE_INACTIVE_BIT);
 
          // make sure the streaming image also clears it's inactive bit
          StreamingList::iterator itr2 = mStreamingList.findImage(handle);
          if(itr2)
-            (*itr2)->mHandle &= ~(AUDIOHANDLE_INACTIVE_BIT | AUDIOHANDLE_LOADING_BIT);
+            (*itr2)->mHandle &= ~(AUDIOHANDLE_INACTIVE_BIT);
 
          alSourcePlay(mSource[index]);
 
@@ -1574,6 +1607,298 @@ void alxGetListenerf(ALenum param, ALfloat *value)
       alGetListenerf(param, value);
 }
 
+//--------------------------------------------------------------------------
+// Capture methods
+//--------------------------------------------------------------------------
+void alxCaptureDestroy()
+{
+    if (mCaptureDevice)
+        alcCaptureCloseDevice(mCaptureDevice);
+
+    mVoiceEncoderStream.setCodec(AUDIO_CODEC_NONE);
+    AudioCodecManager::destroy();
+
+    mCaptureDevice = NULL;
+}
+
+bool alxCaptureInit()
+{
+    alxCaptureDestroy();
+
+    mCaptureDevice = alcCaptureOpenDevice(NULL, RECORD_SPEED, RECORD_FORMAT, RECORD_BUFFERSIZE);
+    if (!mCaptureDevice)
+        return(false);
+
+    // 0: <.v12>  1: <.v24>  2: <.v29>  3: <gsm>
+    S32 encodingId = Con::getIntVariable("$pref::Audio::encodingLevel", AUDIO_CODEC_OPUS);
+    S32 decodingMask = Con::getIntVariable("$pref::Audio::decodingMask", 1 << AUDIO_CODEC_OPUS);
+
+    // bring up the encoder (decoders instantiated when needed..)
+    if (!mVoiceEncoderStream.setCodec(encodingId) || !mVoiceEncoderStream.open())
+        return(false);
+
+    return(true);
+}
+
+//--------------------------------------------------------------------------
+void alxCaptureStart(bool local)
+{
+    if (!mCaptureDevice || mRecording)
+        return;
+
+    mLocalCapture = local;
+    if (mLocalCapture)
+    {
+        mLocalCaptureBuffer = (U8*)dMalloc(LOCAL_CAPTURE_SIZE);
+        mLocalCaptureBufferPos = 0;
+        Con::executef(2, "localCaptureStart", "record");
+    }
+    else
+    {
+        GameConnection* connection = GameConnection::getConnectionToServer();
+        if (!connection)
+        {
+            Con::errorf(ConsoleLogEntry::General, "alxCaptureStart: no server connection");
+            return;
+        }
+        mVoiceEncoderStream.setConnection(connection);
+    }
+    sCaptureTimeout = Platform::getRealMilliseconds();
+
+    alCaptureStart(mCaptureDevice);
+    mRecording = true;
+}
+
+void scaleSamples(void* data, U32 size, U32 format, F32 scale)
+{
+    if ((format != AL_FORMAT_MONO16) || (scale == 1.f))
+        return;
+
+    S16* pData = (S16*)data;
+    U32 samples = size >> 1;
+
+    for (U32 i = 0; i < samples; i++)
+    {
+        S32 samp = pData[i];
+        samp *= scale;
+        pData[i] = mClamp(samp, S16_MIN, S16_MAX);
+    }
+}
+
+static void alxCaptureSend(bool flush = false)
+{
+    U32 size;
+    U8 buffer[CAPTURE_BUFFER_SIZE];
+    do {
+        size = alcCaptureSamples(mCaptureDevice, buffer, RECORD_SEC * RECORD_FORMAT);
+        scaleSamples(buffer, size, RECORD_FORMAT, mCaptureGainScale);
+        mVoiceEncoderStream.setBuffer(buffer, size);
+        mVoiceEncoderStream.process();
+    } while ((flush && size) || (size == CAPTURE_BUFFER_SIZE));
+}
+
+void alxBufferCapture()
+{
+    S32 len = LOCAL_CAPTURE_SIZE - mLocalCaptureBufferPos;
+    if (len > 0)
+    {
+        U32 size = alCaptureGetData_EXT(mLocalCaptureBuffer + mLocalCaptureBufferPos, len, RECORD_FORMAT, RECORD_SPEED);
+        scaleSamples(mLocalCaptureBuffer + mLocalCaptureBufferPos, size, RECORD_FORMAT, mCaptureGainScale);
+        mLocalCaptureBufferPos += size;
+    }
+}
+
+// called from Miles thread... must process in main thread
+void localCaptureFinishedCallback(U32, bool)
+{
+    mLocalCaptureFinished = true;
+}
+
+void alxCaptureStop()
+{
+    if (!mCaptureDevice || !mRecording)
+        return;
+
+    mRecording = false;
+    sCaptureTimeout = 0;
+    alCaptureStop(mCaptureDevice);
+
+    if (mLocalCapture && mLocalCaptureBuffer)
+    {
+        Con::executef(2, "localCaptureStop", "record");
+
+        alGenBuffers(1, &mALCaptureBuffer);
+        if (alGetError() != AL_NO_ERROR)
+            return;
+
+        alBufferData(mALCaptureBuffer, RECORD_FORMAT, mLocalCaptureBuffer, mLocalCaptureBufferPos, RECORD_SPEED);
+        dFree(mLocalCaptureBuffer);
+        mLocalCaptureBuffer = 0;
+
+        U32 index;
+        if (findFreeSource(&index))
+        {
+            mHandle[index] = getNewHandle() | AUDIOHANDLE_INACTIVE_BIT;
+            mType[index] = Audio::DefaultAudioType;
+            ALuint source = mSource[index];
+
+            alSourcei(source, AL_SOURCE_AMBIENT, AL_TRUE);
+            alSourcei(source, AL_SOURCE_LOOPING, AL_FALSE);
+            alSourcei(source, AL_BUFFER, mALCaptureBuffer);
+            alSourcef(source, AL_GAIN_LINEAR, mAudioTypeVolume[Audio::DefaultAudioType]);
+
+            alSourceCallback_EXT(source, localCaptureFinishedCallback);
+            alxPlay(mHandle[index]);
+            Con::executef(2, "localCaptureStart", "play");
+        }
+        else
+            alDeleteBuffers(1, &mALCaptureBuffer);
+    }
+    else
+    {
+        alxCaptureSend(true);
+        mVoiceEncoderStream.flush();
+    }
+}
+
+bool alxIsCapturing()
+{
+    return(mRecording);
+}
+
+void alxCaptureUpdate()
+{
+    // check if should destroy local capture buffer
+    if (mLocalCaptureFinished)
+    {
+        alDeleteBuffers(1, &mALCaptureBuffer);
+        Con::executef(2, "localCaptureStop", "play");
+        mLocalCaptureFinished = false;
+    }
+
+    // check if need to stop capturing
+    if (mCaptureInitialized && sCaptureTimeout != 0)
+    {
+        if ((Platform::getRealMilliseconds() - sCaptureTimeout) > RECORD_LEN)
+            alxCaptureStop();
+        else
+        {
+            if (mLocalCapture)
+                alxBufferCapture();
+            else
+                alxCaptureSend();
+        }
+    }
+}
+
+//--------------------------------------------------------------------------
+// Voice streams
+//--------------------------------------------------------------------------
+Vector<VoiceStream*>::iterator alxFindStream(U8 codecId, U32 clientId, U8 streamId)
+{
+    Vector<VoiceStream*>::iterator itr = sVoiceStreams.begin();
+    for (; itr != sVoiceStreams.end(); itr++)
+    {
+        VoiceStream* vs = *itr;
+        if (vs->mCodecId == codecId && vs->mClientId == clientId && vs->mStreamId == streamId)
+            return itr;
+    }
+    return NULL;
+}
+
+Vector<VoiceStream*>::iterator alxNewStream(U8 codecId, U32 clientId, U8 streamId)
+{
+    if (codecId >= AUDIO_NUM_CODECS)
+        return(0);
+
+    // need to get a new stream
+    VoiceStream* vs;
+    if (sVoiceStreams_free.size())
+    {
+        vs = sVoiceStreams_free.last();
+        sVoiceStreams_free.pop_back();
+    }
+    else
+        vs = new VoiceStream;
+
+    vs->mCodecId = codecId;
+    vs->mClientId = clientId;
+    vs->mStreamId = streamId;
+
+    // open the codec
+    if (!vs->mDecoderStream.setCodec(codecId) || !vs->mDecoderStream.open())
+    {
+        delete vs;
+        return(0);
+    }
+
+    sVoiceStreams.push_back(vs);
+    return &sVoiceStreams.last();
+}
+
+void alxPlayStream(U8 codecId, U32 clientId, U8 streamId)
+{
+    Vector<VoiceStream*>::iterator itr = alxFindStream(codecId, clientId, streamId);
+    if (itr == NULL)
+        return;
+
+    Con::evaluatef("clientCmdPlayerStartTalking(%d, 1);", clientId);
+    VoiceStream* vs = *itr;
+
+    alGenBuffers(1, &vs->mBuffer);
+    vs->mDecoderStream.process();
+    U8* data;
+    U32 size;
+    vs->mDecoderStream.getBuffer(&data, &size);
+    if (size)
+    {
+        alBufferData(vs->mBuffer, RECORD_FORMAT, data, size, RECORD_SPEED);
+
+        // find an available source, if none then (hopefully) force a cull
+        U32 index;
+        if (!findFreeSource(&index))
+            if (!cullSource(&index, 2.0f))
+                return;
+
+        // clear the error state
+        alGetError();
+
+        // init and play the source
+        mHandle[index] = getNewHandle() | AUDIOHANDLE_VOICE_BIT;
+        mSourceVolume[index] = mAudioTypeVolume[Audio::VoiceAudioType];
+        vs->mHandle = mHandle[index];
+        ALuint source = mSource[index];
+
+        alSourcei(source, AL_BUFFER, vs->mBuffer);
+        alSourcei(source, AL_SOURCE_LOOPING, AL_FALSE);
+        alSourcei(source, AL_SOURCE_AMBIENT, AL_TRUE);
+        alSourcef(source, AL_GAIN_LINEAR, mSourceVolume[index] * mMasterVolume);
+        alSourcePlay(source);
+    }
+    else
+        Con::printf("Decode size is ZERO!  client %d", clientId);
+
+    vs->mDecoderStream.close();
+}
+
+//--------------------------------------------------------------------------
+void alxReceiveVoiceStream(SimVoiceStreamEvent* event)
+{
+    Vector<VoiceStream*>::iterator itr;
+    if (event->mSequence == 0)
+        itr = alxNewStream(event->mCodecId, event->mClientId, event->mStreamId);
+    else
+        itr = alxFindStream(event->mCodecId, event->mClientId, event->mStreamId);
+
+    if (itr)
+    {
+        if (event->getSize())
+            (*itr)->mDecoderStream.setBuffer(event->getData(), event->getSize());
+
+        if (event->getSize() < SimVoiceStreamEvent::VOICE_PACKET_DATA_SIZE)
+            alxPlayStream(event->mCodecId, event->mClientId, event->mStreamId);
+    }
+}
 
 //--------------------------------------------------------------------------
 // Simple metrics
@@ -1859,9 +2184,6 @@ void alxCloseHandles()
 {
    for(U32 i = 0; i < mNumSources; i++)
    {
-      if(mHandle[i] & AUDIOHANDLE_LOADING_BIT)
-         continue;
-
       if(mHandle[i] == NULL_AUDIOHANDLE)
          continue;
 

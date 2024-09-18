@@ -66,4 +66,10 @@ AL_FUNCTION(ALvoid,     alDistanceModel, ( ALenum value ), return; )
 AL_FUNCTION(ALvoid,     alDopplerFactor, ( ALfloat value ), return; )
 AL_FUNCTION(ALvoid,     alDopplerVelocity, ( ALfloat value ), return; )
 
+AL_FUNCTION(ALvoid,		alCaptureStart, (ALCdevice* dev), return; )
+AL_FUNCTION(ALvoid,		alCaptureStop, (ALCdevice* dev), return; )
+AL_FUNCTION(ALvoid,		alcCaptureSamples, (ALCdevice * dev, ALCvoid* buffer, ALCsizei samples), return; )
+AL_FUNCTION(ALCdevice*, alcCaptureOpenDevice, (const ALubyte* devname, ALCuint freq, ALCenum format, ALCsizei bufsize), return NULL; )
+AL_FUNCTION(ALboolean,	alcCaptureCloseDevice, (ALCdevice* device), return; )
+
 
