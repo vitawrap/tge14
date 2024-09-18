@@ -100,7 +100,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\SDL\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\opus;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\SDL\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_XKEYCHECK_H;UNICODE;TORQUE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -117,7 +117,7 @@
       <FloatingPointModel>Strict</FloatingPointModel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg_DEBUG.lib;lpng_DEBUG.lib;lungif_DEBUG.lib;zlib_DEBUG.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg_DEBUG.lib;lpng_DEBUG.lib;lungif_DEBUG.lib;zlib_DEBUG.lib;opus_DEBUG.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../example/$(TargetName).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>../lib/xiph/win32;../lib/SDL/win32;../lib/out.VC6.DEBUG;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -143,7 +143,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\SDL\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\opus;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\SDL\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_XKEYCHECK_H;UNICODE;TORQUE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -161,10 +161,10 @@
       <FloatingPointModel>Strict</FloatingPointModel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg_DEBUG.lib;lpng_DEBUG.lib;lungif_DEBUG.lib;zlib_DEBUG.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg_DEBUG.lib;lpng_DEBUG.lib;lungif_DEBUG.lib;zlib_DEBUG.lib;opus_DEBUG.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../example/$(TargetName).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>../lib/xiph/win64;../lib/SDL/win32;../lib/out.VC6.DEBUG;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../lib/opus;../lib/xiph/win64;../lib/SDL/win32;../lib/out.VC6.DEBUG;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\../engine/out.VC6.DEBUG/torqueDemo_DEBUG.pdb</ProgramDatabaseFile>
@@ -188,7 +188,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\opus;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_XKEYCHECK_H;UNICODE;TORQUE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -207,7 +207,7 @@
       <FloatingPointExceptions>true</FloatingPointExceptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg.lib;lpng.lib;lungif.lib;zlib.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg.lib;lpng.lib;lungif.lib;opus.lib;zlib.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../example/$(TargetName).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>../lib/xiph/win32;../lib/out.VC6.RELEASE;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -230,7 +230,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\mimalloc;$(SolutionDir)..\lib\opus;$(SolutionDir)..\lib\xiph\include;$(SolutionDir)..\lib\vorbis\include;$(SolutionDir)..\lib\zlib;$(SolutionDir)..\lib\lungif;$(SolutionDir)..\lib\lpng;$(SolutionDir)..\lib\ljpeg;$(SolutionDir)..\lib\openal\win32;$(SolutionDir)..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_XKEYCHECK_H;UNICODE;TORQUE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -250,10 +250,10 @@
       <FloatingPointExceptions>true</FloatingPointExceptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg.lib;lpng.lib;lungif.lib;zlib.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg.lib;lpng.lib;lungif.lib;opus.lib;zlib.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../example/$(TargetName).exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>../lib/xiph/win64;../lib/out.VC6.RELEASE;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../lib/opus;../lib/xiph/win64;../lib/out.VC6.RELEASE;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ProgramDatabaseFile>.\../engine/out.VC6.RELEASE/torqueDemo.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
