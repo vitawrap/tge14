@@ -29,6 +29,9 @@ class GuiHealthBarHud : public GuiControl
    ColorF   mFrameColor;
    ColorF   mDamageFillColor;
 
+   TextureHandle mFillTexture;
+   TextureHandle mFrameTexture;
+
    S32      mPulseRate;
    F32      mPulseThreshold;
 
@@ -68,6 +71,8 @@ void GuiHealthBarHud::initPersistFields()
    addField( "fillColor",       TypeColorF, Offset( mFillColor, GuiHealthBarHud ) );
    addField( "frameColor",      TypeColorF, Offset( mFrameColor, GuiHealthBarHud ) );
    addField( "damageFillColor", TypeColorF, Offset( mDamageFillColor, GuiHealthBarHud ) );
+   addField( "fillTexture",     TypeBitmapFilename, Offset( mFillTexture, GuiHealthBarHud ) );
+   addField( "frameTexture",    TypeBitmapFilename, Offset( mFrameTexture, GuiHealthBarHud ) );
    endGroup("Colors");
 
    addGroup("Pulse");
@@ -109,7 +114,6 @@ void GuiHealthBarHud::onRender(Point2I offset, const RectI &updateRect)
       // Damage value 0 = no damage.
       mValue = 1 - control->getDamageValue();
    }
-
 
    // Background first
    if (mShowFill)
@@ -157,9 +161,31 @@ void GuiHealthBarHud::onRender(Point2I offset, const RectI &updateRect)
       }
    }
 
-   dglDrawRectFill(rect, mDamageFillColor);
+   // Health fill
+   if (mFillTexture) {
+       F32 xRatio = (F32)rect.extent.x / updateRect.extent.x;
+       F32 yRatio = (F32)rect.extent.y / updateRect.extent.y;
+       RectI mipRect = { 
+           0,
+           S32((1.f - yRatio) * mFillTexture.getHeight()),
+           S32(xRatio * mFillTexture.getWidth()),
+           S32(yRatio * mFillTexture.getHeight())
+       };
+       dglSetBitmapModulation(mDamageFillColor);
+       dglDrawBitmapStretchSR(mFillTexture, rect, mipRect);
+   }
+   else
+       dglDrawRectFill(rect, mDamageFillColor);
 
    // Border last
    if (mShowFrame)
-      dglDrawRect(updateRect, mFrameColor);
+       if (mFrameTexture) {
+           dglSetBitmapModulation(mFrameColor);
+           dglDrawBitmapStretch(mFrameTexture, updateRect);
+       }
+       else
+           dglDrawRect(updateRect, mFrameColor);
+
+   // bitmap mod should be restored by parent, it would be unusual
+   // to have to render children from this control.
 }
