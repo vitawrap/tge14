@@ -81,7 +81,7 @@ ConsoleSetType( TypeBitmapFilename )
     {
         char buffer[1024];
         if (Con::expandScriptFilename(buffer, 1024, argv[0])) {
-            *((TextureHandle*)dptr) = TextureHandle(buffer, BitmapKeepTexture);
+            *((TextureHandle*)dptr) = TextureHandle(buffer, BitmapTexture);
         }
         else
             Con::warnf("(TypeFilename) illegal texture filename detected: %s", argv[0]);
