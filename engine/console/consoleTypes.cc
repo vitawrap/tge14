@@ -8,6 +8,7 @@
 #include "core/stringTable.h"
 #include "core/color.h"
 #include "console/simBase.h"
+#include "dgl/gTexManager.h"
 
 //////////////////////////////////////////////////////////////////////////
 // TypeString
@@ -67,6 +68,58 @@ ConsoleSetType( TypeFilename )
 ConsoleGetType( TypeFilename )
 {
    return *((const char **)(dptr));
+}
+
+//////////////////////////////////////////////////////////////////////////
+// TypeBitmapFileName
+//////////////////////////////////////////////////////////////////////////
+ConsoleType( bitmapFilename, TypeBitmapFilename, sizeof(TextureHandle) )
+
+ConsoleSetType( TypeBitmapFilename )
+{
+    if (argc == 1)
+    {
+        char buffer[1024];
+        if (Con::expandScriptFilename(buffer, 1024, argv[0])) {
+            *((TextureHandle*)dptr) = TextureHandle(buffer, BitmapKeepTexture);
+        }
+        else
+            Con::warnf("(TypeFilename) illegal texture filename detected: %s", argv[0]);
+    }
+    else
+        Con::printf("(TypeFilename) Cannot set multiple args to a texture filename.");
+}
+
+ConsoleGetType( TypeBitmapFilename )
+{
+    // should be a StringTableEntry.
+    return ((TextureHandle*)(dptr))->getName();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// TypeTextureFileName
+//////////////////////////////////////////////////////////////////////////
+ConsoleType( textureFilename, TypeTextureFilename, sizeof(TextureHandle) )
+
+ConsoleSetType( TypeTextureFilename )
+{
+    if (argc == 1)
+    {
+        char buffer[1024];
+        if (Con::expandScriptFilename(buffer, 1024, argv[0])) {
+            *((TextureHandle*)dptr) = TextureHandle(buffer, MeshTexture);
+        }
+        else
+            Con::warnf("(TypeFilename) illegal texture filename detected: %s", argv[0]);
+    }
+    else
+        Con::printf("(TypeFilename) Cannot set multiple args to a texture filename.");
+}
+
+ConsoleGetType( TypeTextureFilename )
+{
+    // should be a StringTableEntry.
+    return ((TextureHandle*)(dptr))->getName();
 }
 
 //////////////////////////////////////////////////////////////////////////
