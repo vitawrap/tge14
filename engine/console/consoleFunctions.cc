@@ -184,6 +184,12 @@ ConsoleFunction(strchr,const char *,3,3,"(string,char)")
    return ret ? ret : "";
 }
 
+ConsoleFunction(startsWith,bool,3,3,"(string,sequence)")
+{
+   argc;
+   return dStrnicmp(argv[1], argv[2], dStrlen(argv[2])) == 0;
+}
+
 ConsoleFunction(strreplace, const char *, 4, 4, "(string source, string from, string to)")
 {
    argc;
