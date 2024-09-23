@@ -180,7 +180,7 @@ bool AIPlayer::getAIMove(Move *movePtr)
          else if( yawDiff < -M_PI )
             yawDiff += M_2PI;
 
-         movePtr->yaw = yawDiff;
+         movePtr->yaw = yawDiff * mMoveSpeed;
 
          // Next do pitch.
          if (!mAimObject && !mAimLocationSet) {
@@ -197,7 +197,7 @@ bool AIPlayer::getAIMove(Move *movePtr)
             F32 newPitch = mAtan( horzDist, vertDist ) - ( M_PI / 2.0f );
             if (mFabs(newPitch) > 0.01) {
                Point3F headRotation = getHeadRotation();
-               movePtr->pitch = newPitch - headRotation.x;
+               movePtr->pitch = (newPitch * mMoveSpeed) - headRotation.x;
             }
          }
       }
