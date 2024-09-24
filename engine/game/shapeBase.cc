@@ -1424,8 +1424,7 @@ void ShapeBase::blowUp()
    }
    else
    {
-       mObjBox.getCenter(&center);
-       center += getPosition();
+       mWorldBox.getCenter(&center);
        trans = getTransform();
        trans.setPosition( center );
    }
