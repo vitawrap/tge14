@@ -241,10 +241,9 @@ void EditTSCtrl::renderWorld(const RectI & updateRect)
 
       for(SimSetIterator itr(missionGroup); *itr; ++itr)
       {
-         char buf[2][16];
-         dSprintf(buf[0], 16, (*itr)->isSelected() ? "true" : "false");
-         dSprintf(buf[1], 16, (*itr)->isExpanded() ? "true" : "false");
-         Con::executef(*itr, 4, "onEditorRender", getIdString(), buf[0], buf[1]);
+         char const* isSelected = (*itr)->isSelected() ? "1" : "0";
+         char const* isExpanded = (*itr)->isExpanded() ? "1" : "0";
+         Con::executef(*itr, 4, "onEditorRender", scriptThis(), isSelected, isExpanded);
       }
 
       glDisable(GL_DEPTH_TEST);
