@@ -81,7 +81,7 @@ static bool isFnOk( const char *name)
 //------------------------------------------------------------------
 static bool bindGLFunction( void *&fnAddress, const char *name )
 {
-   void* addr = (void*)SDL_GL_GetProcAddress(name);
+   void* addr = (void*)dlsym(dlHandle, name);
    bool ok = (bool)addr;
    if( !ok )
    {
@@ -97,7 +97,7 @@ static bool bindGLFunction( void *&fnAddress, const char *name )
 
 static bool bindEXTFunction( void *&fnAddress, const char *name )
 {
-   void* addr = (void*)SDL_GL_GetProcAddress(name);
+   void* addr = (void*)dlsym(dlHandle, name);
    if( !addr )
       Con::errorf(ConsoleLogEntry::General, " Missing OpenGL extension '%s'", name);
    else
@@ -146,6 +146,11 @@ static void unbindGLFunctions()
 #undef GL_FUNCTION
 }
 
+/**
+ * This used the SDL GL loader, but i suppose SDL makes more initializations
+ * and assumptions than necessary, as torque already handles a lot, in turn
+ * this would make the engine segfault. Reverted to use the standard ldl api.
+ */
 namespace GLLoader
 {
 
@@ -164,8 +169,8 @@ namespace GLLoader
       OpenGLDLLShutdown();
 
       // load libGL.so
-      if (SDL_GL_LoadLibrary("libGL.so") == -1 &&
-         SDL_GL_LoadLibrary("libGL.so.1") == -1)
+      if ((dlHandle = dlopen("libGL.so", RTLD_NOW)) == NULL &&
+         (dlHandle = dlopen("libGL.so.1", RTLD_NOW)) == NULL)
       {
          Con::errorf("Error loading GL library: %s", SDL_GetError());
          return false;
@@ -184,7 +189,7 @@ namespace GLLoader
 
    void OpenGLDLLShutdown()
    {
-      // there is no way to tell SDL to unload the library
+      // Unload the library
       if (dlHandle != NULL)
       {
          dlclose(dlHandle);
