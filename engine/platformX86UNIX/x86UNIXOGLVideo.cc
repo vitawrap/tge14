@@ -18,6 +18,8 @@
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_version.h>
 
+#include <EGL/egl.h>
+
 //------------------------------------------------------------------------------
 bool InitOpenGL()
 {
@@ -104,7 +106,11 @@ void OpenGLDevice::initDevice()
 {
    mDeviceName = "OpenGL";
    mFullScreenOnly = false;
+
+   // EGL data
    mGLC = NULL;
+   mSurface = NULL;
+   mDisplay = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -194,31 +200,33 @@ void OpenGLDevice::shutdown()
    // Shutdown is deferred to Platform::shutdown()
    if (mGLC)
    {
-      SDL_GL_DeleteContext(mGLC);
+      eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+      eglTerminate(mDisplay);
       mGLC = NULL;
+      mSurface = NULL;
+      mDisplay = NULL;
+      mConfig = NULL;
    }
 }
 
 //------------------------------------------------------------------------------
-static void PrintGLAttributes()
+void PrintGLAttributes(OpenGLDevice* dev)
 {
-   int doubleBuf;
-   int bufferSize, depthSize, stencilSize;
-   int red, green, blue, alpha;
-   int aRed, aGreen, aBlue, aAlpha;
+   EGLint doubleBuf;
+   EGLint bufferSize, depthSize, stencilSize;
+   EGLint red, green, blue, alpha;
 
-   SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &doubleBuf);
-   SDL_GL_GetAttribute(SDL_GL_BUFFER_SIZE, &bufferSize);
-   SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &depthSize);
-   SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencilSize);
-   SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &red);
-   SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &green);
-   SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &blue);
-   SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &alpha);
-   SDL_GL_GetAttribute(SDL_GL_ACCUM_RED_SIZE, &aRed);
-   SDL_GL_GetAttribute(SDL_GL_ACCUM_GREEN_SIZE, &aGreen);
-   SDL_GL_GetAttribute(SDL_GL_ACCUM_BLUE_SIZE, &aBlue);
-   SDL_GL_GetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, &aAlpha);
+   #define GET_CATTRIB(x, y) eglGetConfigAttrib(dev->mDisplay, dev->mConfig, x, y);
+   #define GET_SATTRIB(x, y) eglQuerySurface(dev->mDisplay, dev->mSurface, x, y);
+
+   GET_SATTRIB(EGL_RENDER_BUFFER, &doubleBuf);
+   GET_CATTRIB(EGL_BUFFER_SIZE, &bufferSize);
+   GET_CATTRIB(EGL_DEPTH_SIZE, &depthSize);
+   GET_CATTRIB(EGL_STENCIL_SIZE, &stencilSize);
+   GET_CATTRIB(EGL_RED_SIZE, &red);
+   GET_CATTRIB(EGL_GREEN_SIZE, &green);
+   GET_CATTRIB(EGL_BLUE_SIZE, &blue);
+   GET_CATTRIB(EGL_ALPHA_SIZE, &alpha);
 
    Con::printf("OpenGL Attributes:");
    Con::printf("  DoubleBuffer: %d", doubleBuf);
@@ -226,8 +234,6 @@ static void PrintGLAttributes()
       bufferSize, depthSize, stencilSize);
    Con::printf("  Red: %d, Green: %d, Blue: %d, Alpha: %d",
       red, green, blue, alpha);
-   Con::printf("  Accum Red: %d, Green: %d, Blue: %d, Alpha: %d",
-      aRed, aGreen, aBlue, aAlpha);
 }
 
 //------------------------------------------------------------------------------
@@ -304,26 +310,15 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
 
    if (mGLC)
    {
-      SDL_GL_DeleteContext(mGLC);
+      eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+      eglTerminate(mDisplay);
       mGLC = NULL;
+      mSurface = NULL;
+      mDisplay = NULL;
+      mConfig = NULL;
    }
 
-   // Set the desired GL Attributes
-   SDL_GL_SetSwapInterval(1);
-   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-// JMQ: NVIDIA 2802+ doesn't like this setting for stencil size
-//   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-   SDL_GL_SetAttribute(SDL_GL_ACCUM_RED_SIZE, 0);
-   SDL_GL_SetAttribute(SDL_GL_ACCUM_GREEN_SIZE, 0);
-   SDL_GL_SetAttribute(SDL_GL_ACCUM_BLUE_SIZE, 0);
-   SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 0);
-//    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-//    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-//    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
-//    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-
-   U32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
+   U32 flags = SDL_WINDOW_SHOWN;
    if (fullScreen)
       flags |= SDL_WINDOW_FULLSCREEN;
 
@@ -348,9 +343,67 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
       return false;
    }
 
-   mGLC = (void*) SDL_GL_CreateContext(win);
-   SDL_GL_MakeCurrent(win, mGLC);
-   PrintGLAttributes();
+   if ( gGLState.suppSwapInterval )
+      setVerticalSync( !Con::getBoolVariable( "$pref::Video::disableVerticalSync" ) );
+
+   // reset the window in platform state
+   SDL_SysWMinfo sysinfo;
+   SDL_VERSION(&sysinfo.version);
+   if (!SDL_GetWindowWMInfo(win, &sysinfo))
+   {
+      Con::printf("Failed to update display from SDL: %s", SDL_GetError());
+      return false;
+   }
+   Display* display = sysinfo.info.x11.display;
+   Window xwindow = sysinfo.info.x11.window;
+   x86UNIXState->setDisplayPointer(sysinfo.info.x11.display);
+   x86UNIXState->setWindow(win);
+   x86UNIXState->setWindowCreated(true);
+
+   // Manually initialize OpenGL via EGL
+   mDisplay = eglGetDisplay((EGLNativeDisplayType) display);
+   if (!eglInitialize(mDisplay, NULL, NULL))
+   {
+      Con::printf("Unable to initialize EGL.");
+      return false;
+   }
+
+   EGLint configAttribs[] {
+      EGL_DEPTH_SIZE, 24, 
+      EGL_STENCIL_SIZE, 8,
+      EGL_ALPHA_SIZE, 0,
+      EGL_NONE};
+   int gotConfigs = 0;
+   if (!eglChooseConfig(mDisplay, configAttribs, &mConfig, 1, &gotConfigs))
+   {
+      Con::printf("Unable to choose config for display: %p", display);
+      return false;
+   }
+   eglBindAPI(EGL_OPENGL_API);
+
+   EGLint contextAttribs[] {
+      EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT,
+      EGL_NONE};
+   if ((mGLC = (void*) eglCreateContext(mDisplay, mConfig, EGL_NO_CONTEXT, NULL)) == EGL_NO_CONTEXT)
+   {
+      Con::printf("Unable to create EGL context: %p", mGLC);
+      return false;
+   }
+
+   EGLint surfaceAttribs[] { EGL_RENDER_BUFFER, EGL_BACK_BUFFER, EGL_NONE };
+   if ((mSurface = eglCreateWindowSurface(mDisplay, mConfig, (NativeWindowType) xwindow, surfaceAttribs)) == EGL_NO_SURFACE)
+   {
+      Con::printf("Unable to create EGL surface on display: %p.", mDisplay);
+      return false;
+   }
+   
+   if (!eglMakeCurrent(mDisplay, mSurface, mSurface, (EGLContext) mGLC))
+   {
+      Con::printf("Unable to make EGL context current on display: %p.", mDisplay);
+      return false;
+   }
+   eglSwapInterval(mDisplay, 1);
+   PrintGLAttributes(this);
 
    // clear screen here to prevent buffer garbage from being displayed when
    // video mode is switched
@@ -364,21 +417,6 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
       Con::printf( "Resurrecting the texture manager..." );
       Game->textureResurrect();
    }
-
-   if ( gGLState.suppSwapInterval )
-      setVerticalSync( !Con::getBoolVariable( "$pref::Video::disableVerticalSync" ) );
-
-   // reset the window in platform state
-   SDL_SysWMinfo sysinfo;
-   SDL_VERSION(&sysinfo.version);
-   if (!SDL_GetWindowWMInfo(win, &sysinfo))
-   {
-      Con::printf("Failed to update display from SDL: %s", SDL_GetError());
-      return false;
-   }
-   x86UNIXState->setDisplayPointer(sysinfo.info.x11.display);
-   x86UNIXState->setWindow(win);
-   x86UNIXState->setWindowCreated(true);
 
    // set various other parameters
    smCurrentRes = NewResolution;
@@ -411,7 +449,7 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
 //------------------------------------------------------------------------------
 void OpenGLDevice::swapBuffers()
 {
-   SDL_GL_SwapWindow(x86UNIXState->getWindow());
+   eglSwapBuffers(mDisplay, mSurface);
 }
 
 //------------------------------------------------------------------------------

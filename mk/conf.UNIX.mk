@@ -73,9 +73,9 @@ LINK.LIBS.VORBIS  =  ../lib/xiph/linux/libogg.so.0 ../lib/xiph/linux/libvorbis.s
 # JMQNOTE: aside from gluProject/unProject, GLU doesn't work.  
 # calling a GLU function that calls a GL function will cause a 
 # crash.  let me know if you have a fix :)
-LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
+LINK.LIBS.GENERAL = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lEGL -lX11 -lSDL2 -lpthread -ldl # -lefence
 
-LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lX11 -lSDL2 -lpthread -ldl # -lefence
+LINK.LIBS.TOOLS   = $(LINK.LIBS.VORBIS) -Wl,-static -Wl,-lGLU -lfontconfig -Wl,-dy -lexpat -luuid -lEGL -lX11 -lSDL2 -lpthread -ldl # -lefence
 # -lefence is useful for finding memory corruption problems
 LINK.LIBS.SERVER  = $(LINK.LIBS.VORBIS) -lpthread
 LINK.LIBS.RELEASE =

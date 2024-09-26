@@ -14,9 +14,14 @@
 
 class OpenGLDevice : public DisplayDevice
 {
+      friend void PrintGLAttributes(OpenGLDevice*);
+
       static bool smCanSwitchBitDepth;
 
-      void* mGLC; // SDL_GLContext
+      void* mConfig;    // EGLConfig
+      void* mDisplay;   // EGLDisplay
+      void* mSurface;   // EGLSurface
+      void* mGLC;       // EGLContext
       bool mRestoreGamma;
       U16  mOriginalRamp[256*3];
 
