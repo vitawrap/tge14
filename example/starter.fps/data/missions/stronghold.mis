@@ -2,8 +2,8 @@
 new SimGroup(MissionGroup) {
 
    new ScriptObject(MissionInfo) {
-         desc0 = "This death match mission takes place in a small orc village. There are no teams, every orc is your enemy!";
          name = "Stronghold";
+         desc0 = "This death match mission takes place in a small orc village. There are no teams, every orc is your enemy!";
    };
    new MissionArea(MissionArea) {
       area = "-160 -352 1056 1056";
@@ -12,9 +12,9 @@ new SimGroup(MissionGroup) {
          locked = "true";
    };
    new Sky(Sky) {
+      scale = "1 1 1";
       position = "-1088 -928 0";
       rotation = "1 0 0 0";
-      scale = "1 1 1";
       materialList = "~/data/skies/sky_sh.dml";
       cloudHeightPer[0] = "0";
       cloudHeightPer[1] = "0.25";
@@ -47,16 +47,17 @@ new SimGroup(MissionGroup) {
       elevation = "35";
       color = "0.888 0.885 0.78 1";
       ambient = "0.4 0.4 0.4 1";
+         locked = "true";
          position = "0 0 0";
          scale = "1 1 1";
-         rotation = "1 0 0 0";
-         locked = "true";
          direction = "0.635001 0.635001 -0.439941";
+         rotation = "1 0 0 0";
    };
    new fxSunLight(sunflare1) {
+      scale = "1 1 1";
       position = "98.5277 -289.053 188.13";
       rotation = "1 0 0 0";
-      scale = "1 1 1";
+      minSize = "0.5";
       Enable = "1";
       LocalFlareBitmap = "common/lighting/corona";
       RemoteFlareBitmap = "common/lighting/corona";
@@ -89,7 +90,6 @@ new SimGroup(MissionGroup) {
       MaxBrightness = "1";
       MinRotation = "0";
       MaxRotation = "359";
-      minSize = "0.5";
       MaxSize = "1";
       MinAzimuth = "0";
       MaxAzimuth = "359";
@@ -111,9 +111,10 @@ new SimGroup(MissionGroup) {
       ElevationTime = "5";
    };
    new fxSunLight(sunflare2) {
+      scale = "1 1 1";
       position = "72.9234 -289.051 187.692";
       rotation = "1 0 0 0";
-      scale = "1 1 1";
+      minSize = "0.5";
       Enable = "1";
       LocalFlareBitmap = "common/lighting/corona";
       RemoteFlareBitmap = "common/lighting/corona";
@@ -146,7 +147,6 @@ new SimGroup(MissionGroup) {
       MaxBrightness = "0.5";
       MinRotation = "0";
       MaxRotation = "359";
-      minSize = "0.5";
       MaxSize = "1";
       MinAzimuth = "0";
       MaxAzimuth = "359";
@@ -168,25 +168,27 @@ new SimGroup(MissionGroup) {
       ElevationTime = "5";
    };
    new TerrainBlock(Terrain) {
-      rotation = "1 0 0 0";
       scale = "1 1 1";
-      detailTexture = "~/data/terrains/details/detail1";
       terrainFile = "./stronghold.ter";
+      rotation = "1 0 0 0";
+      tile = "1";
+      detailTexture = "~/data/terrains/details/detail1";
       bumpTexture = "~/data/terrains/bump/test.jpg";
       squareSize = "8";
       emptySquares = "293550 293806";
       bumpScale = "16";
       bumpOffset = "0.1";
       zeroBumpScale = "8";
-      tile = "1";
-         position = "-1024 -1024 0";
          locked = "true";
+         position = "-1024 -1024 0";
    };
    new WaterBlock(Water) {
+      scale = "2048 2048 200";
       position = "-1024 -1024 0";
       rotation = "1 0 0 0";
-      scale = "2048 2048 200";
       UseDepthMask = "1";
+      UseLightmap = "1";
+      InvertLightmap = "1";
       surfaceTexture = "~/data/water/water";
       ShoreTexture = "~/data/water/wateredge";
       envMapOverTexture = "~/data/skies/day_0007";
@@ -223,63 +225,63 @@ new SimGroup(MissionGroup) {
    new SimGroup(HealthKits) {
 
       new Item() {
+         scale = "1 1 1";
          position = "291.437 198.805 203.017";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthKit";
          collidable = "0";
          static = "1";
          rotate = "1";
       };
       new Item() {
+         scale = "1 1 1";
          position = "405.29 330.084 220.015";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthKit";
          collidable = "0";
          static = "1";
          rotate = "1";
       };
       new Item() {
+         scale = "1 1 1";
          position = "385.335 -39.4771 233.637";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthKit";
          collidable = "0";
          static = "1";
          rotate = "1";
       };
       new Item() {
+         scale = "1 1 1";
          position = "391.006 290.664 219.427";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthPatch";
          collidable = "0";
          static = "1";
          rotate = "1";
       };
       new Item() {
+         scale = "1 1 1";
          position = "389.943 289.402 219.42";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthPatch";
          collidable = "0";
          static = "1";
          rotate = "1";
       };
       new Item() {
+         scale = "1 1 1";
          position = "328.822 302.457 219.212";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthPatch";
          collidable = "0";
          static = "1";
          rotate = "1";
       };
       new Item() {
+         scale = "1 1 1";
          position = "328.253 303.822 219.226";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "HealthPatch";
          collidable = "0";
          static = "1";
@@ -289,9 +291,9 @@ new SimGroup(MissionGroup) {
    new SimGroup(Towers) {
 
       new InteriorInstance() {
+         scale = "1 1 1";
          position = "325.43 161.116 224.178";
          rotation = "0 0 -1 85.9439";
-         scale = "1 1 1";
          interiorFile = "~/data/interiors/towers/watertower.dif";
          useGLLighting = "0";
          showTerrainInside = "0";
@@ -300,40 +302,40 @@ new SimGroup(MissionGroup) {
    new SimGroup(Docks) {
 
       new TSStatic() {
+         scale = "1 1 1";
          position = "347.147 181.146 205.419";
          rotation = "0 0 1 4.0111";
-         scale = "1 1 1";
          shapeName = "~/data/shapes/lanterns/lantern.dts";
       };
       new TSStatic() {
+         scale = "1 1 1";
          position = "354.824 179.927 205.037";
          rotation = "0 0 1 2.86517";
-         scale = "1 1 1";
          shapeName = "~/data/shapes/lanterns/lantern.dts";
       };
    };
    new SimGroup(Cottages) {
 
       new InteriorInstance() {
+         scale = "1 1 1";
          position = "386.509 288.344 218.875";
          rotation = "0 0 1 38.9611";
-         scale = "1 1 1";
          interiorFile = "~/data/interiors/hovels/small_cottage.dif";
          useGLLighting = "0";
          showTerrainInside = "0";
       };
       new InteriorInstance() {
+         scale = "1 1 1";
          position = "329.597 307.55 218.765";
          rotation = "0 0 1 162.147";
-         scale = "1 1 1";
          interiorFile = "~/data/interiors/hovels/small_cottage.dif";
          useGLLighting = "0";
          showTerrainInside = "0";
       };
       new InteriorInstance() {
+         scale = "1 1 1";
          position = "334.517 342.723 218.588";
          rotation = "0 0 1 228.037";
-         scale = "1 1 1";
          interiorFile = "~/data/interiors/hovels/small_cottage.dif";
          useGLLighting = "0";
          showTerrainInside = "0";
@@ -342,9 +344,9 @@ new SimGroup(MissionGroup) {
    new SimGroup(Campfires) {
 
       new TSStatic() {
+         scale = "1 1 1";
          position = "360.173 309.959 217.714";
          rotation = "1 0 0 0.573347";
-         scale = "1 1 1";
          shapeName = "~/data/shapes/campfires/campfire.dts";
       };
    };
@@ -358,45 +360,45 @@ new SimGroup(MissionGroup) {
          isLooping = "1";
 
          new Marker() {
+            scale = "1 1 1";
             position = "461.26 292.371 221.011";
             rotation = "1 0 0 0";
-            scale = "1 1 1";
             seqNum = "1";
             type = "Normal";
             msToNext = "1000";
             smoothingType = "Spline";
          };
          new Marker() {
+            scale = "1 1 1";
             position = "447.831 207.249 211.417";
             rotation = "1 0 0 0";
-            scale = "1 1 1";
             seqNum = "2";
             type = "Normal";
             msToNext = "1000";
             smoothingType = "Spline";
          };
          new Marker() {
+            scale = "1 1 1";
             position = "318.054 333.549 218.804";
             rotation = "1 0 0 0";
-            scale = "1 1 1";
             seqNum = "3";
             type = "Normal";
             msToNext = "1000";
             smoothingType = "Spline";
          };
          new Marker() {
+            scale = "1 1 1";
             position = "326.058 411.942 218.216";
             rotation = "1 0 0 0";
-            scale = "1 1 1";
             seqNum = "4";
             type = "Normal";
             msToNext = "1000";
             smoothingType = "Spline";
          };
          new Marker() {
+            scale = "1 1 1";
             position = "427.95 357.661 220.594";
             rotation = "1 0 0 0";
-            scale = "1 1 1";
             seqNum = "5";
             type = "Normal";
             msToNext = "1000";
@@ -405,41 +407,41 @@ new SimGroup(MissionGroup) {
       };
    };
    new InteriorInstance() {
+      scale = "1 1 1";
       position = "376 -40 215";
       rotation = "0 0 1 180";
-      scale = "1 1 1";
       interiorFile = "~/data/interiors/island/def_tower.dif";
       useGLLighting = "0";
       showTerrainInside = "0";
    };
    new fxLight() {
+      scale = "1 1 1";
       position = "355.618 321.107 222.761";
       rotation = "1 0 0 0";
-      scale = "1 1 1";
       dataBlock = "TestLight";
       Enable = "1";
       IconSize = "1";
    };
    new fxBeam() {
+      scale = "1 1 1";
       position = "332.016 143.866 216.8";
       rotation = "1 0 0 0";
-      scale = "1 1 1";
       dataBlock = "smokeBeam";
          direction = "0 1 0";
    };
    new WheeledVehicle() {
-      position = "401.372 329.578 218.762";
-      rotation = "-0.999934 4.20392e-06 0.011503 0.111906";
       scale = "1 1 1";
+      position = "401.372 329.578 218.762";
+      rotation = "-0.999933 1.61071e-05 0.0115689 0.111906";
       dataBlock = "BaseVehicle";
       disableMove = "0";
    };
    new SimGroup(PlayerDropPoints) {
 
       new SpawnSphere() {
+         scale = "1 1 1";
          position = "371.2 325.4 219.4";
          rotation = "1 0 0 0";
-         scale = "1 1 1";
          dataBlock = "SpawnSphereMarker";
          radius = "100";
          sphereWeight = "100";
