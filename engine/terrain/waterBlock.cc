@@ -62,6 +62,7 @@ WaterBlock::WaterBlock()
    mShoreTexture        = TextureHandle();
    mRemoveWetEdges      = false;
    mUseTerrainLightmap  = true;
+   mInvertLightmapAlpha = false;
    mAudioEnvironment    = 0;
 
    // lets be good little programmers and initialize our data!
@@ -303,7 +304,8 @@ void WaterBlock::GenerateDepthTextures(GBitmap* pBitmap, TextureHandle& mTexture
                    ColorI shadeCol;
                    mpTerrain->getLight(terPos, shadeCol, mFluid.isHighResMode());
                    U32 DepthAlpha = FluidPointColour >> 24;
-                   U32 NormShade = (DepthAlpha * ((32 + shadeCol.red) << 2)) >> 8;
+                   U32 LMapShade = mInvertLightmapAlpha? (80 - shadeCol.red) : (32 + shadeCol.red);
+                   U32 NormShade = (DepthAlpha * (LMapShade << 2)) >> 8;
                    FluidPointColour = (getMin(NormShade, 255U) << 24) | (FluidPointColour & 0xFFFFFF);
                }
 
@@ -720,6 +722,7 @@ void WaterBlock::initPersistFields()
    addGroup( "Debugging" );
    addField( "UseDepthMask",     TypeBool,      Offset( mUseDepthMap,      WaterBlock ) );
    addField( "UseLightmap",      TypeBool,      Offset( mUseTerrainLightmap, WaterBlock));
+   addField( "InvertLightmap",   TypeBool,      Offset( mInvertLightmapAlpha,WaterBlock));
    endGroup( "Debugging" );
 
    addGroup("Media");
@@ -835,6 +838,7 @@ U64 WaterBlock::packUpdate( NetConnection* c, U64 mask, BitStream* stream )
    // MM: Write Depth-Map Controls.
    stream->write( mUseDepthMap );
    stream->write( mUseTerrainLightmap );
+   stream->write( mInvertLightmapAlpha );
    stream->write( mShoreDepth );
    stream->write( mMinAlpha );
    stream->write( mMaxAlpha );
@@ -929,6 +933,7 @@ void WaterBlock::unpackUpdate( NetConnection* c, BitStream* stream )
 
    stream->read( &mUseDepthMap );
    stream->read( &mUseTerrainLightmap );
+   stream->read( &mInvertLightmapAlpha );
    stream->read( &mShoreDepth );
    stream->read( &mMinAlpha );
    stream->read( &mMaxAlpha );
