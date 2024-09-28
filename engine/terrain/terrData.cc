@@ -1719,6 +1719,35 @@ void TerrainBlock::setBaseMaterial(U32 /*x*/, U32 /*y*/, U8 /*matGroup*/)
 
 }
 
+void TerrainBlock::getLight(const Point2F& pos, ColorI& color, bool smooth) const {
+    if (!lightMap) {
+        color = ColorI(255, 255, 255);
+        return;
+    }
+    constexpr U32 lmask = LightmapSize - 1;
+
+    U32 sqSize = squareSize >> 1;
+    F32 fx = pos.x / sqSize;
+    F32 fy = pos.y / sqSize;
+    U32 x = S32(fx) & lmask;
+    U32 y = S32(fy) & lmask;
+
+    // potentially expensive bilinear sampling
+    if (smooth) {
+        F32 fractx = fx - S32(fx);
+        F32 fracty = fy - S32(fy);
+        ColorI aa, ba, ab, bb;
+        lightMap->getColor(x,               y, aa);
+        lightMap->getColor((x+1) & lmask,   y, ba);
+        aa.interpolate(aa, ba, fractx);
+        lightMap->getColor(x,               (y+1) & lmask, ab);
+        lightMap->getColor((x+1) & lmask,   (y+1) & lmask, bb);
+        bb.interpolate(ab, bb, fractx);
+        color.interpolate(aa, bb, fracty);
+    } else
+        lightMap->getColor(x, y, color);
+}
+
 S32 TerrainBlock::getTerrainMapIndex(Point3F& pt)
 {
    U8 alphas[MaterialGroups];

@@ -238,6 +238,8 @@ class TerrainBlock : public SceneObject
    U16 *getHeightAddress(U32 x, U32 y) { return &heightMap[(x & BlockMask) + ((y & BlockMask) << BlockShift)]; }
    void setBaseMaterial(U32 x, U32 y, U8 matGroup);
 
+   void getLight(const Point2F& pos, ColorI& color, bool smooth = false) const;
+   
    S32 getTerrainMapIndex(Point3F& pt);
    U8 *getMaterialAlphaMap(U32 matIndex);
    U8* getBaseMaterialAddress(U32 x, U32 y);
