@@ -285,8 +285,8 @@ bool GBitmap::_writePNG(Stream&   stream,
                         const U32 filter) const
 {
    // ONLY RGB bitmap writing supported at this time!
-   AssertFatal(getFormat() == RGB || getFormat() == RGBA || getFormat() == Alpha, "GBitmap::writePNG: ONLY RGB bitmap writing supported at this time.");
-   if (internalFormat != RGB && internalFormat != RGBA && internalFormat != Alpha)
+   AssertFatal(getFormat() == RGB || getFormat() == RGBA || getFormat() == Alpha || getFormat() == RGB5551, "GBitmap::writePNG: ONLY RGB bitmap writing supported at this time.");
+   if (internalFormat != RGB && internalFormat != RGBA && internalFormat != Alpha && internalFormat != RGB5551)
       return (false);
 
    #define MAX_HEIGHT 4096
@@ -344,7 +344,7 @@ bool GBitmap::_writePNG(Stream&   stream,
                    PNG_COMPRESSION_TYPE_BASE,   // compression type
                    PNG_FILTER_TYPE_BASE);       // filter type
    }
-   else if (getFormat() == RGBA) {
+   else if (getFormat() == RGBA || getFormat() == RGB5551) {
       png_set_IHDR(png_ptr, info_ptr,
                    width, height,               // the width & height
                    8, PNG_COLOR_TYPE_RGB_ALPHA, // bit_depth, color_type,
@@ -363,8 +363,21 @@ bool GBitmap::_writePNG(Stream&   stream,
 
    png_write_info(png_ptr, info_ptr);
    png_bytep row_pointers[MAX_HEIGHT];
-   for (U32 i=0; i<height; i++)
-      row_pointers[i] = const_cast<png_bytep>(getAddress(0, i));
+
+   // Very stupid process if the internal format is 5551
+   U32* rgbaCvBuffer = NULL;
+   if (getFormat() == RGB5551) {
+       rgbaCvBuffer = new U32[width * height];
+       for (U32 o = 0; o < (width * height); ++o) {
+           ColorI color;
+           getColor(o % width, o / width, color);
+           rgbaCvBuffer[o] = color.getRGBAPack();
+       }
+   }
+
+   for (U32 i = 0; i < height; i++)
+      row_pointers[i] = const_cast<png_bytep>(rgbaCvBuffer? 
+          (png_bytep) &rgbaCvBuffer[i * width] : getAddress(0, i));
 
    png_write_image(png_ptr, row_pointers);
 
@@ -374,6 +387,7 @@ bool GBitmap::_writePNG(Stream&   stream,
    png_write_end(png_ptr, info_ptr);
    png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 
+   delete[] rgbaCvBuffer;
    return true;
 }
 
