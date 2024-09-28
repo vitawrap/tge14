@@ -777,6 +777,21 @@ S32 TerrainBlock::getMaterialAlphaIndex(const char *materialName)
    return -1;
 }
 
+void TerrainBlock::dumpLightmap() {
+    // Output file.
+    FileStream fStream;
+    if (!fStream.open("lightmap.png", FileStream::Write))
+    {
+        Con::printf("TerrainBlock: Failed to open debug light-map file!");
+        return;
+    }
+    else
+    {
+        lightMap->writePNG(fStream);
+        fStream.close();
+    }
+}
+
 //------------------------------------------------------------------------------
 
 void TerrainBlock::refreshMaterialLists()

@@ -258,6 +258,8 @@ class TerrainBlock : public SceneObject
    bool collideBox(const Point3F &start, const Point3F &end, RayInfo* info){return(castRay(start,end,info));}
    S32 getMaterialAlphaIndex(const char *materialName);
 
+   void dumpLightmap();
+
   private:
    S32 squareSize;
 
