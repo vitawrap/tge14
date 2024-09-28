@@ -314,6 +314,8 @@ public:
     s32     m_ShowEnvMap;
     s32     m_ShowFog;
 
+    bool    isHighResMode() const { return m_HighResMode; }
+
 //------------------------------------------------------------------------------
 //  Private Functions
 //
