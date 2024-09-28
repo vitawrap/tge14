@@ -777,10 +777,12 @@ void WaterBlock::toggleWireFrame()
          Con::printf( "WaterBlock wire frame DISABLED" );
 }
 
-ConsoleMethod( WaterBlock, toggleWireFrame, void, 2, 2, "()")
+#ifdef TORQUE_DEBUG
+ConsoleMethod(WaterBlock, toggleWireFrame, void, 2, 2, "()")
 {
-   object->toggleWireFrame();
+    object->toggleWireFrame();
 }
+#endif // TORQUE_DEBUG
 
 //==============================================================================
 
