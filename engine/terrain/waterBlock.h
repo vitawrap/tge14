@@ -96,6 +96,7 @@ private:
    GBitmap*            mShoreDepthBitmap;      ///< Shore Bitmap.
    TextureHandle       mShoreDepthTexture;     ///< Shore Texture.
    bool                mUseDepthMap;           ///< Use Depth-Map Flag.
+   bool                mUseTerrainLightmap;    ///< Use Terrain lightmap to create shading
    F32                 mShoreDepth;            ///< Shore Depth.
    F32                 mMinAlpha;              ///< Minimum Alpha.
    F32                 mMaxAlpha;              ///< Maximum Alpha.

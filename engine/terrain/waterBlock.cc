@@ -61,6 +61,7 @@ WaterBlock::WaterBlock()
    mEnvMapIntensity     = 0.4f;
    mShoreTexture        = TextureHandle();
    mRemoveWetEdges      = false;
+   mUseTerrainLightmap  = true;
    mAudioEnvironment    = 0;
 
    // lets be good little programmers and initialize our data!
@@ -243,8 +244,8 @@ void WaterBlock::GenerateDepthTextures(GBitmap* pBitmap, TextureHandle& mTexture
             for (s32 s = 0; s < eDepthMapResolution; s++)
             {
                // Fetch Terrain Height at current position.
-               if ( mpTerrain->getHeight(   Point2F(TerrainPos.x + TerrainOffsetX , TerrainPos.y + TerrainOffsetY),
-                                    &Height) )
+               Point2F terPos(TerrainPos.x + TerrainOffsetX, TerrainPos.y + TerrainOffsetY);
+               if ( mpTerrain->getHeight(terPos, &Height) )
                {
                   // Got a valid height so ...
 
@@ -295,6 +296,15 @@ void WaterBlock::GenerateDepthTextures(GBitmap* pBitmap, TextureHandle& mTexture
                {
                   // Eeek, empty grid square ...
                   FluidPointColour = mFluidColour;
+               }
+
+               // Slightly troublesome way of doing it, terrain luminosity domain is 0-32.
+               if (mUseTerrainLightmap) {
+                   ColorI shadeCol;
+                   mpTerrain->getLight(terPos, shadeCol, mFluid.isHighResMode());
+                   U32 DepthAlpha = FluidPointColour >> 24;
+                   U32 NormShade = (DepthAlpha * ((32 + shadeCol.red) << 2)) >> 8;
+                   FluidPointColour = (getMin(NormShade, 255U) << 24) | (FluidPointColour & 0xFFFFFF);
                }
 
                // Calculate Position of Texel Block Origin.
@@ -709,6 +719,7 @@ void WaterBlock::initPersistFields()
 
    addGroup( "Debugging" );
    addField( "UseDepthMask",     TypeBool,      Offset( mUseDepthMap,      WaterBlock ) );
+   addField( "UseLightmap",      TypeBool,      Offset( mUseTerrainLightmap, WaterBlock));
    endGroup( "Debugging" );
 
    addGroup("Media");
@@ -823,6 +834,7 @@ U64 WaterBlock::packUpdate( NetConnection* c, U64 mask, BitStream* stream )
 
    // MM: Write Depth-Map Controls.
    stream->write( mUseDepthMap );
+   stream->write( mUseTerrainLightmap );
    stream->write( mShoreDepth );
    stream->write( mMinAlpha );
    stream->write( mMaxAlpha );
@@ -916,6 +928,7 @@ void WaterBlock::unpackUpdate( NetConnection* c, BitStream* stream )
    mLiquidType = (EWaterType)LiquidType;
 
    stream->read( &mUseDepthMap );
+   stream->read( &mUseTerrainLightmap );
    stream->read( &mShoreDepth );
    stream->read( &mMinAlpha );
    stream->read( &mMaxAlpha );
