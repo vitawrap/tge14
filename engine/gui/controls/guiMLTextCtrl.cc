@@ -906,22 +906,26 @@ GuiMLTextCtrl::Font *GuiMLTextCtrl::allocFont(char *faceName, U32 faceNameLen, U
          size == walk->size)
          return walk;
 
-   // Create!
-   Font *ret;
-   ret = constructInPlace((Font *) mResourceChunker.alloc(sizeof(Font)));
-   ret->faceName = new char[faceNameLen+1];
-   dStrncpy(ret->faceName, faceName, faceNameLen);
-   ret->faceName[faceNameLen] = '\0';
-   ret->faceNameLen = faceNameLen;
-   ret->size = size;
-   ret->next = mFontList;
-   ret->fontRes = GFont::create(ret->faceName, size, GuiControlProfile::sFontCacheDirectory);
-   if(bool(ret->fontRes))
+   char* nameBuffer = new char[faceNameLen + 1];
+   dStrncpy(nameBuffer, faceName, faceNameLen);
+   nameBuffer[faceNameLen] = 0;
+
+   Resource<GFont> res = GFont::create(nameBuffer, size, GuiControlProfile::sFontCacheDirectory);
+
+   if(bool(res))
    {
+      // Create!
+      Font* ret;
+      ret = constructInPlace((Font*)mResourceChunker.alloc(sizeof(Font)));
+      ret->faceName = nameBuffer;
+      ret->faceNameLen = faceNameLen;
+      ret->size = size;
+      ret->fontRes = res;
       ret->next = mFontList;
       mFontList = ret;
       return ret;
    }
+   delete[] nameBuffer;
    return NULL;
 }
 
@@ -929,22 +933,26 @@ GuiMLTextCtrl::Font *GuiMLTextCtrl::allocFont(char *faceName, U32 faceNameLen, U
 GuiMLTextCtrl::Bitmap *GuiMLTextCtrl::allocBitmap(char *bitmapName, U32 bitmapNameLen)
 {
    for(Bitmap *walk = mBitmapList; walk; walk = walk->next)
-      if(bitmapNameLen == walk->bitmapNameLen &&
-         !dStrncmp(walk->bitmapName, bitmapName, bitmapNameLen))
+      if(bitmapNameLen == walk->bitmapNameLen && !dStrcmp(walk->bitmapName, bitmapName))
          return walk;
 
-   Bitmap *ret = constructInPlace((Bitmap *) mResourceChunker.alloc(sizeof(Bitmap)));
-   ret->bitmapName = bitmapName;
-   ret->bitmapNameLen = bitmapNameLen;
    char nameBuffer[256];
    dStrncpy(nameBuffer, bitmapName, bitmapNameLen);
-   nameBuffer[bitmapNameLen] = 0;
-   ret->bitmapHandle = TextureHandle(nameBuffer, BitmapTexture);
-   if(bool(ret->bitmapHandle))
+   nameBuffer[getMin(bitmapNameLen,255U)] = 0;
+
+   // Automatically prints a warning in the console if the file wasn't found.
+   TextureHandle tryHandle = TextureHandle(nameBuffer, BitmapTexture);
+
+   if (bool(tryHandle))
    {
-      ret->next = mBitmapList;
-      mBitmapList = ret;
-      return ret;
+       Bitmap* ret = constructInPlace((Bitmap*)mResourceChunker.alloc(sizeof(Bitmap)));
+
+       ret->bitmapHandle = tryHandle;
+       ret->bitmapName = tryHandle.getName();
+       ret->bitmapNameLen = bitmapNameLen;
+       ret->next = mBitmapList;
+       mBitmapList = ret;
+       return ret;
    }
    return NULL;
 }
