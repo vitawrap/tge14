@@ -371,7 +371,7 @@ bool GBitmap::_writePNG(Stream&   stream,
        for (U32 o = 0; o < (width * height); ++o) {
            ColorI color;
            getColor(o % width, o / width, color);
-           rgbaCvBuffer[o] = color.getRGBAPack();
+           rgbaCvBuffer[o] = color.getARGBPack();
        }
    }
 
