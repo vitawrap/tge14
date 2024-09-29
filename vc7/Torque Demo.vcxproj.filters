@@ -1259,6 +1259,9 @@
     <ClCompile Include="..\engine\ai\aiNavigation.cc">
       <Filter>Source Files\ai</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\game\guiEmitterView.cc">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">

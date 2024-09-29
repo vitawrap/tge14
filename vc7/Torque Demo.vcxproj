@@ -414,6 +414,7 @@
     <ClCompile Include="..\engine\game\gameFunctions.cc" />
     <ClCompile Include="..\engine\game\gameProcess.cc" />
     <ClCompile Include="..\engine\game\gameTSCtrl.cc" />
+    <ClCompile Include="..\engine\game\guiEmitterView.cc" />
     <ClCompile Include="..\engine\game\guiNoMouseCtrl.cc" />
     <ClCompile Include="..\engine\game\guiPlayerView.cc" />
     <ClCompile Include="..\engine\game\item.cc" />

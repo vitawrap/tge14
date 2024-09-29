@@ -320,6 +320,7 @@ SOURCE.GAME=\
 	game/gameFunctions.cc \
 	game/gameProcess.cc \
 	game/gameTSCtrl.cc \
+	game/guiEmitterView.cc \
 	game/guiNoMouseCtrl.cc \
 	game/guiPlayerView.cc \
 	game/item.cc \
