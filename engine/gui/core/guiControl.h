@@ -218,13 +218,13 @@ public:
     /// @name Accessors
     /// @{
 
-    const Point2I&   getPosition() { return mBounds.point; } ///< Returns position of the control
-    const Point2I&   getExtent() { return mBounds.extent; } ///< Returns extents of the control
-    const Point2I&   getMinExtent() { return mMinExtent; } ///< Returns minimum size the control can be
-    const S32        getLeft() { return mBounds.point.x; } ///< Returns the X position of the control
-    const S32        getTop() { return mBounds.point.y; } ///< Returns the Y position of the control
-    const S32        getWidth() { return mBounds.extent.x; } ///< Returns the width of the control
-    const S32        getHeight() { return mBounds.extent.y; } ///< Returns the height of the control
+    const Point2I&   getPosition() const { return mBounds.point; } ///< Returns position of the control
+    const Point2I&   getExtent() const { return mBounds.extent; } ///< Returns extents of the control
+    const Point2I&   getMinExtent() const { return mMinExtent; } ///< Returns minimum size the control can be
+    const S32        getLeft() const { return mBounds.point.x; } ///< Returns the X position of the control
+    const S32        getTop() const { return mBounds.point.y; } ///< Returns the Y position of the control
+    const S32        getWidth() const { return mBounds.extent.x; } ///< Returns the width of the control
+    const S32        getHeight() const { return mBounds.extent.y; } ///< Returns the height of the control
 
     /// @}
 
@@ -234,14 +234,14 @@ public:
     /// Sets the visibility of the control
     /// @param   value   True if object should be visible
     virtual void setVisible(bool value);
-    inline bool isVisible() { return mVisible; } ///< Returns true if the object is visible
+    inline bool isVisible() const { return mVisible; } ///< Returns true if the object is visible
 
     /// Sets the status of this control as active and responding or inactive
     /// @param   value   True if this is active
     void setActive(bool value);
-    bool isActive() { return mActive; } ///< Returns true if this control is active
+    bool isActive() const { return mActive; } ///< Returns true if this control is active
 
-    bool isAwake() { return mAwake; } ///< Returns true if this control is awake
+    bool isAwake() const { return mAwake; } ///< Returns true if this control is awake
 
     /// @}
 
@@ -515,7 +515,7 @@ public:
     void clearFirstResponder();
 
     /// Returns the first responder for this chain
-    GuiControl *getFirstResponder() { return mFirstResponder; }
+    GuiControl *getFirstResponder() const { return mFirstResponder; }
 
     /// Occurs when the first responder for this chain is lost
     virtual void onLoseFirstResponder();
