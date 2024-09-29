@@ -780,6 +780,7 @@ ParticleEmitter::ParticleEmitter()
 {
    mNeedTransformUpdate = true;
 
+   mAddToScene       = true;
    mDeleteWhenEmpty  = false;
    mDeleteOnTick     = false;
 
@@ -904,6 +905,89 @@ int QSORT_CALLBACK cmpSortParticles(const void* p1, const void* p2)
       return -1;
 }
 
+void ParticleEmitter::render(const Point3F& camPos, const MatrixF& modelview)
+{
+    Point3F x, y, viewvec;
+    modelview.getRow(0, &x);
+    modelview.getRow(2, &y);
+    modelview.getRow(1, &viewvec);
+
+    MatrixF camView;
+    modelview.transposeTo((F32*)&camView);
+
+    // DMMFIX: slow!
+    //
+    static Vector<SortParticle> orderedVector(__FILE__, __LINE__);
+    orderedVector.clear();
+
+    Particle* pProbe = mParticleListHead;
+    while (pProbe)
+    {
+        orderedVector.increment();
+        orderedVector.last().p = pProbe;
+        orderedVector.last().k = mDot(pProbe->pos, viewvec);
+        pProbe = pProbe->nextInList;
+    }
+
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glDepthMask(GL_FALSE);
+
+    Point3F basePoints[4];
+    basePoints[0] = Point3F(-1.0, 0.0, -1.0);
+    basePoints[1] = Point3F(1.0, 0.0, -1.0);
+    basePoints[2] = Point3F(1.0, 0.0, 1.0);
+    basePoints[3] = Point3F(-1.0, 0.0, 1.0);
+
+    const F32 spinFactor = (1.0 / 1000.0) * (1.0 / 360.0) * M_PI * 2.0;
+
+    bool prevInvAlpha = false;
+
+    for (U32 i = 0; i < orderedVector.size(); i++)
+    {
+        Particle* particle = orderedVector[i].p;
+
+        //  Set our blend mode, where appropriate.
+        if (particle->dataBlock->useInvAlpha != prevInvAlpha)
+        {
+            if (particle->dataBlock->useInvAlpha)
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            else
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+            prevInvAlpha = particle->dataBlock->useInvAlpha;
+        }
+
+        if (particle->dataBlock->animateTexture)
+        {
+            U32 texNum = (U32)(particle->currentAge * (1.0 / 1000.0) * particle->dataBlock->framesPerSec);
+            texNum %= particle->dataBlock->numFrames;
+            glBindTexture(GL_TEXTURE_2D, particle->dataBlock->textureList[texNum].getGLName());
+        }
+        else
+        {
+            glBindTexture(GL_TEXTURE_2D, particle->dataBlock->textureList[0].getGLName());
+        }
+
+        if (mDataBlock->orientParticles)
+        {
+            renderOrientedParticle(*particle, camPos);
+        }
+        else
+        {
+            renderBillboardParticle(*particle, basePoints, camView, spinFactor);
+        }
+
+    }
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glDepthMask(GL_TRUE);
+}
+
 void ParticleEmitter::renderObject(SceneState* state, SceneRenderImage*)
 {
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on entry");
@@ -922,86 +1006,7 @@ void ParticleEmitter::renderObject(SceneState* state, SceneRenderImage*)
 
    MatrixF modelview;
    dglGetModelview(&modelview);
-
-   Point3F x, y, viewvec;
-   modelview.getRow(0, &x);
-   modelview.getRow(2, &y);
-   modelview.getRow(1, &viewvec);
-
-   MatrixF camView;
-   modelview.transposeTo( (F32*) &camView );
-
-   // DMMFIX: slow!
-   //
-   static Vector<SortParticle> orderedVector(__FILE__, __LINE__);
-   orderedVector.clear();
-
-   Particle* pProbe = mParticleListHead;
-   while (pProbe)
-   {
-      orderedVector.increment();
-      orderedVector.last().p = pProbe;
-      orderedVector.last().k = mDot(pProbe->pos, viewvec);
-      pProbe = pProbe->nextInList;
-   }
-
-   glEnable(GL_BLEND);
-   glEnable(GL_TEXTURE_2D);
-   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-   glDepthMask(GL_FALSE);
-
-   Point3F basePoints[4];
-   basePoints[0] = Point3F(-1.0, 0.0, -1.0);
-   basePoints[1] = Point3F( 1.0, 0.0, -1.0);
-   basePoints[2] = Point3F( 1.0, 0.0,  1.0);
-   basePoints[3] = Point3F(-1.0, 0.0,  1.0);
-
-   const F32 spinFactor = (1.0/1000.0) * (1.0/360.0) * M_PI * 2.0;
-
-   bool prevInvAlpha = false;
-
-   for (U32 i = 0; i < orderedVector.size(); i++)
-   {
-      Particle* particle = orderedVector[i].p;
-
-      //  Set our blend mode, where appropriate.
-      if (particle->dataBlock->useInvAlpha != prevInvAlpha)
-      {
-         if (particle->dataBlock->useInvAlpha)
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         else
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-         prevInvAlpha = particle->dataBlock->useInvAlpha;
-      }
-
-      if( particle->dataBlock->animateTexture )
-      {
-         U32 texNum = (U32)(particle->currentAge * (1.0/1000.0) * particle->dataBlock->framesPerSec);
-         texNum %= particle->dataBlock->numFrames;
-         glBindTexture(GL_TEXTURE_2D, particle->dataBlock->textureList[texNum].getGLName());
-      }
-      else
-      {
-         glBindTexture(GL_TEXTURE_2D, particle->dataBlock->textureList[0].getGLName());
-      }
-
-      if( mDataBlock->orientParticles )
-      {
-         renderOrientedParticle( *particle, state->getCameraPosition() );
-      }
-      else
-      {
-         renderBillboardParticle( *particle, basePoints, camView, spinFactor );
-      }
-
-   }
-
-   glDisable(GL_TEXTURE_2D);
-   glDisable(GL_BLEND);
-   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-   glDepthMask(GL_TRUE);
+   render(state->getCameraPosition(), modelview);
 
    glMatrixMode(GL_MODELVIEW);
    glPopMatrix();
@@ -1285,7 +1290,7 @@ void ParticleEmitter::emitParticles(const Point3F& start,
    if(updatedBBox)
       mNeedTransformUpdate = true;
 
-   if (mParticleListHead != NULL && mSceneManager == NULL) 
+   if (mAddToScene && mParticleListHead != NULL && mSceneManager == NULL) 
    {
       gClientSceneGraph->addObjectToScene(this);
       gClientContainer.addObject(this);
@@ -1361,7 +1366,7 @@ void ParticleEmitter::emitParticles(const Point3F& rCenter,
    resetWorldBox();
 
    // Make sure we're part of the world
-   if (mParticleListHead != NULL && mSceneManager == NULL) 
+   if (mAddToScene && mParticleListHead != NULL && mSceneManager == NULL) 
    {
       gClientSceneGraph->addObjectToScene(this);
       gClientContainer.addObject(this);

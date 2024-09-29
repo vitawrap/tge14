@@ -102,6 +102,7 @@ class ParticleEmitter : public GameBase
 {
    typedef GameBase Parent;
    friend class PEngine;
+   friend class GuiEmitterView;
 
   public:
    ParticleEmitter();
@@ -115,8 +116,16 @@ class ParticleEmitter : public GameBase
    /// @param   colorList   List of colors
    void setColors( ColorF *colorList );
 
+   /// Before any particles are emitted, set this flag accordingly.
+   void setAddToScene(bool add) { mAddToScene = add; }
+
    ParticleEmitterData *getDataBlock(){ return mDataBlock; }
    bool onNewDataBlock(GameBaseData* dptr);
+
+   /// Manually render particle emitter outside of main scene rendering loop.
+   /// This is usually necessary when mAddToScene is false, meaning the object is
+   /// not exposed to the scene containers, and will NOT render through renderObject.
+   void render(const Point3F& camPos, const MatrixF& modelview);
 
    /// By default, a particle renderer will wait for it's owner to delete it.  When this
    /// is turned on, it will delete itself as soon as it's particle count drops to zero.
@@ -188,7 +197,7 @@ class ParticleEmitter : public GameBase
    void advanceTime(F32 dt);
 
    // Rendering
-  protected:
+  protected:   
    bool prepRenderImage(SceneState *state, const U32 stateKey, const U32 startZone, const bool modifyBaseZoneState);
    void renderObject(SceneState *state, SceneRenderImage *image);
 
@@ -215,6 +224,7 @@ class ParticleEmitter : public GameBase
    Point3F   mLastPosition;
    bool      mHasLastPosition;
 
+   bool      mAddToScene;
    bool      mDeleteWhenEmpty;
    bool      mDeleteOnTick;
 
