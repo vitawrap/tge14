@@ -20,6 +20,9 @@ private:
 	// Equivalent to view matrix
 	MatrixF mCameraMatrix;
 
+	// Particle display box
+	Box3F mBox;
+
 	// Emitter + DB, and datablock name to act as life ticket.
 	ParticleEmitter*		mEmitter;
 	ParticleEmitterData*	mEmitterData;
@@ -57,6 +60,8 @@ GuiEmitterView::GuiEmitterView()
 {
 	mZoomLevel = 5.f;
 	mCameraMatrix.identity();	// keep at origin
+	mBox.min.set(0, 0, 0);
+	mBox.max.set(0, 0, 0);
 
 	mEmitter = NULL;
 	mEmitterData = NULL;
@@ -149,9 +154,8 @@ void GuiEmitterView::onPreRender()
 	Parent::onPreRender();
 
 	if (mEmitter) {
-		static const Point3F point(0, 0, 0);
 		static const Point3F normal(0, 0, 1);
-		mEmitter->emitParticles(point, point, normal, normal, lastTimeDelta);
+		mEmitter->emitParticles(mBox.min, mBox.max, normal, normal, lastTimeDelta);
 	}
 }
 
@@ -185,6 +189,7 @@ void GuiEmitterView::initPersistFields()
 	addGroup("Display");
 	addField("datablock", TypeParticleEmitterDataPtr, Offset(mEmitterData, GuiEmitterView));
 	addField("zoomLevel", TypeF32, Offset(mZoomLevel, GuiEmitterView));
+	addField("box",		  TypeBox3F, Offset(mBox, GuiEmitterView));
 	endGroup("Display");
 }
 
