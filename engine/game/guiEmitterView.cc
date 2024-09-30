@@ -65,7 +65,9 @@ GuiEmitterView::GuiEmitterView()
 
 GuiEmitterView::~GuiEmitterView()
 {
-
+	if (mEmitter) {
+		mEmitter->deleteObject();
+	}
 }
 
 void GuiEmitterView::onStaticModified(char const* field)
@@ -142,7 +144,7 @@ bool GuiEmitterView::onWake()
 	}
 	else if (mEmitterDataName) {
 		Con::errorf("GuiEmitterView: Could not recover datablock %s.", mEmitterDataName);
-		delete mEmitter;
+		mEmitter->deleteObject();
 		mEmitter = NULL;
 	}
 	return true;
