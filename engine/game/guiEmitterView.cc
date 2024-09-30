@@ -55,7 +55,7 @@ IMPLEMENT_CONOBJECT(GuiEmitterView);
 
 GuiEmitterView::GuiEmitterView()
 {
-	mZoomLevel = 1.f;
+	mZoomLevel = 5.f;
 	mCameraMatrix.identity();	// keep at origin
 
 	mEmitter = NULL;
@@ -91,38 +91,17 @@ void GuiEmitterView::advanceTime(F32 timeDelta)
 
 bool GuiEmitterView::processCameraQuery(CameraQuery* query)
 {
-	/*
-	F32 invZoomLevel = 1.f / mZoomLevel;
-	query->leftRight = mBounds.extent.x * .5f * invZoomLevel;
-	query->leftRight = mBounds.extent.x * .5f * invZoomLevel;
-	query->cameraMatrix = mCameraMatrix;
-	query->nearPlane = 0.01f;
-	query->farPlane = 20.f;
-	query->ortho = true;
-	*/
-
-	// TODO: Shorten to just a zoom value and a cam position.
-	// The camera always looks forward but can have another origin.
-
 	// Make sure the orbit distance is within the acceptable range:
-	F32 mOrbitDist = 5.0;
 	Point3F mCameraPos;
-	EulerF mCameraRot(0, 0, 0);
-	Point3F mOrbitPos(0, 0, 0);
 
 	// Adjust the camera so that we are still facing the model:
 	Point3F vec;
-	MatrixF xRot, zRot;
-	xRot.set(EulerF(mCameraRot.x, 0, 0));
-	zRot.set(EulerF(0, 0, mCameraRot.z));
-
-	mCameraMatrix.mul(zRot, xRot);
 	mCameraMatrix.getColumn(1, &vec);
-	vec *= mOrbitDist;
-	mCameraPos = mOrbitPos - vec;
+	vec *= mZoomLevel;
+	mCameraPos = -vec;
 
 	query->nearPlane = 0.1;
-	query->farPlane = 2100.0;
+	query->farPlane = 50.0;
 	query->fov = 3.1415 / 3.5;
 	mCameraMatrix.setColumn(3, mCameraPos);
 	query->cameraMatrix = mCameraMatrix;
