@@ -68,6 +68,9 @@ static const F32 F32_MAX = F32(3.402823466e+38F);                 ///< Constant 
 // GNU GCC
 #elif defined(__GNUC__)
 #  include "platform/types.gcc.h"
+// CLANG
+#elif defined(__clang__)
+#  include "platform/types.clang.h"
 #else
 #  error "Unknown Compiler"
 #endif
