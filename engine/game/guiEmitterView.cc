@@ -190,6 +190,11 @@ void GuiEmitterView::initPersistFields()
 
 void GuiEmitterView::emit()
 {
+	if (mEmitter) {
+		mEmitter->deleteObject();
+		mEmitter = NULL;
+	}
+
 	ParticleEmitter* pEmitter = new ParticleEmitter;
 	pEmitter->onNewDataBlock(mEmitterData);
 	if (pEmitter->registerObject() == false)
