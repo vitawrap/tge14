@@ -15,7 +15,7 @@ typedef unsigned long long  U64;
 
 //--------------------------------------
 // Compiler Version
-#define TORQUE_COMPILER_CLANG __clang__
+#define TORQUE_COMPILER_CLANG (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
 
 //--------------------------------------
 // Identify the Operating System
@@ -33,14 +33,14 @@ typedef unsigned long long  U64;
 #  define TORQUE_SUPPORTS_GCC_INLINE_X86_ASM
 #  include "platform/types.win32.h"
 
-#elif defined(linux) && defined(__x86_64__)
+#elif defined(__unix__) && defined(__x86_64__)
 #  define TORQUE_OS_STRING "Linux"
 #  define TORQUE_OS_LINUX
 //#  define TORQUE_SUPPORTS_NASM
 #  define TORQUE_SUPPORTS_GCC_INLINE_X64_ASM
 #  include "platform/types.posix.h"
 
-#elif defined(linux)
+#elif defined(__unix__)
 #  define TORQUE_OS_STRING "Linux"
 #  define TORQUE_OS_LINUX
 #  define TORQUE_SUPPORTS_NASM
