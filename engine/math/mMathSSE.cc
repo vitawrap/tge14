@@ -101,15 +101,16 @@ void SSE_MatrixF_x_MatrixF(const F32 *matA, const F32 *matB, F32 *result)
       movups      [eax+30h], xmm2
    }
 }
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) || defined(TORQUE_SUPPORTS_GCC_INLINE_X64_ASM)
 #define ADD_SSE_FN
 #include <immintrin.h>
 
+// TODO: Aligned alloc of matrices! using loadu/storeu for safety until then...
 void SSE_MatrixF_x_MatrixF(const F32* matA, const F32* matB, F32* result) {
-    __m128 row1 = _mm_load_ps(&matB[0]);
-    __m128 row2 = _mm_load_ps(&matB[4]);
-    __m128 row3 = _mm_load_ps(&matB[8]);
-    __m128 row4 = _mm_load_ps(&matB[12]);
+    __m128 row1 = _mm_loadu_ps(&matB[0]);
+    __m128 row2 = _mm_loadu_ps(&matB[4]);
+    __m128 row3 = _mm_loadu_ps(&matB[8]);
+    __m128 row4 = _mm_loadu_ps(&matB[12]);
 
     __m128 brod1 = _mm_set1_ps(matA[0]);
     __m128 brod2 = _mm_set1_ps(matA[1]);
@@ -123,7 +124,7 @@ void SSE_MatrixF_x_MatrixF(const F32* matA, const F32* matB, F32* result) {
             _mm_mul_ps(brod3, row3),
             _mm_mul_ps(brod4, row4))
     );
-    _mm_store_ps(&result[0], row);
+    _mm_storeu_ps(&result[0], row);
 
     brod1 = _mm_set1_ps(matA[4]);
     brod2 = _mm_set1_ps(matA[5]);
@@ -137,7 +138,7 @@ void SSE_MatrixF_x_MatrixF(const F32* matA, const F32* matB, F32* result) {
             _mm_mul_ps(brod3, row3),
             _mm_mul_ps(brod4, row4))
     );
-    _mm_store_ps(&result[4], row);
+    _mm_storeu_ps(&result[4], row);
 
     brod1 = _mm_set1_ps(matA[8]);
     brod2 = _mm_set1_ps(matA[9]);
@@ -151,7 +152,7 @@ void SSE_MatrixF_x_MatrixF(const F32* matA, const F32* matB, F32* result) {
             _mm_mul_ps(brod3, row3),
             _mm_mul_ps(brod4, row4))
     );
-    _mm_store_ps(&result[8], row);
+    _mm_storeu_ps(&result[8], row);
 
     brod1 = _mm_set1_ps(matA[12]);
     brod2 = _mm_set1_ps(matA[13]);
@@ -165,7 +166,7 @@ void SSE_MatrixF_x_MatrixF(const F32* matA, const F32* matB, F32* result) {
             _mm_mul_ps(brod3, row3),
             _mm_mul_ps(brod4, row4))
     );
-    _mm_store_ps(&result[12], row);
+    _mm_storeu_ps(&result[12], row);
 }
 #endif
 
