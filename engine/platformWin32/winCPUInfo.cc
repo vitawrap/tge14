@@ -9,12 +9,70 @@
 #include "core/stringTable.h"
 #include "core/frameAllocator.h"
 #include <math.h>
+#include <intrin.h> // __cpuid
 
 Platform::SystemInfo_struct Platform::SystemInfo;
 extern void PlatformBlitInit();
 extern void SetProcessorInfo(Platform::SystemInfo_struct::Processor& pInfo,
-   char* vendor, U32 processor, U32 properties); // platform/platformCPU.cc
+   char const* vendor, char const* brand); // platform/platformCPU.cc
 
+static void getBrand(char* brand)
+{
+    S32 extendedInfo[4];
+    __cpuid(extendedInfo, 0x80000000);
+    S32 numberExtendedIds = extendedInfo[0];
+
+    // Sets brand
+    if (numberExtendedIds >= 0x80000004)
+    {
+        int offset = 0;
+        for (int i = 0; i < 3; ++i)
+        {
+            S32 brandInfo[4];
+            __cpuidex(brandInfo, 0x80000002 + i, 0);
+
+            *reinterpret_cast<int*>(brand + offset + 0) = brandInfo[0];
+            *reinterpret_cast<int*>(brand + offset + 4) = brandInfo[1];
+            *reinterpret_cast<int*>(brand + offset + 8) = brandInfo[2];
+            *reinterpret_cast<int*>(brand + offset + 12) = brandInfo[3];
+
+            offset += sizeof(S32) * 4;
+        }
+    }
+}
+
+enum CpuFlags
+{
+    // EDX Register flags
+    BIT_MMX = BIT(23),
+    BIT_SSE = BIT(25),
+    BIT_SSE2 = BIT(26),
+    BIT_3DNOW = BIT(31), // only available for amd cpus in x86
+
+    // These use a different value for comparison than the above flags (ECX Register)
+    BIT_SSE3 = BIT(0),
+    BIT_SSE3ex = BIT(9),
+    BIT_SSE4_1 = BIT(19),
+    BIT_SSE4_2 = BIT(20),
+};
+
+static void detectCpuFeatures(Platform::SystemInfo_struct::Processor& processor)
+{
+    S32 cpuInfo[4];
+    __cpuid(cpuInfo, 1);
+    U32 edx = cpuInfo[3];   // edx
+    U32 ecx = cpuInfo[2];   // ecx
+
+    processor.properties |= (edx & BIT_MMX) ? CPU_PROP_MMX : 0;
+    processor.properties |= (edx & BIT_SSE) ? CPU_PROP_SSE : 0;
+    processor.properties |= (edx & BIT_SSE2) ? CPU_PROP_SSE2 : 0;
+    processor.properties |= (edx & BIT_3DNOW) ? CPU_PROP_3DNOW: 0;
+    processor.properties |= (ecx & BIT_SSE3|BIT_SSE3ex) ? CPU_PROP_SSE3 : 0;
+    processor.properties |= (ecx & BIT_SSE4_1) ? CPU_PROP_SSE4_1 : 0;
+    processor.properties |= (ecx & BIT_SSE4_2) ? CPU_PROP_SSE4_2 : 0;
+
+    // For now do not do AVX-related detection, nor MP/64bit.
+}
 
 #if defined(TORQUE_SUPPORTS_NASM)
 // asm cpu detection routine from platform code
@@ -42,9 +100,9 @@ void Processor::init()
    Platform::SystemInfo.processor.type = CPU_X86Compatible;
    Platform::SystemInfo.processor.name = StringTable->insert("Unknown " TORQUE_CPU_STRING " Compatible");
    Platform::SystemInfo.processor.mhz  = 0;
-   Platform::SystemInfo.processor.properties = CPU_PROP_C;
+   Platform::SystemInfo.processor.properties = CPU_PROP_C | CPU_PROP_FPU;
 
-   char  vendor[20] = {0};
+   char  vendor[0x20] {};
    U32   properties = 0;
    U32   processor  = 0;
 
@@ -109,31 +167,22 @@ void Processor::init()
    }
 #elif defined(_MSC_VER) // Use MSVC intrinsics?
 
-   // Get vendor info (eax = 0)
-   int e[4];
-   __cpuid(e, 0);
-   int* vendor32 = (int*)vendor;
+   // Get vendor info
+   S32 vendorInfo[4];
+   __cpuid(vendorInfo, 0);
+   *reinterpret_cast<int*>(vendor) = vendorInfo[1];     // ebx
+   *reinterpret_cast<int*>(vendor + 4) = vendorInfo[3]; // edx
+   *reinterpret_cast<int*>(vendor + 8) = vendorInfo[2]; // ecx
 
-   vendor32[0] = e[1];
-   vendor32[1] = e[3];
-   vendor32[2] = e[2];
-
-   // Get extended CPUID info
-   __cpuid(e, 1);
-   processor = e[0] & 0x0FF0;
-   properties = e[3];
-
-   // 3Dnow(tm) stuff (probably useless)
-   __cpuid(e, 0x80000000);
-   if (e[0] >= 0x80000001)
-   {
-       __cpuid(e, 0x80000001);
-       properties |= (e[3] & 0x80000000);
-   }
+   // Get brand info
+   char brand[0x40];
+   dMemset(brand, 0, sizeof(brand));
+   getBrand(brand);
 
 #endif
 
-   SetProcessorInfo(Platform::SystemInfo.processor, vendor, processor, properties);
+   SetProcessorInfo(Platform::SystemInfo.processor, vendor, brand);
+   detectCpuFeatures(Platform::SystemInfo.processor);
 
 // now calculate speed of processor...
    U16 nearmhz = 0; // nearest rounded mhz
@@ -233,6 +282,27 @@ void Processor::init()
       // would be nice if we stored both the calculated and the adjusted/guessed values.
       Platform::SystemInfo.processor.mhz = nearmhz; // hold onto adjusted value only.
    }
+#else
+   // We can only operate with intrinsics here...
+   mhz = nearmhz = 1000;  // start with generous assumption.
+
+   LONG result;
+   DWORD data = 0;
+   DWORD dataSize = 4;
+   HKEY hKey;
+
+   result = ::RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+       "Hardware\\Description\\System\\CentralProcessor\\0", 0, KEY_QUERY_VALUE, &hKey);
+
+   if (result == ERROR_SUCCESS) {
+       result = ::RegQueryValueExA(hKey, "~MHz", NULL, NULL, (LPBYTE)&data, &dataSize);
+       if (result == ERROR_SUCCESS) {
+           mhz = data;
+           nearmhz = data;
+       }
+       ::RegCloseKey(hKey);
+   }
+   Platform::SystemInfo.processor.mhz = mhz;
 #endif
 
    if (mhz==0)
@@ -258,12 +328,22 @@ void Processor::init()
 
    if (Platform::SystemInfo.processor.properties & CPU_PROP_FPU)
       Con::printf("   FPU detected");
+   if (Platform::SystemInfo.processor.properties & CPU_PROP_RDTSC)
+      Con::printf("   RDTSC detected");
    if (Platform::SystemInfo.processor.properties & CPU_PROP_MMX)
       Con::printf("   MMX detected");
    if (Platform::SystemInfo.processor.properties & CPU_PROP_3DNOW)
       Con::printf("   3DNow detected");
    if (Platform::SystemInfo.processor.properties & CPU_PROP_SSE)
       Con::printf("   SSE detected");
+   if (Platform::SystemInfo.processor.properties & CPU_PROP_SSE2)
+      Con::printf("   SSE2 detected");
+   if (Platform::SystemInfo.processor.properties & CPU_PROP_SSE3)
+      Con::printf("   SSE3 detected");
+   if (Platform::SystemInfo.processor.properties & CPU_PROP_SSE4_1)
+      Con::printf("   SSE4.1 detected");
+   if (Platform::SystemInfo.processor.properties & CPU_PROP_SSE4_2)
+      Con::printf("   SSE4.2 detected");
    Con::printf(" ");
 
    PlatformBlitInit();
