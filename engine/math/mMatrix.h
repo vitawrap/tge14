@@ -40,7 +40,7 @@ public:
    ///
    /// @param   i   Column desired.
    /// @param   j   Row desired.
-   static U32 idx(U32 i, U32 j) { return (i + j*4); }
+   constexpr static U32 idx(U32 i, U32 j) { return (i + j*4); }
 
    /// Initialize matrix to rotate about origin by e.
    MatrixF& set( const EulerF &e);
