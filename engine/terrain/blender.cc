@@ -28,9 +28,8 @@
 // Primary Manifest Values
 #define TEXELS_PER_SOURCE_EDGE_LOG2       8
 #define TEXELS_PER_TARGET_EDGE_LOG2       TerrainTextureMipLevel
-#define LUMELS_PER_TILE_EDGE_LOG2         9
+#define LUMELS_PER_TILE_EDGE_LOG2         9 // TerrainBlock::LightmapShift
 #define SQUARES_PER_TILE_EDGE_LOG2        8
-#define MAX_MIPMAP_LEVELS                 4
 #define MAXIMUM_TEXTURES                  4
 #define SQUARES_PER_MIPMAP_EDGE_LOG2      (10 - TEXELS_PER_TARGET_EDGE_LOG2)
 
@@ -55,9 +54,6 @@
 #define TEXELS_PER_TARGET_EDGE            (1 << TEXELS_PER_TARGET_EDGE_LOG2)
 #define TEXELS_PER_SOURCE_BMP             (TEXELS_PER_SOURCE_EDGE * TEXELS_PER_SOURCE_EDGE)
 #define TEXELS_PER_TARGET_BMP             (TEXELS_PER_TARGET_EDGE * TEXELS_PER_TARGET_EDGE)
-
-// Paul's leftovers
-#define ALPHA_WID                         (1 << SQUARES_PER_TILE_EDGE_LOG2)
 
 // -------------------------
 // The following defines are for indexing into the source image maps.
