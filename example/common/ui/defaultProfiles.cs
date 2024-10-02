@@ -434,7 +434,7 @@ if(!isObject(GuiToolTipProfile)) new GuiControlProfile (GuiToolTipProfile)
 if(!isObject(GuiConsoleProfile)) new GuiControlProfile ("GuiConsoleProfile")
 {
    fontType = ($platform $= "macos") ? "Monaco" : "Consolas";
-   fontSize = ($platform $= "macos") ? 13 : 12;
+   fontSize = 13;
    fontColor = "0 0 0";
    fontColorHL = "130 130 130";
    fontColorNA = "255 0 0";
