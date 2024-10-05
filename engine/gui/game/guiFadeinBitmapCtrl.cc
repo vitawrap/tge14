@@ -99,13 +99,16 @@ public:
       {
          // done state
          alpha = fadeoutTime ? 255 : 0;
+         if (!done)
+            Con::executef(this, 1, "onDone");
          done = true;
       }
 
       if (fadeAlpha && !done)
         mFramebufferTexture.update();
 
-      Parent::onRender(offset, updateRect);
+      if (!fadeAlpha || (fadeAlpha && alpha < 255))
+        Parent::onRender(offset, updateRect);
 
       if (fadeAlpha)
       {
