@@ -854,6 +854,12 @@ ConsoleMethod( GuiControl, resize, void, 6, 6, "(int x, int y, int w, int h)")
    object->resize(newPos, newExt);
 }
 
+ConsoleMethod(GuiControl, setExtent, void, 4, 4, "(int x, int y)")
+{
+    Point2I newExt(dAtoi(argv[2]), dAtoi(argv[3]));
+    object->setExtent(newExt);
+}
+
 ConsoleMethod( GuiControl, getPosition, const char*, 2, 2, "")
 {
    char *retBuffer = Con::getReturnBuffer(64);
