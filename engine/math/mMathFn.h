@@ -451,6 +451,12 @@ inline void mCross(const F64* a, const F64* b, F64* res)
 
 void mTransformPlane(const MatrixF& mat, const Point3F& scale, const PlaneF& plane, PlaneF* result);
 
+//--------------------------------------
+template <typename T>
+inline T mLerp(T a, T b, F32 ratio)
+{
+    return a + ratio * (b - a);
+}
 
 //--------------------------------------
 inline F32 mDegToRad(F32 d)
