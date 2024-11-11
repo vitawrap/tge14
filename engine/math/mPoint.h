@@ -37,6 +37,13 @@ class Point2I
    void setMin(const Point2I&);             ///< Store lesser co-ordinates from parameter in this point.
    void setMax(const Point2I&);             ///< Store greater co-ordinates from parameter in this point.
 
+   /// Interpolate from a to b, based on c.
+   ///
+   /// @param   a   Starting point.
+   /// @param   b   Ending point.
+   /// @param   c   Interpolation factor (0.0 .. 1.0).
+   void interpolate(const Point2I& a, const Point2I& b, const F32 c);
+
    //-------------------------------------- Math mutators
    void neg();                              ///< Invert sign of point's co-ordinates.
    void convolve(const Point2I&);           ///< Convolve this point by parameter.
@@ -489,6 +496,14 @@ inline void Point2I::setMax(const Point2I& _test)
 {
    x = (_test.x > x) ? _test.x : x;
    y = (_test.y > y) ? _test.y : y;
+}
+
+
+inline void Point2I::interpolate(const Point2I& _rFrom, const Point2I& _to, const F32 _factor)
+{
+    //AssertFatal(_factor >= 0.0f && _factor <= 1.0f, "Out of bound interpolation factor");
+    x = F32((F32)_rFrom.x * (1.0f - _factor)) + (F32(_to.x) * _factor);
+    y = F32((F32)_rFrom.y * (1.0f - _factor)) + (F32(_to.y) * _factor);
 }
 
 
