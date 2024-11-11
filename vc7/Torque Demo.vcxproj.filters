@@ -1262,6 +1262,9 @@
     <ClCompile Include="..\engine\game\guiEmitterView.cc">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\core\tweener.cc">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">
@@ -2250,6 +2253,9 @@
     </ClInclude>
     <ClInclude Include="..\engine\console\CMDgram.hh">
       <Filter>Source Files\console</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\core\tweener.h">
+      <Filter>Source Files\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

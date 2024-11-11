@@ -38,6 +38,7 @@
 #include "platform/profiler.h"
 #include "game/fx/underLava.h"
 #include "core/iTickable.h"
+#include "core/tweener.h"
 //this is an extra comment
 
 static void cPanoramaScreenShot(SimObject *, S32, const char ** argv);
@@ -531,6 +532,7 @@ bool clientProcess(U32 timeDelta)
 {
    //ShowTSShape::advanceTime(timeDelta);
    ITickable::advanceTime(timeDelta);
+   TweenerBase::processLiveTweens(timeDelta);
 
    // If there are no datablocks, we assume there is nothing that could be updated.
    // Since even a camera needs a datablock, we can safely assume there is no

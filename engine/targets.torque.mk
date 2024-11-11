@@ -82,6 +82,7 @@ SOURCE.CORE=\
 	core/tagDictionary.cc \
 	core/tokenizer.cc \
 	core/tVector.cc \
+	core/tweener.cc \
 	core/zipAggregate.cc \
 	core/zipHeaders.cc \
 	core/zipSubStream.cc \

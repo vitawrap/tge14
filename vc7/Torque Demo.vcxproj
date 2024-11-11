@@ -341,6 +341,7 @@
     <ClCompile Include="..\engine\core\theoraPlayer.cc" />
     <ClCompile Include="..\engine\core\tokenizer.cc" />
     <ClCompile Include="..\engine\core\tVector.cc" />
+    <ClCompile Include="..\engine\core\tweener.cc" />
     <ClCompile Include="..\engine\core\unicode.cc" />
     <ClCompile Include="..\engine\core\zipAggregate.cc" />
     <ClCompile Include="..\engine\core\zipHeaders.cc" />
@@ -730,6 +731,7 @@
     <ClInclude Include="..\engine\core\torqueConfig.h" />
     <ClInclude Include="..\engine\core\tSparseArray.h" />
     <ClInclude Include="..\engine\core\tVector.h" />
+    <ClInclude Include="..\engine\core\tweener.h" />
     <ClInclude Include="..\engine\core\unicode.h" />
     <ClInclude Include="..\engine\core\zipAggregate.h" />
     <ClInclude Include="..\engine\core\zipHeaders.h" />
