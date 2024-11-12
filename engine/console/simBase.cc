@@ -704,6 +704,25 @@ const char *SimObject::tabComplete(const char *prevText, S32 baseLen, bool fForw
    return mNameSpace->tabComplete(prevText, baseLen, fForward);
 }
 
+void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* array, const char* value)
+{
+    AssertFatal(fld, "SimObject::setStaticField: Field was null.");
+
+    if (fld->type == AbstractClassRep::DepricatedFieldType ||
+        fld->type == AbstractClassRep::StartGroupFieldType ||
+        fld->type == AbstractClassRep::EndGroupFieldType) return;
+
+    S32 array1 = array ? dAtoi(array) : 0;
+
+    if (array1 >= 0 && array1 < fld->elementCount && fld->elementCount >= 1)
+        Con::setData(fld->type, (void*)(((const char*)this) + fld->offset), array1, 1, &value, fld->table);
+
+    if (fld->validator)
+        fld->validator->validateType(this, (void*)(((const char*)this) + fld->offset));
+
+    onStaticModified(fld->pFieldname);  // pFieldName can be used like a StringTableEntry.
+}
+
 void SimObject::setDataField(StringTableEntry slotName, const char *array, const char *value)
 {
    // first search the static fields if enabled
@@ -712,25 +731,7 @@ void SimObject::setDataField(StringTableEntry slotName, const char *array, const
       const AbstractClassRep::Field *fld = findField(slotName);
       if(fld)
       {
-      if( fld->type == AbstractClassRep::DepricatedFieldType ||
-		  fld->type == AbstractClassRep::StartGroupFieldType ||
-		  fld->type == AbstractClassRep::EndGroupFieldType) return;
-
-         S32 array1 = array ? dAtoi(array) : 0;
-
-         if(array1 >= 0 && array1 < fld->elementCount && fld->elementCount >= 1)
-            Con::setData(fld->type, (void *) (((const char *)this) + fld->offset), array1, 1, &value, fld->table);
-
-         if(fld->validator)
-            fld->validator->validateType(this, (void *) (((const char *)this) + fld->offset));
-         /*else if(array1 == -1 && fld->elementCount == argc)
-           {
-           S32 i;
-           for(i = 0; i < argc;i++)
-           Con::setData(fld->type, (void *) (U32(this) + fld->offset), i, 1, argv + i, fld->table);
-           }*/
-
-         onStaticModified(slotName);
+         setStaticField(fld, array, value);
          return;
       }
    }

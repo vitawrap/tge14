@@ -533,6 +533,13 @@ class SimObject: public ConsoleObject
    /// @param   value       Value to store.
    void setDataField(StringTableEntry slotName, const char *array, const char *value);
 
+   /// Shortcut to strictly set a static field, also avoiding a call to findField.
+   ///
+   /// @param   field       Field from own AbstractClassRep.
+   /// @param   array       String containing index into array; if NULL, it is ignored.
+   /// @param   value       Value to store.
+   void setStaticField(AbstractClassRep::Field const* field, const char* array, const char* value);
+
    /// Get reference to the dictionary containing dynamic fields.
    ///
    /// See @ref simobject_console "here" for a detailed discussion of what this
