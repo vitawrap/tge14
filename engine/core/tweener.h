@@ -71,10 +71,9 @@ public:
 		valueToString(valueBuffer);
 
 		SimObject* ptr = mPtr;
-		void* dst = (((char*)ptr) + mStaticField->offset);
 		// This also has the side effect of calling SimObject::onStaticModified
 		// and potentially passing the value through the field's type validator.
-		Con::setData(mStaticField->type, dst, 0, 1, &valuePtr, mStaticField->table);
+		ptr->setStaticField(mStaticField, NULL, valuePtr);
 	}
 
 	void process(S32 dt) {
