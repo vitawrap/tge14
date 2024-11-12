@@ -5,6 +5,7 @@
 
 # ASSET IGNORES
 *.blend1
+**/tmpQuArK/
 
 # TS IGNORES
 *.cs.dso
