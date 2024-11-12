@@ -35,6 +35,8 @@ public:
    //Parental methods
    bool onWake();
 
+   void onStaticModified(char const* slot) override;
+
    void onMouseDown(const GuiEvent &event);
    void onMouseDragged(const GuiEvent &event);
    void onMouseUp(const GuiEvent &);

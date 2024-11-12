@@ -51,6 +51,13 @@ void GuiSliderCtrl::setScriptValue(const char *val)
    updateThumb(mValue);
 }
 
+void GuiSliderCtrl::onStaticModified(const char* slot)
+{
+    // Also visually register edits from script
+    if (isAwake() && slot == StringTable->insert("value"))
+        updateThumb(mValue);
+}
+
 //----------------------------------------------------------------------------
 bool GuiSliderCtrl::onWake()
 {
