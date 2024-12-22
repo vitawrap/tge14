@@ -167,6 +167,7 @@ class Sky : public SceneObject
     F32 mRealFogMax;
     F32 mRealFogMin;
     F32 mRealFogSpeed;
+    F32 mYawRotateSpeed;
     bool mNoRenderBans;
 
     bool mLastForce16Bit;

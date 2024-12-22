@@ -60,6 +60,7 @@ Sky::Sky()
    mWindDir.set(0.f, 0.f);
    mEffectPrecip = false;
    mNoRenderBans = false;
+   mYawRotateSpeed = 0.f;
 
    mLastVisDisMod = -1;
 
@@ -321,6 +322,7 @@ void Sky::initPersistFields()
    addField("useSkyTextures",          TypeBool,      Offset(mSkyTexturesOn, Sky));
    addField("renderBottomTexture",     TypeBool,      Offset(mRenderBoxBottom, Sky));
    addField("noRenderBans",            TypeBool,      Offset(mNoRenderBans, Sky));
+   addField("yawRotateSpeed",          TypeF32,       Offset(mYawRotateSpeed, Sky));
    endGroup("Misc");	
 }
 
@@ -337,8 +339,12 @@ void Sky::consoleInit()
 
 void Sky::onStaticModified(char const* slot)
 {
-    if (isServerObject() && dStricmp(slot, "materialList") == 0)
-        setMaskBits(InitMask);
+    if (isServerObject()) {
+        if (slot == StringTable->insert("materialList"))
+            setMaskBits(InitMask);
+        else if (slot == StringTable->insert("yawRotateSpeed"))
+            setMaskBits(VisibilityMask);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -439,6 +445,7 @@ void Sky::unpackUpdate(NetConnection *, BitStream *stream)
    {
       stream->read(&mVisibleDistance);
       stream->read(&mFogDistance);
+      stream->read(&mYawRotateSpeed);
       initSkyData();
    }
    if(stream->readFlag())
@@ -558,6 +565,7 @@ U64 Sky::packUpdate(NetConnection *, U64 mask, BitStream *stream)
    {
       stream->write(mVisibleDistance);
       stream->write(mFogDistance);
+      stream->write(mYawRotateSpeed);
    }
 
    if(stream->writeFlag(mask & StormCloudMask))
@@ -639,6 +647,12 @@ void Sky::renderObject(SceneState* state, SceneRenderImage*)
    glPushMatrix();
    Point3F camPos = state->getCameraPosition();
    glTranslatef(camPos.x,camPos.y,camPos.z);
+
+   if (mAbs(mYawRotateSpeed) > 0.f) {
+       // Map k*512+t to 0..TAU
+       F32 rotation = (((F64)Platform::getVirtualMilliseconds() * 0.001) * mYawRotateSpeed);
+       glRotatef(rotation, 0, 0, 1);
+   }
 
    glEnable(GL_TEXTURE_2D);
    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
