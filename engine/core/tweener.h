@@ -14,6 +14,10 @@
 #include <math/mPoint.h>
 #endif _MPOINT_H_
 
+#ifndef _MQUAT_H_
+#include <math/mQuat.h>
+#endif _MQUAT_H_
+
 #ifndef _COLOR_H_
 #include <core/color.h>
 #endif _COLOR_H_
@@ -40,7 +44,7 @@ protected:
 	static TweenerBase* smHead;
 
 	// save initial value on create
-	virtual void saveInitVal(const void* ptr) = 0;
+	virtual void saveInitVal(const void* ptr, S32) = 0;
 
 	// save initial value on create
 	virtual void saveTargetVal(const char* string) = 0;
@@ -122,8 +126,9 @@ protected:
 
 public:
 	typedef T ValueType;
+	typedef TweenerTyped<T> TweenerClass;
 
-	void saveInitVal(const void* ptr) { initVal = *(const T*)ptr; }
+	void saveInitVal(const void* ptr, S32) override { initVal = *(const T*)ptr; }
 };
 
 // Tweener for single float
@@ -191,6 +196,60 @@ protected:
 
 	void interpolateValue(F32 value) override {
 		currentVal.interpolate(initVal, targetVal, value);
+	}
+};
+
+// Tweener for 4d float vector
+class TweenerPoint4F : public TweenerTyped<Point4F> {
+	// string to script value
+	void valueToString(char* buffer) override {
+		dSprintf(buffer, TWEENER_SCRIPT_MAXBUF, "%g %g %g %g",
+			currentVal.x, currentVal.y, currentVal.z, currentVal.w);
+	}
+	// since this can be a TypeMatrixPosition, those usually don't have an explicit w component.
+	void saveTargetVal(char const* string) override {
+		targetVal.w = 1.f;
+		dSscanf(string, "%g %g %g %g", &targetVal.x, &targetVal.y, &targetVal.z, &targetVal.w);
+	}
+
+	void interpolateValue(F32 value) override {
+		currentVal.interpolate(initVal, targetVal, value);
+	}
+
+	void saveInitVal(const void* ptr, S32 type) override {
+		if (type == TypeMatrixPosition) {
+			MatrixF const* mxField = reinterpret_cast<MatrixF const*>(ptr);
+			mxField->getColumn(3, &initVal);
+		}
+		else TweenerClass::saveInitVal(ptr, type);
+	}
+};
+
+// Quaternion class for matrix rotations
+class TweenerQuatF : public TweenerTyped<QuatF> {
+	// string to script value
+	void valueToString(char* buffer) override {
+		AngAxisF aa(currentVal);
+		dSprintf(buffer, TWEENER_SCRIPT_MAXBUF, "%g %g %g %g",
+			aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
+	}
+
+	void saveTargetVal(char const* string) override {
+		AngAxisF aa;
+		dSscanf(string, "%g %g %g %g", &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+		targetVal = aa;
+	}
+
+	void interpolateValue(F32 value) override {
+		currentVal.interpolate(initVal, targetVal, value);
+	}
+
+	void saveInitVal(const void* ptr, S32 type) override {
+		if (type == TypeMatrixRotation) {
+			MatrixF const* mxField = reinterpret_cast<MatrixF const*>(ptr);
+			initVal = *mxField;
+		}
+		else TweenerClass::saveInitVal(ptr, type);
 	}
 };
 

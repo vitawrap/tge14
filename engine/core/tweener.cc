@@ -72,12 +72,15 @@ TweenerBase* TweenerBase::create(SimObject* pObject, char const* field, char con
 	TweenerBase* tweener = NULL;
 
 	// Have to do a lame if/else if chain because console type ids are not constants.
-	if (TypeF32 == fptr->type)			tweener = new TweenerFloat();
-	else if (TypePoint3F == fptr->type)	tweener = new TweenerPoint3F();
-	else if (TypePoint2F == fptr->type)	tweener = new TweenerPoint2F();
-	else if (TypePoint2I == fptr->type)	tweener = new TweenerPoint2I();
-	else if (TypeColorF == fptr->type)	tweener = new TweenerColorF();
-	else if (TypeColorI == fptr->type)	tweener = new TweenerColorI();
+	if (TypeF32 == fptr->type)					tweener = new TweenerFloat();
+	else if (TypePoint3F == fptr->type)			tweener = new TweenerPoint3F();
+	else if (TypePoint2F == fptr->type)			tweener = new TweenerPoint2F();
+	else if (TypePoint2I == fptr->type)			tweener = new TweenerPoint2I();
+	else if (TypeColorF == fptr->type)			tweener = new TweenerColorF();
+	else if (TypeColorI == fptr->type)			tweener = new TweenerColorI();
+	else if (TypeMatrixRotation == fptr->type)	tweener = new TweenerQuatF();
+	else if (TypeMatrixPosition == fptr->type ||
+		TypePoint4F == fptr->type)				tweener = new TweenerPoint4F();
 	else {
 		char const* cname = pObject->getClassName();
 		Con::errorf("Tween: %s::%s is not a tweenable type.", cname, field);
@@ -88,7 +91,7 @@ TweenerBase* TweenerBase::create(SimObject* pObject, char const* field, char con
 	tweener->mDurationMS = ms;
 	tweener->mTimeLeftMS = ms;
 	tweener->mStaticField = fptr;
-	tweener->saveInitVal(((const char*)pObject) + fptr->offset);
+	tweener->saveInitVal(((const char*)pObject) + fptr->offset, fptr->type);
 	tweener->saveTargetVal(targetScriptVal);
 	return tweener;
 }
