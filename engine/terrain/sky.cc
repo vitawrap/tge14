@@ -397,11 +397,11 @@ void Sky::unpackUpdate(NetConnection *, BitStream *stream)
          mStormFogData.state = SkyState(state);
          if(mStormFogData.time)
          {
-            Con::printf("Server Storm Time: %u",stormTimeDiff);
-            Con::printf("Get Current Time: %u",Sim::getCurrentTime());
+            //Con::printf("Server Storm Time: %u",stormTimeDiff);
+            //Con::printf("Get Current Time: %u",Sim::getCurrentTime());
             mStormFogOn = true;
             mStormFogData.lastTime = Sim::getCurrentTime() - stormTimeDiff;
-            Con::printf("READ OFFSET: %g", F32(Sim::getCurrentTime() - mStormFogData.lastTime) / 32.0f);
+            //Con::printf("READ OFFSET: %g", F32(Sim::getCurrentTime() - mStormFogData.lastTime) / 32.0f);
             for(S32 x = 0; x < mNumFogVolumes; ++x)
             {
                if (mStormFogData.volume[x].active)
@@ -544,7 +544,7 @@ U64 Sky::packUpdate(NetConnection *, U64 mask, BitStream *stream)
          stream->write(U32(mStormFogData.state));
          stream->write(stormTimeDiff);
          stream->write(mStormFogData.endPercentage);
-         Con::printf("WRITE OFFSET: %g", F32(stormTimeDiff) / 32.0f);
+         //Con::printf("WRITE OFFSET: %g", F32(stormTimeDiff) / 32.0f);
       }
    }
 
@@ -1102,13 +1102,13 @@ void Sky::updateFog()
 
    if(mStormFogData.lastTime != 0)
       offset = F32(currentTime - mStormFogData.lastTime) / 32.0f;
-   Con::printf("OFFSET: %g", offset);
+   //Con::printf("OFFSET: %g", offset);
    mStormFogData.lastTime = currentTime;
 
    mFogVolumes[mStormFogData.current].percentage += (mStormFogData.volume[mStormFogData.current].speed * offset);
    do
    {
-      Con::printf("CURRENT: %d PERCENTAGE: %g TIME: %u",mStormFogData.current, mFogVolumes[mStormFogData.current].percentage, currentTime);
+      //Con::printf("CURRENT: %d PERCENTAGE: %g TIME: %u",mStormFogData.current, mFogVolumes[mStormFogData.current].percentage, currentTime);
       overFlow = 0.0f;
       if(mStormFogData.volume[mStormFogData.current].state == comingIn && mFogVolumes[mStormFogData.current].percentage >= mStormFogData.volume[mStormFogData.current].endPercentage)
       {
@@ -1120,7 +1120,7 @@ void Sky::updateFog()
             mStormFogData.current -= 1;
             mStormFogData.lastTime = 0;
             mStormFogOn = false;
-            Con::printf("FOG IS DONE");
+            //Con::printf("FOG IS DONE");
          }
          else
             mFogVolumes[mStormFogData.current].percentage += overFlow;
@@ -1135,7 +1135,7 @@ void Sky::updateFog()
             mStormFogData.current += 1;
             mStormFogData.lastTime = 0;
             mStormFogOn = false;
-            Con::printf("FOG IS DONE");
+            //Con::printf("FOG IS DONE");
          }
          else
             mFogVolumes[mStormFogData.current].percentage -= overFlow;
