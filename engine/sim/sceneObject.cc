@@ -570,6 +570,21 @@ void SceneObject::inspectPostApply()
    }
 }
 
+void SceneObject::onStaticModified(char const* slotName)
+{
+    // HACK: Signal virtual overrides to set net masks
+    if (slotName == StringTable->insert("position") ||
+        slotName == StringTable->insert("rotation")) {
+        setTransform(getTransform());
+        return;
+    }
+    if (slotName == StringTable->insert("scale")) {
+        setScale(getScale());
+        return;
+    }
+    Parent::onStaticModified(slotName);
+}
+
 void SceneObject::removeFromScene()
 {
    if (mSceneManager != NULL)

@@ -774,6 +774,7 @@ private:
 public:
    static void initPersistFields();
    void inspectPostApply();
+   void onStaticModified(char const* slot) override;
    DECLARE_CONOBJECT(SceneObject);
 
    /// @}
