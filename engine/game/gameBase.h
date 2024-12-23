@@ -282,6 +282,8 @@ class GameBase : public SceneObject
    virtual void processTick(const Move *move);
 
    /// Interpolates between tick events.  This takes place on the CLIENT ONLY.
+   /// Note: The delta is a fraction of a tick, not a fraction of time.
+   /// Time delta can be resolved by simply doing delta*TickMs.
    ///
    /// @param   delta   Time since last call to interpolate
    virtual void interpolateTick(F32 delta);
