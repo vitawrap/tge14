@@ -165,7 +165,8 @@ U64 StaticShape::packUpdate(NetConnection *connection, U64 mask, BitStream *bstr
 {
    U64 retMask = Parent::packUpdate(connection,mask,bstream);
    if (bstream->writeFlag(mask & PositionMask)) {
-      bstream->writeAffineTransform(mObjToWorld);
+      // Backported from T3D, comments hint to better replication using mathWrite.
+      mathWrite(*bstream, mObjToWorld);
       mathWrite(*bstream, mObjScale);
    }
 
@@ -180,7 +181,7 @@ void StaticShape::unpackUpdate(NetConnection *connection, BitStream *bstream)
    Parent::unpackUpdate(connection,bstream);
    if (bstream->readFlag()) {
       MatrixF mat;
-      bstream->readAffineTransform(&mat);
+      mathRead(*bstream, &mat);
       Parent::setTransform(mat);
       Parent::setRenderTransform(mat);
 
