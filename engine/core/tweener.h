@@ -232,7 +232,6 @@ class TweenerQuatF : public TweenerTyped<QuatF> {
 		AngAxisF aa(currentVal);
 		dSprintf(buffer, TWEENER_SCRIPT_MAXBUF, "%g %g %g %g",
 			aa.axis.x, aa.axis.y, aa.axis.z, mRadToDeg(aa.angle));
-		Con::printf("TweenerQuatF: %s", buffer);
 	}
 
 	void saveTargetVal(char const* string) override {
