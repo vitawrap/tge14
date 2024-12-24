@@ -1551,6 +1551,12 @@ public:
    /// Returns true if the FOV supplied is within allowable parameters
    /// @param   fov   FOV to test
    virtual bool isValidCameraFov(F32 fov);
+
+   /// Apply Camera FX for current frame
+   void applyCameraEffects();
+
+   /// For when a shapebase may want to clear camera effects
+   void resetCameraEffects();
    /// @}
 
 

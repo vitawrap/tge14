@@ -171,6 +171,9 @@ void PathCamera::interpolateTick(F32 dt)
    MatrixF mat;
    interpolateMat(delta.time + (delta.timeVec * dt),&mat);
    Parent::setRenderTransform(mat);
+
+   // Apply Cam FX here too
+   applyCameraEffects();
 }
 
 void PathCamera::interpolateMat(F32 pos,MatrixF* mat)

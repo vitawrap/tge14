@@ -292,14 +292,7 @@ void Camera::interpolateTick(F32 dt)
         setRenderPosition(pos, rot);
     }
 
-    // ugly copy-paste from player.cc
-    GameConnection* con = GameConnection::getConnectionToServer();
-    if (con->getControlObject() == this)
-    {
-        MatrixF curTrans = getRenderTransform();
-        curTrans.mul(gCamFXMgr.getTrans());
-        Parent::setRenderTransform(curTrans);
-    }
+    applyCameraEffects();
 }
 
 void Camera::setPosition(const Point3F& pos, const Point3F& rot)

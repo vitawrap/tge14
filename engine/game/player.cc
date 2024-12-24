@@ -955,9 +955,6 @@ bool Player::onAdd()
          }
       }
       mLastWaterPos = getPosition();
-
-      // clear out all camera effects
-      gCamFXMgr.clear();
    }
 
    return true;
@@ -1277,20 +1274,7 @@ void Player::interpolateTick(F32 dt)
       setRenderPosition(delta.pos, delta.rot, 0);
    }
 
-   // apply camera effects - is this the best place? - bramage
-   // nope, THIS is the best place - viwrap
-   GameConnection* connection = GameConnection::getConnectionToServer();
-   if (isFirstPerson())
-   {
-       ShapeBase* obj = connection->getControlObject();
-       if (obj == this)
-       {
-           MatrixF curTrans = getRenderTransform();
-           curTrans.mul(gCamFXMgr.getTrans());
-           Parent::setRenderTransform(curTrans);
-       }
-   }
-
+   applyCameraEffects();
    updateLookAnimation();
    delta.dt = dt;
 }

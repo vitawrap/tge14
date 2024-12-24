@@ -17,6 +17,7 @@
 #include "sceneGraph/sceneState.h"
 #include "game/shadow.h"
 #include "game/fx/explosion.h"
+#include "game/fx/cameraFXMgr.h"
 #include "game/shapeBase.h"
 #include "terrain/waterBlock.h"
 #include "game/debris.h"
@@ -1072,6 +1073,29 @@ bool ShapeBase::isFirstPerson()
    if (GameConnection* con = getControllingClient())
       return con->getControlObject() == this && (con->isFirstPerson() && !gRenderFirstPersonShapeOverride);
    return false;
+}
+
+void ShapeBase::applyCameraEffects()
+{
+    GameConnection* connection = GameConnection::getConnectionToServer();
+    if (isFirstPerson())
+    {
+        ShapeBase* obj = connection->getControlObject();
+        if (obj == this)
+        {
+            MatrixF curTrans = getRenderTransform();
+            curTrans.mul(gCamFXMgr.getTrans());
+            Parent::setRenderTransform(curTrans);
+        }
+    }
+}
+
+void ShapeBase::resetCameraEffects()
+{
+    GameConnection* connection = GameConnection::getConnectionToServer();
+    ShapeBase* obj = connection->getControlObject();
+    if (obj == this)
+        gCamFXMgr.clear();
 }
 
 // Camera: (in degrees) ------------------------------------------------------

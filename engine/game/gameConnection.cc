@@ -354,6 +354,10 @@ void GameConnection::setControlObject(ShapeBase *obj)
 
    // Okay, set our control object.
    mControlObject = obj;
+
+   // clear out all camera effects
+   if (obj) obj->resetCameraEffects();
+
    if(mCameraObject.isNull())
       setScopeObject(mControlObject);
 }
