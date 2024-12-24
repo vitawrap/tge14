@@ -67,6 +67,9 @@ StaticShape::StaticShape()
 {
    mTypeMask |= StaticShapeObjectType | StaticObjectType;
    mDataBlock = 0;
+   mPowered = false;
+   mInterpolateTransform = false;
+   mLastTickInterpolate = 0.f;
 }
 
 StaticShape::~StaticShape()
@@ -146,6 +149,37 @@ void StaticShape::interpolateTick(F32)
    }
 }
 
+void StaticShape::advanceTime(F32 delta) {
+   Parent::advanceTime(delta);
+
+   // Very ugly way to interpolate a matrix ahead:
+   if (mInterpolateTransform && (mLastTickInterpolate > 0.f)) {
+        // value to balance lagging behind on overall smoothness
+        delta /= (TickSec * 3.f);
+
+        MatrixF now = getTransform();
+
+        Point3F pos;
+        now.getColumn(3, &pos);
+        pos += mLinearVelocity * delta;
+
+        QuatF rot(mInitialRotation);
+        rot.slerp(QuatF(mTargetTransform), 1.f - mLastTickInterpolate);
+
+        rot.setMatrix(&now);
+        now.setColumn(3, pos);
+
+        Parent::setTransform(now);
+        Parent::setRenderTransform(now);
+
+        mLastTickInterpolate -= delta;
+        if (mLastTickInterpolate < 0.f) {
+            Parent::setTransform(mTargetTransform);
+            Parent::setRenderTransform(mTargetTransform);
+        }
+   }
+}
+
 void StaticShape::setTransform(const MatrixF& mat)
 {
    Parent::setTransform(mat);
@@ -158,12 +192,21 @@ void StaticShape::onUnmount(ShapeBase*,S32)
    setMaskBits(PositionMask);
 }
 
+void StaticShape::setInterpolate(bool interp)
+{
+    mInterpolateTransform = interp;
+    setMaskBits(InterpMask | PositionMask);
+}
+
 
 //----------------------------------------------------------------------------
 
 U64 StaticShape::packUpdate(NetConnection *connection, U64 mask, BitStream *bstream)
 {
    U64 retMask = Parent::packUpdate(connection,mask,bstream);
+   if (bstream->writeFlag(mask & InterpMask))
+      bstream->writeFlag(mInterpolateTransform);
+
    if (bstream->writeFlag(mask & PositionMask)) {
       // Backported from T3D, comments hint to better replication using mathWrite.
       mathWrite(*bstream, mObjToWorld);
@@ -179,11 +222,22 @@ U64 StaticShape::packUpdate(NetConnection *connection, U64 mask, BitStream *bstr
 void StaticShape::unpackUpdate(NetConnection *connection, BitStream *bstream)
 {
    Parent::unpackUpdate(connection,bstream);
+   if (bstream->readFlag())
+      mInterpolateTransform = bstream->readFlag();
+   
    if (bstream->readFlag()) {
       MatrixF mat;
       mathRead(*bstream, &mat);
-      Parent::setTransform(mat);
-      Parent::setRenderTransform(mat);
+      if (mInterpolateTransform) {
+          mLastTickInterpolate = 1.0;
+          mTargetTransform = mat;
+          mLinearVelocity = mat.getPosition() - getPosition();
+          mInitialRotation = QuatF(getTransform());
+      }
+      else {
+          Parent::setTransform(mat);
+          Parent::setRenderTransform(mat);
+      }
 
       VectorF scale;
       mathRead(*bstream, &scale);
@@ -208,4 +262,18 @@ ConsoleMethod( StaticShape, getPoweredState, bool, 2, 2, "")
    if(!object->isServerObject())
       return(false);
    return(object->isPowered());
+}
+
+ConsoleMethod(StaticShape, setInterpolate, void, 3, 3, "(bool interp)")
+{
+    if (!object->isServerObject())
+        return;
+    object->setInterpolate(dAtob(argv[2]));
+}
+
+ConsoleMethod(StaticShape, isInterpolating, bool, 2, 2, "")
+{
+    if (!object->isServerObject())
+        return(false);
+    return(object->isInterpolating());
 }

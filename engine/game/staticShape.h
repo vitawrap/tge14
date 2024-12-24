@@ -40,12 +40,19 @@ class StaticShape: public ShapeBase
    StaticShapeData*  mDataBlock;
    bool              mPowered;
 
+   bool              mInterpolateTransform;
+   F32               mLastTickInterpolate;
+   MatrixF           mTargetTransform;
+   QuatF             mInitialRotation;
+   Point3F           mLinearVelocity;
+
    void onUnmount(ShapeBase* obj,S32 node);
 
   protected:
    enum MaskBits : U64 {
       PositionMask = Parent::NextFreeMask,
-      NextFreeMask = Parent::NextFreeMask << 1
+      InterpMask   = Parent::NextFreeMask << 1,
+      NextFreeMask = Parent::NextFreeMask << 2
    };
 
 public:
@@ -60,6 +67,7 @@ public:
 
    void processTick(const Move *move);
    void interpolateTick(F32 delta);
+   void advanceTime(F32 delta) override;
    void setTransform(const MatrixF &mat);
 
    U64  packUpdate  (NetConnection *conn, U64 mask, BitStream *stream);
@@ -67,7 +75,11 @@ public:
 
    // power
    void setPowered(bool power)      {mPowered = power;}
-   bool isPowered()                 {return(mPowered);}
+   bool isPowered() const           {return(mPowered);}
+
+   // interpolate
+   void setInterpolate(bool interp);
+   bool isInterpolating() const     { return mInterpolateTransform; }
 };
 
 
