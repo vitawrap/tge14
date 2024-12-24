@@ -52,6 +52,7 @@ protected:
 	// string to script value
 	virtual void valueToString(char* buffer) = 0;
 
+public:
 	// interpolate internal value
 	virtual void interpolateValue(F32 ratio) = 0;
 
@@ -102,6 +103,9 @@ public:
 
 	// Push new tween to process list.
 	static S32 pushLiveTween(TweenerBase* tw);
+
+	// Find live tweener in list.
+	static TweenerBase* findTween(S32 id);
 
 	// Remove existing tween by ID
 	static bool removeTween(S32 id);

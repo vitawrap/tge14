@@ -34,15 +34,22 @@ void TweenerBase::processLiveTweens(S32 dt) {
 	}
 }
 
-bool TweenerBase::removeTween(S32 id) {
+TweenerBase* TweenerBase::findTween(S32 id) {
 	TweenerBase* walk = smHead;
 	while (walk) {
-		if (walk->getId() == id) {
-			walk->unlink();
-			delete walk;
-			return true;
-		}
+		if (walk->getId() == id)
+			return walk;
 		walk = walk->mNext;
+	}
+	return NULL;
+}
+
+bool TweenerBase::removeTween(S32 id) {
+	TweenerBase* tb = findTween(id);
+	if (tb) {
+		tb->unlink();
+		delete tb;
+		return true;
 	}
 	return false;
 }
@@ -139,6 +146,20 @@ ConsoleFunction(tweenInOut, S32, 5, 5, "(object, property, targetValue, timeMS) 
 		return TweenerBase::pushLiveTween(tweener);
 	}
 	return -1;
+}
+
+ConsoleFunction(tweenFinalize, bool, 2, 2, "(id) - instantly finalize tweener")
+{
+	argc;
+	TweenerBase* tb = TweenerBase::findTween(dAtoi(argv[1]));
+	if (tb) {
+		tb->interpolateValue(1.f);
+		tb->apply();
+		tb->unlink();
+		delete tb;
+		return true;
+	}
+	return false;
 }
 
 ConsoleFunction(tweenCancel, bool, 2, 2, "(id)")
