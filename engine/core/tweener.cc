@@ -107,6 +107,8 @@ F32 tweenEaseIn(F32 x) { return x * x; }
 F32 tweenEaseOut(F32 x) { return 1.f - (x * x); }
 F32 tweenEaseInOut(F32 x) { return x * x * (3.0f - 2.0f * x); }
 
+ConsoleFunctionGroupBegin(Tween, "Functions for (static) tweening based on AbstractClassRep fields")
+
 ConsoleFunction(tween, S32, 5, 5, "(object, property, targetValue, timeMS) - linear")
 {
 	argc;
@@ -167,3 +169,5 @@ ConsoleFunction(tweenCancel, bool, 2, 2, "(id)")
 	argc;
 	return TweenerBase::removeTween(dAtoi(argv[1]));
 }
+
+ConsoleFunctionGroupEnd(Tween)
