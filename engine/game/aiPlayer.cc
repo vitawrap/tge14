@@ -26,6 +26,7 @@ AIPlayer::AIPlayer()
    mTargetInLOS = false;
    mAimOffset = Point3F(0.0f, 0.0f, 0.0f);
 
+   mFreeLook = false;
    mTypeMask |= AIObjectType;
 }
 
@@ -158,7 +159,7 @@ bool AIPlayer::getAIMove(Move *movePtr)
 
          // First do Yaw
          // use the cur yaw between -Pi and Pi
-         F32 curYaw = rotation.z;
+         F32 curYaw = rotation.z + getHeadRotation().z;   // Also take head into account.
          while (curYaw > M_2PI)
             curYaw -= M_2PI;
          while (curYaw < -M_2PI)
@@ -297,6 +298,9 @@ bool AIPlayer::getAIMove(Move *movePtr)
          }
    }
 
+   // Free look if needed
+   movePtr->freeLook = mFreeLook;
+
    // Replicate the trigger state into the move so that
    // triggers can be controlled from scripts.
    for( int i = 0; i < MaxTriggerKeys; i++ )
@@ -403,5 +407,15 @@ ConsoleMethod( AIPlayer, getAimObject, S32, 2, 2, "()"
 {
    GameBase* obj = object->getAimObject();
    return obj? obj->getId(): -1;
+}
+
+ConsoleMethod(AIPlayer, setFreeLook, void, 3, 3, "(bool) - Set look mode of AIPlayer.")
+{
+    object->setFreeLook( dAtob(argv[2]) );
+}
+
+ConsoleMethod(AIPlayer, getFreeLook, bool, 2, 2, "() - Get look mode of AIPlayer.")
+{
+    return object->getFreeLook();
 }
 

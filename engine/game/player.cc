@@ -1156,7 +1156,8 @@ void Player::processTick(const Move* move)
    // If we're not being controlled by a client, let the
    // AI sub-module get a chance at producing a move.
    Move aiMove;
-   if (!move && isServerObject() && getAIMove(&aiMove))
+   bool isAI = getAIMove(&aiMove);
+   if (!move && isServerObject() && isAI)
       move = &aiMove;
 
    // Manage the control object and filter moves for the player
@@ -1184,6 +1185,16 @@ void Player::processTick(const Move* move)
          mControlObject->processTick((mDamageState == Enabled)? &cMove: &NullMove);
          move = &pMove;
       }
+   }
+
+   // Give a chance for freelook to be accounted for in AIPlayers
+   if (isAI && move && move->freeLook) {
+       pMove = NullMove;
+       pMove.yaw = move->yaw;
+       pMove.pitch = move->pitch;
+       pMove.roll = move->roll;
+       pMove.freeLook = true;
+       move = &pMove;
    }
 
    Parent::processTick(move);
@@ -1296,14 +1307,6 @@ void Player::advanceTime(F32 dt)
 
    // update camera effects.  Definitely need to find better place for this - bramage
    // gCamFXMgr update moved to gameProcess.cc
-   if( isControlObject() )
-   {
-      if( mDamageState == Disabled || mDamageState == Destroyed )
-      {
-         // allow cam fx to continue while dead
-         // gCamFXMgr.clear();
-      }
-   }
 }
 
 bool Player::getAIMove(Move* move)
@@ -1494,7 +1497,8 @@ void Player::updateMove(const Move* move)
       if (y > M_PI) y -= M_2PI;
 
       GameConnection* con = getControllingClient();
-      if (move->freeLook && ((isMounted() && getMountNode() == 0) || (con && !con->isFirstPerson())))
+      bool clientTest = (con && !con->isFirstPerson()) || !con; // !con for AIPlayer
+      if (move->freeLook && ((isMounted() && getMountNode() == 0) || clientTest))
       {
          mHead.z = mClampF(mHead.z + y,
                            -mDataBlock->maxFreelookAngle,

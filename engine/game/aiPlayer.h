@@ -36,6 +36,7 @@ private:
       bool mTargetInLOS;                  // Is target object visible?
 
       Point3F mAimOffset;
+	  bool mFreeLook;
 
       // Utility Methods
       void throwCallback( const char *name );
@@ -64,6 +65,9 @@ public:
 		Point3F getMoveDestination() const { return mMoveDestination; }
 		void stopMove();
 
+		// Misc sets/gets
+		void setFreeLook(const bool flag) { mFreeLook = flag; }
+		bool getFreeLook() const { return mFreeLook; }
 };
 
 #endif
