@@ -51,6 +51,7 @@ AngAxisF & AngAxisF::set( const QuatF & q )
 AngAxisF & AngAxisF::set( const MatrixF & mat )
 {
    QuatF q( mat );
+   q.normalize();   // avoid -nan(inf) issues
    set( q );
    return *this;
 }
