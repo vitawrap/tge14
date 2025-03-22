@@ -60,6 +60,48 @@ ConsoleMethod( SceneObject, getPosition, const char*, 2, 2, "Get position of obj
    return returnBuffer;
 }
 
+ConsoleMethod(SceneObject, objectToWorld, const char*, 3, 3, "(Transform T) - Transform object matrix to world coordinates")
+{
+    Point3F pos;
+    AngAxisF aa;
+    dSscanf(argv[2], "%g %g %g %g %g %g %g",
+        &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+
+    MatrixF tmat(true);
+    aa.setMatrix(&tmat);
+    tmat.setColumn(3, pos);
+    const MatrixF& mat = object->getTransform();
+    tmat.mul(mat, tmat);    // yes it really all boils down to this line.
+
+    char* returnBuffer = Con::getReturnBuffer(256);
+    tmat.getColumn(3, &pos);
+    aa = AngAxisF(tmat);
+    dSprintf(returnBuffer, 256, "%g %g %g %g %g %g %g",
+        pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
+    return returnBuffer;
+}
+
+ConsoleMethod(SceneObject, worldToObject, const char*, 3, 3, "(Transform T) - Transform world matrix to object coordinates")
+{
+    Point3F pos;
+    AngAxisF aa;
+    dSscanf(argv[2], "%g %g %g %g %g %g %g",
+        &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+
+    MatrixF tmat(true);
+    aa.setMatrix(&tmat);
+    tmat.setColumn(3, pos);
+    const MatrixF& mat = object->getWorldTransform();
+    tmat.mul(mat, tmat);
+
+    char* returnBuffer = Con::getReturnBuffer(256);
+    tmat.getColumn(3, &pos);
+    aa = AngAxisF(tmat);
+    dSprintf(returnBuffer, 256, "%g %g %g %g %g %g %g",
+        pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
+    return returnBuffer;
+}
+
 ConsoleMethod(SceneObject, getRightVector, const char*, 2, 2, "Returns a vector indicating the right vector of this object.")
 {
     char* returnBuffer = Con::getReturnBuffer(256);
