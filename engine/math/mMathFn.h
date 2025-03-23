@@ -213,6 +213,11 @@ inline F32 mCeil(const F32 val)
    return (F32) ceil(val);
 }
 
+inline F32 mRound(const F32 val)
+{
+    return (F32) round(val);
+}
+
 inline F32 mFabs(const F32 val)
 {
    return (F32) fabs(val);

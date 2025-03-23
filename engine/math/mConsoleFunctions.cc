@@ -59,6 +59,11 @@ ConsoleFunction( mCeil, S32, 2, 2, "(float v) Round v up to the nearest whole nu
    return (S32)mCeil(dAtof(argv[1]));
 }
 
+ConsoleFunction( mRound, S32, 2, 2, "(float v) Round v to the nearest whole number.")
+{
+    return (S32)mRound(dAtof(argv[1]));
+}
+
 ConsoleFunction( mFloatLength, const char *, 3, 3, "(float v, int numDecimals)"
               "Return a string containing v formatted with the specified number of decimal places.")
 {
