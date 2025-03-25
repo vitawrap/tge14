@@ -296,7 +296,6 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
    SimObject *currentNewObject = 0;
    StringTableEntry curField;
    SimObject *curObject;
-   SimObject *instanceCache=NULL;
    SimObject *saveObject=NULL;
    Namespace::Entry *nsEntry;
    Namespace *ns;
@@ -556,20 +555,16 @@ breakContinue:
             break;
          }
 
-         case OP_INSTANCEOF_NAMED_OBJECT:
-         {
-            instanceCache = Sim::findObject(STR.getStringValue());
-            intStack[++UINT] = instanceCache ? instanceCache->getId() : 0;
-            STR.rewindTerminate();
-            // fall through
-         }
          case OP_INSTANCEOF_OBJECT:
          {
+            SimObject* object = Sim::findObject(STR.getStringValue());
+            intStack[++UINT] = object ? object->getId() : 0;
+            STR.rewindTerminate();
             var = STR.getSTValue();
             bool found = false;
-            if (instanceCache || (!instanceCache && Sim::findObject((SimObjectId)intStack[UINT], instanceCache)))
+            if (object)
             {
-                Namespace* ns = instanceCache->getNamespace();
+                Namespace* ns = object->getNamespace();
                 for (; ns; ns = ns->mParent)
                     if (ns->mName == var)
                     {

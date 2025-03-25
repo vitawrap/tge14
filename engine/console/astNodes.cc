@@ -699,9 +699,7 @@ TypeReq CommaCatExprNode::getPreferredType()
 
 U32 InstanceOfExprNode::precompile(TypeReq type)
 {
-    TypeReq ltype = left->getPreferredType();
-    U32 addSize = left->precompile(ltype==TypeReqFloat?TypeReqUInt:ltype) + right->precompile(TypeReqString) + 1
-                  + (ltype == TypeReqString); // If the left-hand expr is a string, we need an additional op.
+    U32 addSize = left->precompile(TypeReqString) + right->precompile(TypeReqString) + 2;
     if (type != TypeReqUInt)
         addSize++;
     return addSize;
@@ -710,11 +708,10 @@ U32 InstanceOfExprNode::precompile(TypeReq type)
 U32 InstanceOfExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
 {
     // Left could either be an object name or an object id, handle both.
-    TypeReq ltype = left->getPreferredType();
     ip = right->compile(codeStream, ip, TypeReqString);
-    if (ltype == TypeReqString) codeStream[ip++] = OP_ADVANCE_STR_NUL;
-    ip = left->compile(codeStream, ip, ltype == TypeReqFloat? TypeReqUInt : ltype);
-    codeStream[ip++]= ltype == TypeReqString? OP_INSTANCEOF_NAMED_OBJECT : OP_INSTANCEOF_OBJECT;
+    codeStream[ip++] = OP_ADVANCE_STR_NUL;
+    ip = left->compile(codeStream, ip, TypeReqString);
+    codeStream[ip++]= OP_INSTANCEOF_OBJECT;
 
     // At this point the uint stack has the result.
     if (type != TypeReqUInt)

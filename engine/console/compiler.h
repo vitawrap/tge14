@@ -38,7 +38,6 @@ namespace Compiler
       OP_ADD_OBJECT,
       OP_END_OBJECT,
       OP_INSTANCEOF_OBJECT,
-      OP_INSTANCEOF_NAMED_OBJECT,
       OP_JMPIFFNOT,
       OP_JMPIFNOT,
       OP_JMPIFF,
