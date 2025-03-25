@@ -254,12 +254,10 @@ protected:
 
    enum NetFlags
    {
-      IsGhost           =  BIT(1),   ///< This is a ghost.
+      IsGhost           =  BIT(1),  ///< This is a ghost.
       ScopeAlways       =  BIT(6),  ///< Object always ghosts to clients.
       ScopeLocal        =  BIT(7),  ///< Ghost only to local client.
       Ghostable         =  BIT(8),  ///< Set if this object CAN ghost.
-
-      MaxNetFlagBit     =  15
    };
 
    BitSet32 mNetFlags;              ///< Flag values from NetFlags
