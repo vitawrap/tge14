@@ -40,6 +40,9 @@ class StaticShape: public ShapeBase
    StaticShapeData*  mDataBlock;
    bool              mPowered;
 
+   SimObjectPtr<ShapeBase> mTransformParent;
+   MatrixF           mRelativeTransform;
+
    bool              mInterpolateTransform;
    F32               mLastTickInterpolate;
    MatrixF           mTargetTransform;
@@ -51,12 +54,16 @@ class StaticShape: public ShapeBase
   protected:
    enum MaskBits : U64 {
       PositionMask = Parent::NextFreeMask,
-      InterpMask   = Parent::NextFreeMask << 1,
-      NextFreeMask = Parent::NextFreeMask << 2
+      XParentMask  = Parent::NextFreeMask << 1,
+      InterpMask   = Parent::NextFreeMask << 2,
+      NextFreeMask = Parent::NextFreeMask << 3
    };
 
 public:
    DECLARE_CONOBJECT(StaticShape);
+   static void initPersistFields();
+
+   void onStaticModified(StringTableEntry key) override;
 
    StaticShape();
    ~StaticShape();
@@ -80,6 +87,10 @@ public:
    // interpolate
    void setInterpolate(bool interp);
    bool isInterpolating() const     { return mInterpolateTransform; }
+
+   // transform parent
+   void setTransformParent(ShapeBase*);
+   ShapeBase* getTransformParent() const { return mTransformParent; }
 };
 
 

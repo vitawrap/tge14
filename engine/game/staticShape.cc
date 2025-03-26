@@ -18,6 +18,7 @@
 #include "game/staticShape.h"
 #include "math/mathIO.h"
 #include "game/shadow.h"
+#include "sim/netConnection.h"
 
 extern void wireCube(F32 size,Point3F pos);
 
@@ -70,12 +71,29 @@ StaticShape::StaticShape()
    mPowered = false;
    mInterpolateTransform = false;
    mLastTickInterpolate = 0.f;
+   mRelativeTransform.identity();
 }
 
 StaticShape::~StaticShape()
 {
 }
 
+void StaticShape::initPersistFields()
+{
+    Parent::initPersistFields();
+
+    // Transform relative to mTransformParent, not used if the parent is NULL.
+    addField("relativePosition", TypeMatrixPosition, Offset(mRelativeTransform, StaticShape));
+    addField("relativeRotation", TypeMatrixRotation, Offset(mRelativeTransform, StaticShape));
+}
+
+void StaticShape::onStaticModified(StringTableEntry key)
+{
+    // tweenable property
+    if ((key == StringTable->insert("relativePosition")
+        || key == StringTable->insert("relativeRotation")) && mTransformParent)
+        setMaskBits(PositionMask);
+}
 
 //----------------------------------------------------------------------------
 
@@ -130,6 +148,12 @@ void StaticShape::processTick(const Move* move)
       Parent::setTransform(mat);
       Parent::setRenderTransform(mat);
    }
+   else if (mTransformParent) {
+      MatrixF mat;
+      mat.mul(mTransformParent->getTransform(), mRelativeTransform);
+      Parent::setTransform(mat);
+      Parent::setRenderTransform(mat);
+   }
 }
 
 void StaticShape::interpolateTick(F32)
@@ -137,6 +161,11 @@ void StaticShape::interpolateTick(F32)
    if (isMounted()) {
       MatrixF mat;
       mMount.object->getRenderMountTransform(mMount.node,&mat);
+      Parent::setRenderTransform(mat);
+   }
+   else if (mTransformParent) {
+      MatrixF mat;
+      mat.mul(mTransformParent->getTransform(), mRelativeTransform);
       Parent::setRenderTransform(mat);
    }
 
@@ -152,30 +181,50 @@ void StaticShape::interpolateTick(F32)
 void StaticShape::advanceTime(F32 delta) {
    Parent::advanceTime(delta);
 
+   bool relative = mTransformParent;
+
    // Very ugly way to interpolate a matrix ahead:
    if (mInterpolateTransform && (mLastTickInterpolate > 0.f)) {
         // value to balance lagging behind on overall smoothness
         delta /= (TickSec * 3.f);
 
-        MatrixF now = getTransform();
+        // minimize branching...
+        if (relative) {
+            MatrixF now = mRelativeTransform;
 
-        Point3F pos;
-        now.getColumn(3, &pos);
-        pos += mLinearVelocity * delta;
+            Point3F pos;
+            now.getColumn(3, &pos);
+            pos += mLinearVelocity * delta;
+            QuatF rot(mInitialRotation);
+            rot.slerp(QuatF(mTargetTransform), 1.f - mLastTickInterpolate);
+            rot.setMatrix(&now);
+            now.setColumn(3, pos);
 
-        QuatF rot(mInitialRotation);
-        rot.slerp(QuatF(mTargetTransform), 1.f - mLastTickInterpolate);
+            mRelativeTransform = now;
 
-        rot.setMatrix(&now);
-        now.setColumn(3, pos);
+            mLastTickInterpolate -= delta;
+            if (mLastTickInterpolate < 0.f)
+                mRelativeTransform = mTargetTransform;
+        }
+        else {
+            MatrixF now = getTransform();
 
-        Parent::setTransform(now);
-        Parent::setRenderTransform(now);
+            Point3F pos;
+            now.getColumn(3, &pos);
+            pos += mLinearVelocity * delta;
+            QuatF rot(mInitialRotation);
+            rot.slerp(QuatF(mTargetTransform), 1.f - mLastTickInterpolate);
+            rot.setMatrix(&now);
+            now.setColumn(3, pos);
 
-        mLastTickInterpolate -= delta;
-        if (mLastTickInterpolate < 0.f) {
-            Parent::setTransform(mTargetTransform);
-            Parent::setRenderTransform(mTargetTransform);
+            Parent::setTransform(now);
+            Parent::setRenderTransform(now);
+
+            mLastTickInterpolate -= delta;
+            if (mLastTickInterpolate < 0.f) {
+                Parent::setTransform(mTargetTransform);
+                Parent::setRenderTransform(mTargetTransform);
+            }
         }
    }
 }
@@ -198,18 +247,38 @@ void StaticShape::setInterpolate(bool interp)
     setMaskBits(InterpMask | PositionMask);
 }
 
+void StaticShape::setTransformParent(ShapeBase* shape)
+{
+    mTransformParent = shape;
+    setMaskBits(XParentMask | PositionMask);
+}
 
 //----------------------------------------------------------------------------
 
-U64 StaticShape::packUpdate(NetConnection *connection, U64 mask, BitStream *bstream)
+U64 StaticShape::packUpdate(NetConnection *con, U64 mask, BitStream *bstream)
 {
-   U64 retMask = Parent::packUpdate(connection,mask,bstream);
+   U64 retMask = Parent::packUpdate(con,mask,bstream);
    if (bstream->writeFlag(mask & InterpMask))
       bstream->writeFlag(mInterpolateTransform);
 
+   if (bstream->writeFlag(mask & XParentMask)) {
+       if (bool(mTransformParent))
+       {
+           // Potentially have to write this to the client, let's make sure it has a
+           //  ghost on the other side...
+           S32 ghostIndex = con->getGhostIndex(mTransformParent);
+           if (bstream->writeFlag(ghostIndex != -1))
+               bstream->writeRangedU32(U32(ghostIndex), 0, NetConnection::MaxGhostCount);
+           else // havn't recieved the ghost for the source object yet, try again later
+               retMask |= GameBase::InitialUpdateMask;
+       }
+       else
+           bstream->writeFlag(false);
+   }
+
    if (bstream->writeFlag(mask & PositionMask)) {
       // Backported from T3D, comments hint to better replication using mathWrite.
-      mathWrite(*bstream, mObjToWorld);
+      mathWrite(*bstream, bstream->writeFlag(mTransformParent)? mRelativeTransform : mObjToWorld);
       mathWrite(*bstream, mObjScale);
    }
 
@@ -219,24 +288,43 @@ U64 StaticShape::packUpdate(NetConnection *connection, U64 mask, BitStream *bstr
    return retMask;
 }
 
-void StaticShape::unpackUpdate(NetConnection *connection, BitStream *bstream)
+void StaticShape::unpackUpdate(NetConnection *con, BitStream *bstream)
 {
-   Parent::unpackUpdate(connection,bstream);
+   Parent::unpackUpdate(con,bstream);
    if (bstream->readFlag())
       mInterpolateTransform = bstream->readFlag();
    
    if (bstream->readFlag()) {
+       if (bstream->readFlag()) {
+           U32 sId = bstream->readRangedU32(0, NetConnection::MaxGhostCount);
+
+           NetObject* pObject = con->resolveGhost(sId);
+           if (pObject != NULL)
+               mTransformParent = dynamic_cast<ShapeBase*>(pObject);
+       }
+       else
+           mTransformParent = NULL;
+   }
+
+   if (bstream->readFlag()) {
+      bool relative = bstream->readFlag();
+
       MatrixF mat;
       mathRead(*bstream, &mat);
       if (mInterpolateTransform) {
+          MatrixF& last = relative ? mRelativeTransform : mObjToWorld;
           mLastTickInterpolate = 1.0;
           mTargetTransform = mat;
-          mLinearVelocity = mat.getPosition() - getPosition();
-          mInitialRotation = QuatF(getTransform());
+          mLinearVelocity = mat.getPosition() - last.getPosition();
+          mInitialRotation = QuatF(last);
       }
       else {
-          Parent::setTransform(mat);
-          Parent::setRenderTransform(mat);
+          if (relative)
+              mRelativeTransform = mat;
+          else {
+              Parent::setTransform(mat);
+              Parent::setRenderTransform(mat);
+          }
       }
 
       VectorF scale;
@@ -276,4 +364,19 @@ ConsoleMethod(StaticShape, isInterpolating, bool, 2, 2, "")
     if (!object->isServerObject())
         return(false);
     return(object->isInterpolating());
+}
+
+ConsoleMethod(StaticShape, setParent, void, 3, 3, "(simObject parent) - set transform parent")
+{
+    if (!object->isServerObject())
+        return;
+    ShapeBase* obj = NULL;
+    Sim::findObject(argv[2], obj);
+    object->setTransformParent(obj);    // allow NULL, to detach.
+}
+
+ConsoleMethod(StaticShape, getParent, bool, 2, 2, "get transform parent")
+{
+    ShapeBase* parent = object->getTransformParent();
+    return parent? parent->scriptThis() : 0;
 }
