@@ -167,7 +167,7 @@ void StaticShape::interpolateTick(F32)
    }
    else if (mTransformParent) {
       MatrixF mat;
-      mat.mul(mTransformParent->getTransform(), mRelativeTransform);
+      mat.mul(mTransformParent->getRenderTransform(), mRelativeTransform);
       Parent::setRenderTransform(mat);
    }
 
@@ -253,11 +253,11 @@ void StaticShape::setTransformParent(ShapeBase* shape)
 {
     mTransformParent = shape;
     setMaskBits(XParentMask | PositionMask);
-    //if (!isGhost()) {
-    //    setMaskBits(XParentMask | PositionMask);
-    //    if (shape)
-    //        processAfter(shape);
-    //}
+    if (!isGhost()) {
+        setMaskBits(XParentMask | PositionMask);
+        if (shape)
+            processAfter(shape);
+    }
 }
 
 //----------------------------------------------------------------------------
