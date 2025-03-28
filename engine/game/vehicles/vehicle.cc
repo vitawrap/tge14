@@ -27,6 +27,7 @@
 #include "dgl/materialPropertyMap.h"
 #include "game/trigger.h"
 #include "game/item.h"
+#include "game/staticShape.h"
 
 //----------------------------------------------------------------------------
 
@@ -1083,6 +1084,14 @@ bool Vehicle::resolveCollision(Rigid&  ns,CollisionList& cList)
       colliding = false;
       for (S32 i = 0; i < cList.count; i++) {
          Collision& c = cList.collision[i];
+
+         // Skip static shapes attached to vehicle
+         if (c.object->getTypeMask() & StaticShapeObjectType) {
+             StaticShape* col = static_cast<StaticShape*>(c.object);
+             if (!col->collidesWithParent() && (col->getTransformParent() == this))
+                 continue;
+         }
+
          if (c.distance < mDataBlock->collisionTol) {
             // Velocity into surface
             Point3F v,r;
@@ -1097,9 +1106,8 @@ bool Vehicle::resolveCollision(Rigid&  ns,CollisionList& cList)
 
                // Apply impulses to the rigid body to keep it from
                // penetrating the surface.
-               ns.resolveCollision(cList.collision[i].point,
-                  cList.collision[i].normal);
-               colliding = collided  = true;
+               ns.resolveCollision(c.point, c.normal);
+               colliding = collided = true;
 
                // Keep track of objects we collide with
                if (!isGhost() && c.object->getTypeMask() & ShapeBaseObjectType) {
@@ -1126,6 +1134,14 @@ bool Vehicle::resolveContacts(Rigid& ns,CollisionList& cList,F32 dt)
    Point3F t,p(0,0,0),l(0,0,0);
    for (S32 i = 0; i < cList.count; i++) {
       Collision& c = cList.collision[i];
+      
+      // Skip static shapes attached to vehicle
+      if (c.object->getTypeMask() & StaticShapeObjectType) {
+          StaticShape* col = static_cast<StaticShape*>(c.object);
+          if (!col->collidesWithParent() && (col->getTransformParent() == this))
+              continue;
+      }
+
       if (c.distance < mDataBlock->collisionTol) {
 
          // Velocity into the surface
