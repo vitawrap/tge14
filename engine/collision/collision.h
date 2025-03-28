@@ -43,6 +43,15 @@ struct CollisionList
    // clipper.  It represents the maximum vertex z value of
    // the returned collision surfaces.
    F32 maxHeight;
+
+   // Does not preserve order
+   void removeCollision(int i) {
+       if (i < count) {
+           collision[i] = collision[count - 1];
+           --count;
+       }
+       else AssertFatal(false, "OOB while trying to remove collision!");
+   }
 };
 
 
