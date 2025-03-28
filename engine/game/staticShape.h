@@ -40,6 +40,7 @@ class StaticShape: public ShapeBase
    StaticShapeData*  mDataBlock;
    bool              mPowered;
 
+   bool              mRelativeCollision;
    SimObjectPtr<ShapeBase> mTransformParent;
    MatrixF           mRelativeTransform;
 
@@ -91,6 +92,8 @@ public:
    // transform parent
    void setTransformParent(ShapeBase*);
    ShapeBase* getTransformParent() const { return mTransformParent; }
+
+   bool collidesWithParent() const { return mRelativeCollision; }
 };
 
 

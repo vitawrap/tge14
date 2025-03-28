@@ -72,6 +72,7 @@ StaticShape::StaticShape()
    mInterpolateTransform = false;
    mLastTickInterpolate = 0.f;
    mRelativeTransform.identity();
+   mRelativeCollision = true;
 }
 
 StaticShape::~StaticShape()
@@ -85,6 +86,7 @@ void StaticShape::initPersistFields()
     // Transform relative to mTransformParent, not used if the parent is NULL.
     addField("relativePosition", TypeMatrixPosition, Offset(mRelativeTransform, StaticShape));
     addField("relativeRotation", TypeMatrixRotation, Offset(mRelativeTransform, StaticShape));
+    addField("relativeCollision", TypeBool, Offset(mRelativeCollision, StaticShape));
 }
 
 void StaticShape::onStaticModified(StringTableEntry key)
@@ -251,6 +253,11 @@ void StaticShape::setTransformParent(ShapeBase* shape)
 {
     mTransformParent = shape;
     setMaskBits(XParentMask | PositionMask);
+    //if (!isGhost()) {
+    //    setMaskBits(XParentMask | PositionMask);
+    //    if (shape)
+    //        processAfter(shape);
+    //}
 }
 
 //----------------------------------------------------------------------------
