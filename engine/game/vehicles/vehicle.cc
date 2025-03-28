@@ -1088,8 +1088,10 @@ bool Vehicle::resolveCollision(Rigid&  ns,CollisionList& cList)
          // Skip static shapes attached to vehicle
          if (c.object->getTypeMask() & StaticShapeObjectType) {
              StaticShape* col = static_cast<StaticShape*>(c.object);
-             if (!col->collidesWithParent() && (col->getTransformParent() == this))
+             if (!col->collidesWithParent() && (col->getTransformParent() == this)) {
+                 cList.removeCollision(i--);
                  continue;
+             }
          }
 
          if (c.distance < mDataBlock->collisionTol) {
@@ -1138,8 +1140,10 @@ bool Vehicle::resolveContacts(Rigid& ns,CollisionList& cList,F32 dt)
       // Skip static shapes attached to vehicle
       if (c.object->getTypeMask() & StaticShapeObjectType) {
           StaticShape* col = static_cast<StaticShape*>(c.object);
-          if (!col->collidesWithParent() && (col->getTransformParent() == this))
+          if (!col->collidesWithParent() && (col->getTransformParent() == this)) {
+              cList.removeCollision(i--);
               continue;
+          }
       }
 
       if (c.distance < mDataBlock->collisionTol) {
