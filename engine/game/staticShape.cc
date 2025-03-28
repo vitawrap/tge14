@@ -287,6 +287,9 @@ U64 StaticShape::packUpdate(NetConnection *con, U64 mask, BitStream *bstream)
       // Backported from T3D, comments hint to better replication using mathWrite.
       mathWrite(*bstream, bstream->writeFlag(mTransformParent)? mRelativeTransform : mObjToWorld);
       mathWrite(*bstream, mObjScale);
+
+      // Here until I find a better way
+      bstream->writeFlag(mRelativeCollision);
    }
 
    // powered?
@@ -337,6 +340,9 @@ void StaticShape::unpackUpdate(NetConnection *con, BitStream *bstream)
       VectorF scale;
       mathRead(*bstream, &scale);
       setScale(scale);
+
+      // Here until I find a better way
+      mRelativeCollision = bstream->readFlag();
    }
 
    // powered?
