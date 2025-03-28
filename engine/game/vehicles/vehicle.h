@@ -238,6 +238,9 @@ public:
    /// Enables collisions for this vehicle and all mounted objects
    void enableCollision();
 
+   /// Remove object from working collision set
+   void ignoreObject(ShapeBase*);
+
    /// Returns the velocity of the vehicle
    Point3F getVelocity() const;
 

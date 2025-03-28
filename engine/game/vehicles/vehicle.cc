@@ -1461,6 +1461,16 @@ void Vehicle::initPersistFields()
    addField("disableMove",   TypeBool,   Offset(mDisableMove, Vehicle));
 }
 
+void Vehicle::ignoreObject(ShapeBase* obj) {
+    for (CollisionWorkingList* itr = mConvex.getWorkingList().wLink.mNext;
+        itr != &mConvex.getWorkingList(); itr = itr->wLink.mNext) {
+        if (itr->mConvex->getObject() == obj) {
+            CollisionWorkingList* cl = itr;
+            itr = itr->wLink.mPrev;
+            cl->free();
+        }
+    }
+}
 
 void Vehicle::mountObject(ShapeBase* obj, U32 node)
 {
@@ -1468,13 +1478,7 @@ void Vehicle::mountObject(ShapeBase* obj, U32 node)
 
    // Clear objects off the working list that are from objects mounted to us.
    //  (This applies mostly to players...)
-   for (CollisionWorkingList* itr = mConvex.getWorkingList().wLink.mNext; itr != &mConvex.getWorkingList(); itr = itr->wLink.mNext) {
-      if (itr->mConvex->getObject() == obj) {
-         CollisionWorkingList* cl = itr;
-         itr = itr->wLink.mPrev;
-         cl->free();
-      }
-   }
+   ignoreObject(obj);
 }
 
 //----------------------------------------------------------------------------
