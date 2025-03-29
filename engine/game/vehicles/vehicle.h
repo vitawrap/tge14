@@ -212,7 +212,7 @@ class Vehicle: public ShapeBase
    bool collidingWithWater( Point3F &waterHeight );
 
     void renderImage(SceneState *state, SceneRenderImage *image);
-    void renderMountedImage(SceneState *state, ShapeImageRenderImage *image);
+    void renderMountedImage(SceneState *state, SceneRenderImage *image);
     virtual bool getAIMove(Move* move);
 
 public:

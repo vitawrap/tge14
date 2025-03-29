@@ -997,8 +997,8 @@ void SceneState::setImageRefPoint(SceneObject* obj, SceneRenderImage* image) con
    obj->getRenderTransform().mulP(image->poly[0]);
 }
 
-//--------------------------------------------------------------------------
-SceneRenderImage::~SceneRenderImage()
-{
+//--------------------------------------------------------------------------------------
 
-}
+SceneRenderImage* SceneRenderImage::sImagePool = NULL;
+U64 SceneRenderImage::poolCounter = 0;
+

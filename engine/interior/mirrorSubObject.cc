@@ -371,7 +371,7 @@ bool MirrorSubObject::_writeISO(Stream& stream) const
 }
 
 
-SubObjectRenderImage* MirrorSubObject::getRenderImage(SceneState*    state,
+SceneRenderImage* MirrorSubObject::getRenderImage(SceneState*    state,
                                                       const Point3F& osPoint)
 {
    if (isInitialized() == false)
@@ -390,8 +390,8 @@ SubObjectRenderImage* MirrorSubObject::getRenderImage(SceneState*    state,
 
    // On the right side, guess we have to return an image and a portal...
    //
-   SubObjectRenderImage* ri = new SubObjectRenderImage;
-
+   SceneRenderImage* ri = new SceneRenderImage;
+   ri->imageType     = SceneRenderImage::ImageType::SubObject;
    ri->obj           = this;
    ri->isTranslucent = false;
 

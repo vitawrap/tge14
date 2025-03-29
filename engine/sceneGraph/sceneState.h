@@ -29,6 +29,7 @@
 #endif
 
 class SceneObject;
+class ShapeBase;
 
 /// A SceneRenderImage is used by the SceneState/SceneGraph to sort objects for rendering
 /// order.
@@ -69,17 +70,26 @@ class SceneRenderImage
       BeginSort
    };
 
-   SceneRenderImage()
-      : sortType(Normal),
-        isTranslucent(false),
-        tieBreaker(false),
-        useSmallTextures(false),
-        textureSortKey(0)
+   enum class ImageType
    {
-      //
+       Normal,      // Simple objects
+       ShapeImage,  // ShapeImageRenderImage
+       Interior,    // InteriorRenderImage
+       SubObject    // SubObjectRenderImage
+   };
+
+   SceneRenderImage()
+       : sortType(Normal),
+       imageType(ImageType::Normal),
+       isTranslucent(false),
+       tieBreaker(false),
+       useSmallTextures(false),
+       textureSortKey(0)
+   {
+      Interior.mDetailLevel = 0;
    }
 
-   virtual ~SceneRenderImage();
+   virtual ~SceneRenderImage() {}
 
    SceneObject* obj;             ///< The SceneObject this image represents.
 
@@ -88,6 +98,7 @@ class SceneRenderImage
    bool     useSmallTextures;    ///< If this is set to true, the object will render using a low-res version of its textures.
 
    SortType sortType;
+   ImageType imageType;
    PlaneF   plane;               ///< The plane if SortType::Plane is used.
    Point3F  poly[4];             ///< If SortType::Plane is used, this is the quad that defines the bounds for the
                                  ///  plane. If SortType::Point is used, then poly[0] is the point, and the rest is ignored.
@@ -103,6 +114,48 @@ class SceneRenderImage
    ///
    /// @note NEVER set this. This is managed by Torque.
    SceneRenderImage* pNext;
+
+   /// Help the pool system by grouping subclasses in a union
+   union {
+       struct {
+           U32 mDetailLevel;
+       } SubObject;
+       struct {
+           U32 mDetailLevel;
+           U32 mBaseZone;
+       } Interior;
+       struct {
+           ShapeBase* mSBase;
+           U32 mIndex;
+       } ShapeImage;
+   };
+
+   /// Memory pool link.
+   SceneRenderImage* pPoolNext;
+
+   static SceneRenderImage* sImagePool;
+
+   static U64 poolCounter;
+
+   /// New operator
+   static void* operator new(size_t sz) {
+       if (sImagePool) {
+           --poolCounter;
+           SceneRenderImage* recycle = sImagePool;
+           sImagePool = recycle->pPoolNext;
+           recycle->pPoolNext = NULL;
+           return recycle;
+       }
+       else return dMalloc(sz);
+   }
+
+   /// Delete operator
+   static void operator delete(void* ptr) {
+       SceneRenderImage* ri = reinterpret_cast<SceneRenderImage*>(ptr);
+       ri->pPoolNext = sImagePool;
+       sImagePool = ri;
+       ++poolCounter;
+   }
 };
 
 //--------------------------------------------------------------------------

@@ -2263,10 +2263,11 @@ bool ShapeBase::prepRenderImage(SceneState* state, const U32 stateKey,
 
             if (mCloakLevel == 0.0f && image.shapeInstance->hasSolid() && mFadeVal == 1.0f)
             {
-               ShapeImageRenderImage* rimage = new ShapeImageRenderImage;
+               SceneRenderImage* rimage = new SceneRenderImage;
                rimage->obj = this;
-               rimage->mSBase = this;
-               rimage->mIndex = i;
+               rimage->imageType = SceneRenderImage::ImageType::ShapeImage;
+               rimage->ShapeImage.mSBase = this;
+               rimage->ShapeImage.mIndex = i;
                rimage->isTranslucent = false;
                rimage->textureSortKey = (U32)(dsize_t)(image.dataBlock);
                state->insertRenderImage(rimage);
@@ -2275,10 +2276,11 @@ bool ShapeBase::prepRenderImage(SceneState* state, const U32 stateKey,
             if ((mCloakLevel != 0.0f || mFadeVal != 1.0f || mShapeInstance->hasTranslucency()) ||
                 (mMount.object == NULL && mGenerateShadow == true))
             {
-               ShapeImageRenderImage* rimage = new ShapeImageRenderImage;
+               SceneRenderImage* rimage = new SceneRenderImage;
                rimage->obj = this;
-               rimage->mSBase = this;
-               rimage->mIndex = i;
+               rimage->imageType = SceneRenderImage::ImageType::ShapeImage;
+               rimage->ShapeImage.mSBase = this;
+               rimage->ShapeImage.mIndex = i;
                rimage->isTranslucent = true;
                rimage->sortType = SceneRenderImage::Point;
                rimage->textureSortKey = (U32)(dsize_t)(image.dataBlock);
@@ -2368,10 +2370,9 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
 
    TSMesh::setOverrideFade( mFadeVal );
 
-   ShapeImageRenderImage* shiri = dynamic_cast<ShapeImageRenderImage*>(image);
-   if (shiri != NULL)
+   if (image->imageType == SceneRenderImage::ImageType::ShapeImage)
    {
-      renderMountedImage(state, shiri);
+      renderMountedImage(state, image);
    }
    else
    {
@@ -2450,7 +2451,7 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
 }
 
 
-void ShapeBase::renderMountedImage(SceneState* state, ShapeImageRenderImage* rimage)
+void ShapeBase::renderMountedImage(SceneState* state, SceneRenderImage* rimage)
 {
    AssertFatal(rimage->mSBase == this, "Error, wrong image");
 
@@ -2462,10 +2463,10 @@ void ShapeBase::renderMountedImage(SceneState* state, ShapeImageRenderImage* rim
 
    // Mounted items
    PROFILE_START(ShapeBaseRenderMounted);
-   MountedImage& image = mMountedImageList[rimage->mIndex];
+   MountedImage& image = mMountedImageList[rimage->ShapeImage.mIndex];
    if (image.dataBlock && image.shapeInstance && DetailManager::selectCurrentDetail(image.shapeInstance)) {
       MatrixF mat;
-      getRenderImageTransform(rimage->mIndex, &mat);
+      getRenderImageTransform(rimage->ShapeImage.mIndex, &mat);
       glPushMatrix();
       dglMultMatrix(&mat);
 

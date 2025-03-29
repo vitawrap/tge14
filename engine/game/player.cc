@@ -4179,7 +4179,7 @@ void Player::calcClassRenderData()
 }
 
 
-void Player::renderMountedImage(SceneState* state, ShapeImageRenderImage* rimage)
+void Player::renderMountedImage(SceneState* state, SceneRenderImage* rimage)
 {
    AssertFatal(rimage->mSBase == this, "Error, wrong image");
    GameConnection *con = GameConnection::getConnectionToServer();
@@ -4204,13 +4204,13 @@ void Player::renderMountedImage(SceneState* state, ShapeImageRenderImage* rimage
 
    // Mounted items
    PROFILE_START(PlayerRenderMounted);
-   MountedImage& image = *getImageStruct(rimage->mIndex);
+   MountedImage& image = *getImageStruct(rimage->ShapeImage.mIndex);
    if (image.dataBlock && image.shapeInstance && DetailManager::selectCurrentDetail(image.shapeInstance)) {
       MatrixF mat;
-      getRenderImageTransform(rimage->mIndex, &mat);
+      getRenderImageTransform(rimage->ShapeImage.mIndex, &mat);
       glPushMatrix();
 
-      if (rimage->mIndex == 0 && mWeaponBackFraction != 0.0 && getDamageState() == Enabled) {
+      if (rimage->ShapeImage.mIndex == 0 && mWeaponBackFraction != 0.0 && getDamageState() == Enabled) {
          MatrixF nmat;
          MatrixF smat;
          Parent::getRenderMuzzleTransform(0,&nmat);

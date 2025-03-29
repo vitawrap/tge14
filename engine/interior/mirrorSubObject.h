@@ -44,7 +44,7 @@ class MirrorSubObject : public InteriorSubObject
    // Render control.  A sub-object should return false from renderDetailDependant if
    //  it exists only at the level-0 detail level, ie, doors, elevators, etc., true
    //  if should only render at the interiors detail, ie, translucencies.
-   SubObjectRenderImage* getRenderImage(SceneState *state, const Point3F&);
+   SceneRenderImage*     getRenderImage(SceneState *state, const Point3F&);
    bool                  renderDetailDependant() const;
    U32                   getZone() const;
    void                  noteTransformChange();

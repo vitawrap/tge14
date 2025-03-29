@@ -56,14 +56,6 @@ typedef void* Light;
 extern void collisionFilter(SceneObject* object,S32 key);
 extern void defaultFilter(SceneObject* object,S32 key);
 
-class ShapeImageRenderImage : public SceneRenderImage
-{
-  public:
-   ShapeBase* mSBase;
-   U32        mIndex;
-};
-
-
 //--------------------------------------------------------------------------
 class ShapeBaseConvex : public Convex
 {
@@ -1575,7 +1567,7 @@ public:
    /// Renders a mounted object
    /// @param   state   State of scene
    /// @param   image   ShapeImage to render
-   virtual void renderMountedImage(SceneState* state, ShapeImageRenderImage* image);
+   virtual void renderMountedImage(SceneState* state, SceneRenderImage* image);
 
    virtual void renderImage(SceneState* state, SceneRenderImage *image);
 

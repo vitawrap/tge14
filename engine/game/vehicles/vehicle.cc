@@ -1698,11 +1698,11 @@ void Vehicle::renderImage(SceneState *state, SceneRenderImage *image)
 // Demonstrates adding rendering to mounted objects.
 //
 void Vehicle::renderMountedImage
-(SceneState *state, ShapeImageRenderImage *image)
+(SceneState *state, SceneRenderImage *image)
 {
 	Parent::renderMountedImage(state, image);
 	if (gShowBoundingBox) {
-		U32 index = image->mIndex;
+		U32 index = image->ShapeImage.mIndex;
 		if (mMountedImageList[index].dataBlock != NULL) {
 			Point3F muzzlePoint, muzzleVector, endpoint;
 			getMuzzlePoint(index, &muzzlePoint);

@@ -36,15 +36,6 @@
 const U32 csgMaxZoneSize = 256;
 bool sgScopeBoolArray[256];
 
-class InteriorRenderImage : public SceneRenderImage
-{
-  public:
-   InteriorRenderImage() : mDetailLevel(0) { }
-
-   U32   mDetailLevel;
-   U32   mBaseZone;
-};
-
 ConsoleFunctionGroupBegin(Interiors, "");
 
 #if defined(TORQUE_DEBUG) || defined (INTERNAL_RELEASE)
@@ -804,7 +795,7 @@ bool InteriorInstance::getPointInsideScale(const Point3F & pos, F32 * pScale)
 //--------------------------------------------------------------------------
 ColorF gInteriorFogColor(1, 1, 1);
 
-void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneImage)
+void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* interiorImage)
 {
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on entry");
 
@@ -816,8 +807,6 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    PROFILE_START(IRO_GetZones);
    U32 storedWaterMark = FrameAllocator::getWaterMark();
    dglSetRenderPrimType(2);
-
-   InteriorRenderImage* interiorImage = static_cast<InteriorRenderImage*>(sceneImage);
 
    Point3F osPoint = state->getCameraPosition();
    mRenderWorldToObj.mulP(osPoint);
@@ -837,7 +826,7 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    // First, we want to test the planes and setup the fog...
    U32 zoneOffset = mZoneRangeStart != 0xFFFFFFFF ? mZoneRangeStart : 0;
 
-   Interior* pInterior = mInteriorRes->getDetailLevel(interiorImage->mDetailLevel);
+   Interior* pInterior = mInteriorRes->getDetailLevel(interiorImage->Interior.mDetailLevel);
 
    U32 baseZone = 0xFFFFFFFF;
    if (getNumCurrZones() == 1)
@@ -870,7 +859,7 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
 
    ZoneVisDeterminer zoneVis;
 
-   if (interiorImage->mDetailLevel == 0)
+   if (interiorImage->Interior.mDetailLevel == 0)
    {
       zoneVis.runFromState(state, zoneOffset, baseZone);
       pInterior->setupActivePolyList(zoneVis, state, osPoint, osCamVector, osZVec, worldOrigin.z, getScale());
@@ -893,7 +882,7 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    // Update the animated lights...
    if (!Interior::smUseVertexLighting)
    {
-      LightInfo& rLightInfo = mLightInfo[interiorImage->mDetailLevel];
+      LightInfo& rLightInfo = mLightInfo[interiorImage->Interior.mDetailLevel];
       downloadLightmaps(state, pInterior, rLightInfo);
    }
 
@@ -933,8 +922,8 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
 
    pInterior->setupFog(state);
    pInterior->setOSCamPosition(osPoint);
-   if (interiorImage->mBaseZone != 0)
-      state->setupZoneProjection(interiorImage->mBaseZone + mZoneRangeStart - 1);
+   if (interiorImage->Interior.mBaseZone != 0)
+      state->setupZoneProjection(interiorImage->Interior.mBaseZone + mZoneRangeStart - 1);
    else
       state->setupObjectProjection(this);
 
@@ -942,7 +931,7 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
 
    // make sure to build vertex color information in case interiors were
    //  added after the relight scene
-   if(&((*mVertexColorsNormal[interiorImage->mDetailLevel])[0]) == NULL)
+   if(&((*mVertexColorsNormal[interiorImage->Interior.mDetailLevel])[0]) == NULL)
 	   rebuildVertexColors();
 
    if(mDoSimpleDynamicRender)
@@ -951,9 +940,9 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    }
    else
    {
-      pInterior->render(mAlarmState, mMaterialMaps[interiorImage->mDetailLevel], mLMHandle,
-                        mVertexColorsNormal[interiorImage->mDetailLevel],
-                        mVertexColorsAlarm[interiorImage->mDetailLevel]);
+      pInterior->render(mAlarmState, mMaterialMaps[interiorImage->Interior.mDetailLevel], mLMHandle,
+                        mVertexColorsNormal[interiorImage->Interior.mDetailLevel],
+                        mVertexColorsAlarm[interiorImage->Interior.mDetailLevel]);
    }
 
    pInterior->clearFog();
@@ -1266,10 +1255,11 @@ bool InteriorInstance::prepRenderImage(SceneState* state,   const U32 stateKey,
    if (smDontRestrictOutside)
       continueOut = true;
 
-   InteriorRenderImage* image = new InteriorRenderImage;
+   SceneRenderImage* image = new SceneRenderImage;
+   image->imageType = SceneRenderImage::ImageType::Interior;
    image->obj = this;
-   image->mDetailLevel = detailLevel;
-   image->mBaseZone    = realStartZone;
+   image->Interior.mDetailLevel = detailLevel;
+   image->Interior.mBaseZone    = realStartZone;
    image->textureSortKey = mInteriorFileHash;
    state->insertRenderImage(image);
 
@@ -1309,10 +1299,10 @@ bool InteriorInstance::prepRenderImage(SceneState* state,   const U32 stateKey,
          }
 
          //  Register the render image, if any, for this ISO.
-         SubObjectRenderImage* sri = iso->getRenderImage(state, osPoint);
+         SceneRenderImage* sri = iso->getRenderImage(state, osPoint);
          if (sri)
          {
-            sri->mDetailLevel = 0;
+            sri->SubObject.mDetailLevel = 0;
             state->insertRenderImage(sri);
          }
       }
@@ -1347,10 +1337,10 @@ bool InteriorInstance::prepRenderImage(SceneState* state,   const U32 stateKey,
             }
          }
 
-         SubObjectRenderImage* sri = iso->getRenderImage(state, osPoint);
+         SceneRenderImage* sri = iso->getRenderImage(state, osPoint);
          if (sri)
          {
-            sri->mDetailLevel = detailLevel;
+            sri->SubObject.mDetailLevel = detailLevel;
             state->insertRenderImage(sri);
          }
       }

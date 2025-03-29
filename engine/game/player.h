@@ -451,7 +451,7 @@ protected:
 
    void calcClassRenderData();
    /// Render the mounted image, usually the weapon
-   void renderMountedImage(SceneState* state, ShapeImageRenderImage* image);
+   void renderMountedImage(SceneState* state, SceneRenderImage* image);
    /// Render the player
    void renderImage(SceneState *state, SceneRenderImage *image);
    /// Play a footstep sound

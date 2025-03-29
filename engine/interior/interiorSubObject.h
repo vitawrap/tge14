@@ -15,12 +15,6 @@
 
 class InteriorInstance;
 
-class SubObjectRenderImage : public SceneRenderImage
-{
-  public:
-   U32 mDetailLevel;
-};
-
 class InteriorSubObject : public SceneObject
 {
    typedef SceneObject Parent;
@@ -49,7 +43,7 @@ class InteriorSubObject : public SceneObject
    // Render control.  A sub-object should return false from renderDetailDependant if
    //  it exists only at the level-0 detail level, ie, doors, elevators, etc., true
    //  if should only render at the interiors detail, ie, translucencies.
-   virtual SubObjectRenderImage* getRenderImage(SceneState*, const Point3F& osPoint) = 0;
+   virtual SceneRenderImage*     getRenderImage(SceneState*, const Point3F& osPoint) = 0;
    virtual bool                  renderDetailDependant() const = 0;
    virtual U32                   getZone() const               = 0;
 
