@@ -140,6 +140,7 @@ public:
    ColorI mCursorColor;                            ///< Color for the blinking cursor in text fields (for example)
 
    Point2I mTextOffset;                            ///< Text offset for the control
+   Point2I mButtonOffset;                          ///< Button offset for the (window) control
 
    // bitmap members
    StringTableEntry mBitmapName;                   ///< Bitmap file name for the bitmap of the control

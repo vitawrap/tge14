@@ -89,7 +89,7 @@ void GuiWindowCtrl::PositionButtons(void)
 
    S32 buttonWidth = mBitmapBounds[BmpStates * BmpClose].extent.x;
    S32 buttonHeight = mBitmapBounds[BmpStates * BmpClose].extent.y;
-   Point2I mainOff = mProfile->mTextOffset;
+   Point2I mainOff = mProfile->mButtonOffset;
 
    // until a pref, if alignment is LEFT, put buttons RIGHT justified.
    // ELSE, put buttons LEFT justified.

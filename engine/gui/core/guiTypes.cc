@@ -175,6 +175,7 @@ GuiControlProfile::GuiControlProfile(void) :
       // default bitmap
       mBitmapName    = def->mBitmapName;
       mTextOffset    = def->mTextOffset;
+      mButtonOffset  = def->mButtonOffset;
 
       // default sound
       mSoundButtonDown = def->mSoundButtonDown;
@@ -231,6 +232,7 @@ void GuiControlProfile::initPersistFields()
 
    addField("justify",       TypeEnum,       Offset(mAlignment, GuiControlProfile), 1, &gAlignTable);
    addField("textOffset",    TypePoint2I,    Offset(mTextOffset, GuiControlProfile));
+   addField("buttonOffset",  TypePoint2I,    Offset(mButtonOffset, GuiControlProfile));
    addField("autoSizeWidth", TypeBool,       Offset(mAutoSizeWidth, GuiControlProfile));
    addField("autoSizeHeight",TypeBool,       Offset(mAutoSizeHeight, GuiControlProfile));
    addField("returnTab",     TypeBool,       Offset(mReturnTab, GuiControlProfile));
