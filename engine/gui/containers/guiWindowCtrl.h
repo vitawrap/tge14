@@ -24,6 +24,8 @@ class GuiWindowCtrl : public GuiTextCtrl
       bool mPressClose;
       bool mPressMinimize;
       bool mPressMaximize;
+      bool mNeverInactive;
+
       Point2I mMinSize;
 
       GuiCursor*  mDefaultCursor;

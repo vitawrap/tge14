@@ -49,6 +49,7 @@ GuiWindowCtrl::GuiWindowCtrl(void)
    mPressClose = false;
    mPressMaximize = false;
    mPressMinimize = false;
+   mNeverInactive = false;
 
    mDefaultCursor    = NULL;
    mNWSECursor       = NULL;
@@ -68,6 +69,7 @@ void GuiWindowCtrl::initPersistFields()
    addField("canClose",          TypeBool,         Offset(mCanClose, GuiWindowCtrl));
    addField("canMinimize",       TypeBool,         Offset(mCanMinimize, GuiWindowCtrl));
    addField("canMaximize",       TypeBool,         Offset(mCanMaximize, GuiWindowCtrl));
+   addField("neverInactive",     TypeBool,         Offset(mNeverInactive, GuiWindowCtrl));
    addField("minSize",           TypePoint2I,      Offset(mMinSize, GuiWindowCtrl));
    addField("closeCommand",      TypeString,       Offset(mCloseCommand, GuiWindowCtrl));
 }
@@ -581,7 +583,7 @@ void GuiWindowCtrl::onRender(Point2I offset, const RectI &updateRect)
    GuiCanvas *root = getRoot();
    GuiControl *firstResponder = root ? root->getFirstResponder() : NULL;
 
-   bool isKey = (!firstResponder || ControlIsChild(firstResponder));
+   bool isKey = (!firstResponder || ControlIsChild(firstResponder)) || mNeverInactive;
 
    U32 topBase = isKey ? BorderTopLeftKey : BorderTopLeftNoKey;
    winRect.point.x += mBitmapBounds[BorderLeft].extent.x;
