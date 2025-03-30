@@ -574,6 +574,9 @@ bool clientProcess(U32 timeDelta)
 
 bool serverProcess(U32 timeDelta)
 {
+#if DEDICATED
+   TweenerBase::processLiveTweens(timeDelta);
+#endif
    return gServerProcessList.advanceServerTime(timeDelta);
 }
 
