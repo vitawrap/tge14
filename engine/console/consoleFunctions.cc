@@ -1347,3 +1347,23 @@ ConsoleFunction(filePath, const char *, 2, 2, "filePath(fileName)")
 }
 
 ConsoleFunctionGroupEnd( FileSystem );
+
+ConsoleFunctionGroupBegin( Utility, "Utility global functions.");
+
+ConsoleFunction( max, F32, 2, 0, "max(...) - Get max argument")
+{
+    F32 curMax = dAtof(argv[1]);
+    for (S32 i = 2; i < argc; ++i)
+        curMax = getMax(dAtof(argv[i]), curMax);
+    return curMax;
+}
+
+ConsoleFunction( min, F32, 2, 0, "min(...) - Get min argument")
+{
+    F32 curMin = dAtof(argv[1]);
+    for (S32 i = 2; i < argc; ++i)
+        curMin = getMin(dAtof(argv[i]), curMin);
+    return curMin;
+}
+
+ConsoleFunctionGroupEnd( Utility );
