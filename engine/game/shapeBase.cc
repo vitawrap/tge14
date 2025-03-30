@@ -2453,7 +2453,7 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
 
 void ShapeBase::renderMountedImage(SceneState* state, SceneRenderImage* rimage)
 {
-   AssertFatal(rimage->mSBase == this, "Error, wrong image");
+   AssertFatal(rimage->ShapeImage.mSBase == this, "Error, wrong image");
 
    Point3F cameraOffset;
    getRenderTransform().getColumn(3,&cameraOffset);

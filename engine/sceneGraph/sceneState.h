@@ -137,6 +137,7 @@ class SceneRenderImage
 
    static U64 poolCounter;
 
+#ifndef TORQUE_DEBUG
    /// New operator
    static void* operator new(size_t sz) {
        if (sImagePool) {
@@ -156,6 +157,7 @@ class SceneRenderImage
        sImagePool = ri;
        ++poolCounter;
    }
+#endif
 };
 
 //--------------------------------------------------------------------------

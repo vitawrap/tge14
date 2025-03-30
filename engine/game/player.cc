@@ -4181,7 +4181,7 @@ void Player::calcClassRenderData()
 
 void Player::renderMountedImage(SceneState* state, SceneRenderImage* rimage)
 {
-   AssertFatal(rimage->mSBase == this, "Error, wrong image");
+   AssertFatal(rimage->ShapeImage.mSBase == this, "Error, wrong image");
    GameConnection *con = GameConnection::getConnectionToServer();
    bool renderMounts = true;
    if(con && isFirstPerson())
