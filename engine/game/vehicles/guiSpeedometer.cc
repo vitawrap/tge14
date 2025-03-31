@@ -111,7 +111,8 @@ void GuiSpeedometerHud::onRender(Point2I offset, const RectI &updateRect)
    glDisable(GL_TEXTURE_2D);
 
    glColor4f(mColor.red, mColor.green, mColor.blue, mColor.alpha);
-   glBegin(GL_LINE_LOOP);
+   // this is technically wrong, but gives the needle a nice look.
+   glBegin(GL_TRIANGLE_STRIP);
       glVertex2f(+mNeedleLength,-mNeedleWidth);
       glVertex2f(+mNeedleLength,+mNeedleWidth);
       glVertex2f(-mTailLength ,+mNeedleWidth);
