@@ -138,7 +138,13 @@ class SceneRenderImage
    static U64 poolCounter;
 
 #ifndef TORQUE_DEBUG
+#pragma push_macro("new")
+#undef new
    /// New operator
+   static void* operator new(size_t sz, char const* file, size_t line) {
+      return operator new(sz);
+   }
+
    static void* operator new(size_t sz) {
        if (sImagePool) {
            --poolCounter;
@@ -157,6 +163,7 @@ class SceneRenderImage
        sImagePool = ri;
        ++poolCounter;
    }
+#pragma pop_macro("new")
 #endif
 };
 

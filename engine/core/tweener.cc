@@ -66,7 +66,7 @@ S32 TweenerBase::pushLiveTween(TweenerBase* tween) {
 
 TweenerBase* TweenerBase::create(SimObject* pObject, char const* field, char const* targetScriptVal, S32 ms) {
 	if (!pObject || !pObject->getClassRep() || !field || !field[0])
-		return false;
+		return NULL;
 
 	AbstractClassRep* rep = pObject->getClassRep();
 	AbstractClassRep::Field const* fptr = rep->findField(StringTable->insert(field));
