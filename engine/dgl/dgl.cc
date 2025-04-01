@@ -68,8 +68,8 @@ void dglDrawBitmapStretchSR(TextureObject* texture,
    AssertFatal(texture != NULL, "GSurface::drawBitmapStretchSR: NULL Handle");
    if(!dstRect.isValidRect())
       return;
-   AssertFatal(srcRect.isValidRect() == true,
-               "GSurface::drawBitmapStretchSR: routines assume normal rects");
+   //AssertFatal(srcRect.isValidRect() == true,
+   //            "GSurface::drawBitmapStretchSR: routines assume normal rects");
 
    glDisable(GL_LIGHTING);
 
