@@ -855,51 +855,30 @@ void WorldEditor::renderObjectBox(SceneObject * obj, const ColorI & col)
       glEnd();
    }
 
-//   // render the collision polys?
-//   // jff - this is using the worldbox... use obj box? which sides?
-//   if(mRenderBoxIntersect)
-//   {
-//      obj->disableCollision();
-//      Box3F bBox = obj->getWorldBox();
-//
-//      bBox.min.z -= mProjectDistance;
-//      bBox.max.z += mProjectDistance;
-//
-//      ClippedPolyList polyList;
-//      polyList.mPlaneList.clear();
-//      polyList.mNormal.set(0,0,0);
-//      polyList.mPlaneList.setSize(4);
-//      polyList.mPlaneList[0].set(bBox.min, VectorF(-1,0,0));
-//      polyList.mPlaneList[1].set(bBox.max, VectorF(0,1,0));
-//      polyList.mPlaneList[2].set(bBox.max, VectorF(1,0,0));
-//      polyList.mPlaneList[3].set(bBox.min, VectorF(0,-1,0));
-//
-//      // build the poly list
-//      if(gServerContainer.buildPolyList(bBox, -1, &polyList))
-//      {
-//         glEnable(GL_CULL_FACE);
-//         glDisable(GL_DEPTH_TEST);
-//         glVertexPointer(3,GL_FLOAT,sizeof(ClippedPolyList::Vertex), polyList.mVertexList.address());
-//         glEnableClientState(GL_VERTEX_ARRAY);
-//
-//         glColor4ub(mBoxIntersectColor.red, mBoxIntersectColor.green, mBoxIntersectColor.blue, mBoxIntersectColor.alpha);
-//
-//         glEnable(GL_BLEND);
-//         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//
-//         // render em...
-//         ClippedPolyList::Poly * p;
-//         for (p = polyList.mPolyList.begin(); p < polyList.mPolyList.end(); p++) {
-//            glDrawElements(GL_POLYGON,p->vertexCount,
-//               GL_UNSIGNED_INT,&polyList.mIndexList[p->vertexStart]);
-//         }
-//
-//         glDisableClientState(GL_VERTEX_ARRAY);
-//         glEnable(GL_DEPTH_TEST);
-//         glDisable(GL_CULL_FACE);
-//      }
-//      obj->enableCollision();
-//   }
+   // render the collision polys?
+   // jff - this is using the worldbox... use obj box? which sides?
+   {
+      obj->disableCollision();
+      Box3F bBox = obj->getWorldBox();
+
+      bBox.min.z -= mProjectDistance;
+      bBox.max.z += mProjectDistance;
+
+      ClippedPolyList polyList;
+      polyList.mPlaneList.clear();
+      polyList.mNormal.set(0,0,0);
+      polyList.mPlaneList.setSize(4);
+      polyList.mPlaneList[0].set(bBox.min, VectorF(-1,0,0));
+      polyList.mPlaneList[1].set(bBox.max, VectorF(0,1,0));
+      polyList.mPlaneList[2].set(bBox.max, VectorF(1,0,0));
+      polyList.mPlaneList[3].set(bBox.min, VectorF(0,-1,0));
+
+      // build the poly list
+      if(gServerContainer.buildPolyList(bBox, -1, &polyList))
+          polyList.render();
+      
+      obj->enableCollision();
+   }
 
    dglSetCanonicalState();
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on exit");
