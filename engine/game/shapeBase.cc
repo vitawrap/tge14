@@ -4257,15 +4257,7 @@ ConsoleMethod(ShapeBase, checkDeployPos, bool, 3, 5, "(U32 mask, bool ignoreSelf
     mat.mul(wBox);
 
     EarlyOutPolyList polyList;
-    polyList.mNormal.set(0, 0, 0);
-    polyList.mPlaneList.clear();
-    polyList.mPlaneList.setSize(6);
-    polyList.mPlaneList[0].set(objBox.min, VectorF(-1, 0, 0));
-    polyList.mPlaneList[1].set(objBox.max, VectorF(0, 1, 0));
-    polyList.mPlaneList[2].set(objBox.max, VectorF(1, 0, 0));
-    polyList.mPlaneList[3].set(objBox.min, VectorF(0, -1, 0));
-    polyList.mPlaneList[4].set(objBox.min, VectorF(0, 0, -1));
-    polyList.mPlaneList[5].set(objBox.max, VectorF(0, 0, 1));
+    polyList.setPlanesFrom(objBox);
 
     for (U32 i = 0; i < 6; i++)
     {

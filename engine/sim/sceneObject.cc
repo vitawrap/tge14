@@ -227,15 +227,7 @@ ConsoleFunction(containerBoxEmpty, bool, 4, 6, "(bitset mask, Point3F center, fl
    Box3F    B(center - extent, center + extent, true);
 
    EarlyOutPolyList polyList;
-   polyList.mPlaneList.clear();
-   polyList.mNormal.set(0,0,0);
-   polyList.mPlaneList.setSize(6);
-   polyList.mPlaneList[0].set(B.min, VectorF(-1,0,0));
-   polyList.mPlaneList[1].set(B.max, VectorF(0,1,0));
-   polyList.mPlaneList[2].set(B.max, VectorF(1,0,0));
-   polyList.mPlaneList[3].set(B.min, VectorF(0,-1,0));
-   polyList.mPlaneList[4].set(B.min, VectorF(0,0,-1));
-   polyList.mPlaneList[5].set(B.max, VectorF(0,0,1));
+   polyList.setPlanesFrom(B);
 
    return ! gServerContainer.buildPolyList(B, mask, &polyList);
 }

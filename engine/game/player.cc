@@ -1793,15 +1793,7 @@ void Player::updateMove(const Move* move)
        wBox.max += getPosition();
 
        EarlyOutPolyList polyList;
-       polyList.mNormal.set(0, 0, 0);
-       polyList.mPlaneList.clear();
-       polyList.mPlaneList.setSize(6);
-       polyList.mPlaneList[0].set(wBox.min, VectorF(-1, 0, 0));
-       polyList.mPlaneList[1].set(wBox.max, VectorF(0, 1, 0));
-       polyList.mPlaneList[2].set(wBox.max, VectorF(1, 0, 0));
-       polyList.mPlaneList[3].set(wBox.min, VectorF(0, -1, 0));
-       polyList.mPlaneList[4].set(wBox.min, VectorF(0, 0, -1));
-       polyList.mPlaneList[5].set(wBox.max, VectorF(0, 0, 1));
+       polyList.setPlanesFrom(wBox);
 
        disableCollision();
        if (!getContainer()->buildPolyList(wBox, sCollisionMoveMask, &polyList))
@@ -1975,15 +1967,7 @@ bool Player::checkDismountPosition(const MatrixF& oldMat, const MatrixF& mat)
    wBox.max += pos;
 
    EarlyOutPolyList polyList;
-   polyList.mNormal.set(0,0,0);
-   polyList.mPlaneList.clear();
-   polyList.mPlaneList.setSize(6);
-   polyList.mPlaneList[0].set(wBox.min,VectorF(-1,0,0));
-   polyList.mPlaneList[1].set(wBox.max,VectorF(0,1,0));
-   polyList.mPlaneList[2].set(wBox.max,VectorF(1,0,0));
-   polyList.mPlaneList[3].set(wBox.min,VectorF(0,-1,0));
-   polyList.mPlaneList[4].set(wBox.min,VectorF(0,0,-1));
-   polyList.mPlaneList[5].set(wBox.max,VectorF(0,0,1));
+   polyList.setPlanesFrom(wBox);
 
    if (getContainer()->buildPolyList(wBox, sCollisionMoveMask, &polyList))
    {
@@ -2859,15 +2843,7 @@ bool Player::updatePos(const F32 travelTime)
 
          static EarlyOutPolyList eaPolyList;
          eaPolyList.clear();
-         eaPolyList.mNormal.set(0,0,0);
-         eaPolyList.mPlaneList.clear();
-         eaPolyList.mPlaneList.setSize(6);
-         eaPolyList.mPlaneList[0].set(wBox.min,VectorF(-1,0,0));
-         eaPolyList.mPlaneList[1].set(wBox.max,VectorF(0,1,0));
-         eaPolyList.mPlaneList[2].set(wBox.max,VectorF(1,0,0));
-         eaPolyList.mPlaneList[3].set(wBox.min,VectorF(0,-1,0));
-         eaPolyList.mPlaneList[4].set(wBox.min,VectorF(0,0,-1));
-         eaPolyList.mPlaneList[5].set(wBox.max,VectorF(0,0,1));
+         eaPolyList.setPlanesFrom(wBox);
 
          // Build list from convex states here...
          CollisionWorkingList& rList = mConvex.getWorkingList();

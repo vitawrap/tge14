@@ -611,14 +611,7 @@ void Item::updatePos(const U32 /*mask*/, const F32 dt)
          testBox.max.setMin(oldMax + (mVelocity * time));
 
          sEarlyOutPolyList.clear();
-         sEarlyOutPolyList.mNormal.set(0,0,0);
-         sEarlyOutPolyList.mPlaneList.setSize(6);
-         sEarlyOutPolyList.mPlaneList[0].set(wBox.min,VectorF(-1,0,0));
-         sEarlyOutPolyList.mPlaneList[1].set(wBox.max,VectorF(0,1,0));
-         sEarlyOutPolyList.mPlaneList[2].set(wBox.max,VectorF(1,0,0));
-         sEarlyOutPolyList.mPlaneList[3].set(wBox.min,VectorF(0,-1,0));
-         sEarlyOutPolyList.mPlaneList[4].set(wBox.min,VectorF(0,0,-1));
-         sEarlyOutPolyList.mPlaneList[5].set(wBox.max,VectorF(0,0,1));
+         sEarlyOutPolyList.setPlanesFrom(wBox);
 
          CollisionWorkingList& eorList = mConvex.getWorkingList();
          CollisionWorkingList* eopList = eorList.wLink.mNext;
