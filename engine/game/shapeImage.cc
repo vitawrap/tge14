@@ -1468,6 +1468,14 @@ void ShapeBase::setImageColor(S32 imageNode, const U8 palEntry)
     }
 }
 
+U8 ShapeBase::getImageColor(S32 imageNode)
+{
+    MountedImage* image = getImageStruct(imageNode);
+    if (image && image->shapeInstance && image->colorMeshIndex != -1)
+        return image->color;
+    return 0;   // or just return default color then.
+}
+
 //----------------------------------------------------------------------------
 
 void ShapeBase::resetImageSlot(U32 imageSlot)

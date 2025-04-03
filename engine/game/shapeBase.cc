@@ -4221,6 +4221,12 @@ ConsoleMethod(ShapeBase, setImageColor, void, 4, 4, "(int imageSlot, int palette
     object->setImageColor(dAtoi(argv[2]) & (ShapeBase::MaxMountedImages-1), dAtoi(argv[3]));
 }
 
+ConsoleMethod(ShapeBase, getImageColor, S32, 3, 3, "(int imageSlot) - returns palette entry!")
+{
+    // Mod the argument as a quick measure to prevent setMaskBits(ImageMaskN << arbitraryShift)
+    return object->getImageColor(dAtoi(argv[2]) & (ShapeBase::MaxMountedImages-1));
+}
+
 ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
 {
     TSShapeInstance* inst = object->getShapeInstance();

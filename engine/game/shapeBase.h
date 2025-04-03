@@ -1044,6 +1044,8 @@ public:
    void setColor(S32 meshIndex, const U8 palEntry);
    /// Change color of image mesh using mounted image mesh index.
    void setImageColor(S32 image, const U8 palEntry);
+   /// Get image color (palette entry)
+   U8 getImageColor(S32 image);
    /// @}
 
    /// @name Basic attributes
