@@ -33,6 +33,8 @@ protected:
    TextureHandleType mTextureType;
 
 public:
+   static char textureFallbackDirectory[1024];
+
    MaterialList();
    MaterialList(U32 materialCount, const char **materialNames);
    ~MaterialList();

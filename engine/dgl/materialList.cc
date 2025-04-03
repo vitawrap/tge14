@@ -9,7 +9,7 @@
 #include "core/stream.h"
 #include "dgl/materialList.h"
 
-char gFallbackShapeMaterialPath[1024]{};
+char MaterialList::textureFallbackDirectory[1024]{};
 
 //--------------------------------------
 MaterialList::MaterialList()
@@ -114,7 +114,7 @@ bool MaterialList::load(const char* path)
 
    for (S32 i = 0; i < mMaterials.size(); i++)
        if (!load(i, path))
-           load(i, gFallbackShapeMaterialPath);  // TODO: a less exploitable system perhaps
+           load(i, textureFallbackDirectory);  // TODO: a less exploitable system perhaps
 
    for(S32 i=0; i < mMaterials.size(); i++)
    {
@@ -333,22 +333,4 @@ ResourceInstance* constructMaterialList(Stream &stream)
       delete matList;
       return NULL;
    }
-}
-
-
-//--------------------------------------
-// Console functions
-//--------------------------------------
-
-ConsoleFunction(setMaterialListFallbackDir, char const *, 2, 2, "(string path) - path to dir in torque format")
-{
-    // Save previous value
-    char* prev = Con::getReturnBuffer(dStrlen(gFallbackShapeMaterialPath) + 1);
-    dStrcpy(prev, gFallbackShapeMaterialPath);
-    
-    // Renew value and return prev
-    char tryExpandFileName[1024];
-    if (Con::expandScriptFilename(tryExpandFileName, 1023, argv[1]))
-        dStrncpy(gFallbackShapeMaterialPath, tryExpandFileName, 1023);
-    return prev;
 }

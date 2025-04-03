@@ -10,6 +10,7 @@
 #include "ts/tsDecal.h"
 #include "platform/profiler.h"
 #include "core/frameAllocator.h"
+#include "dgl/materialList.h"
 
 TSShapeInstance::RenderData   TSShapeInstance::smRenderData;
 MatrixF *                     TSShapeInstance::ObjectInstance::smTransforms = NULL;
@@ -125,6 +126,7 @@ void TSShapeInstance::init()
    Con::addVariable("$pref::TS::skipRenderDLs", TypeS32,  &smNumSkipRenderDetails);
    Con::addVariable("$pref::TS::screenError",   TypeF32,  &smScreenError);
    Con::addVariable("$pref::TS::UseTriangles",  TypeBool, &TSMesh::smUseTriangles);
+   Con::addVariable("$pref::TS::textureFallbackDir", TypeFilename, &MaterialList::textureFallbackDirectory);
 }
 
 void TSShapeInstance::destroy()
