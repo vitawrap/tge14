@@ -126,7 +126,7 @@ void TSShapeInstance::init()
    Con::addVariable("$pref::TS::skipRenderDLs", TypeS32,  &smNumSkipRenderDetails);
    Con::addVariable("$pref::TS::screenError",   TypeF32,  &smScreenError);
    Con::addVariable("$pref::TS::UseTriangles",  TypeBool, &TSMesh::smUseTriangles);
-   Con::addVariable("$pref::TS::textureFallbackDir", TypeFilename, &MaterialList::textureFallbackDirectory);
+   Con::addVariable("$pref::TS::textureFallbackDir", TypeFilename, &TSMaterialList::smTextureFallbackDirectory);
 }
 
 void TSShapeInstance::destroy()
@@ -367,7 +367,7 @@ void TSShapeInstance::setMaterialList(TSMaterialList * ml)
       if (mShape->materialList == mMaterialList)
          ((TSShape*)mShape)->readIflMaterials(hShape.getFilePath());
 
-      mMaterialList->load(MeshTexture,hShape.getFilePath(),true);
+      mMaterialList->load(MeshTexture,hShape.getFilePath(),true); // already uses fallback path in override
 
       // check for reflectance map not in alpha of texture -- will require more work to emap
       for (U32 i=0; i<mMaterialList->getMaterialCount(); i++)

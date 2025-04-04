@@ -522,6 +522,7 @@ class TSMaterialList : public MaterialList
    void allocate(U32 sz);
 
   public:
+   static char smTextureFallbackDirectory[1024];
 
    enum
    {
@@ -551,7 +552,9 @@ class TSMaterialList : public MaterialList
    void free();
 
    virtual bool load(U32 index, const char* path = 0) override;
-   bool load(TextureHandleType type, const char* path = 0,bool clampToEdge = false) { return Parent::load(type,path,clampToEdge); }
+   bool load(TextureHandleType type, const char* path = 0,bool clampToEdge = false) {
+       return Parent::load(type,path,clampToEdge,smTextureFallbackDirectory);
+   }
 
    /// @name Lookups
    /// @{

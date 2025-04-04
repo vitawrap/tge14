@@ -304,6 +304,8 @@ public:
    //NQ : Detail maps support
    static bool smRenderDetailMaps;
 
+   static char smTextureFallbackDir[1024];
+
    //-------------------------------------- Persistence interface
    bool read(Stream& stream);
    bool write(Stream& stream) const;

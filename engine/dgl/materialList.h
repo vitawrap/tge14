@@ -33,8 +33,6 @@ protected:
    TextureHandleType mTextureType;
 
 public:
-   static char textureFallbackDirectory[1024];
-
    MaterialList();
    MaterialList(U32 materialCount, const char **materialNames);
    ~MaterialList();
@@ -63,8 +61,8 @@ public:
    U32  push_back(const char *filename, GBitmap *bmp, TextureHandleType type, bool clampToEdge = false);
 
    virtual bool load(U32 index, const char* path = 0);
-   bool load(const char* path = 0);
-   bool load(TextureHandleType type, const char* path = 0, bool clampToEdge = false);
+   bool load(const char* path = 0, char const* fallbackDir = 0);
+   bool load(TextureHandleType type, const char* path = 0, bool clampToEdge = false, char const* fallbackDir = 0);
    void unload();
    virtual void free();
 
@@ -89,11 +87,11 @@ public:
 
 
 //--------------------------------------
-inline bool MaterialList::load(TextureHandleType type, const char* path, bool clampToEdge)
+inline bool MaterialList::load(TextureHandleType type, const char* path, bool clampToEdge, char const* fallbackDir)
 {
    mTextureType = type;
    mClampToEdge = clampToEdge;
-   return load(path);
+   return load(path, fallbackDir);
 }
 
 extern ResourceInstance* constructMaterialList(Stream &stream);

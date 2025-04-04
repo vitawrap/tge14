@@ -9,8 +9,6 @@
 #include "core/stream.h"
 #include "dgl/materialList.h"
 
-char MaterialList::textureFallbackDirectory[1024]{};
-
 //--------------------------------------
 MaterialList::MaterialList()
 {
@@ -108,13 +106,13 @@ bool MaterialList::load(U32 index, const char* path)
 
 
 //--------------------------------------
-bool MaterialList::load(const char* path)
+bool MaterialList::load(const char* path, char const* fallbackDir)
 {
    AssertFatal(mMaterialNames.size() == mMaterials.size(), "MaterialList::load: internal vectors out of sync.");
 
    for (S32 i = 0; i < mMaterials.size(); i++)
-       if (!load(i, path))
-           load(i, textureFallbackDirectory);  // TODO: a less exploitable system perhaps
+       if (!load(i, path) && fallbackDir && fallbackDir[0])
+           load(i, fallbackDir);  // TODO: a less exploitable system perhaps
 
    for(S32 i=0; i < mMaterials.size(); i++)
    {

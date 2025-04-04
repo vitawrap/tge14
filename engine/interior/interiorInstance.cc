@@ -345,6 +345,7 @@ void InteriorInstance::consoleInit()
    Con::addVariable("pref::Interior::VertexLighting",       TypeBool, &Interior::smUseVertexLighting);
    Con::addVariable("pref::Interior::TexturedFog",          TypeBool, &Interior::smUseTexturedFog);
    Con::addVariable("pref::Interior::lockArrays",           TypeBool, &Interior::smLockArrays);
+   Con::addVariable("pref::Interior::textureFallbackDir",   TypeFilename, &Interior::smTextureFallbackDir);
 
    Con::addVariable("pref::Interior::detailAdjust", TypeF32, &InteriorInstance::smDetailModification);
 

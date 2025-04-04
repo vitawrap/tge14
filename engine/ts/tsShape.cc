@@ -30,6 +30,7 @@ S32 TSShape::smNumSkipLoadDetails = 0;
 
 bool TSShape::smInitOnRead = true;
 
+char TSMaterialList::smTextureFallbackDirectory[1024]{};
 
 TSShape::TSShape()
 {

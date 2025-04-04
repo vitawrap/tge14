@@ -28,6 +28,7 @@ bool Interior::smUseTexturedFog        = false;
 bool Interior::smLockArrays            = true;
 bool Interior::smRenderDetailMaps      = true;
 
+char Interior::smTextureFallbackDir[1024]{};
 
 // These are setup by setupActivePolyList
 U16*            sgActivePolyList      = NULL;
@@ -381,7 +382,7 @@ bool Interior::prepForRendering(const char* path)
    }
 
    // Load the material list
-   bool matListSuccess = mMaterialList->load(InteriorTexture, path, false);
+   bool matListSuccess = mMaterialList->load(InteriorTexture, path, false, smTextureFallbackDir);
 
    // Now restore the material names since someone later may
    // count on the special texture names being present.
