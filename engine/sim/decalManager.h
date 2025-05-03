@@ -52,6 +52,7 @@ struct DecalInstance
 
    Point3F        xdir;
    Point3F        center;
+   ColorF         color;
    U32            allocTime;
    F32            fade;
    DecalInstance* next;
@@ -96,6 +97,12 @@ class DecalManager : public SceneObject
                  const Point3F& rot,
                  Point3F normal,
                  const Point3F& scale,
+                 DecalData*);
+   void addDecal(const Point3F& pos,
+                 const Point3F& rot,
+                 Point3F normal,
+                 const Point3F& scale,
+                 const ColorF& color,
                  DecalData*);
    void addDecal(const Point3F& pos,
                  const Point3F& rot,

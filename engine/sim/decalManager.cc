@@ -237,6 +237,9 @@ DecalInstance* DecalManager::allocateDecalInstance()
    pRet->polyList.mPlaneList.setSize(6);
    mFreePool = pRet->next;
    pRet->next = NULL;
+   // somehow color initialization is not guaranteed otherwise, despite all "addDecal" calls
+   // either providing a custom color or branching to a call with white by default...
+   pRet->color = ColorF(1.f, 1.f, 1.f);
    return pRet;
 }
 
@@ -330,6 +333,16 @@ void DecalManager::addDecal(const Point3F& pos,
                             const Point3F& scale,
                             DecalData* decalData)
 {
+    addDecal(pos, rot, normal, Point3F(1, 1, 1), ColorF(1.f, 1.f, 1.f, 1.f), decalData);
+}
+
+void DecalManager::addDecal(const Point3F& pos,
+                            const Point3F& rot, // dir vector, natural cross of normal
+                            Point3F normal,
+                            const Point3F& scale,
+                            const ColorF& color,
+                            DecalData* decalData)
+{
    if (smMaxNumDecals == 0)
       return;
 
@@ -354,6 +367,7 @@ void DecalManager::addDecal(const Point3F& pos,
       Box3F B(position - ext, position + ext, true);
       newDecal->center = position;
       newDecal->xdir = rot;
+      newDecal->color = color;
 
       ClippedPolyList* polyList = &newDecal->polyList;
       polyList->clear();
@@ -482,7 +496,10 @@ void DecalManager::renderDecal()
          pLastData = di->decalData;
       }
 
-      glColor4f(1, 1, 1, di->fade);
+      AssertISV(
+          (di->color.red <= 1.0 && di->color.green <= 1.0 && di->color.blue <= 1.0) &&
+          (di->color.red >= 0.0 && di->color.green >= 0.0 && di->color.blue >= 0.0), "Color is overflowing?????");
+      glColor4f(di->color.red, di->color.green, di->color.blue, di->fade);
 
       ClippedPolyList::Poly* p;
       ClippedPolyList::VertexList& vertList = di->polyList.mVertexList;
