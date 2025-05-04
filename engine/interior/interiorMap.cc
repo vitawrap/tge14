@@ -166,10 +166,11 @@ bool InteriorMap::onAdd()
       mLoaded = true;
 
    // Scale our brushes
+   F32 brushScale = mSqrt(mInteriorRes->mBrushScale);
    if (mInteriorRes->mBrushScale != 1.0f)
    {
       for (U32 i = 0; i < mInteriorRes->mBrushes.size(); i++)
-         mInteriorRes->mBrushes[i]->setScale(mInteriorRes->mBrushScale);
+         mInteriorRes->mBrushes[i]->setScale(brushScale);
    }
 
    loadTextures();
@@ -198,7 +199,7 @@ bool InteriorMap::onAdd()
          max.convolveInverse(scale);
 
          mObjBox.min.setMin(min);
-		   mObjBox.max.setMax(max);
+		 mObjBox.max.setMax(max);
       }
    }
 
