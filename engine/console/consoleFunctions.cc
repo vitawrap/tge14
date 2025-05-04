@@ -1295,13 +1295,17 @@ ConsoleFunction(isWriteableFileName, bool, 2, 2, "isWriteableFileName(fileName)"
 
 //----------------------------------------------------------------
 
-ConsoleFunction(fileExt, const char *, 2, 2, "fileExt(fileName)")
+ConsoleFunction(fileExt, const char*, 2, 2, "fileExt(fileName) - Returns file extension with the dot.")
 {
-   argc;
-   const char *ret = dStrrchr(argv[1], '.');
-   if(ret)
-      return ret;
-   return "";
+    argc;
+    const char* ret = dStrrchr(argv[1], '.');
+    if (ret) {
+        // dont't catch a weird dotted base path when there's no ext...
+        if (dStrchr(ret + 1, '/'))
+            return "";
+        return ret;
+    }
+    return "";
 }
 
 ConsoleFunction(fileBase, const char *, 2, 2, "fileBase(fileName)")
