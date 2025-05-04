@@ -145,10 +145,12 @@ protected:
 
    AUDIOHANDLE mSoundHandle;
 
+   // Script fields
    Point3F  mCurrPosition;
    Point3F  mCurrVelocity;
    S32      mSourceObjectId;
    S32      mSourceObjectSlot;
+   ColorF   mDecalColor;
 
    // Time related variables common to all projectiles, managed by processTick
 

@@ -376,6 +376,7 @@ Projectile::Projectile()
 
    mSourceObjectId = -1;
    mSourceObjectSlot = -1;
+   mDecalColor.set(1.f, 1.f, 1.f);
 
    mCurrTick         = 0;
 
@@ -414,6 +415,10 @@ void Projectile::initPersistFields()
    addField("sourceObject",     TypeS32,     Offset(mSourceObjectId, Projectile));
    addField("sourceSlot",       TypeS32,     Offset(mSourceObjectSlot, Projectile));
    endGroup("Source");
+
+   addGroup("Media");
+   addField("decalColor",       TypeColorF,  Offset(mDecalColor, Projectile));
+   endGroup("Media");
 }
 
 bool Projectile::calculateImpact(float,
@@ -714,7 +719,7 @@ void Projectile::explode(const Point3F& p, const Point3F& n, const U32 collideTy
                {
                   DecalManager *decalMngr = gClientSceneGraph->getCurrentDecalManager();
                   if(decalMngr)
-                     decalMngr->addDecal(p, n, mDataBlock->decals[idx]);
+                     decalMngr->addDecal(p, n, mDecalColor, mDataBlock->decals[idx]);
                }
             }
          }
@@ -1017,6 +1022,9 @@ U64 Projectile::packUpdate(NetConnection* con, U64 mask, BitStream* stream)
       }
       else
          stream->writeFlag(false);
+
+      // no special treatment for this field, don't wanna slow down projectile setup with onStaticModified...
+      stream->write(mDecalColor);
    }
 
    // explosion update
@@ -1077,6 +1085,8 @@ void Projectile::unpackUpdate(NetConnection* con, BitStream* stream)
          mSourceObjectSlot = -1;
          mSourceObject     = NULL;
       }
+
+      stream->read(&mDecalColor);
    }
 
    // explosion update
