@@ -105,6 +105,7 @@ namespace Compiler
       OP_SAVEFIELD_FLT,
       OP_SAVEFIELD_STR,
 
+      OP_STRNOTNULL_TO_UINT,
       OP_STR_TO_UINT,
       OP_STR_TO_FLT,
       OP_STR_TO_NONE,

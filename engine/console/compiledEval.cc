@@ -875,6 +875,10 @@ breakContinue:
                curObject->setDataField(curField, curFieldArray, STR.getStringValue());
             break;
 
+         case OP_STRNOTNULL_TO_UINT:
+            intStack[++UINT] = STR.getStringValue()[0]; // useful to test if not equal to null term (0)
+            break;
+
          case OP_STR_TO_UINT:
             intStack[UINT+1] = STR.getIntValue();
             UINT++;

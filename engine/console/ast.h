@@ -197,6 +197,14 @@ struct StrcatExprNode : BinaryExprNode
    TypeReq getPreferredType();
 };
 
+struct StrForgiveExprNode : BinaryExprNode
+{
+    static StrForgiveExprNode* alloc(ExprNode* left, ExprNode* right);
+    U32 precompile(TypeReq type);
+    U32 compile(U64* codeStream, U64 ip, TypeReq type);
+    TypeReq getPreferredType();
+};
+
 struct CommaCatExprNode : BinaryExprNode
 {
    static CommaCatExprNode *alloc(ExprNode *left, ExprNode *right);

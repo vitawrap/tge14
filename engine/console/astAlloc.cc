@@ -122,6 +122,16 @@ StrcatExprNode *StrcatExprNode::alloc(ExprNode *left, ExprNode *right, int appen
    return ret;
 }
 
+StrForgiveExprNode* StrForgiveExprNode::alloc(ExprNode* left, ExprNode* right)
+{
+    StrForgiveExprNode* ret = (StrForgiveExprNode*)consoleAlloc(sizeof(StrForgiveExprNode));
+    constructInPlace(ret);
+    ret->left = left;
+    ret->right = right;
+
+    return ret;
+}
+
 CommaCatExprNode *CommaCatExprNode::alloc(ExprNode *left, ExprNode *right)
 {
    CommaCatExprNode *ret = (CommaCatExprNode *) consoleAlloc(sizeof(CommaCatExprNode));

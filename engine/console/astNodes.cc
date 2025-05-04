@@ -639,26 +639,58 @@ U32 StrcatExprNode::precompile(TypeReq type)
 
 U32 StrcatExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = left->compile(codeStream, ip, TypeReqString);
-   if(!appendChar)
-      codeStream[ip++] = OP_ADVANCE_STR;
-   else
-   {
-      codeStream[ip++] = OP_ADVANCE_STR_APPENDCHAR;
-      codeStream[ip++] = appendChar;
-   }
-   ip = right->compile(codeStream, ip, TypeReqString);
-   codeStream[ip++] = OP_REWIND_STR;
-   if(type == TypeReqUInt)
-      codeStream[ip++] = OP_STR_TO_UINT;
-   else if(type == TypeReqFloat)
-      codeStream[ip++] = OP_STR_TO_FLT;
-   return ip;
+    ip = left->compile(codeStream, ip, TypeReqString);
+    if (!appendChar)
+        codeStream[ip++] = OP_ADVANCE_STR;
+    else
+    {
+        codeStream[ip++] = OP_ADVANCE_STR_APPENDCHAR;
+        codeStream[ip++] = appendChar;
+    }
+    ip = right->compile(codeStream, ip, TypeReqString);
+    codeStream[ip++] = OP_REWIND_STR;
+    if (type == TypeReqUInt)
+        codeStream[ip++] = OP_STR_TO_UINT;
+    else if (type == TypeReqFloat)
+        codeStream[ip++] = OP_STR_TO_FLT;
+    return ip;
 }
 
 TypeReq StrcatExprNode::getPreferredType()
 {
    return TypeReqString;
+}
+
+//------------------------------------------------------------
+
+U32 StrForgiveExprNode::precompile(TypeReq type)
+{
+    U32 addSize = left->precompile(TypeReqString) + right->precompile(TypeReqString) + 3;
+
+    if (type != TypeReqString)
+        addSize++;
+    return addSize;
+}
+
+U32 StrForgiveExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
+{
+    ip = left->compile(codeStream, ip, TypeReqString);
+    codeStream[ip++] = OP_STRNOTNULL_TO_UINT;   // submit to int stack
+    codeStream[ip++] = OP_JMPIF_NP;
+    U32 jmpIp = ip++;
+    ip = right->compile(codeStream, ip, TypeReqString);
+    codeStream[jmpIp] = ip;
+
+    if (type == TypeReqUInt)
+        codeStream[ip++] = OP_STR_TO_UINT;
+    else if (type == TypeReqFloat)
+        codeStream[ip++] = OP_STR_TO_FLT;
+    return ip;
+}
+
+TypeReq StrForgiveExprNode::getPreferredType()
+{
+    return TypeReqString;
 }
 
 //------------------------------------------------------------

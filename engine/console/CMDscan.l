@@ -94,6 +94,7 @@ HEXDIGIT [a-fA-F0-9]
 "<="        return(cmdlval.i = opLE);
 "&&"        return(cmdlval.i = opAND);
 "||"        return(cmdlval.i = opOR);
+"??"        return(cmdlval.i = opFORGIVE);
 "::"        return(cmdlval.i = opCOLONCOLON);
 "--"        return(cmdlval.i = opMINUSMINUS);
 "++"        return(cmdlval.i = opPLUSPLUS);

@@ -176,7 +176,8 @@ namespace Con
       /// 03/10/24 - viw - 37->38 Compile-time variable scope evaluation.
       /// 03/30/24 - viw - 38->39 Float table elimination.
       /// 03/25/25 - viw - 39->40 Fix instanceof.
-      DSOVersion = 40,
+      /// 05/03/25 - viw - 40->41 Add null forgiving operator.
+      DSOVersion = 41,
 
       MaxLineLength = 512,  ///< Maximum length of a line of console input.
       MaxDataTypes = 256    ///< Maximum number of registered data types.
