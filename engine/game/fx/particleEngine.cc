@@ -1177,7 +1177,8 @@ void ParticleEmitter::emitParticles(const Point3F& start,
                                     const Point3F& end,
                                     const Point3F& axis,
                                     const Point3F& velocity,
-                                    const U32      numMilliseconds)
+                                    const U32      numMilliseconds,
+                                    bool isBox)
 {
    // lifetime over - no more particles
    if( mLifetimeMS > 0 && mElapsedTimeMS > mLifetimeMS )
@@ -1217,7 +1218,12 @@ void ParticleEmitter::emitParticles(const Point3F& start,
 
          // Create particle at the correct position
          Point3F pos;
-         pos.interpolate(start, end, F32(currTime) / F32(numMilliseconds));
+         if (isBox)
+             pos.set(sgRandom.randF() * (end.x - start.x) + start.x,
+                     sgRandom.randF() * (end.y - start.y) + start.y,
+                     sgRandom.randF() * (end.z - start.z) + start.z);
+         else
+            pos.interpolate(start, end, F32(currTime) / F32(numMilliseconds));
          addParticle(pos, axis, velocity, axisx);
          updatedBBox |= updateBBox(pos);
 
@@ -1262,7 +1268,12 @@ void ParticleEmitter::emitParticles(const Point3F& start,
 
       // Create particle at the correct position
       Point3F pos;
-      pos.interpolate(start, end, F32(currTime) / F32(numMilliseconds));
+      if (isBox)
+          pos.set(sgRandom.randF() * (end.x - start.x) + start.x,
+                  sgRandom.randF() * (end.y - start.y) + start.y,
+                  sgRandom.randF() * (end.z - start.z) + start.z);
+      else
+          pos.interpolate(start, end, F32(currTime) / F32(numMilliseconds));
       addParticle(pos, axis, velocity, axisx);
       updatedBBox |= updateBBox(pos);
 

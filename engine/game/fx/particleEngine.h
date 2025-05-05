@@ -146,7 +146,8 @@ class ParticleEmitter : public GameBase
                       const Point3F& end,
                       const Point3F& axis,
                       const Point3F& velocity,
-                      const U32      numMilliseconds);
+                      const U32      numMilliseconds,
+                      bool isBox = false);
    void emitParticles(const Point3F& point,
                       const bool     useLastPosition,
                       const Point3F& axis,
