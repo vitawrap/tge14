@@ -116,6 +116,8 @@ void GuiTextCtrl::setText(const char *txt)
    //make sure we don't call this before onAdd();
    if( !mProfile )
       return;
+
+   GuiControl* p = getParent();
    
    if (txt)
       dStrncpy(mText, (UTF8*)txt, MAX_STRING_LENGTH);
@@ -132,10 +134,18 @@ void GuiTextCtrl::setText(const char *txt)
          resize(mBounds.point, Point2I(mFont->getStrWidth((const UTF8 *)mText), mFont->getHeight() + 4));
       else
          resize(mBounds.point, Point2I(mFont->getStrWidth((const UTF8 *)mText), mBounds.extent.y));
+
+      // Awesome hack to recenter text when needed!
+      if (p && mHorizSizing == horizResizeCenter)
+          p->resize(p->getPosition(), p->getExtent());
    }
    else if (mProfile->mAutoSizeHeight)
    {
       resize(mBounds.point, Point2I(mBounds.extent.x, mFont->getHeight() + 4));
+
+      // Awesome hack to recenter text when needed!
+      if (p && mVertSizing == vertResizeCenter)
+          p->resize(p->getPosition(), p->getExtent());
    }
       
    setVariable((char*)mText);
