@@ -22,6 +22,7 @@ private:
 
 	// Particle display box
 	Box3F mBox;
+	bool mUseBox;
 
 	// Emitter + DB, and datablock name to act as life ticket.
 	ParticleEmitter*		mEmitter;
@@ -62,6 +63,7 @@ GuiEmitterView::GuiEmitterView()
 	mCameraMatrix.identity();	// keep at origin
 	mBox.min.set(0, 0, 0);
 	mBox.max.set(0, 0, 0);
+	mUseBox = false;
 
 	mEmitter = NULL;
 	mEmitterData = NULL;
@@ -155,7 +157,7 @@ void GuiEmitterView::onPreRender()
 
 	if (mEmitter) {
 		static const Point3F normal(0, 0, 1);
-		mEmitter->emitParticles(mBox.min, mBox.max, normal, normal, lastTimeDelta);
+		mEmitter->emitParticles(mBox.min, mBox.max, normal, normal, lastTimeDelta, mUseBox);
 	}
 }
 
@@ -190,6 +192,7 @@ void GuiEmitterView::initPersistFields()
 	addField("datablock", TypeParticleEmitterDataPtr, Offset(mEmitterData, GuiEmitterView));
 	addField("zoomLevel", TypeF32, Offset(mZoomLevel, GuiEmitterView));
 	addField("box",		  TypeBox3F, Offset(mBox, GuiEmitterView));
+	addField("useBox",	  TypeBool, Offset(mUseBox, GuiEmitterView));
 	endGroup("Display");
 }
 
