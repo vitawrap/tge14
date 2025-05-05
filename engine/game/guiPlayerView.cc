@@ -310,9 +310,9 @@ void GuiPlayerView::setImage( char const* image, const char* skin, S32 shapeNode
 
     dSprintf(shapeMount, 127, "mount%d", shapeNode);
     img.shapeNode = mModel->getShape()->findNode(shapeMount);
-    img.imageNode = imShape->findNode("mountPoint");
+    img.imageNode = getMax(0, imShape->findNode("mountPoint"));
 
-    if (img.shapeNode == -1 || img.imageNode == -1)
+    if (img.shapeNode == -1)
     {
         mImages.decrement();
         return;
