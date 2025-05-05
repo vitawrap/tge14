@@ -207,7 +207,7 @@ void GuiEmitterView::emit()
 	pEmitter->onNewDataBlock(mEmitterData);
 	if (pEmitter->registerObject() == false)
 	{
-		Con::warnf(ConsoleLogEntry::General, "Could not register base emitter for particle of class: %s", mEmitterData->getName());
+		Con::warnf(ConsoleLogEntry::General, "Could not register base emitter for particles.");
 		delete pEmitter;
 		return;
 	}
