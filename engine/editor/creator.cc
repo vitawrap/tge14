@@ -353,7 +353,13 @@ void CreatorTree::onMouseDown(const GuiEvent & event)
       S32 offset = mTabSize * node->mTab;
       if(node->isGroup() && node->mChildren.size() && pos.x >= offset && pos.x <= (offset + mTabSize))
       {
-         node->expand(!node->isExpanded());
+         if (node->isExpanded())
+             node->expand(false);
+         else {
+             Node* walk = node;
+             for (; walk->mChildren.size() == 1; walk = walk->mChildren[0]);
+             walk->expand(true); // traverse to first node with more than 1 item and expand back up to here.
+         }
          build();
          dblClick = false;
       }
