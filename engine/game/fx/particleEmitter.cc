@@ -88,11 +88,20 @@ ParticleEmitterNode::ParticleEmitterNode()
    mEmitterDatablockId = 0;
    mEmitter            = NULL;
    mVelocity           = 1.0;
+   mEmitterBox.set(0, 0, 0);
+   mUseBox = false;
 }
 
 ParticleEmitterNode::~ParticleEmitterNode()
 {
    //
+}
+
+void ParticleEmitterNode::onStaticModified(StringTableEntry field)
+{
+    if (isServerObject() &&
+        (field == StringTable->insert("box") || field == StringTable->insert("useBox")))
+            setMaskBits(NodeUpdate);
 }
 
 //--------------------------------------------------------------------------
@@ -101,6 +110,8 @@ void ParticleEmitterNode::initPersistFields()
    Parent::initPersistFields();
    addField("emitter",  TypeParticleEmitterDataPtr, Offset(mEmitterDatablock, ParticleEmitterNode));
    addField("velocity", TypeF32,                    Offset(mVelocity,         ParticleEmitterNode));
+   addField("box",      TypePoint3F,                Offset(mEmitterBox,       ParticleEmitterNode));
+   addField("useBox",   TypeBool,                   Offset(mUseBox,           ParticleEmitterNode));
 }
 
 //--------------------------------------------------------------------------
@@ -175,6 +186,13 @@ bool ParticleEmitterNode::onNewDataBlock(GameBaseData* dptr)
    return true;
 }
 
+void ParticleEmitterNode::updateBox()
+{
+    Point3F dim(getMax(mEmitterBox.x, .5f), getMax(mEmitterBox.y, .5f), getMax(mEmitterBox.z, .5f));
+    mObjBox.min.set(-dim);
+    mObjBox.max.set(dim);
+}
+
 
 //--------------------------------------------------------------------------
 void ParticleEmitterNode::advanceTime(F32 dt)
@@ -187,9 +205,8 @@ void ParticleEmitterNode::advanceTime(F32 dt)
    getTransform().getColumn(3, &emitPoint);
    emitVelocity = emitAxis * mVelocity;
 
-   mEmitter->emitParticles(emitPoint, emitPoint,
-                           emitAxis,
-                           emitVelocity, (U32)(dt * mDataBlock->timeMultiple * 1000.0f));
+   mEmitter->emitParticles(emitPoint - mEmitterBox, emitPoint + mEmitterBox, emitAxis,
+                           emitVelocity, (U32)(dt * mDataBlock->timeMultiple * 1000.0f), mUseBox);
 }
 
 
@@ -203,6 +220,12 @@ U64 ParticleEmitterNode::packUpdate(NetConnection* con, U64 mask, BitStream* str
    if (stream->writeFlag(mEmitterDatablock != NULL)) {
       stream->writeRangedU32(mEmitterDatablock->getId(), DataBlockObjectIdFirst,
                                                          DataBlockObjectIdLast);
+   }
+
+   if (stream->writeFlag(mask & NodeUpdate)) {
+      mathWrite(*stream, mEmitterBox);
+      stream->writeFlag(mUseBox);
+      updateBox();
    }
 
    return retMask;
@@ -226,6 +249,12 @@ void ParticleEmitterNode::unpackUpdate(NetConnection* con, BitStream* stream)
 
    setScale(tempScale);
    setTransform(temp);
+
+   if (stream->readFlag()) {
+      mathRead(*stream, &mEmitterBox);
+      mUseBox = stream->readFlag();
+      updateBox();
+   }
 }
 
 void ParticleEmitterNode::setEmitterDataBlock(ParticleEmitterData* data)

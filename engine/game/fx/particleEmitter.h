@@ -58,10 +58,19 @@ class ParticleEmitterNode : public GameBase
 
    ParticleEmitter* mEmitter;
    F32              mVelocity;
+   Point3F			mEmitterBox;
+   bool             mUseBox;
+
+   void updateBox();
 
   public:
    ParticleEmitterNode();
    ~ParticleEmitterNode();
+
+   enum EmitterNodeMasks : U64 {
+       NodeUpdate = Parent::NextFreeMask,
+       NextFreeMask = NodeUpdate << 1
+   };
 
    // Time/Move Management
   public:
@@ -70,6 +79,8 @@ class ParticleEmitterNode : public GameBase
 
    DECLARE_CONOBJECT(ParticleEmitterNode);
    static void initPersistFields();
+
+   void onStaticModified(StringTableEntry field) override;
 
    U64  packUpdate  (NetConnection *conn, U64 mask, BitStream* stream);
    void unpackUpdate(NetConnection *conn,           BitStream* stream);
