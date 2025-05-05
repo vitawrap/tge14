@@ -237,9 +237,6 @@ DecalInstance* DecalManager::allocateDecalInstance()
    pRet->polyList.mPlaneList.setSize(6);
    mFreePool = pRet->next;
    pRet->next = NULL;
-   // somehow color initialization is not guaranteed otherwise, despite all "addDecal" calls
-   // either providing a custom color or branching to a call with white by default...
-   pRet->color = ColorF(1.f, 1.f, 1.f);
    return pRet;
 }
 
@@ -276,7 +273,15 @@ void DecalManager::consoleInit()
 }
 
 void DecalManager::addDecal(const Point3F& pos,
+    Point3F normal,
+    DecalData* decalData)
+{
+    addDecal(pos, normal, ColorF(1.f, 1.f, 1.f), decalData);
+}
+
+void DecalManager::addDecal(const Point3F& pos,
                             Point3F normal,
+                            ColorF const& color,
                             DecalData* decalData)
 {
    if (smMaxNumDecals == 0)
@@ -300,6 +305,7 @@ void DecalManager::addDecal(const Point3F& pos,
    Box3F B(position - ext, position + ext, true);
    newDecal->center = position;
    newDecal->xdir = Point3F(1,0,0);
+   newDecal->color = color;
 
    ClippedPolyList* polyList = &newDecal->polyList;
    polyList->mPlaneList[0].set(position - ext, VectorF(-1, 0, 0));

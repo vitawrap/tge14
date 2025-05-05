@@ -111,6 +111,10 @@ class DecalManager : public SceneObject
    void addDecal(const Point3F& pos,
                  Point3F normal,
                  DecalData*);
+   void addDecal(const Point3F& pos,
+                 Point3F normal,
+                 const ColorF& color,
+                 DecalData*);
    /// @}
 
    void dataDeleted(DecalData *data);
