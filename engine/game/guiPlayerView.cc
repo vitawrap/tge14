@@ -24,6 +24,7 @@ GuiPlayerView::GuiPlayerView() : GuiTSCtrl()
    lastRenderTime = 0;
    mAnimThread = 0;
 
+   mLightDirection.set(0.f, 0.f, 1.f);
    mCameraDeltaRot.set(0.f, 0.f, 0.f);
    mCameraMatrix.identity();
    mCameraRot.set(0, 0, 3.9);
@@ -53,6 +54,7 @@ void GuiPlayerView::initPersistFields()
     addField("cameraEulerRot", TypePoint3F, Offset(mCameraRot, GuiPlayerView));
     addField("cameraDeltaRot", TypePoint3F, Offset(mCameraDeltaRot, GuiPlayerView));
     addField("lockCamera", TypeBool, Offset(mCameraLocked, GuiPlayerView));
+    addField("lightDirection", TypePoint3F, Offset(mLightDirection, GuiPlayerView));
     endGroup("Display");
 }
 
@@ -389,10 +391,12 @@ void GuiPlayerView::renderWorld( const RectI &updateRect )
        
        F32 diff[]{ 1.f, 1.f, 1.f, 1.f };
        F32 amb[]{ .6f, .6f, .6f, 1.f };
-       F32 dir[]{ 0.f, 0.f, 1.f, 0.f };
        glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
        glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
-       glLightfv(GL_LIGHT0, GL_POSITION, dir);
+
+       mLightDirection.normalizeSafe();
+       Point4F lightVec(mLightDirection.x, mLightDirection.y, mLightDirection.z, 0.f);
+       glLightfv(GL_LIGHT0, GL_POSITION, static_cast<F32*>(lightVec));
    }
 
    // Calculate corrected MS dt
