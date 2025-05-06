@@ -272,6 +272,7 @@
   <ItemGroup>
     <ClCompile Include="..\engine\ai\aiNavigation.cc" />
     <ClCompile Include="..\engine\audio\audio.cc" />
+    <ClCompile Include="..\engine\audio\audioBlender.cc" />
     <ClCompile Include="..\engine\audio\audioBuffer.cc" />
     <ClCompile Include="..\engine\audio\audioDataBlock.cc" />
     <ClCompile Include="..\engine\audio\audioFunctions.cc" />
@@ -657,6 +658,7 @@
   <ItemGroup>
     <ClInclude Include="..\engine\ai\aiNavigation.h" />
     <ClInclude Include="..\engine\audio\audio.h" />
+    <ClInclude Include="..\engine\audio\audioBlender.h" />
     <ClInclude Include="..\engine\audio\audioBuffer.h" />
     <ClInclude Include="..\engine\audio\audioDataBlock.h" />
     <ClInclude Include="..\engine\audio\audioStreamSource.h" />

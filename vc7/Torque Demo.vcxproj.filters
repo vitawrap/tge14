@@ -1265,6 +1265,9 @@
     <ClCompile Include="..\engine\core\tweener.cc">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\audio\audioBlender.cc">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">
@@ -2256,6 +2259,9 @@
     </ClInclude>
     <ClInclude Include="..\engine\core\tweener.h">
       <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\audio\audioBlender.h">
+      <Filter>Source Files\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

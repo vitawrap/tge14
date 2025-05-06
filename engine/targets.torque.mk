@@ -7,6 +7,7 @@ SOURCE.AI=\
 
 SOURCE.AUDIO=\
 	audio/audio.cc \
+	audio/audioBlender.cc \
 	audio/audioBuffer.cc \
 	audio/audioDataBlock.cc \
 	audio/audioFunctions.cc \

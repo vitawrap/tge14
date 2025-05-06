@@ -7,7 +7,7 @@
 #include "platform/platformAudio.h"
 #include "console/simBase.h"
 #include "audio/audioDataBlock.h"
-
+#include "audio/audioBlender.h"
 
 extern ALuint alxGetWaveLen(ALuint buffer);
 
@@ -128,6 +128,10 @@ ConsoleFunction(OpenALInitDriver, bool, 1, 1, "Initializes the OpenAL driver.\n\
       if (!registered) {
          ResourceManager->registerExtension(".wav", AudioBuffer::construct);
 		 ResourceManager->registerExtension(".ogg", AudioBuffer::construct);
+
+         AudioBlender* blender = new AudioBlender;
+         if (blender->registerObject("AudioBlender"))
+            Sim::getRootGroup()->addObject(blender);
 	  }
       registered = true;
       return true;
