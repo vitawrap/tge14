@@ -41,6 +41,9 @@ public:
 
 	void onStaticModified(StringTableEntry field) override;
 
+	AUDIOHANDLE getSource() const { return mBlendSource; }
+	AUDIOHANDLE getDest() const { return mBlendDestination; }
+
 	DECLARE_CONOBJECT(AudioBlender);
 	static void initPersistFields();
 
