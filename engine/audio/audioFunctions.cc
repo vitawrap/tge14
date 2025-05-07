@@ -383,9 +383,15 @@ ConsoleFunction(alxStop, void, 2, 2, "(int handle)")
 }
 
 //-----------------------------------------------
-ConsoleFunction(alxStopAll, void, 1, 1, "()")
+ConsoleFunction(alxStopAll, void, 1, 1, "() - Stop ALL audio sources.")
 {
    alxStopAll();
+}
+
+//-----------------------------------------------
+ConsoleFunction(alxStopAllExceptBlended, void, 1, 1, "() - Stop all sources except those owned by AudioBlender.")
+{
+    alxStopAllExceptBlended();
 }
 
 //-----------------------------------------------

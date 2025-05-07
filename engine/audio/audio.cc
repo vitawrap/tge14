@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------------
 
 #include "audio/audio.h"
+#include "audio/audioBlender.h"
 #include "audio/audioDataBlock.h"
 #include "core/tVector.h"
 #include "console/console.h"
@@ -1040,6 +1041,33 @@ void alxStopAll()
 // stop all streaming sources
    while(mStreamingList.size())
       alxStop(mStreamingList.last()->mHandle);
+}
+
+void alxStopAllExceptBlended()
+{
+    AudioBlender* blender = NULL;
+    if (Sim::findObject("AudioBlender", blender)) {
+        // stop all open sources
+        for (S32 i = mNumSources - 1; i >= 0; i--)
+            if (mHandle[i] != NULL_AUDIOHANDLE)
+                alxStop(mHandle[i]);
+
+        // stop all looping sources
+        while (mLoopingList.size()) {
+            AUDIOHANDLE handle = mLoopingList.last()->mHandle;
+            if (handle != blender->getSource() && handle != blender->getDest())
+                alxStop(handle);
+        }
+
+        // stop all streaming sources
+        while (mStreamingList.size()) {
+            AUDIOHANDLE handle = mStreamingList.last()->mHandle;
+            if (handle != blender->getSource() && handle != blender->getDest())
+                alxStop(handle);
+        }
+    }
+    else
+        alxStopAll();
 }
 
 void alxLoopSourcef(AUDIOHANDLE handle, ALenum pname, ALfloat value)

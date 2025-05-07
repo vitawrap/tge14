@@ -81,6 +81,7 @@ AudioStreamSource* alxFindAudioStreamSource(AUDIOHANDLE handle);
 AUDIOHANDLE alxPlay(AUDIOHANDLE handle);
 void alxStop(AUDIOHANDLE handle);
 void alxStopAll();
+void alxStopAllExceptBlended();
 
 // one-shot helper alxPlay functions, create and play in one call
 AUDIOHANDLE alxPlay(const AudioProfile *profile, const MatrixF *transform=NULL, const Point3F *velocity=NULL);
