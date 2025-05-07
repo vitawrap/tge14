@@ -93,6 +93,7 @@ void AudioBlender::onStaticModified(StringTableEntry field)
 			if (mBlendValue >= 1.f) {
 				alxSourcef(mBlendSource, AL_GAIN_LINEAR, 0.f);
 				alxStop(mBlendSource);
+				mBlendSource = AL_NONE;
 			}
 		}
 		if (mBlendDestination != AL_NONE) {
