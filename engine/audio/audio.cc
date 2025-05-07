@@ -1045,24 +1045,33 @@ void alxStopAll()
 
 void alxStopAllExceptBlended()
 {
+    U32 skipped = 0;
     AudioBlender* blender = NULL;
     if (Sim::findObject("AudioBlender", blender)) {
         // stop all open sources
-        for (S32 i = mNumSources - 1; i >= 0; i--)
-            if (mHandle[i] != NULL_AUDIOHANDLE)
-                alxStop(mHandle[i]);
+        for (S32 i = mNumSources - 1; i >= 0; i--) {
+            AUDIOHANDLE& handle = mHandle[i];
+            if (handle != NULL_AUDIOHANDLE && handle != blender->getSource() && handle != blender->getDest())
+                alxStop(handle);
+        }
 
         // stop all looping sources
-        while (mLoopingList.size()) {
+        skipped = 0;
+        while (mLoopingList.size() > skipped) {
             AUDIOHANDLE handle = mLoopingList.last()->mHandle;
-            if (handle != blender->getSource() && handle != blender->getDest())
+            if (handle == blender->getSource() || handle == blender->getDest())
+                ++skipped;
+            else
                 alxStop(handle);
         }
 
         // stop all streaming sources
-        while (mStreamingList.size()) {
+        skipped = 0;
+        while (mStreamingList.size() > skipped) {
             AUDIOHANDLE handle = mStreamingList.last()->mHandle;
-            if (handle != blender->getSource() && handle != blender->getDest())
+            if (handle == blender->getSource() || handle == blender->getDest())
+                ++skipped;
+            else
                 alxStop(handle);
         }
     }
