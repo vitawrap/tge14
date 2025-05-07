@@ -10,6 +10,8 @@
 
 IMPLEMENT_CONOBJECT(AudioBlender);
 
+F32 AudioBlender::sQuietVolume = .32f;
+
 //-----------------------------------------------------------------------------
 
 void AudioBlender::fadeIn(AUDIOHANDLE source, S32 msToFullVolume)
@@ -74,6 +76,26 @@ void AudioBlender::crossFade(AUDIOHANDLE b, S32 msToComplete)
 	mTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
+void AudioBlender::quieten(S32 msToQuiet)
+{
+	if (mQuietTween)
+		TweenerBase::removeTween(mQuietTween);
+
+	char quietVol[128];
+	dSprintf(quietVol, sizeof(quietVol), "%g", sQuietVolume);
+	TweenerBase* t = TweenerBase::create(this, "quietValue", quietVol, msToQuiet);
+	mQuietTween = t ? TweenerBase::pushLiveTween(t) : 0;
+}
+
+void AudioBlender::louden(S32 msToLoud)
+{
+	if (mQuietTween)
+		TweenerBase::removeTween(mQuietTween);
+
+	TweenerBase* t = TweenerBase::create(this, "quietValue", "1.0", msToLoud);
+	mQuietTween = t ? TweenerBase::pushLiveTween(t) : 0;
+}
+
 AudioBlender::AudioBlender()
 	: SimObject()
 {
@@ -81,14 +103,18 @@ AudioBlender::AudioBlender()
 	mBlendDestination = AL_NONE;
 	mBlendValue = 0.f;
 	mTween = 0;
+	mQuietValue = 1.f;
+	mQuietTween = 0;
 }
 
 void AudioBlender::onStaticModified(StringTableEntry field)
 {
+	F32 vol = mQuietValue;
+
 	// callback for tween
 	if (field == StringTable->insert("blendValue")) {
 		if (mBlendSource != AL_NONE) {
-			alxSourcef(mBlendSource, AL_GAIN_LINEAR, 1.f - mBlendValue);
+			alxSourcef(mBlendSource, AL_GAIN_LINEAR, (1.f - mBlendValue) * vol);
 
 			if (mBlendValue >= 1.f) {
 				alxSourcef(mBlendSource, AL_GAIN_LINEAR, 0.f);
@@ -97,11 +123,18 @@ void AudioBlender::onStaticModified(StringTableEntry field)
 			}
 		}
 		if (mBlendDestination != AL_NONE) {
-			alxSourcef(mBlendDestination, AL_GAIN_LINEAR, mBlendValue);
+			alxSourcef(mBlendDestination, AL_GAIN_LINEAR, mBlendValue * vol);
 
 			if (!alxIsPlaying(mBlendDestination))
 				alxPlay(mBlendDestination);
 		}
+	}
+
+	else if (field == StringTable->insert("quietValue")) {
+		if (mBlendSource != AL_NONE)
+			alxSourcef(mBlendSource, AL_GAIN_LINEAR, (1.f - mBlendValue) * vol);
+		if (mBlendDestination != AL_NONE)
+			alxSourcef(mBlendDestination, AL_GAIN_LINEAR, mBlendValue * vol); 
 	}
 }
 
@@ -114,7 +147,13 @@ void AudioBlender::initPersistFields() {
 	endGroup("Crossfade");
 
 	// Somewhat of a hack to use this from the tweener.
+	addGroup("Tweenable");
 	addField("blendValue", TypeF32, Offset(mBlendValue, AudioBlender));
+	addField("quietValue", TypeF32, Offset(mQuietValue, AudioBlender));
+	endGroup("Tweenable");
+
+	// Also register this global variable.
+	Con::addVariable("AudioBlender::QuietVolume", TypeF32, &AudioBlender::sQuietVolume);
 }
 
 ConsoleMethod(AudioBlender, fadeIn, void, 4, 4, "(AUDIOHANDLE source, S32 ms) - Fade source in")
@@ -127,7 +166,17 @@ ConsoleMethod(AudioBlender, fadeOut, void, 3, 3, "(S32 ms) - Fade source (from f
 	object->fadeOut(dAtoi(argv[2]));
 }
 
-ConsoleMethod(AudioBlender, crossFade, void, 4, 4, "AUDIOHANDLE b, S32 ms) - Fade source out")
+ConsoleMethod(AudioBlender, crossFade, void, 4, 4, "(AUDIOHANDLE b, S32 ms) - Fade source out")
 {
 	object->crossFade(dAtoi(argv[2]), dAtoi(argv[3]));
+}
+
+ConsoleMethod(AudioBlender, quieten, void, 2, 3, "(S32 ms = 500) - Lower tracks to $AudioBlender::QuietVolume")
+{
+	object->quieten(argc == 2? 500: dAtoi(argv[2]));
+}
+
+ConsoleMethod(AudioBlender, louden, void, 2, 3, "(S32 ms = 1000)")
+{
+	object->louden(argc == 2? 1000 : dAtoi(argv[2]));
 }

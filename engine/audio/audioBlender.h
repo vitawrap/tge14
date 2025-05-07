@@ -31,13 +31,19 @@ class AudioBlender : public SimObject {
 	S32 mTween;
 	AUDIOHANDLE mBlendSource;
 	AUDIOHANDLE mBlendDestination;
-
 	F32 mBlendValue;
 
+	S32 mQuietTween;
+	F32 mQuietValue;
+
 public:
+	static F32 sQuietVolume;
+
 	void fadeOut(S32 msToZeroVolume);
 	void fadeIn(AUDIOHANDLE source, S32 msToFullVolume);
 	void crossFade(AUDIOHANDLE b, S32 msToComplete);
+	void quieten(S32 msToQuiet);
+	void louden(S32 msToLoud);
 
 	void onStaticModified(StringTableEntry field) override;
 
