@@ -68,6 +68,9 @@ ItemData::ItemData()
    lightRadius = 10.f;
 
    maxCamScale = 1.f;
+   visualGuideRadius = 0.f;
+   visualGuideName = StringTable->insert("");
+   visualGuideInvAlpha = false;
 }
 
 static EnumTable::Enums itemLightEnum[] =
@@ -98,6 +101,9 @@ void ItemData::initPersistFields()
    addField("lightOnlyStatic", TypeBool, Offset(lightOnlyStatic,  ItemData));
 
    addField("maxCamScale", TypeF32, Offset(maxCamScale, ItemData));
+   addField("guideRadius", TypeF32, Offset(visualGuideRadius, ItemData));
+   addField("guideVisual", TypeFilename, Offset(visualGuideName, ItemData));
+   addField("guideInvAlpha", TypeBool, Offset(visualGuideInvAlpha, ItemData));
 }
 
 void ItemData::packData(BitStream* stream)
@@ -126,6 +132,12 @@ void ItemData::packData(BitStream* stream)
       stream->writeFlag(lightOnlyStatic);
    }
    stream->write(maxCamScale);
+
+   if (stream->writeFlag(visualGuideName && visualGuideName[0])) {
+       stream->writeFlag(visualGuideInvAlpha);
+       stream->write(visualGuideRadius);
+       stream->writeString(visualGuideName);
+   }
 }
 
 void ItemData::unpackData(BitStream* stream)
@@ -160,6 +172,29 @@ void ItemData::unpackData(BitStream* stream)
       lightType = Item::NoLight;
 
    stream->read(&maxCamScale);
+
+   if (stream->readFlag()) {
+       visualGuideInvAlpha = stream->readFlag();
+       stream->read(&visualGuideRadius);
+       visualGuideName = stream->readSTString();
+   }
+}
+
+bool ItemData::preload(bool server, char errorBuffer[ErrorBufferSize])
+{
+    if (!Parent::preload(server, errorBuffer))
+        return false;
+
+    if (!server && visualGuideName && *visualGuideName) {
+        visualGuide = TextureHandle(visualGuideName, MeshTexture);
+        if (!visualGuide.getName())
+        {
+            dSprintf(errorBuffer, ErrorBufferSize, "Invalid visual guide in ItemData: %s", visualGuideName);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
@@ -1051,12 +1086,94 @@ bool Item::prepRenderImage(SceneState* state,
    if (getDamageState() == Destroyed)
       return false;
 
+   // Submit transparent image for visual guide if the object is not transparent
+   if (mCloakLevel == 0.0f && mShapeInstance->hasSolid() && mFadeVal == 1.0f && mDataBlock->visualGuide.getName())
+   {
+       SceneRenderImage* image = new SceneRenderImage;
+       image->obj = this;
+       image->sortType = SceneRenderImage::SortType::Point;
+       image->imageType = SceneRenderImage::ImageType::SubObject; // steal this flag for our purpose.
+       image->textureSortKey = mSkinHash ^ (U32)(dsize_t)(mDataBlock);
+       state->setImageRefPoint(this, image);
+       state->insertRenderImage(image);
+   }
+
    return Parent::prepRenderImage(state, stateKey, startZone, modifyBaseState);
 }
 
+void Item::renderGuide()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    dglMultMatrix(&mObjToWorld);
+
+    MatrixF modelview, camView;
+    dglGetModelview(&modelview);
+    modelview.transposeTo((F32*)&camView);
+    Point3F pos;
+    getObjBox().getCenter(&pos);
+
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glDepthMask(GL_FALSE);
+    glBlendFunc(GL_SRC_ALPHA, mDataBlock->visualGuideInvAlpha? GL_ONE_MINUS_SRC_ALPHA : GL_ONE);
+
+    glBindTexture(GL_TEXTURE_2D, mDataBlock->visualGuide.getGLName());
+
+    // render quad for guide
+    glBegin(GL_QUADS);
+
+    F32 width = mDataBlock->visualGuideRadius * 0.5;
+
+    Point3F basePoints[4] = {
+        Point3F(-1.0, 0.0, -1.0),
+        Point3F(1.0, 0.0, -1.0),
+        Point3F(1.0, 0.0, 1.0),
+        Point3F(-1.0, 0.0, 1.0)
+    };
+    Point3F points[4];
+
+    for (int i = 0; i < 4; i++)
+    {
+        points[i].set(basePoints[i]);
+        camView.mulP(points[i]);
+        points[i] *= width;
+        points[i] += pos;
+    }
+
+    glTexCoord2f(0, 1);
+    glVertex3fv(points[0]);
+    glTexCoord2f(1, 1);
+    glVertex3fv(points[1]);
+    glTexCoord2f(1, 0);
+    glVertex3fv(points[2]);
+    glTexCoord2f(0, 0);
+    glVertex3fv(points[3]);
+
+    glEnd();
+
+    // clean up
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+}
 
 void Item::renderImage(SceneState* state, SceneRenderImage* image)
 {
+   // TODO: Fix items to render images when a visual guide is defined.
+   // It's a truly lame way to render with controlled depth without having
+   // to deal with every other shape rendering inbetween the guide and our item.
+   if (mDataBlock->visualGuide.getName()) {
+       // Render guide and shape, or nothing.
+       if (image->imageType == SceneRenderImage::ImageType::SubObject)
+           renderGuide();
+       else if (image->isTranslucent == false)
+           return;
+   }
+
    MatrixF mat = mObjToWorld;
 
    // Scale up items that need better visibility when far-away on screen.

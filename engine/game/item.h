@@ -40,11 +40,17 @@ struct ItemData: public ShapeBaseData {
 
    F32         maxCamScale; // Facility to make some items easier to see from afar
 
+   TextureHandle visualGuide;
+   StringTableEntry visualGuideName;
+   bool visualGuideInvAlpha;
+   F32  visualGuideRadius;
+
    ItemData();
    DECLARE_CONOBJECT(ItemData);
    static void initPersistFields();
    virtual void packData(BitStream* stream);
    virtual void unpackData(BitStream* stream);
+   bool preload(bool server, char errorBuffer[ErrorBufferSize]) override;
 };
 
 
@@ -152,6 +158,7 @@ class Item: public ShapeBase
    void processTick(const Move *move);
    void interpolateTick(F32 delta);
    void setTransform(const MatrixF &mat);
+   void renderGuide();
    void renderImage(SceneState *state, SceneRenderImage *image);
 
    U64  packUpdate  (NetConnection *conn, U64 mask, BitStream *stream);
