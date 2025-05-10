@@ -94,6 +94,11 @@ ConsoleMethod(GuiPlayerView, setImageColor, void, 5, 5, "playerView.setImageColo
     object->setImageColor(dAtoi(argv[2]), argv[3], color);
 }
 
+ConsoleMethod(GuiPlayerView, fitModel, void, 2, 2, "playerView.fitModel() - Calculate ideal FOV for model")
+{
+    object->fitModel();
+}
+
 //------------------------------------------------------------------------------
 bool GuiPlayerView::onWake()
 {
@@ -208,6 +213,23 @@ void GuiPlayerView::setCamera()
         mOrbitPos.set(0, 0, 0);
         mOrbitDist = 3.5f;
     }
+}
+
+void GuiPlayerView::fitModel()
+{
+    if (!mModel)
+        return;
+
+    Box3F bounds;
+    mModel->computeBounds(0, bounds);
+    F32 radius = bounds.getVolume() * .5f;
+
+    // get the camera out of the model, and avoid obtuse angle
+    if ((radius * radius) > mOrbitDist)
+        mOrbitDist = radius * 2.f;
+
+    F32 b = mAsin(radius / mAbs(mOrbitDist));
+    mForceFOV = (b / M_PI_F) * 360.f;
 }
 
 void GuiPlayerView::setModelColor(const char* object, const ColorF& color)
