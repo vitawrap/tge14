@@ -384,7 +384,7 @@ bool PlayerData::preload(bool server, char errorBuffer[ErrorBufferSize])
 
 void PlayerData::getGroundInfo(TSShapeInstance* si, TSThread* thread,ActionAnimation *dp)
 {
-   dp->death = !dStrnicmp(dp->name, "death", 5);
+   dp->death = dStrstr(dp->name, "-ragdoll");   // Seq name, eg: ("fall-ragdoll" would qualify)
    if (dp->death)
    {
       // Death animations use roll frame-to-frame changes in ground transform into position
