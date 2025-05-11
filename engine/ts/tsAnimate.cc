@@ -991,7 +991,7 @@ void TSShapeInstance::deltaGround(TSThread * thread, F32 start, F32 end, MatrixF
 void TSShapeInstance::deltaGround1(TSThread * thread, F32 start, F32 end, MatrixF& mat)
 {
    mat.identity();
-   if (thread->transitionData.inTransition)
+   if (thread->transitionData.inTransition || (thread->sequence && thread->sequence->numGroundFrames == 0))
       return;
    addPath(thread, start, end, &mat);
 }
