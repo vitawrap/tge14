@@ -1033,23 +1033,23 @@ void Namespace::activatePackage(StringTableEntry name)
    mActivePackages[mNumActivePackages++] = name;
 }
 
-void Namespace::deactivatePackage(StringTableEntry name)
+void Namespace::deactivatePackageStack(StringTableEntry name)
 {
-   S32 i, j;
-   for(i = 0; i < mNumActivePackages; i++)
-      if(mActivePackages[i] == name)
+   S32 act, pkg;
+   for(act = 0; act < mNumActivePackages; act++)
+      if(mActivePackages[act] == name)
          break;
-   if(i == mNumActivePackages)
+   if(act == mNumActivePackages)
       return;
 
    trashCache();
 
-   for(j = mNumActivePackages - 1; j >= i; j--)
+   for(pkg = mNumActivePackages - 1; pkg >= act; pkg--)
    {
       // gotta unlink em in reverse order...
       for(Namespace *walk = mNamespaceList; walk; walk = walk->mNext)
       {
-         if(walk->mPackage == mActivePackages[j])
+         if(walk->mPackage == mActivePackages[pkg])
          {
             Namespace *parent = Namespace::find(walk->mName);
             // hook the parent
@@ -1070,7 +1070,21 @@ void Namespace::deactivatePackage(StringTableEntry name)
          }
       }
    }
-   mNumActivePackages = i;
+   mNumActivePackages = act;
+}
+
+void Namespace::deactivatePackage(StringTableEntry name)
+{
+    U32 oldNumActivePackages = mNumActivePackages;
+
+    // remove all packages down to the given one
+    deactivatePackageStack(name);
+
+    // now add back all packages that followed the given one
+    if (!oldNumActivePackages)
+        return;
+    for (U32 i = mNumActivePackages + 1; i < oldNumActivePackages; ++i)
+        activatePackage(mActivePackages[i]);
 }
 
 void Namespace::unlinkPackages()
@@ -1078,7 +1092,7 @@ void Namespace::unlinkPackages()
    mOldNumActivePackages = mNumActivePackages;
    if(!mNumActivePackages)
       return;
-   deactivatePackage(mActivePackages[0]);
+   deactivatePackageStack(mActivePackages[0]);
 }
 
 void Namespace::relinkPackages()
@@ -1117,6 +1131,13 @@ ConsoleFunction(deactivatePackage, void,2,2,"deactivatePackage(packageName)")
    argc;
    StringTableEntry packageName = StringTable->insert(argv[1]);
    Namespace::deactivatePackage(packageName);
+}
+
+ConsoleFunction(deactivatePackageStack, void, 2, 2, "deactivatePackageStack(packageName)")
+{
+    argc;
+    StringTableEntry packageName = StringTable->insert(argv[1]);
+    Namespace::deactivatePackageStack(packageName);
 }
 
 ConsoleFunctionGroupEnd( Packages );

@@ -124,6 +124,7 @@ public:
     static Namespace *find(StringTableEntry name, StringTableEntry package=NULL);
 
     static void activatePackage(StringTableEntry name);
+    static void deactivatePackageStack(StringTableEntry name);
     static void deactivatePackage(StringTableEntry name);
     static void dumpClasses();
     static void dumpFunctions();
