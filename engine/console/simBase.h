@@ -1144,6 +1144,8 @@ class SimSet: public SimObject
 
    virtual void popObject();                ///< Remove an object from the end of the list.
 
+   virtual void clear();                    ///< Clear list.
+
    void bringObjectToFront(SimObject* obj) { reOrder(obj, front()); }
    void pushObjectToBack(SimObject* obj) { reOrder(obj, NULL); }
 
@@ -1238,6 +1240,9 @@ class SimGroup: public SimSet
 
    /// Remove an object from the group.
    void removeObject(SimObject*);
+
+   /// Clear group.
+   void clear() override;
 
    void onRemove();
 

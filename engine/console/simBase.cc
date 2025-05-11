@@ -1245,6 +1245,14 @@ void SimSet::popObject()
    clearNotify(pObject);
 }
 
+void SimSet::clear()
+{
+    lock();
+    while (size() > 0)
+        removeObject(*(begin()));
+    unlock();
+}
+
 bool SimSet::reOrder( SimObject *obj, SimObject *target )
 {
    MutexHandle handle;
@@ -1394,10 +1402,7 @@ ConsoleMethod(SimSet, remove, void, 3, 0, "set.remove(obj1,...)")
 ConsoleMethod(SimSet, clear, void, 2, 2, "set.clear()")
 {
    argc; argv;
-   object->lock();
-   while (object->size() > 0)
-      object->removeObject(*(object->begin()));
-   object->unlock();
+   object->clear();
 }
 
 ConsoleMethod(SimSet, getCount, S32, 2, 2, "set.getCount()")
@@ -1531,6 +1536,18 @@ void SimGroup::removeObject(SimObject* obj)
       obj->mGroup = 0;
    }
    unlock();
+}
+
+void SimGroup::clear()
+{
+    lock();
+    while (size() > 0) {
+        SimObject* object = *(begin());
+        removeObject(object);
+        object->unregisterObject();
+        delete object;
+    }
+    unlock();
 }
 
 //---------------------------------------------------------------------------
