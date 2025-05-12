@@ -168,6 +168,18 @@ namespace GLLoader
    {
       OpenGLDLLShutdown();
 
+      char path[1<<10];
+      dSprintf(path, sizeof(path), "%s/libGL.so.1", Platform::getWorkingDirectory());
+
+      // try to load GL4ES first, GL4ES must be built with this config:
+      // mkdir build; cd build; cmake .. -DNOEGL=1 -DDEFAULT_ES=2 -DCMAKE_BUILD_TYPE=Release; make
+      if ((dlHandle = dlopen(path, RTLD_NOW)) == NULL)
+         Con::errorf("No GL4ES library: %s", SDL_GetError());
+      else {
+         Con::printf("Using GL4ES library: %s", path);
+         goto _foundgl_;
+      }
+
       // load libGL.so
       if ((dlHandle = dlopen("libGL.so", RTLD_NOW)) == NULL &&
          (dlHandle = dlopen("libGL.so.1", RTLD_NOW)) == NULL)
@@ -177,6 +189,7 @@ namespace GLLoader
       }
 
       // bind functions
+      _foundgl_:
       if (!bindGLFunctions())
       {
          Con::errorf("Error binding GL functions");
