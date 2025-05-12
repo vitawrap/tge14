@@ -213,7 +213,7 @@ bool OpenALDLLInit()
    // these are relative to the current working directory
    const char* searchPath[] = {
       "lib",
-      "tplib", // superceeded by "lib", here for backass compatibility
+      "lib/x86_64-linux-gnu", // path on mint
       "", // i.e.: current working directory
       NULL // this must be last
    }; 
@@ -226,7 +226,23 @@ bool OpenALDLLInit()
          searchPath[i],
          libName);
          
-      Con::printf("		Searching for OpenAl at location : %s", openalPath);
+      Con::printf("		Searching for OpenAL at location : %s", openalPath);
+      dlHandle = dlopen(openalPath, RTLD_NOW);
+      if (dlHandle != NULL)
+      {
+         // found it
+         Con::printf("   Loading OpenAL: %s", openalPath);
+         break;
+      }
+   }
+
+   for (int i = 0; searchPath[i] != NULL; ++i)
+   {   
+      dSprintf(openalPath, sizeof(openalPath), "/usr/%s/%s",
+         searchPath[i],
+         libName);
+         
+      Con::printf("		Searching for OpenAL on file system : %s", openalPath);
       dlHandle = dlopen(openalPath, RTLD_NOW);
       if (dlHandle != NULL)
       {

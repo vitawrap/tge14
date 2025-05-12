@@ -2421,6 +2421,8 @@ bool OpenALInit()
    if(!OpenALDLLInit())
       return false;
 
+   mDevice = (ALCdevice *)NULL;
+
    // Open a device
 #ifdef TORQUE_OS_LINUX
    const char* deviceSpecifier =
@@ -2429,9 +2431,11 @@ bool OpenALInit()
      // use SDL for audio output by default
      deviceSpecifier = "'((devices '(sdl)))";
    mDevice = (ALCdevice *)alcOpenDevice((ALubyte*)deviceSpecifier);
-#else
-   mDevice = (ALCdevice *)alcOpenDevice((ALubyte*)NULL);
 #endif
+   // SDL failed, (or not on linux) open a default device instead.
+   if (mDevice == (ALCdevice *)NULL)
+      mDevice = (ALCdevice *)alcOpenDevice((ALubyte*)NULL);
+
    if (mDevice == (ALCdevice *)NULL)
       return false;
 
@@ -2439,11 +2443,10 @@ bool OpenALInit()
 #ifdef TORQUE_OS_LINUX
    int freq = Con::getIntVariable("Pref::Unix::OpenALFrequency");
    if (freq == 0)
-      freq = 22050;
+      freq = 44100;
 
    Con::printf("   Setting OpenAL output frequency to %d", freq);
-   // some versions of openal have bugs converting between 22050 and 44100
-   // samples when the lib is in 44100 mode.
+   // some versions of openal have bugs converting between 22050 and 44100hz
    int attrlist[] = {
       // this 0x100 is "ALC_FREQUENCY" in the linux openal implementation.
       // it doesn't match the value of the creative headers, so we can't use
