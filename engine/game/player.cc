@@ -1350,6 +1350,8 @@ void Player::updateState()
                mRecoverTicks = mReversePending;
                mActionAnimation.forward = false;
 
+               AssertFatal(mActionAnimation.action < mDataBlock->actionCount, "Action animation is out of bounds!");
+
                // careful! it's possible we have no action animation thread
                if (mActionAnimation.thread)
                {
