@@ -22,7 +22,7 @@ static F32 (*calcInterceptY)(F32, F32, F32);
 
 bool QuadTreeTracer::castRay(const Point3F &start, const Point3F &end, RayInfo *info)
 {
-   PROFILE_START(QuadTreeTracer_castRay);
+   //PROFILE_START(QuadTreeTracer_castRay);
 
    // Do some precalculations we'll use for the rest of this routine.
    // Set up our intercept calculation methods.
@@ -224,6 +224,6 @@ bool QuadTreeTracer::castRay(const Point3F &start, const Point3F &end, RayInfo *
    }
 
    // Nothing found, so give up.
-   PROFILE_END();
+   //PROFILE_END();
    return false;
 }
