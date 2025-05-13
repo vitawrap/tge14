@@ -99,8 +99,7 @@ FT_Face loadFont(const char *name, S32& size, char *pickedFontName, int pickedFo
 
 bool registerFontFile(char const* fname)
 {
-  // TODO: Register the font in FcConfig
-	return false;
+  return FcConfigAppFontAddFile(gFc, (const FcChar8*) fname);
 }
 
 GOldFont *createFont(const char *name, size_t size, U32 charset)
