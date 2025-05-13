@@ -14,6 +14,7 @@
 #include "math/mMathFn.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_keyboard.h>
 
 // ascii table
 AsciiData AsciiTable[NUM_KEYS];
@@ -54,7 +55,7 @@ DECLSPEC Uint16 SDLCALL KeyToUnicode(SDL_Scancode key, SDL_Keymod mod)
       return ' ';
    }
 
-   return (Uint16) key;
+   return (Uint16) 0;
 }
 
 //==============================================================================
@@ -189,6 +190,55 @@ void InitKeyMaps()
 
    keyMapsInitialized = true;
 };
+
+U32 getTorqueModFromSDL(U16 mod)
+{
+   U32 ret = 0;
+   if (mod & KMOD_LSHIFT) {
+      ret |= SI_LSHIFT;
+      ret |= SI_SHIFT;
+   }
+
+   if (mod & KMOD_RSHIFT) {
+      ret |= SI_RSHIFT;
+      ret |= SI_SHIFT;
+   }
+
+   if (mod & KMOD_LCTRL) {
+      ret |= SI_LCTRL;
+      ret |= SI_CTRL;
+   }
+
+   if (mod & KMOD_RCTRL) {
+      ret |= SI_RCTRL;
+      ret |= SI_CTRL;
+   }
+
+   if (mod & KMOD_LALT) {
+      ret |= SI_LALT;
+      ret |= SI_ALT;
+   }
+
+   if (mod & KMOD_RALT) {
+      ret |= SI_RALT;
+      ret |= SI_ALT;
+   }
+
+   // NOTE: For MacOS, this will treat command as Left or Right CTRL
+#ifdef TORQUE_OS_MAC
+   if (mod & KMOD_LGUI) {
+      ret |= SI_LCTRL;
+      ret |= SI_CTRL;
+   }
+
+   if (mod & KMOD_RGUI) {
+      ret |= SI_RCTRL;
+      ret |= SI_CTRL;
+   }
+#endif
+
+   return ret;
+}
 
 //------------------------------------------------------------------------------
 U8 TranslateSDLKeytoTKey(SDL_Scancode keysym)
@@ -891,7 +941,7 @@ const char* getKeyName( U16 key )
 //------------------------------------------------------------------------------
 void UInputManager::keyEvent(const SDL_Event& event)
 {
-   S32 action = (event.type == SDL_KEYDOWN) ? SI_MAKE : SI_BREAK;
+   S32 action = (event.type == SDL_KEYDOWN) ? (event.key.repeat? SI_REPEAT : SI_MAKE) : SI_BREAK;
    SDL_Keycode keycode = event.key.keysym.sym;
    Uint16 keymods = event.key.keysym.mod;
    InputEvent ievent;
@@ -900,23 +950,25 @@ void UInputManager::keyEvent(const SDL_Event& event)
    ievent.deviceType = KeyboardDeviceType;
    ievent.objType = SI_KEY;
    ievent.objInst = TranslateSDLKeytoTKey(event.key.keysym.scancode);
+   ievent.modifier = getTorqueModFromSDL(event.key.keysym.mod);
    // if the action is a make but this key is already pressed, 
    // count it as a repeat
    if (action == SI_MAKE && mKeyboardState[ievent.objInst])
       action = SI_REPEAT;
    ievent.action = action;
    ievent.fValue = (action == SI_MAKE || action == SI_REPEAT) ? 1.0 : 0.0;
-   ievent.ascii = 0;
-   if ((keycode != SDLK_ESCAPE) && !(keycode & SDLK_SCANCODE_MASK) && !(keymods & SDL_Keymod::KMOD_CTRL))
-      ievent.ascii = event.key.keysym.sym;
 
-   // We catch this before processKeyEvent because Torque doesn't know how to deal with that!
-   if (action == SI_MAKE && (keymods & SDL_Keymod::KMOD_MODE))
-      mModifierKeys |= SI_CTRL|SI_ALT;
-   else if (action == SI_BREAK && (keymods & SDL_Keymod::KMOD_MODE))
-      mModifierKeys &= ~(SI_CTRL|SI_ALT);
+   U32 asciiState = STATE_LOWER;
+   if (ievent.modifier & (SI_CTRL | SI_ALT))
+      asciiState = STATE_GOOFY;
 
-   processKeyEvent(ievent);
+   if (ievent.modifier & (SI_SHIFT))
+      asciiState = STATE_UPPER;
+   
+   mModifierKeys = ievent.modifier;
+   ievent.ascii = event.key.keysym.unused;
+
+   //processKeyEvent(ievent);
    Game->postEvent(ievent);
 
 #if 0
@@ -950,116 +1002,6 @@ void UInputManager::keyEvent(const SDL_Event& event)
       ( mModifierKeys & SI_CTRL ? 'C' : '.' ), 
       ( mModifierKeys & SI_ALT ? 'A' : '.' ));
 #endif
-}
-
-//------------------------------------------------------------------------------
-// This function was ripped from DInputDevice almost entirely intact.  
-bool UInputManager::processKeyEvent( InputEvent &event )
-{
-   if ( event.deviceType != KeyboardDeviceType || event.objType != SI_KEY )
-      return false;
-
-   bool modKey = false;
-   U8 keyCode = event.objInst;
-
-   if ( event.action == SI_MAKE || event.action == SI_REPEAT)
-   {
-      // Maintain the key structure:
-      mKeyboardState[keyCode] = true;
-
-      switch ( event.objInst )
-      {
-         case KEY_LSHIFT:
-            mModifierKeys |= SI_LSHIFT;
-            modKey = true;
-            break;
-
-         case KEY_RSHIFT:
-            mModifierKeys |= SI_RSHIFT;
-            modKey = true;
-            break;
-
-         case KEY_LCONTROL:
-            mModifierKeys |= SI_LCTRL;
-            modKey = true;
-            break;
-
-         case KEY_RCONTROL:
-            mModifierKeys |= SI_RCTRL;
-            modKey = true;
-            break;
-
-         case KEY_LALT:
-            mModifierKeys |= SI_LALT;
-            modKey = true;
-            break;
-
-         case KEY_RALT:
-            mModifierKeys |= SI_RALT;
-            modKey = true;
-            break;
-      }
-   }
-   else
-   {
-      // Maintain the keys structure:
-      mKeyboardState[keyCode] = false;
-
-      switch ( event.objInst )
-      {
-         case KEY_LSHIFT:
-            mModifierKeys &= ~SI_LSHIFT;
-            modKey = true;
-            break;
-
-         case KEY_RSHIFT:
-            mModifierKeys &= ~SI_RSHIFT;
-            modKey = true;
-            break;
-
-         case KEY_LCONTROL:
-            mModifierKeys &= ~SI_LCTRL;
-            modKey = true;
-            break;
-
-         case KEY_RCONTROL:
-            mModifierKeys &= ~SI_RCTRL;
-            modKey = true;
-            break;
-
-         case KEY_LALT:
-            mModifierKeys &= ~SI_LALT;
-            modKey = true;
-            break;
-
-         case KEY_RALT:
-            mModifierKeys &= ~SI_RALT;
-            modKey = true;
-            break;
-      }
-   }
-
-   if ( modKey )
-      event.modifier = 0;
-   else
-      event.modifier = mModifierKeys;
-
-   // TODO: alter this getAscii call
-   KEY_STATE state = STATE_LOWER;
-   if (event.modifier & (SI_CTRL|SI_ALT) )
-   {
-      state = STATE_GOOFY;
-   }
-   if ( event.modifier & SI_SHIFT )
-   {
-      state = STATE_UPPER;
-   }
-
-   // Couldn't get good ascii from SDL2, try searching in Torque keys
-   if (!event.ascii)
-      event.ascii = Input::getAscii( event.objInst, state );
-
-   return modKey;
 }
 
 //------------------------------------------------------------------------------
@@ -1109,6 +1051,7 @@ void UInputManager::process()
       SDL_PumpEvents();
       S32 numEvents = SDL_PeepEvents(events, MaxEvents, SDL_GETEVENT, evtMin, evtMax);
 
+      SDL_Event* lastKeyEvent = NULL;
       for (int i = 0; i < numEvents; ++i)
       {
          switch (events[i].type) 
@@ -1122,10 +1065,18 @@ void UInputManager::process()
                break;
             case SDL_KEYDOWN:
             case SDL_KEYUP:
-               keyEvent(events[i]);
+               lastKeyEvent = &events[i];
+               lastKeyEvent->key.keysym.unused = 0;
+               break;
+            case SDL_TEXTINPUT:
+               if (lastKeyEvent)
+                  lastKeyEvent->key.keysym.unused = *(U32*) events[i].text.text;
                break;
          }
       }
+      if (lastKeyEvent)
+         keyEvent(*lastKeyEvent);
+      lastKeyEvent = NULL;
    }
 
    // poll joysticks
@@ -1157,6 +1108,7 @@ bool UInputManager::enableKeyboard()
 
    if ( mKeyboardEnabled )
    {
+      SDL_StartTextInput();
       Con::printf( "Keyboard enabled." );
 #ifdef LOG_INPUT
       Input::log( "Keyboard enabled.\n" );
@@ -1181,6 +1133,7 @@ void UInputManager::disableKeyboard()
 
    deactivateKeyboard();
    mKeyboardEnabled = false;
+   SDL_StopTextInput();
    Con::printf( "Keyboard disabled." );
 #ifdef LOG_INPUT
    Input::log( "Keyboard disabled.\n" );
