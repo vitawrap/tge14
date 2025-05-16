@@ -150,6 +150,11 @@ class Vector
    /// @author BJW 8/20/97
    void merge(const Vector& p);
 
+   /// Move this vector into another
+   ///
+   /// @author viw 5/16/25
+   void move(Vector& dst);
+
    /// @}
 };
 
@@ -476,6 +481,23 @@ template<class T> inline void Vector<T>::merge(const Vector& p)
       resize(oldsize + p.size());
       dMemcpy( &mArray[oldsize], p.address(), p.size() * sizeof(T) );
    }
+}
+
+// VIW 5/16/25
+// code to move this vector into another
+template <class T> inline void Vector<T>::move(Vector& dst)
+{
+    if (dst.mArray)
+        dFree(dst.mArray);
+
+    dst.mArray = mArray;
+    dst.mArraySize = mArraySize;
+    dst.mElementCount = mElementCount;
+    
+    // Mirror constructor
+    mElementCount   = 0;
+    mArraySize      = 0;
+    mArray          = 0;
 }
 
 //-----------------------------------------------------------------------------
