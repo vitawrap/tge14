@@ -69,6 +69,9 @@ public:
    virtual const bool isDatablock() { return false; };
 };
 
+// Let it be known that the reason an argv is needed is because of the unused torquescript int/float list.
+// ConsoleValue should fix those issues.
+
 #define DefineConsoleType( type ) extern S32 type;
 
 #define ConsoleType( typeName, type, size ) \

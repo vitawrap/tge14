@@ -310,6 +310,7 @@
     <ClCompile Include="..\engine\console\consoleObject.cc" />
     <ClCompile Include="..\engine\console\consoleParser.cc" />
     <ClCompile Include="..\engine\console\consoleTypes.cc" />
+    <ClCompile Include="..\engine\console\consoleValue.cc" />
     <ClCompile Include="..\engine\console\dynamicTypes.cc" />
     <ClCompile Include="..\engine\console\scriptObject.cc" />
     <ClCompile Include="..\engine\console\simBase.cc" />
@@ -692,6 +693,7 @@
     <ClInclude Include="..\engine\console\consoleObject.h" />
     <ClInclude Include="..\engine\console\consoleParser.h" />
     <ClInclude Include="..\engine\console\consoleTypes.h" />
+    <ClInclude Include="..\engine\console\consoleValue.h" />
     <ClInclude Include="..\engine\console\dynamicTypes.h" />
     <ClInclude Include="..\engine\console\simBase.h" />
     <ClInclude Include="..\engine\console\simDictionary.h" />
