@@ -5,9 +5,10 @@
 
 #include "console/consoleValue.h"
 
-void ConsoleValue::castTo(ConsoleValue::Type dstType) {
-	const int stringCSize = 128;
-	thread_local static char stringConv[stringCSize];
+const int stringCSize = 1024;
+thread_local static char stringConv[stringCSize];
+
+bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 	ConsoleValue::Type const srcType = type;
 
 	switch (dstType) {
@@ -23,24 +24,30 @@ void ConsoleValue::castTo(ConsoleValue::Type dstType) {
 			setString(stringConv);
 			break;
 
-		case TypeValueList:
-			// In true torquescript fashion, string->list can become a word list.
-			str.length = 0;
-			Vector<ConsoleValue> vlist; list.move(vlist);
-			for (ConsoleValue* itr = vlist.begin(); itr != vlist.end(); itr++) {
-				concat(*itr);
-				if (itr + 1 != list.end())
-					concat(" ");
-			}
-			destroyList(vlist);
-			break;
+		//case TypeValueList:
+		//	// In true torquescript fashion, string->list can become a word list.
+		//	ConsoleValueList* vlist = list;
+		//	str.length = 0;
+		//	for (ConsoleValue* itr = vlist->begin(); itr != vlist->end(); itr++) {
+		//		concat(*itr);
+		//		if (itr + 1 != vlist->end())
+		//			concat(" ");
+		//	}
+		//	destroyList(vlist);	// unref the list we had
+		//	break;
+
+		case TypeString:
+			return true;
+
+		default:
+			return false;
 		}
 		break;
 
 	case TypeFloat:
 		switch (srcType) {
 		case TypeString:
-			F32 fval = dAtof(getString());
+			F64 fval = dAtof(getString());
 			clearString();	// clear union
 			f = fval;
 			break;
@@ -49,20 +56,26 @@ void ConsoleValue::castTo(ConsoleValue::Type dstType) {
 			f = i;
 			break;
 
-		case TypeValueList:
-			if (list.size()) {
-				*this = list[0];
-				castTo(dstType);
-			} else f = 0.0;
-			destroyList(list);
-			break;
+		//case TypeValueList:
+		//	if (list->size()) {
+		//		*this = list->first();
+		//		castTo(dstType);
+		//	} else f = 0.0;
+		//	destroyList(list);
+		//	break;
+
+		case TypeFloat:
+			return true;
+
+		default:
+			return false;
 		}
 		break;
 
 	case TypeInt:
 		switch (srcType) {
 		case TypeString:
-			F32 ival = dAtoi(getString());
+			S64 ival = dAtoi(getString());
 			clearString();	// clear union
 			i = ival;
 			break;
@@ -72,24 +85,73 @@ void ConsoleValue::castTo(ConsoleValue::Type dstType) {
 			break;
 
 		case TypeValueList:
-			if (list.size()) {
-				*this = list[0];
+			if (list->size()) {
+				*this = list->first();
 				castTo(dstType);
 			} else i = 0;
 			destroyList(list);
 			break;
+
+		case TypeInt:
+			return true;
+
+		default:
+			return false;
 		}
 		break;
 
 	case TypeValueList:
-		if (srcType != TypeValueList) {
-			ConsoleValue primitive(*this);
-			constructInPlace(&list);
-			list.reserve(1);
-			constructInPlace(list.begin(), &primitive);
-		}
-		break;
+		if (srcType == TypeValueList)
+			return true;
+	//	if (srcType != TypeValueList) {
+	//		auto* vl = new ConsoleValueList;
+	//		vl->push_back(ConsoleValue(*this));
+	//		list = NULL;
+	//		copyList(vl);
+	//	}
+	//	break;
+	default:
+		return false;
 	}
 
 	type = dstType;
+	return true;
+}
+
+S32 ConsoleValue::toString(char* out, S32 size) const {
+	ConsoleValue strBuf(*this);
+	char const* str = strBuf.toString();
+	return dSprintf(out, size, "%s", str);
+}
+
+S32 ConsoleValue::serialize(char* out, S32 size) {
+	ConsoleValue strBuf("");
+	switch (type) {
+	case TypeInt:
+		dSprintf(stringConv, stringCSize, "%d", i);
+		strBuf.concat(stringConv);
+		break;
+
+	case TypeFloat:
+		dSprintf(stringConv, stringCSize, "%g", i);
+		strBuf.concat(stringConv);
+		break;
+
+	case TypeString:
+		strBuf.concat(getString());
+		break;
+
+	case TypeValueList:
+		strBuf.concat("{");
+		for (ConsoleValue* itr = list->begin(); itr != list->end(); itr++) {
+			itr->serialize(stringConv, stringCSize);
+			strBuf.concat(stringConv);
+			if (itr + 1 != list->end())
+				strBuf.concat(",");
+		}
+		strBuf.concat("}");
+		break;
+	}
+
+	dSprintf(out, size, "%s", strBuf.getString());
 }

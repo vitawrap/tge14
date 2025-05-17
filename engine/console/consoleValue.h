@@ -24,6 +24,8 @@
 // (The default constructor makes a list.)
 #define CONVALUE_NULL (ConsoleValue(""))
 
+class ConsoleValueList;
+
 /**
 	Console value object used at runtime.
 	The goal of this container is to behave
@@ -33,7 +35,7 @@
 
 	This also allows script code to neglect
 	hardcoded casts.
-*/
+ */
 struct ConsoleValue {
 	union {
 		struct {
@@ -43,9 +45,9 @@ struct ConsoleValue {
 			};
 			U32 length;
 		} str;
-		U64 i;
+		S64 i;
 		F64 f;
-		Vector<ConsoleValue> list;
+		ConsoleValueList* list;
 	};
 
 	enum Type {
@@ -63,54 +65,65 @@ struct ConsoleValue {
 private:
 	typedef char Char;
 
-	// Run destructors for all console values in the list, and clear.
-	void destroyList(Vector<ConsoleValue>& lcv) {
-		for (ConsoleValue* itr = lcv.begin(); itr != lcv.end(); itr++)
-			itr->~ConsoleValue();
-		lcv.clear();	// destructor should come shortly after
-	}
+	// Deref list and discard.
+	inline void destroyList(ConsoleValueList*& lcv);
 
 	// Does not destroy our list before copying over.
-	void copyList(Vector<ConsoleValue> const& lcv) {
-		list.reserve(lcv.size());
-		for (S32 i = 0; i < lcv.size(); ++i)
-			constructInPlace(&list[i], &lcv[i]);
+	inline void copyList(ConsoleValueList* lcv);
+
+	// Calculate alloc size with padding
+	constexpr size_t strPSize(size_t len) {
+		return ((len + 1) + 15) & ~15;
+	}
+
+	// Possibly resize or allocate string buffer, and return the correct pointer for writing.
+	char* validateStrSize(size_t len, bool intact = false) {
+		size_t oldLen = str.length;
+		str.length = len;
+
+		bool grow = false;
+		if (oldLen >= CONVALUE_SSO_SIZE && (strPSize(len) > strPSize(oldLen)))
+			grow = true;
+		
+		if (len >= CONVALUE_SSO_SIZE) {
+			if (grow) // try to keep contents when we can...
+				str.ptr = (char*) dRealloc(str.ptr, strPSize(len));
+			else if (oldLen < CONVALUE_SSO_SIZE) {
+				str.ptr = (char*) dMalloc(strPSize(len));
+				if (intact) dMemmove(str.ptr, str.small, oldLen + 1);
+			}
+			return str.ptr;
+		}
+		else if (oldLen >= CONVALUE_SSO_SIZE) {
+			dFree(str.ptr);
+			str.ptr = NULL;
+		}
+		return str.small;
 	}
 
 	void setString(char const* in) {
-		str.length = 0;
-		while (in && in[str.length])
-			++str.length;
-		if (str.length >= CONVALUE_SSO_SIZE) {
-			str.ptr = new char[str.length + 1];
-			dMemmove(str.ptr, in, (str.length + 1) * sizeof(char));
-		}
-		else if (str.length > 0)
-			dMemmove(str.small, in, (str.length + 1) * sizeof(char));
+		size_t newLen = dStrlen(in);
+		char* buf = validateStrSize(newLen);
+		if (newLen > 0)
+			dMemmove(buf, in, (str.length + 1) * sizeof(char));
 	}
 
 	void copyString(ConsoleValue const& rhs) {
-		str.length = rhs.str.length;
-		if (str.length >= CONVALUE_SSO_SIZE) {
-			str.ptr = new char[str.length + 1];
-			dMemcpy(str.ptr, rhs.str.ptr, (str.length + 1) * sizeof(char));
-		}
-		else if (str.length > 0)
-			dMemcpy(str.small, rhs.str.small, (str.length + 1) * sizeof(char));
+		size_t newLen = rhs.str.length;
+		char* buf = validateStrSize(newLen);
+		if (newLen > 0)
+			dMemcpy(buf, rhs.getString(), (str.length + 1) * sizeof(char));
 	}
 
 	void concat(ConsoleValue const& rhs) {
 		char const* rStr = rhs.getString();
-		size_t csz = str.length + rhs.str.length;
-		char* buf = NULL;
-		if (str.length < CONVALUE_SSO_SIZE && csz >= CONVALUE_SSO_SIZE) {
-			buf = new char[csz + 1];
-			dMemmove(buf, str.small, str.length * sizeof(char));
-			str.ptr = buf;
-		}
-		else
-			buf = str.small;
-		dMemcpy(&buf[str.length], rStr, (rhs.str.length + 1) * sizeof(char));
+		size_t firstLen = str.length;
+		size_t csz = firstLen + rhs.str.length;
+		if (csz == firstLen)
+			return;
+
+		char* buf = validateStrSize(csz, true);
+		dMemcpy(&buf[firstLen], rStr, (rhs.str.length + 1) * sizeof(char));
 	}
 
 	char const* getString() const {
@@ -119,16 +132,15 @@ private:
 
 	void clearString() {
 		if (str.length >= CONVALUE_SSO_SIZE)
-			delete[] str.ptr;
+			dFree(str.ptr);
 		str.length = 0;
 	}
 
 	void clear(bool coherent = false) {
 		if (type == TypeString && str.length >= CONVALUE_SSO_SIZE)
-			delete[] str.ptr;
+			dFree(str.ptr);
 		else if (type == TypeValueList) {
 			destroyList(list);
-			list.~Vector();
 		}
 		// If we need a coherent value afterwards, just nullify it.
 		if (coherent) {
@@ -156,8 +168,7 @@ public:
 
 	ConsoleValue& operator = (ConsoleValue const& rhs) {
 		clear();
-		type = rhs.type;
-		switch (type) {
+		switch ((type = rhs.type)) {
 		case TypeInt:
 		case TypeFloat:
 			i = rhs.i;
@@ -169,7 +180,7 @@ public:
 		return *this;
 	}
 
-	ConsoleValue(U64 val)
+	ConsoleValue(S64 val)
 		: type(TypeInt)
 	{ i = val; }
 
@@ -181,9 +192,12 @@ public:
 		: type(TypeFloat)
 	{ f = val; }
 
-	ConsoleValue()
+	ConsoleValue(ConsoleValueList* lcv = NULL)
 		: type(TypeValueList)
-	{ constructInPlace(&list); }
+	{
+		if (lcv)	copyList(lcv);
+		else		list = new ConsoleValueList;
+	}
 
 	void clearValue() { clear(true); }
 
@@ -195,7 +209,7 @@ public:
 		case TypeString:
 			return str.length == 0;
 		case TypeValueList:
-			return list.empty() || (list.size() == 1 && list[0].isNull());
+			return list->empty() || (list->size() == 1 && (*list)[0].isNull());
 		}
 		return false;
 	}
@@ -212,52 +226,114 @@ public:
 		case TypeFloat: return f;
 		case TypeString: return dAtof(getString());
 		case TypeValueList:
-			return list.empty() ? 0.0 : list[0].getNumber();
+			return list->empty() ? 0.0 : (*list)[0].getNumber();
 		}
 	}
 
 	// Quick integer getter
-	U64 getInt() const {
+	S64 getInt() const {
 		switch (type) {
 		case TypeInt: return i;
 		case TypeFloat: return f;
 		case TypeString: return dAtoi(getString());
 		case TypeValueList:
-			return list.empty() ? 0 : list[0].getInt();
+			return list->empty() ? 0 : (*list)[0].getInt();
 		}
 	}
 
 	Type getType() const { return type; }
 
-	void castTo(Type dstType);
+	bool castTo(Type dstType);
+
+	bool isList() const { return type == TypeValueList; }
 
 	// Unchecked getters (used after getType() or a successful castTo(T)).
 
-	U64 getIntU() const { return i; }
+	S64 getIntU() const { return i; }
 	F64 getFloatU() const { return f; }
 	char const* getStringU() const { return getString(); }
-	Vector<ConsoleValue> const& getListU() const { return list; }
-	Vector<ConsoleValue>& getListU() { return list; }
+	Vector<ConsoleValue> const& getListU() const { return *list; }
+	Vector<ConsoleValue>& getListU() { return *list; }
 
-	size_t getListSizeU() const { return list.size(); }
-	ConsoleValue& getListValueU(U32 i) { return list[i]; }
-	ConsoleValue const& getListValueU(U32 i) const { return list[i]; }
+	size_t getListSizeU() const { return list->size(); }
+	ConsoleValue& getListValueU(U32 i) { return (*list)[i]; }
+	ConsoleValue const& getListValueU(U32 i) const { return (*list)[i]; }
 
 	// Checked toString (mutates console value!)
-
-	char const* toString() { castTo(TypeString); return getString(); }
+	char const* toString() { return castTo(TypeString)? getString() : ""; }
 	StringTableEntry toSTString() { return StringTable->insert(toString()); }
 
+	// Non-mutating toString, requires an output buffer.
+	S32 toString(char* out, S32 size) const;
 
+	// Fancier "toString" method to write down console values with their real syntax.
+	S32 serialize(char* out, S32 size);
 };
 
-// 32-byte limit is somewhat arbitrary, but huge console values will be significantly slower.
-#ifdef TORQUE_DEBUG_GUARD
-static_assert(sizeof(ConsoleValue) <= 40UL, "Please keep ConsoleValue within 40 bytes.");
-#else
-static_assert(sizeof(ConsoleValue) <= 32UL, "Please keep ConsoleValue within 32 bytes.");
-#endif
+/**
+	Reference-type value for ConsoleValue
+ */
+class ConsoleValueList : public Vector<ConsoleValue>
+{
+	typedef Vector<ConsoleValue> Parent;
+	mutable S32 mRefCount;
 
+public:
+	// Auto-increment ref-count when constructing
+	ConsoleValueList(bool incRef = true)
+		: mRefCount(incRef)
+		, Parent()
+	{}
+
+	ConsoleValueList::~ConsoleValueList() {
+		for (ConsoleValue* itr = begin(); itr != end(); itr++)
+			itr->~ConsoleValue();
+		Parent::~Vector();
+	}
+
+	void incRef() const { ++mRefCount; }
+	void decRef() {
+		// TODO: Free'd list pool?
+		if (--mRefCount)
+			delete this;
+	}
+
+	void copyList(ConsoleValueList const& lcv) {
+		reserve(lcv.size());
+		for (S32 i = 0; i < lcv.size(); ++i)
+			constructInPlace(&operator[](i), &lcv[i]);
+	}
+
+	// SHADOW METHODS! NEVER USE DYNAMICALLY FROM BASE CLASS!
+
+	void clear() {
+		for (ConsoleValue* itr = begin(); itr != end(); itr++)
+			itr->~ConsoleValue();
+		Parent::clear();
+	}
+
+	void push_back(const ConsoleValue& cv) {
+		increment();
+		constructInPlace(&last(), &cv);
+	}
+};
+
+inline void ConsoleValue::destroyList(ConsoleValueList*& lcv)
+{
+	AssertFatal(lcv, "Destroying null list in ConsoleValue!");
+	lcv->decRef();
+	lcv = NULL;
+}
+
+inline void ConsoleValue::copyList(ConsoleValueList* lcv)
+{
+	AssertFatal(lcv, "Copying null list in ConsoleValue!");
+	lcv->incRef();
+	list = lcv;
+}
+
+// 32-byte limit is somewhat arbitrary, but huge console values will be significantly slower.
+static_assert(sizeof(ConsoleValue) <= 32UL, "Please keep ConsoleValue within 32 bytes.");
 static_assert(sizeof(ConsoleValue) <= 256UL, "Upper limit for cache lines.");
 
 #endif
