@@ -3,6 +3,7 @@
 // Copyright (C) GarageGames.com, Inc.
 //-----------------------------------------------------------------------------
 
+#include "console/console.h"
 #include "console/consoleValue.h"
 
 const int stringCSize = 1024;
@@ -129,16 +130,20 @@ S32 ConsoleValue::serialize(char* out, S32 size) {
 	switch (type) {
 	case TypeInt:
 		dSprintf(stringConv, stringCSize, "%d", i);
-		strBuf.concat(stringConv);
+		strBuf.setString(stringConv);
 		break;
 
 	case TypeFloat:
 		dSprintf(stringConv, stringCSize, "%g", i);
-		strBuf.concat(stringConv);
+		strBuf.setString(stringConv);
 		break;
 
 	case TypeString:
-		strBuf.concat(getString());
+		// TODO: Failsafe for expandEscape size
+		expandEscape(stringConv, getString());
+		strBuf.concat("\"");
+		strBuf.concat(stringConv);
+		strBuf.concat("\"");
 		break;
 
 	case TypeValueList:
