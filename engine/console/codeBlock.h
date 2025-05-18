@@ -120,7 +120,7 @@ public:
    /// top stack frame is used.
    /// @param packageName The code package name or null.
    const char *exec(U64 offset, const char *fnName, Namespace *ns, U32 argc, 
-      const char **argv, bool noCalls, StringTableEntry packageName, 
+      ConsoleValue *argv, bool noCalls, StringTableEntry packageName, 
       S32 setFrame = -1);
 };
 

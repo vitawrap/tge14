@@ -19,6 +19,7 @@
 #include "sim/netStringTable.h"
 
 #include "console/stringStack.h"
+#include "console/consoleValue.h"
 
 using namespace Compiler;
 
@@ -34,13 +35,17 @@ extern StringTableEntry gCurrentFile;
 extern StringTableEntry gCurrentRoot;
 }
 
-F64 floatStack[MaxStackSize];
-U32 intStack[MaxStackSize];
+ConsoleValue valueStack[MaxStackSize];
+U32 TOP = 0;
 
-StringStack STR;
+static inline void popValueStack() {
+    valueStack[TOP--].clearValue();
+}
 
-U32 FLT = 0;
-U32 UINT = 0;
+template <typename T>
+static inline void pushValueStack(T const& val) {
+    valueStack[++TOP] = val;
+}
 
 static const char *getNamespaceList(Namespace *ns)
 {
@@ -84,36 +89,35 @@ F64 consoleStringToNumber(const char *str, StringTableEntry file, U32 line)
 
 //------------------------------------------------------------
 
-namespace Con
-{
-
-   char *getReturnBuffer(U32 bufferSize)
-
-   {
-      return STR.getReturnBuffer(bufferSize);
-   }
-
-   char *getArgBuffer(U32 bufferSize)
-   {
-      return STR.getArgBuffer(bufferSize);
-   }
-
-   char *getFloatArg(F64 arg)
-   {
-
-      char *ret = STR.getArgBuffer(32);
-      dSprintf(ret, 32, "%g", arg);
-      return ret;
-   }
-
-   char *getIntArg(S32 arg)
-   {
-
-      char *ret = STR.getArgBuffer(32);
-      dSprintf(ret, 32, "%d", arg);
-      return ret;
-   }
-}
+//namespace Con
+//{
+//
+//   char *getReturnBuffer(U32 bufferSize)
+//   {
+//      return STR.getReturnBuffer(bufferSize);
+//   }
+//
+//   char *getArgBuffer(U32 bufferSize)
+//   {
+//      return STR.getArgBuffer(bufferSize);
+//   }
+//
+//   char *getFloatArg(F64 arg)
+//   {
+//
+//      char *ret = STR.getArgBuffer(32);
+//      dSprintf(ret, 32, "%g", arg);
+//      return ret;
+//   }
+//
+//   char *getIntArg(S32 arg)
+//   {
+//
+//      char *ret = STR.getArgBuffer(32);
+//      dSprintf(ret, 32, "%d", arg);
+//      return ret;
+//   }
+//}
 
 //------------------------------------------------------------
 
@@ -148,39 +152,17 @@ inline void ExprEvalState::setCurLocalNameCreate(StringTableEntry name)
 
 //------------------------------------------------------------
 
-inline S32 ExprEvalState::getIntVariable()
+inline ConsoleValue ExprEvalState::getVariable() const
 {
-   return currentVariable ? currentVariable->getIntValue() : 0;
-}
-
-inline F64 ExprEvalState::getFloatVariable()
-{
-   return currentVariable ? currentVariable->getFloatValue() : 0;
-}
-
-inline const char *ExprEvalState::getStringVariable()
-{
-   return currentVariable ? currentVariable->getStringValue() : "";
+   return currentVariable ? currentVariable->getValue() : "";
 }
 
 //------------------------------------------------------------
 
-inline void ExprEvalState::setIntVariable(S32 val)
+inline void ExprEvalState::setVariable(ConsoleValue& val)
 {
    AssertFatal(currentVariable != NULL, "Invalid evaluator state - trying to set null variable!");
-   currentVariable->setIntValue(val);
-}
-
-inline void ExprEvalState::setFloatVariable(F64 val)
-{
-   AssertFatal(currentVariable != NULL, "Invalid evaluator state - trying to set null variable!");
-   currentVariable->setFloatValue(val);
-}
-
-inline void ExprEvalState::setStringVariable(const char *val)
-{
-   AssertFatal(currentVariable != NULL, "Invalid evaluator state - trying to set null variable!");
-   currentVariable->setStringValue(val);
+   currentVariable->setValue(val);
 }
 
 //------------------------------------------------------------
@@ -207,7 +189,7 @@ void CodeBlock::getFunctionArgs(char buffer[1024], U64 ip)
    }
 }
 
-const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNamespace, U32 argc, const char **argv, bool noCalls, StringTableEntry packageName, S32 setFrame)
+const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNamespace, U32 argc, ConsoleValue *argv, bool noCalls, StringTableEntry packageName, S32 setFrame)
 {
    static char traceBuffer[1024];
    U32 i;
@@ -215,7 +197,6 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
    incRefCount();
    FloatIntConv conv;
    char *curStringTable;
-   STR.clearFunctionOffset();
    StringTableEntry thisFunctionName = NULL;
    bool popFrame = false;
    if(argv)
@@ -246,7 +227,8 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
          }
          for(i = 0; i < argc; i++)
          {
-            dStrcat(traceBuffer, argv[i+1]);
+            size_t used = dStrlen(traceBuffer);
+            argv[i + 1].toString(traceBuffer + used, 1024 - used);
             if(i != argc - 1)
                dStrcat(traceBuffer, ", ");
          }
@@ -259,7 +241,7 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
       {
          StringTableEntry var = U64toSTE(code[ip + i + 6]);
          gEvalState.setCurLocalNameCreate(var);
-         gEvalState.setStringVariable(argv[i+1]);
+         gEvalState.setVariable(argv[i+1]);
       }
       ip = ip + fnArgc + 6;
       curStringTable = functionStrings;
@@ -502,7 +484,7 @@ breakContinue:
             }
 
             // What group will we be added to, if any?
-            U32 groupAddId = intStack[UINT];
+            U32 groupAddId = valueStack[TOP].getInt();
             SimGroup *grp = NULL;
             SimSet   *set = NULL;
 
@@ -538,9 +520,9 @@ breakContinue:
             // store the new object's ID on the stack (overwriting the group/set
             // id, if one was given, otherwise getting pushed)
             if(placeAtRoot) 
-               intStack[UINT] = currentNewObject->getId();
+               valueStack[TOP] = currentNewObject->scriptThis();
             else
-               intStack[++UINT] = currentNewObject->getId();
+               valueStack[++TOP] = currentNewObject->scriptThis();
 
             break;
          }
@@ -551,14 +533,14 @@ breakContinue:
             // our group reference.
             bool placeAtRoot = code[ip++];
             if(!placeAtRoot)
-               UINT--;
+               popValueStack();
             break;
          }
 
          case OP_INSTANCEOF_OBJECT:
          {
             SimObject* object = Sim::findObject(STR.getStringValue());
-            intStack[++UINT] = object ? object->getId() : 0;
+            pushValueStack(object ? object->getId() : 0);
             STR.rewindTerminate();
             var = STR.getSTValue();
             bool found = false;
@@ -572,7 +554,7 @@ breakContinue:
                         break;
                     }
             }
-            intStack[UINT] = found;
+            pushValueStack(found);
             break;
          }
 

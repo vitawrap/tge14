@@ -133,13 +133,13 @@ SimFieldDictionary::~SimFieldDictionary()
          Entry *temp = walk;
          walk = temp->next;
 
-         dFree(temp->value);
+         temp->value.~ConsoleValue();
          freeEntry(temp);
       }
    }
 }
 
-void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *value)
+void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue& value)
 {
    U32 bucket = HashPointer(slotName) % HashTableSize;
    Entry **walk = &mHashTable[bucket];
@@ -147,13 +147,13 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *va
       walk = &((*walk)->next);
 
    Entry *field = *walk;
-   if(!*value)
+   if(value.isNullString())
    {
       if(field)
       {
          mVersion++;
 
-         dFree(field->value);
+         field->value.~ConsoleValue();
          *walk = field->next;
          freeEntry(field);
       }
@@ -161,16 +161,13 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *va
    else
    {
       if(field)
-      {
-         dFree(field->value);
-         field->value = dStrdup(value);
-      }
+         field->value = value;
       else
       {
          mVersion++;
 
          field = allocEntry();
-         field->value = dStrdup(value);
+         constructInPlace(&field->value, &value);
          field->slotName = slotName;
          field->next = NULL;
          *walk = field;
@@ -178,7 +175,7 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *va
    }
 }
 
-const char *SimFieldDictionary::getFieldValue(StringTableEntry slotName)
+ConsoleValue SimFieldDictionary::getFieldValue(StringTableEntry slotName)
 {
    U32 bucket = HashPointer(slotName) % HashTableSize;
 
@@ -186,7 +183,7 @@ const char *SimFieldDictionary::getFieldValue(StringTableEntry slotName)
       if(walk->slotName == slotName)
          return walk->value;
 
-   return NULL;
+   return "";
 }
 
 //---------------------------------------------------------------------------
@@ -242,9 +239,10 @@ void SimFieldDictionary::writeFields(SimObject *obj, Stream &stream, U32 tabStop
             continue;
 
          writeTabs(stream, tabStop+1);
-         dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = \"", walk->slotName);
-         expandEscape(expandedBuffer + dStrlen(expandedBuffer), walk->value);
-         dStrcat(expandedBuffer, "\";\r\n");
+         dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = ", walk->slotName);
+         size_t used = dStrlen(expandedBuffer);
+         walk->value.serialize(expandedBuffer + used, 1024 - used);
+         dStrcat(expandedBuffer, ";\r\n");
          stream.write(dStrlen(expandedBuffer),expandedBuffer);
       }
    }
@@ -283,9 +281,10 @@ void SimFieldDictionary::printFields(SimObject *obj)
 
    for(Vector<Entry *>::iterator itr = flist.begin(); itr != flist.end(); itr++)
    {
-      dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = \"", (*itr)->slotName);
-      expandEscape(expandedBuffer + dStrlen(expandedBuffer), (*itr)->value);
-      Con::printf("%s\"", expandedBuffer);
+      dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = ", (*itr)->slotName);
+      size_t used = dStrlen(expandedBuffer);
+      (*itr)->value.serialize(expandedBuffer + used, 1024 - used);
+      Con::printf("%s", expandedBuffer);
    }
 }
 
@@ -330,17 +329,17 @@ void SimObject::assignFieldsFrom(SimObject *parent)
          const AbstractClassRep::Field* f = &list[i];
          if(f->elementCount == 1)
          {
-            const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), 0, f->table);
-            if(fieldVal)
-               Con::setData(f->type, (void *) (((const char *)this) + f->offset), 0, 1, &fieldVal, f->table);
+            auto fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), 0, f->table);
+            if(!fieldVal.isNullString())
+               Con::setData(f->type, (void *) (((const char *)this) + f->offset), 0, fieldVal, f->table);
          }
          else
          {
             for(U32 j = 0; j < f->elementCount; j++)
             {
-               const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table);
-               if(fieldVal)
-                  Con::setData(f->type, (void *) (((const char *)this) + f->offset), j, 1, &fieldVal, f->table);
+               auto fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table);
+               if(!fieldVal.isNullString())
+                  Con::setData(f->type, (void *) (((const char *)this) + f->offset), j, fieldVal, f->table);
             }
          }
       }
@@ -372,31 +371,36 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         const char *val = Con::getData(f->type, (void *) (((const char *)this) + f->offset), j, f->table);
-         if(!val || !*val)
+         auto val = Con::getData(f->type, (void *) (((const char *)this) + f->offset), j, f->table);
+         if(val.isNullString())
             continue;
          if(f->elementCount == 1)
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = \"", f->pFieldname);
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = ", f->pFieldname);
          else
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s[%d] = \"", f->pFieldname, j);
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s[%d] = ", f->pFieldname, j);
 
          // detect and collapse relative path information
-         if (f->type == TypeFilename)
+         // FIXME: THIS DOES NOT WORK FOR OTHER Type###Filename TYPES!!!!!!!!!!!!!!!!!!!!!!!!!!
+         if (f->type == TypeFilename || f->type == TypeBitmapFilename || f->type == TypeTextureFilename)
          {
-            if (docRootLen && (dStrnicmp(docRoot, val, docRootLen) == 0))
+            auto path = val.getStringU();
+            if (docRootLen && (dStrnicmp(docRoot, path, docRootLen) == 0))
             {
-               val += (docRootLen-1);
-               dStrcat(expandedBuffer, ".");
+               path += (docRootLen-1);
+               dStrcat(expandedBuffer, "\".");
             }
             else
-               if (modRootLen && (dStrnicmp(modRoot, val, modRootLen) == 0))
+               if (modRootLen && (dStrnicmp(modRoot, path, modRootLen) == 0))
                {
-                  val += (modRootLen-1);
-                  dStrcat(expandedBuffer, "~");
+                  path += (modRootLen-1);
+                  dStrcat(expandedBuffer, "\"~");
                }
+            expandEscape(expandedBuffer + dStrlen(expandedBuffer), path);
          }
-
-         expandEscape(expandedBuffer + dStrlen(expandedBuffer), val);
+         else {
+             size_t used = dStrlen(expandedBuffer);
+             val.serialize(expandedBuffer + used, 1024 - used);
+         }
          dStrcat(expandedBuffer, "\";\r\n");
 
          writeTabs(stream, tabStop);
@@ -657,15 +661,16 @@ ConsoleMethod(SimObject,dump, void, 2, 2, "obj.dump()")
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         const char *val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table);
-         if(!val /*|| !*val*/)
+         auto val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table);
+         if(val.isNullString())
             continue;
          if(f->elementCount == 1)
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = \"", f->pFieldname);
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = ", f->pFieldname);
          else
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s[%d] = \"", f->pFieldname, j);
-         expandEscape(expandedBuffer + dStrlen(expandedBuffer), val);
-         Con::printf("%s\"   %s", expandedBuffer, f->pFieldDocs? f->pFieldDocs : "");
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s[%d] = ", f->pFieldname, j);
+         size_t used = dStrlen(expandedBuffer);
+         val.serialize(expandedBuffer + used, 1024 - used);
+         Con::printf("%s   %s", expandedBuffer, f->pFieldDocs? f->pFieldDocs : "");
       }
    }
 
@@ -704,7 +709,7 @@ const char *SimObject::tabComplete(const char *prevText, S32 baseLen, bool fForw
    return mNameSpace->tabComplete(prevText, baseLen, fForward);
 }
 
-void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* array, const char* value)
+void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* array, ConsoleValue& value)
 {
     AssertFatal(fld, "SimObject::setStaticField: Field was null.");
 
@@ -715,7 +720,7 @@ void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* a
     S32 array1 = array ? dAtoi(array) : 0;
 
     if (array1 >= 0 && array1 < fld->elementCount && fld->elementCount >= 1)
-        Con::setData(fld->type, (void*)(((const char*)this) + fld->offset), array1, 1, &value, fld->table);
+        Con::setData(fld->type, (void*)(((const char*)this) + fld->offset), array1, value, fld->table);
 
     if (fld->validator)
         fld->validator->validateType(this, (void*)(((const char*)this) + fld->offset));
@@ -723,7 +728,7 @@ void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* a
     onStaticModified(fld->pFieldname);  // pFieldName can be used like a StringTableEntry.
 }
 
-void SimObject::setDataField(StringTableEntry slotName, const char *array, const char *value)
+void SimObject::setDataField(StringTableEntry slotName, const char *array, ConsoleValue& value)
 {
    // first search the static fields if enabled
    if(mFlags.test(ModStaticFields))
@@ -753,7 +758,7 @@ void SimObject::setDataField(StringTableEntry slotName, const char *array, const
    }
 }
 
-const char *SimObject::getDataField(StringTableEntry slotName, const char *array)
+ConsoleValue SimObject::getDataField(StringTableEntry slotName, const char *array)
 {
    if(mFlags.test(ModStaticFields))
    {
@@ -777,16 +782,14 @@ const char *SimObject::getDataField(StringTableEntry slotName, const char *array
 
       if(!array) 
       {
-         if (const char* val = mFieldDictionary->getFieldValue(slotName))
-            return val;
+         return mFieldDictionary->getFieldValue(slotName);
       }
       else
       {
          static char buf[256];
          dStrcpy(buf, slotName);
          dStrcat(buf, array);
-         if (const char* val = mFieldDictionary->getFieldValue(StringTable->insert(buf)))
-            return val;
+         return mFieldDictionary->getFieldValue(StringTable->insert(buf));
       }
    }
 
@@ -814,14 +817,15 @@ bool SimObject::isLocked()
    if(!mFieldDictionary)
       return false;
 
-   const char * val = mFieldDictionary->getFieldValue( StringTable->insert( "locked", false ) );
+   ConsoleValue val = mFieldDictionary->getFieldValue( StringTable->insert( "locked", false ) );
 
-   return( val ? dAtob(val) : false );
+   return(val.getInt());
 }
 
 void SimObject::setLocked( bool b = true )
 {
-   setDataField(StringTable->insert("locked", false), NULL, b ? "true" : "false" );
+   ConsoleValue val(b ? "true" : "false");
+   setDataField(StringTable->insert("locked", false), NULL, val );
 }
 
 bool SimObject::isHidden()
@@ -829,13 +833,14 @@ bool SimObject::isHidden()
    if(!mFieldDictionary)
       return false;
 
-   const char * val = mFieldDictionary->getFieldValue( StringTable->insert( "hidden", false ) );
-   return( val ? dAtob(val) : false );
+   ConsoleValue val = mFieldDictionary->getFieldValue( StringTable->insert( "hidden", false ) );
+   return(val.getInt());
 }
 
 void SimObject::setHidden(bool b = true)
 {
-   setDataField(StringTable->insert("hidden", false), NULL, b ? "true" : "false" );
+   ConsoleValue val(b ? "true" : "false");
+   setDataField(StringTable->insert("hidden", false), NULL, val );
 }
 
 const char* SimObject::getIdString() const
@@ -845,9 +850,9 @@ const char* SimObject::getIdString() const
    return IDbuffer;
 }
 
-const char* SimObject::scriptThis() const
+ConsoleValue SimObject::scriptThis() const
 {
-    return Con::getIntArg(getId());
+    return (S64) getId();
 }
 
 //---------------------------------------------------------------------------

@@ -63,9 +63,11 @@ public:
    void setInspectorFieldType(const char *type) { mInspectorFieldType = type; }
    const char *getInspectorFieldType() { return mInspectorFieldType; }
 
-   virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl)=0;
-   virtual const char *getData(void *dptr, EnumTable *tbl)=0;
+   // Macros below implement those methods for data types around the engine.
+   virtual void setData(void *dptr, ConsoleValue& val, EnumTable *tbl)=0;
+   virtual ConsoleValue getData(void *dptr, EnumTable *tbl)=0;
    virtual const char *getTypeClassName()=0;
+
    virtual const bool isDatablock() { return false; };
 };
 
@@ -79,27 +81,28 @@ public:
    { \
    public: \
       ConsoleType##type (const S32 aSize, S32 *idPtr, const char *aTypeName) : ConsoleBaseType(aSize, idPtr, aTypeName) { } \
-      virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl); \
-      virtual const char *getData(void *dptr, EnumTable *tbl); \
-      virtual const char *getTypeClassName() { return #typeName ; } \
+      void setData(void *dptr, ConsoleValue& val, EnumTable *tbl) override; \
+      ConsoleValue getData(void *dptr, EnumTable *tbl) override; \
+      const char *getTypeClassName() override { return #typeName ; } \
    }; \
    S32 type = -1; \
    ConsoleType##type gConsoleType##type##Instance(size,&type,#type); \
 
 #define ConsoleSetType( type ) \
-   void ConsoleType##type::setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl)
+   void ConsoleType##type::setData(void *dptr, ConsoleValue& val, EnumTable *tbl)
 
+// This now constructs a ConsoleValue that can sometimes be inferred from the return type.
 #define ConsoleGetType( type ) \
-   const char *ConsoleType##type::getData(void *dptr, EnumTable *tbl )
+   ConsoleValue ConsoleType##type::getData(void *dptr, EnumTable *tbl )
 
 #define DatablockConsoleType( typeName, type, size, className ) \
    class ConsoleType##type : public ConsoleBaseType \
    { \
    public: \
       ConsoleType##type (const S32 aSize, S32 *idPtr, const char *aTypeName) : ConsoleBaseType(aSize, idPtr, aTypeName) { } \
-      virtual void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl); \
-      virtual const char *getData(void *dptr, EnumTable *tbl ); \
-      virtual const char *getTypeClassName() { return #className; }; \
+      void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl) override; \
+      ConsoleValue getData(void *dptr, EnumTable *tbl ) override; \
+      const char *getTypeClassName() override { return #className; }; \
       virtual const bool isDatablock() { return true; }; \
    }; \
    S32 type = -1; \

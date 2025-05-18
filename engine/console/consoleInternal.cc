@@ -154,19 +154,9 @@ void Dictionary::exportVariables(const char *varString, const char *fileName, bo
    {
       StringTableEntry name = runnable ? (*s)->name : ++(*s)->name;    // Omit dollar in simple list mode
 
-      switch((*s)->type)
-      {
-         case Entry::TypeInternalInt:
-            dSprintf(buffer, sizeof(buffer), intFormat, name, (*s)->ival, cat);
-            break;
-         case Entry::TypeInternalFloat:
-            dSprintf(buffer, sizeof(buffer), fltFormat, name, (*s)->fval, cat);
-            break;
-         default:
-            expandEscape(expandBuffer, (*s)->getStringValue());
-            dSprintf(buffer, sizeof(buffer), strFormat, name, expandBuffer, cat);
-            break;
-      }
+      (*s)->getValue().serialize(buffer, 1024);
+      expandEscape(expandBuffer, buffer);
+      dSprintf(buffer, sizeof(buffer), strFormat, name, expandBuffer, cat);
       if(fileName)
          strm.write(dStrlen(buffer), buffer);
       else
@@ -370,29 +360,21 @@ const char *Dictionary::tabComplete(const char *prevText, S32 baseLen, bool fFor
 char *typeValueEmpty = "";
 
 Dictionary::Entry::Entry(StringTableEntry in_name)
+    : value("")
 {
    dataPtr = NULL;
    name = in_name;
-   type = -1;
-   ival = 0;
-   fval = 0;
-   sval = typeValueEmpty;
+   type = TypeInternalValue;
 }
 
-Dictionary::Entry::~Entry()
-{
-   if(sval != typeValueEmpty)
-      dFree(sval);
-}
-
-const char *Dictionary::getVariable(StringTableEntry name, bool *entValid)
+ConsoleValue Dictionary::getVariable(StringTableEntry name, bool *entValid)
 {
    Entry *ent = lookup(name);
    if(ent)
    {
       if(entValid)
          *entValid = true;
-      return ent->getStringValue();
+      return ent->getValue();
    }
    if(entValid)
       *entValid = false;
@@ -404,63 +386,10 @@ const char *Dictionary::getVariable(StringTableEntry name, bool *entValid)
    return "";
 }
 
-void Dictionary::Entry::setStringValue(const char * value)
-{
-   if(type <= TypeInternalString)
-   {
-      // Let's not remove empty-string-valued global vars from the dict.
-      // If we remove them, then they won't be exported, and sometimes
-      // it could be necessary to export such a global.  There are very
-      // few empty-string global vars so there's no performance-related
-      // need to remove them from the dict.
-/*
-      if(!value[0] && name[0] == '$')
-      {
-         gEvalState.globalVars.remove(this);
-         return;
-      }
-*/
-
-      U32 stringLen = dStrlen(value);
-
-      // If it's longer than 256 bytes, it's certainly not a number.
-      //
-      // (This decision may come back to haunt you. Shame on you if it
-      // does.)
-      if(stringLen < 256)
-      {
-         fval = dAtof(value);
-         ival = dAtoi(value);
-      }
-      else
-      {
-         fval = 0.f;
-         ival = 0;
-      }
-
-      type = TypeInternalString;
-
-      // may as well pad to the next cache line
-      U32 newLen = ((stringLen + 1) + 15) & ~15;
-      
-      if(sval == typeValueEmpty)
-         sval = (char *) dMalloc(newLen);
-      else if(newLen > bufferLen)
-         sval = (char *) dRealloc(sval, newLen);
-
-      bufferLen = newLen;
-      dStrcpy(sval, value);
-   }
-   else
-      Con::setData(type, dataPtr, 0, 1, &value);
-}
-
-void Dictionary::setVariable(StringTableEntry name, const char *value)
+void Dictionary::setVariable(StringTableEntry name, ConsoleValue& cval)
 {
    Entry *ent = add(name);
-   if(!value)
-      value = "";
-   ent->setStringValue(value);
+   ent->setValue(cval);
 }
 
 void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
@@ -473,11 +402,7 @@ void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
    }
    Entry *ent = add(StringTable->insert(name));
    ent->type = type;
-   if(ent->sval != typeValueEmpty)
-   {
-      dFree(ent->sval);
-      ent->sval = typeValueEmpty;
-   }
+   ent->value = 0LL;
    ent->dataPtr = dataPtr;
 }
 

@@ -1023,14 +1023,14 @@ bool classLinkNamespaces(Namespace *parent, Namespace *child)
    return false;
 }
 
-void setData(S32 type, void *dptr, S32 index, S32 argc, const char **argv, EnumTable *tbl)
+void setData(S32 type, void *dptr, S32 index, ConsoleValue& val, EnumTable *tbl)
 {
    ConsoleBaseType *cbt = ConsoleBaseType::getType(type);
    AssertFatal(cbt, "Con::setData - could not resolve type ID!");
-   cbt->setData((void *) (((const char *)dptr) + index * cbt->getTypeSize()),argc, argv, tbl);
+   cbt->setData((void *) (((const char *)dptr) + index * cbt->getTypeSize()), val, tbl);
 }
 
-const char *getData(S32 type, void *dptr, S32 index, EnumTable *tbl)
+ConsoleValue getData(S32 type, void *dptr, S32 index, EnumTable *tbl)
 {
    ConsoleBaseType *cbt = ConsoleBaseType::getType(type);
    AssertFatal(cbt, "Con::getData - could not resolve type ID!");

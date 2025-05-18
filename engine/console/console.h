@@ -12,6 +12,9 @@
 #ifndef _BITSET_H_
 #include "core/bitSet.h"
 #endif
+#ifndef _CONSOLEVALUE_H_
+#include "console/consoleValue.h"
+#endif
 #include <stdarg.h>
 
 class SimObject;
@@ -143,8 +146,8 @@ typedef void (*ConsumerCallback)(ConsoleLogEntry::Level level, const char *conso
 ///
 /// @see Con::registerType
 /// @{
-typedef const char* (*GetDataFunction)(void *dptr, EnumTable *tbl, BitSet32 flag);
-typedef void        (*SetDataFunction)(void *dptr, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag);
+typedef ConsoleValue (*GetDataFunction)(void *dptr, EnumTable *tbl, BitSet32 flag);
+typedef void        (*SetDataFunction)(void *dptr, ConsoleValue& val, EnumTable *tbl, BitSet32 flag);
 /// @}
 
 /// This namespace contains the core of the console functionality.
@@ -177,7 +180,8 @@ namespace Con
       /// 03/30/24 - viw - 38->39 Float table elimination.
       /// 03/25/25 - viw - 39->40 Fix instanceof.
       /// 05/03/25 - viw - 40->41 Add null forgiving operator.
-      DSOVersion = 41,
+      /// 05/17/25 - viw - 41->42 Rewrite for console values.
+      DSOVersion = 42,
 
       MaxLineLength = 512,  ///< Maximum length of a line of console input.
       MaxDataTypes = 256    ///< Maximum number of registered data types.
@@ -583,8 +587,8 @@ namespace Con
    const char *getTypeName(S32 type);
    bool isDatablockType( S32 type ); */
 
-   void setData(S32 type, void *dptr, S32 index, S32 argc, const char **argv, EnumTable *tbl = NULL);
-   const char *getData(S32 type, void *dptr, S32 index, EnumTable *tbl = NULL);
+   ConsoleValue getData(S32 type, void *dptr, S32 index, EnumTable *tbl = NULL);
+   void setData(S32 type, void *dptr, S32 index, ConsoleValue& val, EnumTable *tbl = NULL);
    /// @}
 };
 
