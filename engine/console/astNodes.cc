@@ -1314,19 +1314,16 @@ U32 FuncCallExprNode::precompile(TypeReq type)
    precompileIdent(funcName);
    precompileIdent(nameSpace);
    for(ExprNode *walk = args; walk; walk = (ExprNode *) walk->getNext())
-      size += walk->precompile(TypeReqString) + 1;
-   return size + 5;
+      size += walk->precompile(TypeReqString);
+   return size + 4;
 }
 
 U32 FuncCallExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
    // Pushes a string stack frame and pushes strings to STR in compiledEval.cc
-   codeStream[ip++] = OP_PUSH_FRAME;
+   // NOW it just compiles and auto-pushes everything in the value stack.
    for(ExprNode *walk = args; walk; walk = (ExprNode *) walk->getNext())
-   {
        ip = walk->compile(codeStream, ip, TypeReqString);
-       codeStream[ip++] = OP_PUSH;
-   }
    if(callType == MethodCall || callType == ParentCall)
       codeStream[ip++] = OP_CALLFUNC;
    else
@@ -1594,8 +1591,8 @@ U32 ObjectDeclNode::precompileSubObject(bool)
    U32 argSize = 0;
    precompileIdent(parentObject);
    for(ExprNode *exprWalk = argList; exprWalk; exprWalk = (ExprNode *) exprWalk->getNext())
-      argSize += exprWalk->precompile(TypeReqString) + 1;
-   argSize += classNameExpr->precompile(TypeReqString) + 1;
+      argSize += exprWalk->precompile(TypeReqString);
+   argSize += classNameExpr->precompile(TypeReqString);
 
    U32 nameSize = objectNameExpr->precompile(TypeReqString);
 
@@ -1608,7 +1605,7 @@ U32 ObjectDeclNode::precompileSubObject(bool)
    for(ObjectDeclNode *objectWalk = subObjects; objectWalk; objectWalk = (ObjectDeclNode *) objectWalk->getNext())
       subObjSize += objectWalk->precompileSubObject(false);
 
-   failOffset = 10 + nameSize + argSize + slotSize + subObjSize;
+   failOffset = 8 + nameSize + argSize + slotSize + subObjSize;
    return failOffset;
 }
 
@@ -1629,19 +1626,19 @@ U32 ObjectDeclNode::precompile(TypeReq type)
 
 U32 ObjectDeclNode::compileSubObject(U64 *codeStream, U64 ip, bool root)
 {
+   // Compile arguments and automatically push them into the stack
+   U32 argc = 0;
    U32 start = ip;
-   codeStream[ip++] = OP_PUSH_FRAME;
    ip = classNameExpr->compile(codeStream, ip, TypeReqString);
-   codeStream[ip++] = OP_PUSH;
-
    ip = objectNameExpr->compile(codeStream, ip, TypeReqString);
-   codeStream[ip++] = OP_PUSH;
-   for(ExprNode *exprWalk = argList; exprWalk; exprWalk = (ExprNode *) exprWalk->getNext())
-   {
+   for (ExprNode* exprWalk = argList; exprWalk; exprWalk = (ExprNode*)exprWalk->getNext()) {
       ip = exprWalk->compile(codeStream, ip, TypeReqString);
-      codeStream[ip++] = OP_PUSH;
+      ++argc;
    }
+
+   // Sub object
    codeStream[ip++] = OP_CREATE_OBJECT;
+   codeStream[ip++] = argc;
    codeStream[ip] = STEtoU64(parentObject, ip);
    ip++;
    codeStream[ip++] = structDecl;

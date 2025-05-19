@@ -83,13 +83,8 @@ namespace Compiler
       OP_SETCURLOCAL_ARRAY,
       OP_SETCURLOCAL_ARRAY_CREATE,
 
-      OP_LOADVAR_UINT,
-      OP_LOADVAR_FLT,
-      OP_LOADVAR_STR,
-
-      OP_SAVEVAR_UINT,
-      OP_SAVEVAR_FLT,
-      OP_SAVEVAR_STR,
+      OP_LOADVAR,
+      OP_SAVEVAR,
 
       OP_SETCUROBJECT,
       OP_SETCUROBJECT_NEW,
@@ -97,13 +92,8 @@ namespace Compiler
       OP_SETCURFIELD,
       OP_SETCURFIELD_ARRAY,
 
-      OP_LOADFIELD_UINT,
-      OP_LOADFIELD_FLT,
-      OP_LOADFIELD_STR,
-
-      OP_SAVEFIELD_UINT,
-      OP_SAVEFIELD_FLT,
-      OP_SAVEFIELD_STR,
+      OP_LOADFIELD,
+      OP_SAVEFIELD,
 
       OP_STRNOTNULL_TO_UINT,
       OP_STR_TO_UINT,
@@ -133,8 +123,9 @@ namespace Compiler
       OP_TERMINATE_REWIND_STR,
       OP_COMPARE_STR,
 
-      OP_PUSH,
-      OP_PUSH_FRAME,
+      // Old arg-pushing opfuncs (pushed args in STR)
+      //OP_PUSH,
+      //OP_PUSH_FRAME,
 
       OP_BREAK,
 

@@ -38,8 +38,8 @@ extern StringTableEntry gCurrentRoot;
 ConsoleValue valueStack[MaxStackSize];
 U32 TOP = 0;
 
-static inline void popValueStack() {
-    valueStack[TOP--].clearValue();
+static inline void popValueStack(int n = 1) {
+    while (n--) valueStack[TOP--].clearValue();
 }
 
 template <typename T>
@@ -283,7 +283,7 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
    Namespace *ns;
 
    U32 callArgc;
-   const char **callArgv;
+   ConsoleValue *callArgv;
 
    static char curFieldArray[256];
 
@@ -329,12 +329,14 @@ breakContinue:
             }
 
             // Read some useful info.
-            objParent        = U64toSTE(code[ip    ]);
-            bool isDataBlock =          code[ip + 1];
-            failJump         =          code[ip + 2];
+            callArgc         =          code[ip    ];
+            objParent        = U64toSTE(code[ip + 1]);
+            bool isDataBlock =          code[ip + 2];
+            failJump         =          code[ip + 3];
 
-            // Get the constructor information off the stack.
-            STR.getArgcArgv(NULL, &callArgc, &callArgv);
+            // Get the constructor arguments off the stack.
+            // argv = {0: NULL, 1: ClassName, 2: ObjectName, 3...N: Constructor args}
+            callArgv = &valueStack[TOP - callArgc];
 
             // Con::printf("Creating object...");
 
@@ -448,7 +450,7 @@ breakContinue:
             }
 
             // Advance the IP past the create info...
-            ip += 3;
+            ip += 4;
             break;
          }
 
@@ -559,7 +561,7 @@ breakContinue:
          }
 
          case OP_JMPIFFNOT:
-            if(floatStack[FLT--])
+            if(valueStack[TOP--].getNumber())
             {
                ip++;
                break;
@@ -567,7 +569,7 @@ breakContinue:
             ip = code[ip];
             break;
          case OP_JMPIFNOT:
-            if(intStack[UINT--])
+            if(valueStack[TOP--].getInt())
             {
                ip++;
                break;
@@ -575,7 +577,7 @@ breakContinue:
             ip = code[ip];
             break;
          case OP_JMPIFF:
-            if(!floatStack[FLT--])
+            if(!valueStack[TOP--].getNumber())
             {
                ip++;
                break;
@@ -583,7 +585,7 @@ breakContinue:
             ip = code[ip];
             break;
          case OP_JMPIF:
-            if(!intStack[UINT--])
+            if(!valueStack[TOP--].getInt())
             {
                ip ++;
                break;
@@ -591,18 +593,18 @@ breakContinue:
             ip = code[ip];
             break;
          case OP_JMPIFNOT_NP:
-            if(intStack[UINT])
+            if(valueStack[TOP].getInt())
             {
-               UINT--;
+               popValueStack();
                ip++;
                break;
             }
             ip = code[ip];
             break;
          case OP_JMPIF_NP:
-            if(!intStack[UINT])
+            if(!valueStack[TOP].getInt())
             {
-               UINT--;
+               popValueStack();
                ip++;
                break;
             }
@@ -614,83 +616,75 @@ breakContinue:
          case OP_RETURN:
             goto execFinished;
          case OP_CMPEQ:
-            intStack[UINT+1] = bool(floatStack[FLT] == floatStack[FLT-1]);
-            UINT++;
-            FLT -= 2;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) == 0);
+            popValueStack();
             break;
 
          case OP_CMPGR:
-            intStack[UINT+1] = bool(floatStack[FLT] > floatStack[FLT-1]);
-            UINT++;
-            FLT -= 2;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) > 0);
+            popValueStack();
             break;
 
          case OP_CMPGE:
-            intStack[UINT+1] = bool(floatStack[FLT] >= floatStack[FLT-1]);
-            UINT++;
-            FLT -= 2;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) >= 0);
+            popValueStack();
             break;
 
          case OP_CMPLT:
-            intStack[UINT+1] = bool(floatStack[FLT] < floatStack[FLT-1]);
-            UINT++;
-            FLT -= 2;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) < 0);
+            popValueStack();
             break;
 
          case OP_CMPLE:
-            intStack[UINT+1] = bool(floatStack[FLT] <= floatStack[FLT-1]);
-            UINT++;
-            FLT -= 2;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) <= 0);
+            popValueStack();
             break;
 
          case OP_CMPNE:
-            intStack[UINT+1] = bool(floatStack[FLT] != floatStack[FLT-1]);
-            UINT++;
-            FLT -= 2;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) != 0);
+            popValueStack();
             break;
 
          case OP_XOR:
-            intStack[UINT-1] = intStack[UINT] ^ intStack[UINT-1];
-            UINT--;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() ^ valueStack[TOP].getInt());
+            popValueStack();
             break;
 
          case OP_MOD:
-            intStack[UINT-1] = intStack[UINT] % intStack[UINT-1];
-            UINT--;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() % valueStack[TOP].getInt());
+            popValueStack();
             break;
 
          case OP_BITAND:
-            intStack[UINT-1] = intStack[UINT] & intStack[UINT-1];
-            UINT--;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() & valueStack[TOP].getInt());
+            popValueStack();
             break;
 
          case OP_BITOR:
-            intStack[UINT-1] = intStack[UINT] | intStack[UINT-1];
-            UINT--;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() | valueStack[TOP].getInt());
+            popValueStack();
             break;
 
          case OP_NOT:
-            intStack[UINT] = !intStack[UINT];
+            valueStack[TOP] = S64(!valueStack[TOP].getInt());
             break;
 
          case OP_NOTF:
-            intStack[UINT+1] = !floatStack[FLT];
-            FLT--;
-            UINT++;
+            valueStack[TOP] = S64(!valueStack[TOP].getNumber());
             break;
 
          case OP_ONESCOMPLEMENT:
-            intStack[UINT] = ~intStack[UINT];
+            valueStack[TOP] = S64(~valueStack[TOP].getInt());
             break;
 
          case OP_SHR:
-            intStack[UINT-1] = intStack[UINT] >> intStack[UINT-1];
-            UINT--;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() >> valueStack[TOP].getInt());
+            popValueStack();
             break;
 
          case OP_SHL:
-            intStack[UINT-1] = intStack[UINT] << intStack[UINT-1];
-            UINT--;
+            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() << valueStack[TOP].getInt());
+            popValueStack();
             break;
 
          case OP_AND:
@@ -771,31 +765,12 @@ breakContinue:
              gEvalState.setCurLocalNameCreate(var);
              break;
 
-         case OP_LOADVAR_UINT:
-            intStack[UINT+1] = gEvalState.getIntVariable();
-            UINT++;
+         case OP_LOADVAR:
+            valueStack[TOP++] = gEvalState.getVariable();
             break;
 
-         case OP_LOADVAR_FLT:
-            floatStack[FLT+1] = gEvalState.getFloatVariable();
-            FLT++;
-            break;
-
-         case OP_LOADVAR_STR:
-            val = gEvalState.getStringVariable();
-            STR.setStringValue(val);
-            break;
-
-         case OP_SAVEVAR_UINT:
-            gEvalState.setIntVariable(intStack[UINT]);
-            break;
-
-         case OP_SAVEVAR_FLT:
-            gEvalState.setFloatVariable(floatStack[FLT]);
-            break;
-
-         case OP_SAVEVAR_STR:
-            gEvalState.setStringVariable(STR.getStringValue());
+         case OP_SAVEVAR:
+            gEvalState.setVariable(valueStack[TOP]);
             break;
 
          case OP_SETCUROBJECT:
@@ -816,45 +791,16 @@ breakContinue:
             dStrcpy(curFieldArray, STR.getStringValue());
             break;
 
-         case OP_LOADFIELD_UINT:
+         case OP_LOADFIELD:
             if(curObject)
-               intStack[UINT+1] = U32(dAtoi(curObject->getDataField(curField, curFieldArray)));
+               valueStack[++TOP] = curObject->getDataField(curField, curFieldArray);
             else
-               intStack[UINT+1] = 0;
-            UINT++;
+               valueStack[++TOP] = CONVALUE_NULL;
             break;
 
-         case OP_LOADFIELD_FLT:
+         case OP_SAVEFIELD:
             if(curObject)
-               floatStack[FLT+1] = dAtof(curObject->getDataField(curField, curFieldArray));
-            else
-               floatStack[FLT+1] = 0;
-            FLT++;
-            break;
-
-         case OP_LOADFIELD_STR:
-            if(curObject)
-               val = curObject->getDataField(curField, curFieldArray);
-            else
-               val = "";
-            STR.setStringValue(val);
-            break;
-
-         case OP_SAVEFIELD_UINT:
-            STR.setIntValue(intStack[UINT]);
-            if(curObject)
-               curObject->setDataField(curField, curFieldArray, STR.getStringValue());
-            break;
-
-         case OP_SAVEFIELD_FLT:
-            STR.setFloatValue(floatStack[FLT]);
-            if(curObject)
-               curObject->setDataField(curField, curFieldArray, STR.getStringValue());
-            break;
-
-         case OP_SAVEFIELD_STR:
-            if(curObject)
-               curObject->setDataField(curField, curFieldArray, STR.getStringValue());
+               curObject->setDataField(curField, curFieldArray, valueStack[TOP]);
             break;
 
          case OP_STRNOTNULL_TO_UINT:
@@ -1156,13 +1102,13 @@ breakContinue:
          case OP_COMPARE_STR:
             intStack[++UINT] = STR.compare();
             break;
-         case OP_PUSH:
+         /*case OP_PUSH:
             STR.push();
             break;
 
          case OP_PUSH_FRAME:
             STR.pushFrame();
-            break;
+            break;*/
          //case OP_BREAK:
          //{
          //   //append the ip and codeptr before managing the breakpoint!
