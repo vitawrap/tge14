@@ -24,6 +24,11 @@
 // (The default constructor makes a list.)
 #define CONVALUE_NULL (ConsoleValue(""))
 
+// Lazy console value string conversion
+// Uses the existing string if it is a string, otherwise copies and converts it.
+#define CONVALUE_TOSTRING(cv) \
+((cv).getType() == ConsoleValue::TypeString? (cv).getStringU() : ConsoleValue((cv)).toString())
+
 class ConsoleValueList;
 
 /**
@@ -271,6 +276,7 @@ public:
 	S64 getIntU() const { return i; }
 	F64 getFloatU() const { return f; }
 	char const* getStringU() const { return getString(); }
+	void concatU(ConsoleValue& v) { v.castTo(TypeString); concat(v); }
 	Vector<ConsoleValue> const& getListU() const { return *list; }
 	Vector<ConsoleValue>& getListU() { return *list; }
 
