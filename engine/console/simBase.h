@@ -557,7 +557,10 @@ class SimObject: public ConsoleObject
    SimObject();
    virtual ~SimObject();
 
-   virtual bool processArguments(S32 argc, const char **argv);  ///< Process constructor options. (ie, new SimObject(1,2,3))
+   /// Process constructor options. (ie, new SimObject(1,2,3))
+   ///
+   /// Parameter stack is mutable as it is popped shortly after the call.
+   virtual bool processArguments(S32 argc, ConsoleValue *argv);
 
    /// @}
 
@@ -1249,7 +1252,7 @@ class SimGroup: public SimSet
    /// Find an object in the group.
    virtual SimObject* findObject(const char* name);
 
-   bool processArguments(S32 argc, const char **argv);
+   bool processArguments(S32 argc, ConsoleValue *argv) override;
 
    DECLARE_CONOBJECT(SimGroup);
 };

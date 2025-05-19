@@ -271,7 +271,7 @@ ConsoleMethod( Sky, stormFogShow, void, 3, 3, "(bool show)")
 }
 
 //---------------------------------------------------------------------------
-bool Sky::processArguments(S32, const char**)
+bool Sky::processArguments(S32, ConsoleValue*)
 {
    return true;
 }

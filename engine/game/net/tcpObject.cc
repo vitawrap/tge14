@@ -60,13 +60,13 @@ TCPObject::~TCPObject()
    dFree(mBuffer);
 }
 
-bool TCPObject::processArguments(S32 argc, const char **argv)
+bool TCPObject::processArguments(S32 argc, ConsoleValue *argv)
 {
    if(argc == 0)
       return true;
    else if(argc == 1)
    {
-      addToTable(U32(dAtoi(argv[0])));
+      addToTable(argv[0].getInt());
       return true;
    }
    return false;

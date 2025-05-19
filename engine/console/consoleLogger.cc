@@ -54,7 +54,7 @@ void ConsoleLogger::initPersistFields()
 
 //-----------------------------------------------------------------------------
 
-bool ConsoleLogger::processArguments( S32 argc, const char **argv )
+bool ConsoleLogger::processArguments( S32 argc, ConsoleValue* argv )
 {
    if( argc == 0 )
       return false;
@@ -62,10 +62,10 @@ bool ConsoleLogger::processArguments( S32 argc, const char **argv )
    bool append = false;
 
    if( argc == 2 )
-      append = dAtob( argv[1] );
+      append = argv[1].getInt();
 
    mAppend = append;
-   mFilename = StringTable->insert( argv[0] );
+   mFilename = StringTable->insert( argv[0].toString() );
 
    if( init() )
    {

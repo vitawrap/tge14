@@ -262,7 +262,7 @@ class Sky : public SceneObject
    static void consoleInit();
    virtual void onStaticModified(char const* slot) override;
 
-   bool processArguments(S32 argc, const char **argv);
+   bool processArguments(S32 argc, ConsoleValue* argv) override;
 
    U64  packUpdate  (NetConnection *conn, U64 mask, BitStream *stream);
    void unpackUpdate(NetConnection *conn,           BitStream *stream);

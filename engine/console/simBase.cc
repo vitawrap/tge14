@@ -893,7 +893,7 @@ void SimObject::onStaticModified(const char*)
 {
 }
 
-bool SimObject::processArguments(S32 argc, const char**)
+bool SimObject::processArguments(S32 argc, ConsoleValue *)
 {
    return argc == 0;
 }
@@ -1669,7 +1669,7 @@ SimObject* SimObject::findObject(const char* )
 
 //---------------------------------------------------------------------------
 
-bool SimGroup::processArguments(S32, const char **)
+bool SimGroup::processArguments(S32, ConsoleValue *)
 {
    return true;
 }
