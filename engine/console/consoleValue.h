@@ -241,6 +241,25 @@ public:
 		}
 	}
 
+	S64 compare(ConsoleValue right, bool caseSens = false, bool strict = false) const {
+		if (!strict)
+			right.castTo(type);
+
+		if (type == right.type) {
+			switch (type) {
+			case TypeInt: return i - right.i;
+			case TypeFloat: return f - right.f;
+			case TypeString: return caseSens ?
+				dStrcmp(getString(), right.getString()) :
+				dStricmp(getString(), right.getString());
+			case TypeValueList:
+				return !(list == right.list);	// TODO: List equality compare
+			}
+		}
+		else
+			return 1LL; // this works, return non-equal
+	}
+
 	Type getType() const { return type; }
 
 	bool castTo(Type dstType);
