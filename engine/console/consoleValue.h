@@ -284,6 +284,7 @@ public:
 	S64 getIntU() const { return i; }
 	F64 getFloatU() const { return f; }
 	char const* getStringU() const { return getString(); }
+	S64 getStrlenU() const { return str.length; }
 	void concatU(ConsoleValue& v) { v.castTo(TypeString); concat(v); }
 	Vector<ConsoleValue> const& getListU() const { return *list; }
 	Vector<ConsoleValue>& getListU() { return *list; }
@@ -295,6 +296,7 @@ public:
 	// Checked toString (mutates console value!)
 	char const* toString() { return castTo(TypeString)? getString() : ""; }
 	StringTableEntry toSTString() { return StringTable->insert(toString()); }
+	S64 getStrlen() { return castTo(TypeString)? str.length : 0 ; }
 
 	// Non-mutating toString, requires an output buffer.
 	S32 toString(char* out, S32 size) const;
