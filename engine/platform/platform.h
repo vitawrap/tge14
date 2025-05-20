@@ -434,6 +434,7 @@ extern char*       dStrstr(const char *str1, const char *str2);
 
 extern char*       dStrtok(char *str, const char *sep);
 
+extern double      dStrtod(const char* str, char** endptr);
 extern int         dAtoi(const char *str);
 extern float       dAtof(const char *str);
 extern bool        dAtob(const char *str);
