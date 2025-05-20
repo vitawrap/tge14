@@ -131,6 +131,18 @@ private:
 		dMemcpy(&buf[firstLen], rStr, (rhs.str.length + 1) * sizeof(char));
 	}
 
+	// This is more or less here as a replacement for Con::getReturnBuffer.
+	void concatString(char const* rhs, size_t len) {
+		size_t firstLen = str.length;
+		size_t csz = firstLen + len;
+		if (csz == firstLen)
+			return;
+
+		char* buf = validateStrSize(csz, true);
+		dMemcpy(&buf[firstLen], rhs, len * sizeof(char));
+		buf[csz] = 0; // This is the only time where we are unsure of an existing NTerm.
+	}
+
 	char const* getString() const {
 		return str.length < CONVALUE_SSO_SIZE ? str.small : str.ptr;
 	}
@@ -286,6 +298,7 @@ public:
 	char const* getStringU() const { return getString(); }
 	S64 getStrlenU() const { return str.length; }
 	void concatU(ConsoleValue& v) { v.castTo(TypeString); concat(v); }
+	void concatStringU(char const* string, size_t len) { concatString(string, len); }
 	Vector<ConsoleValue> const& getListU() const { return *list; }
 	Vector<ConsoleValue>& getListU() { return *list; }
 
