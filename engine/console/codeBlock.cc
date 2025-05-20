@@ -465,7 +465,7 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    return true;
 }
 
-const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string, bool noCalls, int setFrame)
+ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *string, bool noCalls, int setFrame)
 {
    STEtoU64 = evalSTEtoU64;
    consoleAllocReset();
@@ -517,8 +517,10 @@ const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string
    if(lineBreakPairCount && fileName)
       calcBreakList();
 
-   if(lastIp != codeSize)
+   if (lastIp != codeSize) {
       Con::warnf(ConsoleLogEntry::General, "precompile size mismatch");
+      AssertISV(false, "Precompile size fail for new TS VM!!!!!");
+   }
 
    return exec(0, fileName, NULL, 0, 0, noCalls, NULL, setFrame);
 }

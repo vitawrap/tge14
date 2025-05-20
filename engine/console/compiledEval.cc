@@ -189,7 +189,7 @@ void CodeBlock::getFunctionArgs(char buffer[1024], U64 ip)
    }
 }
 
-const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNamespace, U32 argc, ConsoleValue *argv, bool noCalls, StringTableEntry packageName, S32 setFrame)
+ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNamespace, U32 argc, ConsoleValue *argv, bool noCalls, StringTableEntry packageName, S32 setFrame)
 {
    static char traceBuffer[1024];
    U32 i;
@@ -287,6 +287,7 @@ const char *CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNam
 
    ConsoleValue curFieldArray{ "" };
    ConsoleValue curArray{ "" };
+   ConsoleValue returnVal{ "" };
 
    CodeBlock *saveCodeBlock = smCurrentCodeBlock;
    smCurrentCodeBlock = this;
@@ -562,35 +563,39 @@ breakContinue:
          }
 
          case OP_JMPIFFNOT:
-            if(valueStack[TOP--].getNumber())
+            if(valueStack[TOP].getNumber())
             {
                ip++;
                break;
             }
+            popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIFNOT:
-            if(valueStack[TOP--].getInt())
+            if(valueStack[TOP].getInt())
             {
                ip++;
                break;
             }
+            popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIFF:
-            if(!valueStack[TOP--].getNumber())
+            if(!valueStack[TOP].getNumber())
             {
                ip++;
                break;
             }
+            popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIF:
-            if(!valueStack[TOP--].getInt())
+            if(!valueStack[TOP].getInt())
             {
                ip ++;
                break;
             }
+            popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIFNOT_NP:
@@ -614,8 +619,13 @@ breakContinue:
          case OP_JMP:
             ip = code[ip];
             break;
+
          case OP_RETURN:
+            returnVal = valueStack[TOP];
+            popValueStack();
+         case OP_RETURN_NONE:
             goto execFinished;
+
          case OP_CMPEQ:
             valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) == 0);
             popValueStack();
@@ -668,10 +678,6 @@ breakContinue:
 
          case OP_NOT:
             valueStack[TOP] = S64(!valueStack[TOP].getInt());
-            break;
-
-         case OP_NOTF:
-            valueStack[TOP] = S64(!valueStack[TOP].getNumber());
             break;
 
          case OP_ONESCOMPLEMENT:
@@ -855,12 +861,13 @@ breakContinue:
             nsEntry = ns->lookup(fnName);
             if(!nsEntry)
             {
-               ip+= 3;
+               ip+= 4; // Must be the same offset as done in OP_CALLFUNC
                Con::warnf(ConsoleLogEntry::General,
                   "%s: Unable to find function %s%s%s",
                   getFileLine(ip-4), fnNamespace ? fnNamespace : "",
                   fnNamespace ? "::" : "", fnName);
-               STR.getArgcArgv(fnName, &callArgc, &callArgv);
+               // FIXME: The line below is useless, right???
+               //STR.getArgcArgv(fnName, &callArgc, &callArgv);
                break;
             }
             // Now, rewrite our code a bit (ie, avoid future lookups) and fall
@@ -937,13 +944,20 @@ breakContinue:
                            gEvalState.thisObject->getId(), getNamespaceList(ns) );
                   }
                }
+               popValueStack(callArgc);
                valueStack[++TOP] = CONVALUE_NULL;
                break;
             }
             if(nsEntry->mType == Namespace::Entry::ScriptFunctionType)
             {
-               if (nsEntry->mFunctionOffset)
-                  nsEntry->mCode->exec(nsEntry->mFunctionOffset, fnName, nsEntry->mNamespace, callArgc, callArgv, false, nsEntry->mPackage, -1);
+               if (nsEntry->mFunctionOffset) {
+                  returnVal = nsEntry->mCode->exec(nsEntry->mFunctionOffset, fnName, nsEntry->mNamespace, callArgc, callArgv, false, nsEntry->mPackage, -1);
+                  if (callArgc) {
+                      popValueStack(callArgc-1); // only pop arg stack for script functions called within script.
+                      valueStack[TOP] = returnVal;
+                  } else
+                      valueStack[++TOP] = returnVal;
+               }
                else // no body, return null on stack
                   valueStack[++TOP] = CONVALUE_NULL;
             }
@@ -960,14 +974,18 @@ breakContinue:
                   if(nsEntry->mType == Namespace::Entry::VoidCallbackType)
                   {
                      nsEntry->cb.mVoidCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                     popValueStack(callArgc);
                      if (code[ip] != OP_VAL_TO_NONE)
                          Con::warnf(ConsoleLogEntry::General, "%s: Call to %s in %s uses result of void function call.", getFileLine(ip - 4), fnName, functionName);
                      else ip++; // void: if OP_VAL_TO_NONE, nothing to pop -> skip.
                   } else {
-                     ConsoleValue result = nsEntry->cb.mStringCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
-                     if (code[ip] != OP_VAL_TO_NONE)
-                         valueStack[++TOP] = result;
-                     else ip++; // engine callbacks do not push to the valueStack, "result" is all we get.
+                     returnVal = nsEntry->cb.mStringCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                     if (code[ip] != OP_VAL_TO_NONE) {
+                         if (callArgc) {
+                             popValueStack(callArgc-1); // pop arg stack for engine functions called within script.
+                             valueStack[TOP] = returnVal;
+                         } else valueStack[++TOP] = returnVal;
+                     } else ip++; // engine callbacks do not push to the valueStack, "returnVal" is all we get.
                   }
                }
             }
@@ -976,14 +994,22 @@ breakContinue:
                gEvalState.thisObject = saveObject;
             break;
          }
-         case OP_ADVANCE_STR:
-            STR.advance();
-            break;
-         case OP_ADVANCE_STR_APPENDCHAR:
-            STR.advanceChar(code[ip++]);
+         case OP_CONCAT_STR:
+            if (valueStack[TOP-1].castTo(ConsoleValue::TypeString)) {
+                valueStack[TOP-1].concatU(valueStack[TOP]);
+            }
+            popValueStack();
             break;
 
-         case OP_ADVANCE_STR_COMMA:
+         case OP_CONCAT_CHAR:
+            // Relies on U64 char to be stored as LE, so it already has 7 natural null terms.
+            if (valueStack[TOP].castTo(ConsoleValue::TypeString)) {
+                valueStack[TOP].concatU(ConsoleValue((char const*) &code[ip]));
+            }
+            ++ip;
+            break;
+
+         case OP_CONCAT_STR_COMMA:
             if (valueStack[TOP-1].castTo(ConsoleValue::TypeString)) {
                 valueStack[TOP-1].concatU(ConsoleValue("_"));
                 valueStack[TOP-1].concatU(valueStack[TOP]);
@@ -991,17 +1017,17 @@ breakContinue:
             popValueStack();
             break;
 
-         case OP_ADVANCE_STR_NUL:
-            STR.advanceChar(0);
-            break;
+         //case OP_ADVANCE_STR_NUL:
+         //   STR.advanceChar(0);
+         //   break;
 
-         case OP_REWIND_STR:
-            STR.rewind();
-            break;
+         //case OP_REWIND_STR:
+         //   STR.rewind();
+         //   break;
 
-         case OP_TERMINATE_REWIND_STR:  // Can be called after dynamic variable name lookup ($a[b])
-            STR.rewindTerminate();
-            break;
+         //case OP_TERMINATE_REWIND_STR:  // Can be called after dynamic variable name lookup ($a[b])
+         //   STR.rewindTerminate();
+         //   break;
 
          case OP_COMPARE_STR:
             valueStack[TOP-1] = S64(!valueStack[TOP-1].compare(valueStack[TOP]));
@@ -1056,15 +1082,18 @@ execFinished:
             dStrcat(traceBuffer, packageName);
             dStrcat(traceBuffer, "]");
          }
+         size_t used = dStrlen(traceBuffer);
          if(thisNamespace && thisNamespace->mName)
          {
-            dSprintf(traceBuffer + dStrlen(traceBuffer), sizeof(traceBuffer) - dStrlen(traceBuffer),
-               "%s::%s() - return %s", thisNamespace->mName, thisFunctionName, STR.getStringValue());
+            used += dSprintf(traceBuffer + used, sizeof(traceBuffer) - used,
+               "%s::%s() - return ", thisNamespace->mName, thisFunctionName);
+            returnVal.serialize(traceBuffer, 1024 - used);
          }
          else
          {
-            dSprintf(traceBuffer + dStrlen(traceBuffer), sizeof(traceBuffer) - dStrlen(traceBuffer),
-               "%s() - return %s", thisFunctionName, STR.getStringValue());
+            used += dSprintf(traceBuffer + used, sizeof(traceBuffer) - used,
+               "%s() - return ", thisFunctionName);
+            returnVal.serialize(traceBuffer, 1024 - used);
          }
          Con::printf("%s", traceBuffer);
       }
@@ -1084,7 +1113,7 @@ execFinished:
    // curFieldArray is also free'd here implicitly.
 
    decRefCount();
-   return STR.getStringValue();
+   return returnVal;
 }
 
 //------------------------------------------------------------

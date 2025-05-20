@@ -201,7 +201,7 @@ U32 ReturnStmtNode::compileStmt(U64 *codeStream, U64 ip, U32, U32)
 {
    //addBreakLine(ip);
    if(!expr)
-      codeStream[ip++] = OP_RETURN;
+      codeStream[ip++] = OP_RETURN_NONE;
    else
    {
       ip = expr->compile(codeStream, ip, TypeReqValue);
@@ -234,19 +234,9 @@ void IfStmtNode::propagateSwitchExpr(ExprNode *left, bool string)
 
 U32 IfStmtNode::precompileStmt(U32 loopCount)
 {
-   U32 exprSize;
-   //addBreakCount();
+   integer = true;
+   U32 exprSize = testExpr->precompile(TypeReqValue);
 
-   if(testExpr->getPreferredType() == TypeReqUInt)
-   {
-      exprSize = testExpr->precompile(TypeReqUInt);
-      integer = true;
-   }
-   else
-   {
-      exprSize = testExpr->precompile(TypeReqFloat);
-      integer = false;
-   }
    // next is the JMPIFNOT or JMPIFFNOT - size of 2
    U32 ifSize = precompileBlock(ifBlock, loopCount);
    if(!elseBlock)
@@ -265,7 +255,7 @@ U32 IfStmtNode::compileStmt(U64 *codeStream, U64 ip, U32 continuePoint, U32 brea
    U32 start = ip;
    //addBreakLine(ip);
 
-   ip = testExpr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
+   ip = testExpr->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = integer ? OP_JMPIFNOT : OP_JMPIFFNOT;
 
    if(elseBlock)
@@ -288,24 +278,14 @@ U32 IfStmtNode::compileStmt(U64 *codeStream, U64 ip, U32 continuePoint, U32 brea
 
 U32 LoopStmtNode::precompileStmt(U32 loopCount)
 {
+   integer = true;
    U32 initSize = 0;
    //addBreakCount();
 
    if(initExpr)
       initSize = initExpr->precompile(TypeReqNone);
 
-   U32 testSize;
-
-   if(testExpr->getPreferredType() == TypeReqUInt)
-   {
-      integer = true;
-      testSize = testExpr->precompile(TypeReqUInt);
-   }
-   else
-   {
-      integer = false;
-      testSize = testExpr->precompile(TypeReqFloat);
-   }
+   U32 testSize = testExpr->precompile(TypeReqValue);
 
    U32 blockSize = precompileBlock(loopBlock, loopCount + 1);
 
@@ -359,7 +339,7 @@ U32 LoopStmtNode::compileStmt(U64 *codeStream, U64 ip, U32, U32)
 
    if(!isDoLoop)
    {
-      ip = testExpr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
+      ip = testExpr->compile(codeStream, ip, TypeReqValue);
       codeStream[ip++] = integer ? OP_JMPIFNOT : OP_JMPIFFNOT;
       codeStream[ip++] = start + breakOffset;
    }
@@ -370,7 +350,7 @@ U32 LoopStmtNode::compileStmt(U64 *codeStream, U64 ip, U32, U32)
    if(endLoopExpr)
       ip = endLoopExpr->compile(codeStream, ip, TypeReqNone);
 
-   ip = testExpr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
+   ip = testExpr->compile(codeStream, ip, TypeReqValue);
 
    codeStream[ip++] = integer ? OP_JMPIF : OP_JMPIFF;
    codeStream[ip++] = start + loopBlockStartOffset;
@@ -387,26 +367,16 @@ U32 ConditionalExprNode::precompile(TypeReq type)
    // trueExpr
    // JMP end
    // falseExpr
-   U32 exprSize;
-
-   if(testExpr->getPreferredType() == TypeReqUInt)
-   {
-      exprSize = testExpr->precompile(TypeReqUInt);
-      integer = true;
-   }
-   else
-   {
-      exprSize = testExpr->precompile(TypeReqFloat);
-      integer = false;
-   }
-   return exprSize + 
+   integer = true;
+   return 
+      testExpr->precompile(TypeReqValue) +
       trueExpr->precompile(type) +
       falseExpr->precompile(type) + 4;
 }
 
 U32 ConditionalExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = testExpr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
+   ip = testExpr->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = integer ? OP_JMPIFNOT : OP_JMPIFFNOT;
    U32 jumpElseIp = ip++;
    ip = trueExpr->compile(codeStream, ip, type);
@@ -427,17 +397,14 @@ TypeReq ConditionalExprNode::getPreferredType()
 
 U32 FloatBinaryExprNode::precompile(TypeReq type)
 {
-   U32 addSize = left->precompile(TypeReqFloat) + right->precompile(TypeReqFloat) + 1;
-   if(type != TypeReqFloat)
-      addSize++;
-
-   return addSize;
+   U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 1;
+   return addSize + conversionSize(TypeReqValue, type);
 }
 
 U32 FloatBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = right->compile(codeStream, ip, TypeReqFloat);
-   ip = left->compile(codeStream, ip, TypeReqFloat);
+   ip = right->compile(codeStream, ip, TypeReqValue);
+   ip = left->compile(codeStream, ip, TypeReqValue);
    U32 operand = OP_INVALID;
    switch(op)
    {
@@ -455,21 +422,20 @@ U32 FloatBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       break;
    }
    codeStream[ip++] = operand;
-   if(type != TypeReqFloat)
-      codeStream[ip++] =conversionOp(TypeReqFloat, type);
+   conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
 }
 
 TypeReq FloatBinaryExprNode::getPreferredType()
 {
-   return TypeReqFloat;
+   return TypeReqValue;
 }
 
 //------------------------------------------------------------
 
 void IntBinaryExprNode::getSubTypeOperand()
 {
-   subType = TypeReqUInt;
+   subType = TypeReqValue;
    switch(op)
    {
    case '^':
@@ -486,27 +452,21 @@ void IntBinaryExprNode::getSubTypeOperand()
       break;
    case '<':
       operand = OP_CMPLT;
-      subType = TypeReqFloat;
       break;
    case '>':
       operand = OP_CMPGR;
-      subType = TypeReqFloat;
       break;
    case opGE:
       operand = OP_CMPGE;
-      subType = TypeReqFloat;
       break;
    case opLE:
       operand = OP_CMPLE;
-      subType = TypeReqFloat;
       break;
    case opEQ:
       operand = OP_CMPEQ;
-      subType = TypeReqFloat;
       break;
    case opNE:
       operand = OP_CMPNE;
-      subType = TypeReqFloat;
       break;
    case opOR:
       operand = OP_OR;
@@ -526,20 +486,19 @@ void IntBinaryExprNode::getSubTypeOperand()
 U32 IntBinaryExprNode::precompile(TypeReq type)
 {
    getSubTypeOperand();
-   U32 addSize = left->precompile(subType) + right->precompile(subType) + 1;
+   U32 addSize = left->precompile(subType) + right->precompile(subType);
    if(operand == OP_OR || operand == OP_AND)
-      addSize++;
-
-   if(type != TypeReqUInt)
-      addSize++;
-
-   return addSize;
+      addSize += 2;
+   else
+      addSize += 1;
+   return addSize + conversionSize(TypeReqValue, type);
 }
 
 U32 IntBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
    if(operand == OP_OR || operand == OP_AND)
    {
+      // NP: Keep result on stack if left expr is to be returned, otherwise pop and eval right.
       ip = left->compile(codeStream, ip, subType);
       codeStream[ip++] = operand == OP_OR ? OP_JMPIF_NP : OP_JMPIFNOT_NP;
       U32 jmpIp = ip++;
@@ -552,14 +511,13 @@ U32 IntBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       ip = left->compile(codeStream, ip, subType);
       codeStream[ip++] = operand;
    }
-   if(type != TypeReqUInt)
-      codeStream[ip++] =conversionOp(TypeReqUInt, type);
+   conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
 }
 
 TypeReq IntBinaryExprNode::getPreferredType()
 {
-   return TypeReqUInt;
+   return TypeReqValue;
 }
 
 //------------------------------------------------------------
@@ -567,103 +525,86 @@ TypeReq IntBinaryExprNode::getPreferredType()
 U32 StreqExprNode::precompile(TypeReq type)
 {
    // eval str left
-   // OP_ADVANCE_STR_NUL
    // eval str right
    // OP_COMPARE_STR
+   // if !eq: OP_NOT
    // optional conversion
-   U32 addSize = left->precompile(TypeReqString) + right->precompile(TypeReqString) + 2;
+   U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 1;
    if(!eq)
       addSize ++;
-   if(type != TypeReqUInt)
-      addSize ++;
-   return addSize;
+   return addSize + conversionSize(TypeReqValue, type);
 }
 
 U32 StreqExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = left->compile(codeStream, ip, TypeReqString);
-   codeStream[ip++] = OP_ADVANCE_STR_NUL;
-   ip = right->compile(codeStream, ip, TypeReqString);
+   ip = left->compile(codeStream, ip, TypeReqValue);
+   ip = right->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = OP_COMPARE_STR;
    if(!eq)
       codeStream[ip++] = OP_NOT;
-   if(type != TypeReqUInt)
-      codeStream[ip++] = conversionOp(TypeReqUInt, type);
+   conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
 }
 
 TypeReq StreqExprNode::getPreferredType()
 {
-   return TypeReqUInt;
+   return TypeReqValue;
 }
 
 //------------------------------------------------------------
 
 U32 StrcatExprNode::precompile(TypeReq type)
 {
-   U32 addSize = left->precompile(TypeReqString) + right->precompile(TypeReqString) + 2;
+   U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 1;
    if(appendChar)
-      addSize++;
+      addSize += 2;
 
-   if(type != TypeReqString)
-      addSize ++;
-   return addSize;
+   return addSize + conversionSize(TypeReqValue, type);
 }
 
 U32 StrcatExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-    ip = left->compile(codeStream, ip, TypeReqString);
-    if (!appendChar)
-        codeStream[ip++] = OP_ADVANCE_STR;
-    else
+    ip = left->compile(codeStream, ip, TypeReqValue);
+    if (appendChar)
     {
-        codeStream[ip++] = OP_ADVANCE_STR_APPENDCHAR;
+        codeStream[ip++] = OP_CONCAT_CHAR;
         codeStream[ip++] = appendChar;
     }
-    ip = right->compile(codeStream, ip, TypeReqString);
-    codeStream[ip++] = OP_REWIND_STR;
-    if (type == TypeReqUInt)
-        codeStream[ip++] = OP_STR_TO_UINT;
-    else if (type == TypeReqFloat)
-        codeStream[ip++] = OP_STR_TO_FLT;
+    ip = right->compile(codeStream, ip, TypeReqValue);
+    codeStream[ip++] = OP_CONCAT_STR;
+    conversionOp(TypeReqValue, type, codeStream, ip);
     return ip;
 }
 
 TypeReq StrcatExprNode::getPreferredType()
 {
-   return TypeReqString;
+   return TypeReqValue;
 }
 
 //------------------------------------------------------------
 
 U32 StrForgiveExprNode::precompile(TypeReq type)
 {
-    U32 addSize = left->precompile(TypeReqString) + right->precompile(TypeReqString) + 3;
-
-    if (type != TypeReqString)
-        addSize++;
-    return addSize;
+    U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 3;
+    return addSize + conversionSize(TypeReqValue, type);
 }
 
 U32 StrForgiveExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
 {
-    ip = left->compile(codeStream, ip, TypeReqString);
-    codeStream[ip++] = OP_STRNOTNULL_TO_UINT;   // submit to int stack
-    codeStream[ip++] = OP_JMPIF_NP;
+    ip = left->compile(codeStream, ip, TypeReqValue);
+    codeStream[ip++] = OP_STRNOTNULL;
+    codeStream[ip++] = OP_JMPIF;
     U32 jmpIp = ip++;
-    ip = right->compile(codeStream, ip, TypeReqString);
+    ip = right->compile(codeStream, ip, TypeReqValue);
     codeStream[jmpIp] = ip;
 
-    if (type == TypeReqUInt)
-        codeStream[ip++] = OP_STR_TO_UINT;
-    else if (type == TypeReqFloat)
-        codeStream[ip++] = OP_STR_TO_FLT;
+    conversionOp(TypeReqValue, type, codeStream, ip);
     return ip;
 }
 
 TypeReq StrForgiveExprNode::getPreferredType()
 {
-    return TypeReqString;
+    return TypeReqValue;
 }
 
 //------------------------------------------------------------
@@ -678,7 +619,7 @@ U32 CommaCatExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
    ip = left->compile(codeStream, ip, TypeReqValue);
    ip = right->compile(codeStream, ip, TypeReqValue);
-   codeStream[ip++] = OP_ADVANCE_STR_COMMA;
+   codeStream[ip++] = OP_CONCAT_STR_COMMA;
 
    // At this point the stack has the concatenated string.
 
@@ -698,7 +639,7 @@ TypeReq CommaCatExprNode::getPreferredType()
 
 U32 InstanceOfExprNode::precompile(TypeReq type)
 {
-    U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 2;
+    U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 1;
     return addSize + conversionSize(TypeReqValue, type);
 }
 
@@ -724,32 +665,25 @@ TypeReq InstanceOfExprNode::getPreferredType()
 U32 IntUnaryExprNode::precompile(TypeReq type)
 {
    integer = true;
-   TypeReq prefType = expr->getPreferredType();
-   if(op == '!' && prefType == TypeReqFloat || prefType == TypeReqString)
-      integer = false;
-
-   U32 exprSize = expr->precompile(integer ? TypeReqUInt : TypeReqFloat);
-   if(type != TypeReqUInt)
-      return exprSize + 2;
-   else
-      return exprSize + 1;
+   U32 exprSize = expr->precompile(TypeReqValue);
+   return exprSize + conversionSize(TypeReqValue, type) + 1;
 }
 
 U32 IntUnaryExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
 {
-   ip = expr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
+   ip = expr->compile(codeStream, ip, TypeReqValue);
    if(op == '!')
-      codeStream[ip++] = integer ? OP_NOT : OP_NOTF;
+      codeStream[ip++] = OP_NOT;
    else if(op == '~')
       codeStream[ip++] = OP_ONESCOMPLEMENT;
-   if(type != TypeReqUInt)
-      codeStream[ip++] =conversionOp(TypeReqUInt, type);
+   // FIXME: Does this work weirdly with TypeReqNone too??? breakpoint on this please!
+   conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
 }
 
 TypeReq IntUnaryExprNode::getPreferredType()
 {
-   return TypeReqUInt;
+   return TypeReqValue;
 }
 
 //------------------------------------------------------------
@@ -1500,7 +1434,7 @@ U32 FunctionDeclStmtNode::precompileStmt(U32)
    // argc
    // static stack size
    // code
-   // OP_RETURN
+   // OP_RETURN_NONE
    setCurrentStringTable(&getFunctionStringTable());
 
    argc = 0;
@@ -1554,6 +1488,6 @@ U32 FunctionDeclStmtNode::compileStmt(U64 *codeStream, U64 ip, U32, U32)
    #endif
 
    CodeBlock::smInFunction = false;
-   codeStream[ip++] = OP_RETURN;
+   codeStream[ip++] = OP_RETURN_NONE;
    return ip;
 }

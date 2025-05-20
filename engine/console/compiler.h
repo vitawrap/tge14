@@ -46,6 +46,7 @@ namespace Compiler
       OP_JMPIF_NP,
       OP_JMP,
       OP_RETURN,
+      OP_RETURN_NONE,
       OP_CMPEQ,
       OP_CMPGR,
       OP_CMPGE,
@@ -57,7 +58,6 @@ namespace Compiler
       OP_BITAND,
       OP_BITOR,
       OP_NOT,
-      OP_NOTF,
       OP_ONESCOMPLEMENT,
 
       OP_SHR,
@@ -97,14 +97,6 @@ namespace Compiler
 
       OP_STRNOTNULL,
       OP_VAL_TO_NONE,
-      //OP_STR_TO_UINT,
-      //OP_STR_TO_FLT,
-      //OP_FLT_TO_UINT,
-      //OP_FLT_TO_STR,
-      //OP_FLT_TO_NONE,
-      //OP_UINT_TO_FLT,
-      //OP_UINT_TO_STR,
-      //OP_UINT_TO_NONE,
 
       OP_LOADIMMED_UINT,
       OP_LOADIMMED_FLT,
@@ -115,17 +107,10 @@ namespace Compiler
       OP_CALLFUNC_RESOLVE,
       OP_CALLFUNC,
 
-      OP_ADVANCE_STR,
-      OP_ADVANCE_STR_APPENDCHAR,
-      OP_ADVANCE_STR_COMMA,
-      OP_ADVANCE_STR_NUL,
-      OP_REWIND_STR,
-      OP_TERMINATE_REWIND_STR,
+      OP_CONCAT_STR,
+      OP_CONCAT_CHAR,
+      OP_CONCAT_STR_COMMA,
       OP_COMPARE_STR,
-
-      // Old arg-pushing opfuncs (pushed args in STR)
-      //OP_PUSH,
-      //OP_PUSH_FRAME,
 
       OP_BREAK,
 
