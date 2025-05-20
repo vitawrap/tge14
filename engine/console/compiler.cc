@@ -38,6 +38,19 @@ namespace Compiler
       return 0;
    }
 
+   bool consoleStringIsNumber(const char* str) {
+       while (dIsspace(*str)) ++str;
+       char* pEnd;
+       (void) dStrtod(str, &pEnd);
+       if (str == pEnd) return false;
+       while (dIsspace(*pEnd)) ++pEnd;
+       return 0 == *pEnd;
+   }
+
+   bool consoleStringMatchesConstant(const char* str) {
+       return !dStricmp(str, "true") || !dStricmp(str, "false");
+   }
+
    //------------------------------------------------------------
 
    CompilerStringTable *gCurrentStringTable, gGlobalStringTable, gFunctionStringTable;

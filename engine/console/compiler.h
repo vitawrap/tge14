@@ -95,16 +95,16 @@ namespace Compiler
       OP_LOADFIELD,
       OP_SAVEFIELD,
 
-      OP_STRNOTNULL_TO_UINT,
-      OP_STR_TO_UINT,
-      OP_STR_TO_FLT,
-      OP_STR_TO_NONE,
-      OP_FLT_TO_UINT,
-      OP_FLT_TO_STR,
-      OP_FLT_TO_NONE,
-      OP_UINT_TO_FLT,
-      OP_UINT_TO_STR,
-      OP_UINT_TO_NONE,
+      OP_STRNOTNULL,
+      OP_VAL_TO_NONE,
+      //OP_STR_TO_UINT,
+      //OP_STR_TO_FLT,
+      //OP_FLT_TO_UINT,
+      //OP_FLT_TO_STR,
+      //OP_FLT_TO_NONE,
+      //OP_UINT_TO_FLT,
+      //OP_UINT_TO_STR,
+      //OP_UINT_TO_NONE,
 
       OP_LOADIMMED_UINT,
       OP_LOADIMMED_FLT,
@@ -134,6 +134,8 @@ namespace Compiler
 
    //------------------------------------------------------------
 
+   bool consoleStringIsNumber(const char* str);
+   bool consoleStringMatchesConstant(const char* str);
    F64 consoleStringToNumber(const char *str, StringTableEntry file = 0, U32 line = 0);
    U32 precompileBlock(StmtNode *block, U32 loopCount);
    U64 compileBlock(StmtNode *block, U64 *codeStream, U64 ip, U32 continuePoint, U32 breakPoint);

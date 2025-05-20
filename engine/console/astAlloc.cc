@@ -338,7 +338,7 @@ ObjectDeclNode *ObjectDeclNode::alloc(ExprNode *classNameExpr, ExprNode *objectN
    ret->argList = argList;
    ret->slotDecls = slotDecls;
    ret->subObjects = subObjects;
-   ret->structDecl = structDecl;
+   ret->structDecl = structDecl;    // only true for datablocks, as per CMDgram.y
    if(parentObject)
       ret->parentObject = parentObject;
    else

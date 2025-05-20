@@ -430,8 +430,10 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    else
       lastIp = 0;
 
-   if(lastIp != codeSize - 1)
+   if (lastIp != codeSize - 1) {
       Con::errorf(ConsoleLogEntry::General, "CodeBlock::compile - precompile size mismatch, a precompile/compile function pair is probably mismatched.");
+      AssertISV(false, "PRECOMPILE SIZE MISMATCH FOR NEW TS VM!!!!!");
+   }
 
    code[lastIp++] = OP_RETURN;
    U32 totSize = codeSize + smBreakLineCount * 2;

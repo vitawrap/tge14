@@ -11,11 +11,10 @@ class Namespace;
 class SimObject;
 class SimGroup;
 
+// do we pop the stack or not?
 enum TypeReq {
    TypeReqNone,
-   TypeReqUInt,
-   TypeReqFloat,
-   TypeReqString
+   TypeReqValue
 };
 
 /// Representation of a node for the scripting language parser.
