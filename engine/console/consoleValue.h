@@ -189,9 +189,17 @@ public:
 		: type(TypeInt)
 	{ i = val; }
 
+	ConsoleValue(bool val)
+		: ConsoleValue((S64)val)
+	{}
+
 	ConsoleValue(char const* val)
 		: type(TypeString)
 	{ setString(val); }
+
+	ConsoleValue(S32 val)
+		: ConsoleValue((S64) val)
+	{}
 
 	ConsoleValue(F64 val)
 		: type(TypeFloat)

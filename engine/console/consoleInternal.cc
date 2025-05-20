@@ -743,7 +743,7 @@ void Namespace::addFunction(StringTableEntry name, CodeBlock* cb, U32 functionOf
    ent->mType = Entry::ScriptFunctionType;
 }
 
-void Namespace::addCommand(StringTableEntry name,StringCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
+void Namespace::addCommand(StringTableEntry name,ValueCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
 {
    Entry *ent = createLocalEntry(name);
    trashCache();
@@ -752,21 +752,8 @@ void Namespace::addCommand(StringTableEntry name,StringCallback cb, const char *
    ent->mMinArgs = minArgs;
    ent->mMaxArgs = maxArgs;
 
-   ent->mType = Entry::StringCallbackType;
+   ent->mType = Entry::ValueCallbackType;
    ent->cb.mStringCallbackFunc = cb;
-}
-
-void Namespace::addCommand(StringTableEntry name,IntCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Entry *ent = createLocalEntry(name);
-   trashCache();
-
-   ent->mUsage = usage;
-   ent->mMinArgs = minArgs;
-   ent->mMaxArgs = maxArgs;
-
-   ent->mType = Entry::IntCallbackType;
-   ent->cb.mIntCallbackFunc = cb;
 }
 
 void Namespace::addCommand(StringTableEntry name,VoidCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
@@ -780,32 +767,6 @@ void Namespace::addCommand(StringTableEntry name,VoidCallback cb, const char *us
 
    ent->mType = Entry::VoidCallbackType;
    ent->cb.mVoidCallbackFunc = cb;
-}
-
-void Namespace::addCommand(StringTableEntry name,FloatCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Entry *ent = createLocalEntry(name);
-   trashCache();
-
-   ent->mUsage = usage;
-   ent->mMinArgs = minArgs;
-   ent->mMaxArgs = maxArgs;
-
-   ent->mType = Entry::FloatCallbackType;
-   ent->cb.mFloatCallbackFunc = cb;
-}
-
-void Namespace::addCommand(StringTableEntry name,BoolCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Entry *ent = createLocalEntry(name);
-   trashCache();
-
-   ent->mUsage = usage;
-   ent->mMinArgs = minArgs;
-   ent->mMaxArgs = maxArgs;
-
-   ent->mType = Entry::BoolCallbackType;
-   ent->cb.mBoolCallbackFunc = cb;
 }
 
 void Namespace::addOverload(const char * name, const char *altUsage)
@@ -854,12 +815,12 @@ void Namespace::markGroup(const char* name, const char* usage)
 
 extern S32 executeBlock(StmtNode *block, ExprEvalState *state);
 
-const char *Namespace::Entry::execute(S32 argc, const char **argv, ExprEvalState *state)
+ConsoleValue Namespace::Entry::execute(S32 argc, ConsoleValue* argv, ExprEvalState *state)
 {
    if(mType == ScriptFunctionType)
    {
       if(mFunctionOffset)
-         return mCode->exec(mFunctionOffset, argv[0], mNamespace, argc, argv, false, mPackage, -1);
+         return mCode->exec(mFunctionOffset, argv[0].toString(), mNamespace, argc, argv, false, mPackage, -1);
       else
          return "";
    }
@@ -870,28 +831,11 @@ const char *Namespace::Entry::execute(S32 argc, const char **argv, ExprEvalState
       Con::warnf(ConsoleLogEntry::Script, "usage: %s", mUsage);
       return "";
    }
-
-   static char returnBuffer[32];
-   switch(mType)
-   {
-      case StringCallbackType:
-         return cb.mStringCallbackFunc(state->thisObject, argc, argv);
-      case IntCallbackType:
-         dSprintf(returnBuffer, sizeof(returnBuffer), "%d",
-            cb.mIntCallbackFunc(state->thisObject, argc, argv));
-         return returnBuffer;
-      case FloatCallbackType:
-         dSprintf(returnBuffer, sizeof(returnBuffer), "%g",
-            cb.mFloatCallbackFunc(state->thisObject, argc, argv));
-         return returnBuffer;
-      case VoidCallbackType:
-         cb.mVoidCallbackFunc(state->thisObject, argc, argv);
-         return "";
-      case BoolCallbackType:
-         dSprintf(returnBuffer, sizeof(returnBuffer), "%d",
-            (U32)cb.mBoolCallbackFunc(state->thisObject, argc, argv));
-         return returnBuffer;
-   }
+   if (mType == VoidCallbackType) {
+       cb.mVoidCallbackFunc(state->thisObject, argc, argv);
+       return "";
+   } else
+       return cb.mStringCallbackFunc(state->thisObject, argc, argv);
 
    return "";
 }
@@ -1033,35 +977,35 @@ ConsoleFunctionGroupBegin( Packages, "Functions relating to the control of packa
 ConsoleFunction(isPackage,bool,2,2,"isPackage(packageName)")
 {
    argc;
-   StringTableEntry packageName = StringTable->insert(argv[1]);
+   StringTableEntry packageName = argv[1].toSTString();
    return Namespace::isPackage(packageName);
 }
 
 ConsoleFunction(isPackageActive, bool, 2, 2, "isPackageActive(packageName)")
 {
     argc;
-    StringTableEntry packageName = StringTable->insert(argv[1]);
+    StringTableEntry packageName = argv[1].toSTString();
     return Namespace::isPackageActive(packageName);
 }
 
 ConsoleFunction(activatePackage, void,2,2,"activatePackage(packageName)")
 {
    argc;
-   StringTableEntry packageName = StringTable->insert(argv[1]);
+   StringTableEntry packageName = argv[1].toSTString();
    Namespace::activatePackage(packageName);
 }
 
 ConsoleFunction(deactivatePackage, void,2,2,"deactivatePackage(packageName)")
 {
    argc;
-   StringTableEntry packageName = StringTable->insert(argv[1]);
+   StringTableEntry packageName = argv[1].toSTString();
    Namespace::deactivatePackage(packageName);
 }
 
 ConsoleFunction(deactivatePackageStack, void, 2, 2, "deactivatePackageStack(packageName)")
 {
     argc;
-    StringTableEntry packageName = StringTable->insert(argv[1]);
+    StringTableEntry packageName = argv[1].toSTString();
     Namespace::deactivatePackageStack(packageName);
 }
 

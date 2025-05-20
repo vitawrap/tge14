@@ -393,8 +393,8 @@ int DemoGame::main(int argc, const char **argv)
    if (argc > 2 && !dStrcmp(argv[1], "-compile"))
    {
        ResourceManager->setWriteablePath("");
-       char const* res = Con::executef(2, "compile", argv[2]);
-       return res[0] == '0';    // Don't free anything!
+       auto res = Con::executef(2, "compile", argv[2]);
+       return res.getInt() == 0;    // Don't free anything!
    }
 #endif
 

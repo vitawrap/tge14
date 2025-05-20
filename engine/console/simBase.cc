@@ -356,8 +356,8 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
 {
    const AbstractClassRep::FieldList &list = getFieldList();
    char expandedBuffer[1024];
-   const char *docRoot = Con::getVariable("$DocRoot");
-   const char *modRoot = Con::getVariable("$ModRoot");
+   const char *docRoot = Con::getVariable("$DocRoot").toString();
+   const char *modRoot = Con::getVariable("$ModRoot").toString();
    S32 docRootLen = dStrlen(docRoot);
    S32 modRootLen = dStrlen(modRoot);
 
@@ -431,9 +431,9 @@ ConsoleFunctionGroupBegin ( SimFunctions, "Functions relating to Sim.");
 ConsoleFunction(nameToID, S32, 2, 2, "nameToID(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[1]);
+   SimObject *obj = Sim::findObject(argv[1].toSTString());
    if(obj)
-      return obj->getId();
+      return S64(obj->getId());
    else
       return -1;
 }
@@ -441,48 +441,48 @@ ConsoleFunction(nameToID, S32, 2, 2, "nameToID(object)")
 ConsoleFunction(isObject, bool, 2, 2, "isObject(object)")
 {
    argc;
-   if (!dStrcmp(argv[1], "0") || !dStrcmp(argv[1], ""))
+   if (argv[1].isNull())
       return false;
    else
-      return (Sim::findObject(argv[1]) != NULL);
+      return (Sim::findObject(argv[1].toSTString()) != NULL);
 }
 
 ConsoleFunction(cancel,void,2,2,"cancel(eventId)")
 {
    argc;
-   Sim::cancelEvent(dAtoi(argv[1]));
+   Sim::cancelEvent(argv[1].getInt());
 }
 
 ConsoleFunction(isEventPending, bool, 2, 2, "isEventPending(%scheduleId);")
 {
    argc;
-   return Sim::isEventPending(dAtoi(argv[1]));
+   return Sim::isEventPending(argv[1].getInt());
 }
 
 ConsoleFunction(getEventTimeLeft, S32, 2, 2, "getEventTimeLeft(scheduleId) Get the time left in ms until this event will trigger.")
 {
-   return Sim::getEventTimeLeft(dAtoi(argv[1]));
+   return (S64) Sim::getEventTimeLeft(argv[1].getInt());
 }
 
 ConsoleFunction(getScheduleDuration, S32, 2, 2, "getTimeSinceStart(%scheduleId);")
 {
-   argc;   S32 ret = Sim::getScheduleDuration(dAtoi(argv[1]));
+   argc;   S32 ret = Sim::getScheduleDuration(argv[1].getInt());
    return ret;
 }
 
 ConsoleFunction(getTimeSinceStart, S32, 2, 2, "getTimeSinceStart(%scheduleId);")
 {
-   argc;   S32 ret = Sim::getTimeSinceStart(dAtoi(argv[1]));
+   argc;   S32 ret = Sim::getTimeSinceStart(argv[1].getInt());
    return ret;
 }
 
 ConsoleFunction(schedule, S32, 4, 0, "schedule(time, refobject|0, command, <arg1...argN>)")
 {
-   U32 timeDelta = U32(dAtof(argv[1]));
-   SimObject *refObject = Sim::findObject(argv[2]);
+   U32 timeDelta = U32(argv[1].getNumber());
+   SimObject *refObject = Sim::findObject(argv[2].toSTString());
    if(!refObject)
    {
-      if(argv[2][0] != '0')
+      if(!argv[2].isNull())
          return 0;
 
       refObject = Sim::getRootGroup();
@@ -505,28 +505,28 @@ ConsoleMethod(SimObject, save, bool, 3, 4, "obj.save(fileName, <selectedOnly>)")
    static const char *endMessage = "//--- OBJECT WRITE END ---";
    FileStream stream;
    FileObject f;
-   f.readMemory(argv[2]);
+   f.readMemory(argv[2].toString());
 
    // check for flags <selected, ...>
    U32 writeFlags = 0;
    if(argc > 3)
    {
-      if(dAtob(argv[3]))
+      if(argv[3].getInt())
          writeFlags |= SimObject::SelectedOnly;
    }
 
-   if(!ResourceManager->openFileForWrite(stream, argv[2]))
+   if(!ResourceManager->openFileForWrite(stream, argv[2].toString()))
       return false;
 
    char docRoot[256];
    char modRoot[256];
 
-   dStrcpy(docRoot, argv[2]);
+   dStrcpy(docRoot, argv[2].toString());
    char *p = dStrrchr(docRoot, '/');
    if (p) *++p = '\0';
    else  docRoot[0] = '\0';
 
-   dStrcpy(modRoot, argv[2]);
+   dStrcpy(modRoot, argv[2].toString());
    p = dStrchr(modRoot, '/');
    if (p) *++p = '\0';
    else  modRoot[0] = '\0';
@@ -566,8 +566,8 @@ ConsoleMethod(SimObject, save, bool, 3, 4, "obj.save(fileName, <selectedOnly>)")
       stream.write(2, "\r\n");
    }
 
-   Con::setVariable("$DocRoot", NULL);
-   Con::setVariable("$ModRoot", NULL);
+   Con::setVariable("$DocRoot", "");
+   Con::setVariable("$ModRoot", "");
 
    return true;
 }
@@ -575,7 +575,7 @@ ConsoleMethod(SimObject, save, bool, 3, 4, "obj.save(fileName, <selectedOnly>)")
 ConsoleMethod(SimObject, setName, void, 3, 3, "obj.setName(newName)")
 {
    argc;
-   object->assignName(argv[2]);
+   object->assignName(argv[2].toString());
 }
 
 ConsoleMethod(SimObject, getName, const char *, 2, 2, "obj.getName()")
@@ -595,7 +595,7 @@ ConsoleMethod(SimObject, getClassName, const char *, 2, 2, "obj.getClassName()")
 ConsoleMethod(SimObject, getId, S32, 2, 2, "obj.getId()")
 {
    argc; argv;
-   return object->getId();
+   return (S64) object->getId();
 }
 
 ConsoleMethod(SimObject, getGroup, S32, 2, 2, "obj.getGroup()")
@@ -604,7 +604,7 @@ ConsoleMethod(SimObject, getGroup, S32, 2, 2, "obj.getGroup()")
    SimGroup *grp = object->getGroup();
    if(!grp)
       return -1;
-   return grp->getId();
+   return (S64) grp->getId();
 }
 
 ConsoleMethod(SimObject, delete, void, 2, 2,"obj.delete()")
@@ -615,7 +615,7 @@ ConsoleMethod(SimObject, delete, void, 2, 2,"obj.delete()")
 
 ConsoleMethod(SimObject,schedule, S32, 4, 0, "object.schedule(time, command, <arg1...argN>);")
 {
-   U32 timeDelta = U32(dAtof(argv[2]));
+   U32 timeDelta = U32(argv[2].getNumber());
    argv[2] = argv[3];
    argv[3] = argv[1];
    SimConsoleEvent *evt = new SimConsoleEvent(argc - 2, argv + 2, true);
@@ -1382,7 +1382,7 @@ ConsoleMethod(SimSet, add, void, 3, 0, "set.add(obj1,...)")
 {
    for(S32 i = 2; i < argc; i++)
    {
-      SimObject *obj = Sim::findObject(argv[i]);
+      SimObject *obj = Sim::findObject(argv[i].toSTString());
       if(obj)
          object->addObject(obj);
       else
@@ -1394,7 +1394,7 @@ ConsoleMethod(SimSet, remove, void, 3, 0, "set.remove(obj1,...)")
 {
    for(S32 i = 2; i < argc; i++)
    {
-      SimObject *obj = Sim::findObject(argv[i]);
+      SimObject *obj = Sim::findObject(argv[i].toSTString());
       object->lock();
       if(obj && object->find(object->begin(),object->end(),obj) != object->end())
          object->removeObject(obj);
@@ -1419,19 +1419,19 @@ ConsoleMethod(SimSet, getCount, S32, 2, 2, "set.getCount()")
 ConsoleMethod(SimSet, getObject, S32, 3, 3, "set.getObject(objIndex)")
 {
    argc;
-   S32 objectIndex = dAtoi(argv[2]);
+   S32 objectIndex = argv[2].getInt();
    if(objectIndex < 0 || objectIndex >= S32(object->size()))
    {
       Con::printf("Set::getObject index out of range.");
       return -1;
    }
-   return ((*object)[objectIndex])->getId();
+   return (S64) ((*object)[objectIndex])->getId();
 }
 
 ConsoleMethod(SimSet, isMember, bool, 3, 3, "set.isMember(object)")
 {
    argc;
-   SimObject *testObject = Sim::findObject(argv[2]);
+   SimObject *testObject = Sim::findObject(argv[2].toSTString());
    if(!testObject)
    {
       Con::printf("SimSet::isMember: %s is not an object.", argv[2]);
@@ -1455,7 +1455,7 @@ ConsoleMethod(SimSet, isMember, bool, 3, 3, "set.isMember(object)")
 ConsoleMethod(SimSet, bringToFront, void, 3, 3, "set.bringToFront(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[2]);
+   SimObject *obj = Sim::findObject(argv[2].toSTString());
    if(!obj)
       return;
    object->bringObjectToFront(obj);
@@ -1464,7 +1464,7 @@ ConsoleMethod(SimSet, bringToFront, void, 3, 3, "set.bringToFront(object)")
 ConsoleMethod(SimSet, pushToBack, void, 3, 3, "set.pushToBack(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[2]);
+   SimObject *obj = Sim::findObject(argv[2].toSTString());
    if(!obj)
       return;
    object->pushObjectToBack(obj);
@@ -1680,25 +1680,16 @@ IMPLEMENT_CONOBJECT(SimGroup);
 
 //------------------------------------------------------------------------------
 
-SimConsoleEvent::SimConsoleEvent(S32 argc, const char **argv, bool onObject)
+SimConsoleEvent::SimConsoleEvent(S32 argc, ConsoleValue *argv, bool onObject)
 {
    mOnObject = onObject;
    mArgc = argc;
-   U32 totalSize = 0;
-   S32 i;
-   for(i = 0; i < argc; i++)
-      totalSize += dStrlen(argv[i]) + 1;
-   totalSize += sizeof(char *) * argc;
 
-   mArgv = (char **) dMalloc(totalSize);
-   char *argBase = (char *) &mArgv[argc];
+   // Copy arguments over for thread safety...
+   mArgv = (ConsoleValue *) dMalloc(argc * sizeof(ConsoleValue));
 
-   for(i = 0; i < argc; i++)
-   {
-      mArgv[i] = argBase;
-      dStrcpy(mArgv[i], argv[i]);
-      argBase += dStrlen(argv[i]) + 1;
-   }
+   for(S32 i = 0; i < argc; i++)
+       mArgv[i] = argv[i];
 }
 
 SimConsoleEvent::~SimConsoleEvent()
@@ -1712,14 +1703,14 @@ void SimConsoleEvent::process(SimObject* object)
 //    Con::printf("Executing schedule: %d", sequenceCount);
 // #endif
    if(mOnObject)
-      Con::execute(object, mArgc, const_cast<const char**>( mArgv ));
+      Con::execute(object, mArgc, mArgv);
    else
-      Con::execute(mArgc, const_cast<const char**>( mArgv ));
+      Con::execute(mArgc, mArgv);
 }
 
 //-----------------------------------------------------------------------------
 
-SimConsoleThreadExecCallback::SimConsoleThreadExecCallback() : retVal(NULL)
+SimConsoleThreadExecCallback::SimConsoleThreadExecCallback() : retVal("")
 {
    sem = Semaphore::createSemaphore(0);
 }
@@ -1729,25 +1720,25 @@ SimConsoleThreadExecCallback::~SimConsoleThreadExecCallback()
    Semaphore::destroySemaphore(sem);
 }
 
-void SimConsoleThreadExecCallback::handleCallback(const char *ret)
+void SimConsoleThreadExecCallback::handleCallback(ConsoleValue ret)
 {
    retVal = ret;
    Semaphore::releaseSemaphore(sem);
 }
 
-const char *SimConsoleThreadExecCallback::waitForResult()
+ConsoleValue SimConsoleThreadExecCallback::waitForResult()
 {
    if(Semaphore::acquireSemaphore(sem, true))
    {
       return retVal;
    }
 
-   return NULL;
+   return CONVALUE_NULL;
 }
 
 //-----------------------------------------------------------------------------
 
-SimConsoleThreadExecEvent::SimConsoleThreadExecEvent(S32 argc, const char **argv, bool onObject, SimConsoleThreadExecCallback *callback) : 
+SimConsoleThreadExecEvent::SimConsoleThreadExecEvent(S32 argc, ConsoleValue*argv, bool onObject, SimConsoleThreadExecCallback *callback) : 
    SimConsoleEvent(argc, argv, onObject),
    cb(callback)
 {
@@ -1755,11 +1746,11 @@ SimConsoleThreadExecEvent::SimConsoleThreadExecEvent(S32 argc, const char **argv
 
 void SimConsoleThreadExecEvent::process(SimObject* object)
 {
-   const char *retVal;
+   ConsoleValue retVal;
    if(mOnObject)
-      retVal = Con::execute(object, mArgc, const_cast<const char**>( mArgv ));
+      retVal = Con::execute(object, mArgc, mArgv);
    else
-      retVal = Con::execute(mArgc, const_cast<const char**>( mArgv ));
+      retVal = Con::execute(mArgc, mArgv);
 
    if(cb)
       cb->handleCallback(retVal);

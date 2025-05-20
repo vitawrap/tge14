@@ -46,11 +46,8 @@ public:
             OverloadMarker               = -2,
             InvalidFunctionType          = -1,
             ScriptFunctionType,
-            StringCallbackType,
-            IntCallbackType,
-            FloatCallbackType,
+            ValueCallbackType,
             VoidCallbackType,
-            BoolCallbackType
         };
 
         Namespace *mNamespace;
@@ -65,17 +62,14 @@ public:
         CodeBlock *mCode;
         U32 mFunctionOffset;
         union {
-            StringCallback mStringCallbackFunc;
-            IntCallback mIntCallbackFunc;
+            ValueCallback mStringCallbackFunc;
             VoidCallback mVoidCallbackFunc;
-            FloatCallback mFloatCallbackFunc;
-            BoolCallback mBoolCallbackFunc;
             const char* mGroupName;
         } cb;
         Entry();
         void clear();
 
-        const char *execute(S32 argc, const char **argv, ExprEvalState *state);
+        ConsoleValue execute(S32 argc, ConsoleValue* argv, ExprEvalState *state);
 
     };
     Entry *mEntryList;
@@ -87,11 +81,8 @@ public:
 
     Namespace();
     void addFunction(StringTableEntry name, CodeBlock *cb, U32 functionOffset);
-    void addCommand(StringTableEntry name,StringCallback, const char *usage, S32 minArgs, S32 maxArgs);
-    void addCommand(StringTableEntry name,IntCallback, const char *usage, S32 minArgs, S32 maxArgs);
-    void addCommand(StringTableEntry name,FloatCallback, const char *usage, S32 minArgs, S32 maxArgs);
+    void addCommand(StringTableEntry name,ValueCallback, const char *usage, S32 minArgs, S32 maxArgs);
     void addCommand(StringTableEntry name,VoidCallback, const char *usage, S32 minArgs, S32 maxArgs);
-    void addCommand(StringTableEntry name,BoolCallback, const char *usage, S32 minArgs, S32 maxArgs);
 
     void addOverload(const char *name, const char* altUsage);
 

@@ -67,7 +67,7 @@ void ConsoleConstructor::init(const char *cName, const char *fName, const char *
    funcName = fName;
    usage = usg;
    className = cName;
-   sc = 0; fc = 0; vc = 0; bc = 0; ic = 0;
+   rc = 0; vc = 0;
    group = false;
    next = first;
    first = this;
@@ -77,16 +77,10 @@ void ConsoleConstructor::setup()
 {
    for(ConsoleConstructor *walk = first; walk; walk = walk->next)
    {
-      if(walk->sc)
-         Con::addCommand(walk->className, walk->funcName, walk->sc, walk->usage, walk->mina, walk->maxa);
-      else if(walk->ic)
-         Con::addCommand(walk->className, walk->funcName, walk->ic, walk->usage, walk->mina, walk->maxa);
-      else if(walk->fc)
-         Con::addCommand(walk->className, walk->funcName, walk->fc, walk->usage, walk->mina, walk->maxa);
+      if(walk->rc)
+         Con::addCommand(walk->className, walk->funcName, walk->rc, walk->usage, walk->mina, walk->maxa);
       else if(walk->vc)
          Con::addCommand(walk->className, walk->funcName, walk->vc, walk->usage, walk->mina, walk->maxa);
-      else if(walk->bc)
-         Con::addCommand(walk->className, walk->funcName, walk->bc, walk->usage, walk->mina, walk->maxa);
       else if(walk->group)
          Con::markCommandGroup(walk->className, walk->funcName, walk->usage);
       else if(walk->overload)
@@ -96,34 +90,16 @@ void ConsoleConstructor::setup()
    }
 }
 
-ConsoleConstructor::ConsoleConstructor(const char *className, const char *funcName, StringCallback sfunc, const char *usage, S32 minArgs, S32 maxArgs)
+ConsoleConstructor::ConsoleConstructor(const char *className, const char *funcName, ValueCallback sfunc, const char *usage, S32 minArgs, S32 maxArgs)
 {
    init(className, funcName, usage, minArgs, maxArgs);
-   sc = sfunc;
-}
-
-ConsoleConstructor::ConsoleConstructor(const char *className, const char *funcName, IntCallback ifunc, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   init(className, funcName, usage, minArgs, maxArgs);
-   ic = ifunc;
-}
-
-ConsoleConstructor::ConsoleConstructor(const char *className, const char *funcName, FloatCallback ffunc, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   init(className, funcName, usage, minArgs, maxArgs);
-   fc = ffunc;
+   rc = sfunc;
 }
 
 ConsoleConstructor::ConsoleConstructor(const char *className, const char *funcName, VoidCallback vfunc, const char *usage, S32 minArgs, S32 maxArgs)
 {
    init(className, funcName, usage, minArgs, maxArgs);
    vc = vfunc;
-}
-
-ConsoleConstructor::ConsoleConstructor(const char *className, const char *funcName, BoolCallback bfunc, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   init(className, funcName, usage, minArgs, maxArgs);
-   bc = bfunc;
 }
 
 ConsoleConstructor::ConsoleConstructor(const char* className, const char* groupName, const char* aUsage)
@@ -202,7 +178,7 @@ ConsoleFunction( getClipboard, const char*, 1, 1, "Get text from the clipboard."
 ConsoleFunction( setClipboard, bool, 2, 2, "(string text)"
                "Set the system clipboard.")
 {
-	return Platform::setClipboard(argv[1]);
+	return Platform::setClipboard(argv[1].toString());
 };
 
 ConsoleFunctionGroupEnd( Clipboard );
@@ -568,13 +544,13 @@ void errorf(const char* fmt,...)
 
 //---------------------------------------------------------------------------
 
-void setVariable(const char *name, const char *value)
+void setVariable(const char *name, ConsoleValue value)
 {
    name = prependDollar(name);
    gEvalState.globalVars.setVariable(StringTable->insert(name), value);
 }
 
-void setLocalVariable(const char *name, const char *value)
+void setLocalVariable(const char *name, ConsoleValue value)
 {
    name = prependPercent(name);
    gEvalState.stack.last().setVariable(StringTable->insert(name), value);
@@ -644,7 +620,7 @@ void stripColorChars(char* line)
    }
 }
 
-const char *getVariable(const char *name)
+ConsoleValue getVariable(const char *name)
 {
    // get the field info from the object..
    if(name[0] != '$' && dStrchr(name, '.') && !isFunction(name))
@@ -664,9 +640,9 @@ const char *getVariable(const char *name)
 
       while(token != NULL)
       {
-         const char * val = obj->getDataField(StringTable->insert(token), 0);
-         if(!val)
-            return("");
+         ConsoleValue val = obj->getDataField(StringTable->insert(token), 0);
+         if(val.isNullString())
+            return val;
 
          token = dStrtok(0, ".\0");
          if(token)
@@ -684,29 +660,28 @@ const char *getVariable(const char *name)
    return gEvalState.globalVars.getVariable(StringTable->insert(name));
 }
 
-const char *getLocalVariable(const char *name)
+ConsoleValue getLocalVariable(const char *name)
 {
    name = prependPercent(name);
-
    return gEvalState.stack.last().getVariable(StringTable->insert(name));
 }
 
 bool getBoolVariable(const char *varName, bool def)
 {
-   const char *value = getVariable(varName);
-   return *value ? dAtob(value) : def;
+   ConsoleValue value = getVariable(varName);
+   return value.isNullString() ? def : bool(value.getInt());
 }
 
 S32 getIntVariable(const char *varName, S32 def)
 {
-   const char *value = getVariable(varName);
-   return *value ? dAtoi(value) : def;
+   ConsoleValue value = getVariable(varName);
+   return value.isNullString() ? def : value.getInt();
 }
 
 F32 getFloatVariable(const char *varName, F32 def)
 {
-   const char *value = getVariable(varName);
-   return *value ? dAtof(value) : def;
+   ConsoleValue value = getVariable(varName);
+   return value.isNullString() ? def : value.getNumber();
 }
 
 //---------------------------------------------------------------------------
@@ -725,31 +700,13 @@ bool removeVariable(const char *name)
 
 //---------------------------------------------------------------------------
 
-void addCommand(const char *nsName, const char *name,StringCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
+void addCommand(const char *nsName, const char *name, ValueCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
 {
    Namespace *ns = lookupNamespace(nsName);
    ns->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
 }
 
 void addCommand(const char *nsName, const char *name,VoidCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Namespace *ns = lookupNamespace(nsName);
-   ns->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
-}
-
-void addCommand(const char *nsName, const char *name,IntCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Namespace *ns = lookupNamespace(nsName);
-   ns->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
-}
-
-void addCommand(const char *nsName, const char *name,FloatCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Namespace *ns = lookupNamespace(nsName);
-   ns->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
-}
-
-void addCommand(const char *nsName, const char *name,BoolCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
 {
    Namespace *ns = lookupNamespace(nsName);
    ns->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
@@ -777,27 +734,12 @@ void addOverload(const char * nsName, const char * name, const char * altUsage)
    ns->addOverload(name,altUsage);
 }
 
-void addCommand(const char *name,StringCallback cb,const char *usage, S32 minArgs, S32 maxArgs)
+void addCommand(const char *name, ValueCallback cb,const char *usage, S32 minArgs, S32 maxArgs)
 {
    Namespace::global()->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
 }
 
 void addCommand(const char *name,VoidCallback cb,const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Namespace::global()->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
-}
-
-void addCommand(const char *name,IntCallback cb,const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Namespace::global()->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
-}
-
-void addCommand(const char *name,FloatCallback cb,const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Namespace::global()->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
-}
-
-void addCommand(const char *name,BoolCallback cb,const char *usage, S32 minArgs, S32 maxArgs)
 {
    Namespace::global()->addCommand(StringTable->insert(name), cb, usage, minArgs, maxArgs);
 }
@@ -852,7 +794,7 @@ bool expandScriptFilename(char *filename, U32 size, const char *src)
 }
 
 
-const char *evaluate(const char* string, bool echo, const char *fileName)
+ConsoleValue evaluate(const char* string, bool echo, const char *fileName)
 {
    if (echo)
       Con::printf("%s%s", getVariable( "$Con::Prompt" ), string);
@@ -865,7 +807,7 @@ const char *evaluate(const char* string, bool echo, const char *fileName)
 }
 
 //------------------------------------------------------------------------------
-const char *evaluatef(const char* string, ...)
+ConsoleValue evaluatef(const char* string, ...)
 {
    char buffer[4096];
    va_list args;
@@ -875,14 +817,14 @@ const char *evaluatef(const char* string, ...)
    return newCodeBlock->compileExec(NULL, buffer, false, 0);
 }
 
-const char *execute(S32 argc, const char *argv[])
+ConsoleValue execute(S32 argc, ConsoleValue argv[])
 {
 #ifdef TORQUE_MULTITHREAD
    if(isMainThread())
    {
 #endif
       Namespace::Entry *ent;
-      StringTableEntry funcName = StringTable->insert(argv[0]);
+      StringTableEntry funcName = argv[0].toSTString();
       ent = Namespace::global()->lookup(funcName);
 
       if(!ent)
@@ -908,16 +850,16 @@ const char *execute(S32 argc, const char *argv[])
 }
 
 //------------------------------------------------------------------------------
-const char *execute(SimObject *object, S32 argc, const char *argv[])
+ConsoleValue execute(SimObject *object, S32 argc, ConsoleValue argv[])
 {
    if(argc < 2)
       return "";
 
    if(object->getNamespace())
    {
-      argv[1] = object->getIdString();
+      argv[1] = S64(object->getId());
 
-      StringTableEntry funcName = StringTable->insert(argv[0]);
+      StringTableEntry funcName = argv[0].toSTString();
       Namespace::Entry *ent = object->getNamespace()->lookup(funcName);
 
       if(!ent)
@@ -932,41 +874,13 @@ const char *execute(SimObject *object, S32 argc, const char *argv[])
       {
          SimObject *save = gEvalState.thisObject;
          gEvalState.thisObject = object;
-         const char *ret = ent->execute(argc, argv, &gEvalState);
+         ConsoleValue ret = ent->execute(argc, argv, &gEvalState);
          gEvalState.thisObject = save;
          return ret;
       }
    }
    warnf(ConsoleLogEntry::Script, "Con::execute - %d has no namespace: %s", object->getId(), argv[0]);
    return "";
-}
-
-const char *executef(SimObject *object, S32 argc, ...)
-{
-   const char *argv[128];
-
-   va_list args;
-   va_start(args, argc);
-   for(S32 i = 0; i < argc; i++)
-      argv[i+1] = va_arg(args, const char *);
-   va_end(args);
-   argv[0] = argv[1];
-   argc++;
-
-   return execute(object, argc, argv);
-}
-
-//------------------------------------------------------------------------------
-const char *executef(S32 argc, ...)
-{
-   const char *argv[128];
-
-   va_list args;
-   va_start(args, argc);
-   for(S32 i = 0; i < argc; i++)
-      argv[i] = va_arg(args, const char *);
-   va_end(args);
-   return execute(argc, argv);
 }
 
 //------------------------------------------------------------------------------
