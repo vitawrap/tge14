@@ -25,17 +25,17 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 			setString(stringConv);
 			break;
 
-		//case TypeValueList:
-		//	// In true torquescript fashion, string->list can become a word list.
-		//	ConsoleValueList* vlist = list;
-		//	str.length = 0;
-		//	for (ConsoleValue* itr = vlist->begin(); itr != vlist->end(); itr++) {
-		//		concat(*itr);
-		//		if (itr + 1 != vlist->end())
-		//			concat(" ");
-		//	}
-		//	destroyList(vlist);	// unref the list we had
-		//	break;
+		case TypeValueList:
+			// In true torquescript fashion, string->list can become a word list.
+			ConsoleValueList* vlist = list;
+			str.length = 0;
+			for (ConsoleValue* itr = vlist->begin(); itr != vlist->end(); itr++) {
+				concatU(*itr);
+				if (itr + 1 != vlist->end())
+					concatString(" ", 1);
+			}
+			destroyList(vlist);	// unref the list we had
+			break;
 
 		case TypeString:
 			return true;
