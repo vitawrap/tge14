@@ -384,4 +384,30 @@ inline void ConsoleValue::copyList(ConsoleValueList* lcv)
 static_assert(sizeof(ConsoleValue) <= 32UL, "Please keep ConsoleValue within 32 bytes.");
 static_assert(sizeof(ConsoleValue) <= 256UL, "Upper limit for cache lines.");
 
+// When there's really no way out.
+class ReturnBuffer {
+	char* mBuffer;
+	size_t mSize;
+
+public:
+	ReturnBuffer(size_t size)
+		: mBuffer(NULL)
+	{
+		if (size) mBuffer = (char*) dMalloc(size * sizeof(char));
+	}
+
+	~ReturnBuffer() {
+		if (mBuffer) dFree(mBuffer);
+	}
+
+	ConsoleValue toValue() const { return ConsoleValue(mBuffer); }
+
+	char* ptr() { return mBuffer; }
+	char const* string() const { return mBuffer; }
+	size_t size() const { return mSize; }
+
+	operator ConsoleValue() const { return ConsoleValue(mBuffer); }
+	char* operator *() { return mBuffer; }
+};
+
 #endif
