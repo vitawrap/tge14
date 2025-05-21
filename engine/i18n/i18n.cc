@@ -44,7 +44,7 @@ const UTF8 *getCoreString(S32 id)
 ConsoleFunction(getCoreLangTable, S32, 1, 1, "()")
 {
 	if(gCoreLangTable)
-		return gCoreLangTable->getId();
+		return (S64) gCoreLangTable->getId();
    else
       return 0;
 }
@@ -53,7 +53,7 @@ ConsoleFunction(setCoreLangTable, void, 2, 2, "(LangTable)")
 {
 	LangTable *lt;
    
-   if(Sim::findObject(argv[1], lt))
+   if(Sim::findObject(argv[1].toString(), lt))
 		gCoreLangTable = lt;
    else
       Con::errorf("setCoreLangTable - Unable to find LanTable '%s'", argv[1]);
