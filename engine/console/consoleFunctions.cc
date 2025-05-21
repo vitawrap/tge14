@@ -448,45 +448,80 @@ static ConsoleValue removeUnit(const char *string, U32 index, const char *set)
 //--------------------------------------
 ConsoleFunctionGroupBegin( FieldManipulators, "Functions to manipulate data returned in the form of \"x y z\".");
 
-ConsoleFunction(getWord, const char *, 3, 3, "(string text, int index)")
+ConsoleFunction(getWord, const char *, 3, 3, "(string|list values, int index)")
 {
    argc;
-   auto pair = getUnit(argv[1].toString(), argv[2].getInt(), " \t\n");
-   ConsoleValue ret;
-   if (pair.start)
-       ret.concatStringU(pair.start, pair.length);
-   return ret;
+   S64 index = argv[2].getInt();
+   if (argv[1].isList())
+       return argv[1].getListSizeU() > index ? argv[1].getListValueU(index) : "";
+   else {
+       auto pair = getUnit(argv[1].toString(), index, " \t\n");
+       ConsoleValue ret;
+       if (pair.start)
+           ret.concatStringU(pair.start, pair.length);
+       return ret;
+   }
 }
 
-ConsoleFunction(getWords, const char *, 3, 4, "(string text, int index, int endIndex=INF)")
+ConsoleFunction(getWords, const char *, 3, 4, "(string|list values, int index, int endIndex=INF) - Returns a new list.")
 {
+   S64 index = argv[2].getInt();
    U32 endIndex;
    if(argc==3)
       endIndex = 1000000;
    else
       endIndex = argv[3].getInt();
-   auto pair = getUnits(argv[1].toString(), argv[2].getInt(), endIndex, " \t\n");
-   ConsoleValue ret;
-   if (pair.start)
-       ret.concatStringU(pair.start, pair.length);
-   return ret;
+   if (argv[1].isList()) {
+       S64 listSize = argv[1].getListSizeU();
+       auto* sublist = new ConsoleValueList;
+       for (int i = index; i < getMin(endIndex + 1, listSize); ++i)
+           sublist->push_back(argv[1].getListValueU(i));
+       return sublist;
+   }
+   else {
+       auto pair = getUnits(argv[1].toString(), index, endIndex, " \t\n");
+       ConsoleValue ret;
+       if (pair.start)
+           ret.concatStringU(pair.start, pair.length);
+       return ret;
+   }
 }
 
-ConsoleFunction(setWord, const char *, 4, 4, "newText = setWord(text, index, replace)")
+ConsoleFunction(setWord, const char *, 4, 4, "newText = setWord(text, index, replace) OR setWord(list, index, replace)")
 {
    argc;
-   return setUnit(argv[1].toString(), argv[2].getInt(), argv[3].toString(), " \t\n");
+   auto& val = argv[1];
+   U32 index = argv[2].getInt();
+   if (val.isList()) {
+       while (val.getListSizeU() <= index) val.list->push_back("");
+       val.list->at(index) = dMove(argv[3]);
+       return val;
+   }
+   return setUnit(val.toString(), index, argv[3].toString(), " \t\n");
 }
 
-ConsoleFunction(removeWord, const char *, 3, 3, "newText = removeWord(text, index)")
+ConsoleFunction(removeWord, const char *, 3, 3, "newText = removeWord(text, index) OR removeWord(list, index)")
 {
    argc;
-   return removeUnit(argv[1].toString(), argv[2].getInt(), " \t\n");
+   auto& val = argv[1];
+   U32 index = argv[2].getInt();
+   if (val.isList()) {
+       if (val.getListSizeU() > index) {
+           for (S32 i = index; (i+1) < val.getListSizeU(); ++i)
+               val.list->at(i) = val.list->at(i+1);
+           val.list->at(index).clearValue();
+           val.list->decrement();
+       }
+       return val;
+   }
+   return removeUnit(val.toString(), index, " \t\n");
 }
 
 ConsoleFunction(getWordCount, S32, 2, 2, "getWordCount(text)")
 {
    argc;
+   if (argv[1].isList())
+       return (S64) argv[1].getListSizeU();
    return (S64) getUnitCount(argv[1].toString(), " \t\n");
 }
 
@@ -575,29 +610,44 @@ ConsoleFunction(getRecordCount, S32, 2, 2, "getRecordCount(text)")
    argc;
    return (S64) getUnitCount(argv[1].toString(), "\n");
 }
+
 //--------------------------------------
-ConsoleFunction(firstWord, const char *, 2, 2, "firstWord(text)")
+ConsoleFunction(firstWord, const char *, 2, 2, "firstWord(text|list)")
 {
    argc;
-   const char* string = argv[1].toString();
-   const char* word = dStrchr(string, ' ');
-   U32 len;
-   if(word == NULL)
-      len = argv[1].getStrlen();
-   else
-      len = word - string;
-   ConsoleValue ret;
-   ret.concatStringU(string, len);
-   return ret;
+   if (argv[1].isList()) {
+       return argv[1].getListSizeU() >= 1 ? argv[1].getListValueU(0) : "";
+   }
+   else {
+       const char* string = argv[1].toString();
+       const char* word = dStrchr(string, ' ');
+       U32 len;
+       if(word == NULL)
+          len = argv[1].getStrlen();
+       else
+          len = word - string;
+       ConsoleValue ret;
+       ret.concatStringU(string, len);
+       return ret;
+   }
 }
 
-ConsoleFunction(restWords, const char *, 2, 2, "restWords(text)")
+ConsoleFunction(restWords, const char *, 2, 2, "restWords(text|list) - Returns a new list.")
 {
    argc;
-   const char *word = dStrchr(argv[1].toString(), ' ');
-   if(word == NULL)
-      return "";
-   return word + 1;
+   auto& val = argv[1];
+   if (val.isList()) {
+       auto* list = new ConsoleValueList;
+       for (S32 i = 1; i < val.getListSizeU(); ++i)
+           list->push_back(val.getListValueU(i));
+       return list;
+   }
+   else {
+       const char *word = dStrchr(argv[1].toString(), ' ');
+       if(word == NULL)
+          return "";
+       return word + 1;
+   }
 }
 
 static bool isInSet(char c, const char *set)
