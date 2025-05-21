@@ -26,7 +26,7 @@ enum devices
 
 struct Resolution;
 class DisplayDevice;
-
+class ConsoleValue;
 
 class Video
 {
@@ -48,9 +48,9 @@ public:
    static bool setResolution( U32 width, U32 height, U32 bpp );   // set the current resolution
    static bool toggleFullScreen();                    // toggle full screen mode
    static DisplayDevice* getDevice( const char* renderName );
-   static const char* getDeviceList();                  // get a tab-separated list of all the installed display devices
+   static ConsoleValue getDeviceList();               // get a tab-separated list of all the installed display devices
+   static ConsoleValue getResolutionList();           // get a tab-separated list of all the available resolutions for the current device
    static const char* getDeviceName();                // get the name of the current display device (shortcut to $pref::Video::displayDevice)
-   static const char* getResolutionList();            // get a tab-separated list of all the available resolutions for the current device
    static const char* getDriverInfo();                  // get info about the current display device driver
    static bool prevRes();                             // switch to the next smaller available resolution with the same bit depth
    static bool nextRes();                             // switch to the next larger available resolution with the same bit depth
@@ -120,7 +120,7 @@ class DisplayDevice
 
       bool prevRes();
       bool nextRes();
-      const char* getResolutionList();
+      ConsoleValue getResolutionList();
       bool isFullScreenOnly()   { return( mFullScreenOnly ); }
 
       static void       init();

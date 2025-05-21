@@ -577,14 +577,14 @@ ConsoleFunction(profilerMarkerEnable, void, 3, 3, "(string markerName, bool enab
 {
    argc;
    if(gProfiler)
-      gProfiler->enableMarker(argv[1], dAtob(argv[2]));
+      gProfiler->enableMarker(argv[1].toString(), argv[2].getInt());
 }
 
 ConsoleFunction(profilerEnable, void, 2, 2, "(bool enable);")
 {
    argc;
    if(gProfiler)
-      gProfiler->enable(dAtob(argv[1]));
+      gProfiler->enable(argv[1].getInt());
 }
 
 ConsoleFunction(profilerDump, void, 1, 1, "Dump the current state of the profiler.")
@@ -598,7 +598,7 @@ ConsoleFunction(profilerDumpToFile, void, 2, 2, "(string filename) Dump profilin
 {
    argc; argv;
    if(gProfiler)
-      gProfiler->dumpToFile(argv[1]);
+      gProfiler->dumpToFile(argv[1].toString());
 }
 
 ConsoleFunction(profilerReset, void, 1, 1, "Resets the profiler, clearing all of its data.")
