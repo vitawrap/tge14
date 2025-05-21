@@ -47,19 +47,15 @@ static inline void pushValueStack(T const& val) {
     valueStack[++TOP] = val;
 }
 
-static const char *getNamespaceList(Namespace *ns)
+static ConsoleValue getNamespaceList(Namespace *ns)
 {
-   U32 size = 1;
+   ConsoleValue ret;
    Namespace * walk;
    for(walk = ns; walk; walk = walk->mParent)
-      size += dStrlen(walk->mName) + 4;
-   char *ret = Con::getReturnBuffer(size);
-   ret[0] = 0;
-   for(walk = ns; walk; walk = walk->mParent)
    {
-      dStrcat(ret, walk->mName);
+      ret.concatStringU(walk->mName, dStrlen(walk->mName));
       if(walk->mParent)
-         dStrcat(ret, " -> ");
+         ret.concatStringU(" -> ", 4);
    }
    return ret;
 }
@@ -498,7 +494,7 @@ breakContinue:
                if(placeAtRoot)
                {
                   // Deal with the instantGroup if we're being put at the root.
-                  const char *addGroupName = Con::getVariable("instantGroup");
+                  const char *addGroupName = Con::getVariable("instantGroup").toString();
                   if(!Sim::findObject(addGroupName, grp))
                      Sim::findObject(RootGroupId, grp);
                }
@@ -939,9 +935,10 @@ breakContinue:
                   Con::warnf(ConsoleLogEntry::General,"%s: Unknown command %s.", getFileLine(ip-4), fnName);
                   if(callType == FuncCallExprNode::MethodCall)
                   {
+                     ConsoleValue nspaceList = dMove(getNamespaceList(ns));
                      Con::warnf(ConsoleLogEntry::General, "  Object %s(%d) %s",
                            gEvalState.thisObject->getName() ? gEvalState.thisObject->getName() : "",
-                           gEvalState.thisObject->getId(), getNamespaceList(ns) );
+                           gEvalState.thisObject->getId(), nspaceList.getStringU());
                   }
                }
                popValueStack(callArgc);
