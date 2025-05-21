@@ -61,7 +61,7 @@ class MaterialPropertyMap : public SimObject
 
    // Should only be used by console functions
   public:
-   bool addMapping(const S32, const char**);
+   bool addMapping(const S32, ConsoleValue*);
 
    //-------------------------------------- Internal interface
   private:
