@@ -563,14 +563,14 @@ void PathedInterior::setTargetPosition(S32 newPosition)
    }
 }
 
-ConsoleMethod(PathedInterior, setPathPosition, void, 3, 3, "")
+ConsoleMethod(PathedInterior, setPathPosition, void, 3, 3, "(S32)")
 {
-   object->setPathPosition(dAtoi(argv[2]));
+   object->setPathPosition(argv[2].getInt());
 }
 
-ConsoleMethod(PathedInterior, setTargetPosition, void, 3, 3, "")
+ConsoleMethod(PathedInterior, setTargetPosition, void, 3, 3, "(S32)")
 {
-   object->setTargetPosition(dAtoi(argv[2]));
+   object->setTargetPosition(argv[2].getInt());
 }
 
 
