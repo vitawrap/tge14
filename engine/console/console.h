@@ -547,11 +547,11 @@ namespace Con
    /// @{
 
    ///
-   char *getReturnBuffer(U32 bufferSize);
+   // char *getReturnBuffer(U32 bufferSize);
 
-   char *getArgBuffer(U32 bufferSize);
-   char *getFloatArg(F64 arg);
-   char *getIntArg  (S32 arg);
+   // char *getArgBuffer(U32 bufferSize);
+   // char *getFloatArg(F64 arg);
+   // char *getIntArg  (S32 arg);
    /// @}
 
    /// @name Namespaces
