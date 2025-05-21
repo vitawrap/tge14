@@ -211,7 +211,7 @@ inline S32 convertLEndianToHost(S32 i) { return S32(convertLEndianToHost(U32(i))
 // Input structures and functions - all input is pushed into the input event queue
 template <class T> class Vector;
 class Point2I;
-
+class ConsoleValue;
 
 // Theese emuns must be globally scoped so that they work
 // with the inline assembly
@@ -361,10 +361,10 @@ public:
    // Web page launch function:
    static bool openWebBrowser( const char* webAddress );
 
-   static const char* getLoginPassword();
+   static ConsoleValue getLoginPassword();
    static bool setLoginPassword( const char* password );
 
-   static const char* getClipboard();
+   static ConsoleValue getClipboard();
    static bool setClipboard(const char *text);
 
    static bool stringToFileTime(const char * string, FileTime * time);

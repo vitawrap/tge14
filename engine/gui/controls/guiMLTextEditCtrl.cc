@@ -88,7 +88,7 @@ bool GuiMLTextEditCtrl::onKeyDown(const GuiEvent& event)
 			//paste
          case KEY_V:
 			{
-				const char *clipBuf = Platform::getClipboard();
+				const char *clipBuf = Platform::getClipboard().toString();
 				if (dStrlen(clipBuf) > 0)
 				{
 			      // Normal ascii keypress.  Go ahead and add the chars...

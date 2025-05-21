@@ -1601,7 +1601,7 @@ const char* getKeyName( U16 key )
 #endif // LOG_INPUT
 
 //------------------------------------------------------------------------------
-const char* DInputDevice::getJoystickAxesString()
+ConsoleValue DInputDevice::getJoystickAxesString()
 {
    if ( mDeviceType != JoystickDeviceType )
       return( "" );
@@ -1636,10 +1636,7 @@ const char* DInputDevice::getJoystickAxesString()
             break;
       }
    }
-
-   char* returnString = Con::getReturnBuffer( dStrlen( buf ) + 1 );
-   dStrcpy( returnString, buf );
-   return( returnString );
+   return( buf );
 }
 
 //------------------------------------------------------------------------------

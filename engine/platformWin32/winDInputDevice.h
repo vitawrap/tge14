@@ -105,7 +105,7 @@ class DInputDevice : public InputDevice
       const char* getProductName();
 
       // Console interface functions:
-      const char* getJoystickAxesString();
+      ConsoleValue getJoystickAxesString();
       static bool joystickDetected();
       //
 

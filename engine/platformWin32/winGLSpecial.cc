@@ -2737,7 +2737,7 @@ static void APIENTRY perfDrawElements(GLenum mode, GLsizei count, GLenum type, c
 ConsoleFunction(GLEnableLogging, void, 2, 2, "GLEnableLogging(bool);")
 {
    argc;
-   bool enable = dAtob(argv[1]);
+   bool enable = argv[1].getInt();
 
    if(loggingEnabled == enable)
       return;
@@ -2794,7 +2794,7 @@ ConsoleFunction(GLEnableLogging, void, 2, 2, "GLEnableLogging(bool);")
 ConsoleFunction(GLEnableOutline, void, 2, 2, "GLEnableOutline(bool);")
 {
    argc;
-   bool enable = dAtob(argv[1]);
+   bool enable = argv[1].getInt();
    if(outlineEnabled == enable)
       return;
 
@@ -2836,7 +2836,7 @@ ConsoleFunction(GLEnableMetrics, void, 2, 2, "GLEnableMetrics(bool);")
       varsAdded = true;
    }
 
-   bool enable = dAtob(argv[1]);
+   bool enable = argv[1].getInt();
    if(perfEnabled == enable)
       return;
 

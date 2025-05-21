@@ -457,7 +457,7 @@ void DInputManager::deactivateJoystick()
 }
 
 //------------------------------------------------------------------------------
-const char* DInputManager::getJoystickAxesString( U32 deviceID )
+ConsoleValue DInputManager::getJoystickAxesString( U32 deviceID )
 {
    DInputDevice* dptr;
    for ( iterator ptr = begin(); ptr != end(); ptr++ )

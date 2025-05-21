@@ -81,7 +81,7 @@ class DInputManager : public InputManager
       bool isJoystickActive()       { return( mJoystickActive ); }
 
       // Console interface:
-      const char* getJoystickAxesString( U32 deviceID );
+      ConsoleValue getJoystickAxesString( U32 deviceID );
 };
 
 #endif  // _H_WINDIRECTINPUT_

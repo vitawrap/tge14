@@ -143,7 +143,7 @@ ConsoleFunction( getJoystickAxes, const char*, 2, 2, "getJoystickAxes( instance 
    argc;
    DInputManager* mgr = dynamic_cast<DInputManager*>( Input::getManager() );
    if ( mgr )
-      return( mgr->getJoystickAxesString( dAtoi( argv[1] ) ) );
+      return( mgr->getJoystickAxesString(argv[1].getInt()) );
 
    return( "" );
 }
@@ -770,28 +770,25 @@ U8 TranslateOSKeyCode(U8 vcode)
 
 //-----------------------------------------------------------------------------
 // Clipboard functions
-const char* Platform::getClipboard()
+ConsoleValue Platform::getClipboard()
 {
-   HGLOBAL hGlobal;
-   LPVOID  pGlobal;
+    HGLOBAL hGlobal;
+    LPVOID  pGlobal;
 
-	//make sure we can access the clipboard
-	if (!IsClipboardFormatAvailable(CF_TEXT))
-		return "";
-   if (!OpenClipboard(NULL))
-		return "";
+    //make sure we can access the clipboard
+    if (!IsClipboardFormatAvailable(CF_TEXT))
+	    return "";
+    if (!OpenClipboard(NULL))
+	    return "";
 
-   hGlobal = GetClipboardData(CF_TEXT);
-   pGlobal = GlobalLock(hGlobal);
-	S32 cbLength = strlen((char *)pGlobal);
-   char  *returnBuf = Con::getReturnBuffer(cbLength + 1);
-	strcpy(returnBuf, (char *)pGlobal);
-	returnBuf[cbLength] = '\0';
-   GlobalUnlock(hGlobal);
-   CloseClipboard();
+    hGlobal = GetClipboardData(CF_TEXT);
+    pGlobal = GlobalLock(hGlobal);
+    ConsoleValue value((const char*) pGlobal);
+    GlobalUnlock(hGlobal);
+    CloseClipboard();
 
-	//note - this function never returns NULL
-	return returnBuf;
+    //note - this function never returns NULL
+    return value;
 }
 
 //-----------------------------------------------------------------------------

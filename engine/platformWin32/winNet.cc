@@ -609,7 +609,7 @@ Net::Error Net::bind(NetSocket socket, U16 port)
    // We let the user specify which one the server runs on.
 
    // thanks to [TPG]P1aGu3 for the name
-   const char* serverIP = Con::getVariable( "Pref::Net::BindAddress" );
+   const char* serverIP = Con::getVariable( "Pref::Net::BindAddress" ).toString();
    // serverIP is guaranteed to be non-0.
    AssertFatal( serverIP, "serverIP is NULL!" );
 

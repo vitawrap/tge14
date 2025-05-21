@@ -14,7 +14,7 @@ WinConsole *WindowsConsole = NULL;
 ConsoleFunction(enableWinConsole, void, 2, 2, "enableWinConsole(bool);")
 {
    argc;
-   WindowsConsole->enable(dAtob(argv[1]));
+   WindowsConsole->enable(argv[1].getInt());
 }
 
 void WinConsole::create()
@@ -34,7 +34,7 @@ void WinConsole::enable(bool enabled)
    if(winConsoleEnabled)
    {
       AllocConsole();
-      const char *title = Con::getVariable("Con::WindowTitle");
+      const char *title = Con::getVariable("Con::WindowTitle").toString();
       if (title && *title)
       {
 #ifdef UNICODE
@@ -49,7 +49,7 @@ void WinConsole::enable(bool enabled)
       stdIn  = GetStdHandle(STD_INPUT_HANDLE);
       stdErr = GetStdHandle(STD_ERROR_HANDLE);
 
-      printf("%s", Con::getVariable("Con::Prompt"));
+      printf("%s", Con::getVariable("Con::Prompt").toString());
    }
 }
 
@@ -116,7 +116,7 @@ void WinConsole::processConsoleLine(const char *consoleLine)
       if(lineOutput)
          printf("%s\n", consoleLine);
       else
-         printf("%c%s\n%s%s", '\r', consoleLine, Con::getVariable("Con::Prompt"), inbuf);
+         printf("%c%s\n%s%s", '\r', consoleLine, Con::getVariable("Con::Prompt").toString(), inbuf);
    }
 }
 

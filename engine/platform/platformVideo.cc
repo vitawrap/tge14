@@ -490,7 +490,7 @@ ConsoleValue Video::getResolutionList()
 
 
 //------------------------------------------------------------------------------
-const char* Video::getDriverInfo()
+ConsoleValue Video::getDriverInfo()
 {
    if ( smCurrentDevice )
       return smCurrentDevice->getDriverInfo();
