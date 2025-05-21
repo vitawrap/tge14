@@ -158,25 +158,25 @@ void AudioBlender::initPersistFields() {
 
 ConsoleMethod(AudioBlender, fadeIn, void, 4, 4, "(AUDIOHANDLE source, S32 ms) - Fade source in")
 {
-	object->fadeIn(dAtoi(argv[2]), dAtoi(argv[3]));
+	object->fadeIn(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod(AudioBlender, fadeOut, void, 3, 3, "(S32 ms) - Fade source (from fadeIn) out")
 {
-	object->fadeOut(dAtoi(argv[2]));
+	object->fadeOut(argv[2].getInt());
 }
 
 ConsoleMethod(AudioBlender, crossFade, void, 4, 4, "(AUDIOHANDLE b, S32 ms) - Fade source out")
 {
-	object->crossFade(dAtoi(argv[2]), dAtoi(argv[3]));
+	object->crossFade(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod(AudioBlender, quieten, void, 2, 3, "(S32 ms = 500) - Lower tracks to $AudioBlender::QuietVolume")
 {
-	object->quieten(argc == 2? 500: dAtoi(argv[2]));
+	object->quieten(argc == 2? 500: argv[2].getInt());
 }
 
 ConsoleMethod(AudioBlender, louden, void, 2, 3, "(S32 ms = 1000)")
 {
-	object->louden(argc == 2? 1000 : dAtoi(argv[2]));
+	object->louden(argc == 2? 1000 : argv[2].getInt());
 }
