@@ -1385,13 +1385,13 @@ namespace Sim
    {                                                                                                 \
       volatile SimDataBlock* pConstraint = static_cast<SimDataBlock*>((T*)NULL);                     \
                                                                                                      \
-      if (argc == 1) {                                                                               \
+      if (!val.isList()) {                                                                           \
          *reinterpret_cast<T**>(dptr) = NULL;                                                        \
-         if (argv[0] && argv[0][0] && !Sim::findObject(argv[0],*reinterpret_cast<T**>(dptr)))        \
-            Con::printf("Object '%s' is not a member of the '%s' data block class", argv[0], #T);    \
+         if (val.toString()[0] && !Sim::findObject(val.toString(),*reinterpret_cast<T**>(dptr)))     \
+            Con::printf("Object '%s' is not a member of the '%s' data block class", val.getStringU(), #T);    \
       }                                                                                              \
       else                                                                                           \
-         Con::printf("Cannot set multiple args to a single pointer.");                               \
+         Con::printf("Cannot set list to a single pointer.");                                        \
    }
 
 #define IMPLEMENT_GETDATATYPE(T) \

@@ -100,7 +100,7 @@ public:
    { \
    public: \
       ConsoleType##type (const S32 aSize, S32 *idPtr, const char *aTypeName) : ConsoleBaseType(aSize, idPtr, aTypeName) { } \
-      void setData(void *dptr, S32 argc, const char **argv, EnumTable *tbl) override; \
+      void setData(void *dptr, ConsoleValue& val, EnumTable *tbl) override; \
       ConsoleValue getData(void *dptr, EnumTable *tbl ) override; \
       const char *getTypeClassName() override { return #className; }; \
       virtual const bool isDatablock() { return true; }; \
