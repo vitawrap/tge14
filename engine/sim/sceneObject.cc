@@ -40,32 +40,29 @@ Polyhedron sBoxPolyhedron;
 
 ConsoleMethod( SceneObject, getTransform, const char*, 2, 2, "Get transform of object.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const MatrixF& mat = object->getTransform();
    Point3F pos;
    mat.getColumn(3,&pos);
    AngAxisF aa(mat);
-   dSprintf(returnBuffer,256,"%g %g %g %g %g %g %g",
-            pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
-   return returnBuffer;
+   return ConsoleValueList::from(pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
 }
 
 ConsoleMethod( SceneObject, getPosition, const char*, 2, 2, "Get position of object.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const MatrixF& mat = object->getTransform();
    Point3F pos;
    mat.getColumn(3,&pos);
-   dSprintf(returnBuffer,256,"%g %g %g",pos.x,pos.y,pos.z);
-   return returnBuffer;
+   return ConsoleValueList::from(pos.x,pos.y,pos.z);
 }
 
 ConsoleMethod(SceneObject, objectToWorld, const char*, 3, 3, "(Transform T) - Transform object matrix to world coordinates")
 {
     Point3F pos;
     AngAxisF aa;
-    dSscanf(argv[2], "%g %g %g %g %g %g %g",
-        &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+    if (argv[2].isList()) {
+        pos = argv[2].getPoint3F(); aa = argv[2].getPoint4F(3);
+    } else
+        dSscanf(argv[2].toString(), "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
 
     MatrixF tmat(true);
     aa.setMatrix(&tmat);
@@ -73,20 +70,19 @@ ConsoleMethod(SceneObject, objectToWorld, const char*, 3, 3, "(Transform T) - Tr
     const MatrixF& mat = object->getTransform();
     tmat.mul(mat, tmat);    // yes it really all boils down to this line.
 
-    char* returnBuffer = Con::getReturnBuffer(256);
     tmat.getColumn(3, &pos);
     aa = AngAxisF(tmat);
-    dSprintf(returnBuffer, 256, "%g %g %g %g %g %g %g",
-        pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
-    return returnBuffer;
+    return ConsoleValueList::from(pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
 }
 
 ConsoleMethod(SceneObject, worldToObject, const char*, 3, 3, "(Transform T) - Transform world matrix to object coordinates")
 {
     Point3F pos;
     AngAxisF aa;
-    dSscanf(argv[2], "%g %g %g %g %g %g %g",
-        &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+    if (argv[2].isList()) {
+        pos = argv[2].getPoint3F(); aa = argv[2].getPoint4F(3);
+    } else
+        dSscanf(argv[2].toString(), "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
 
     MatrixF tmat(true);
     aa.setMatrix(&tmat);
@@ -94,42 +90,33 @@ ConsoleMethod(SceneObject, worldToObject, const char*, 3, 3, "(Transform T) - Tr
     const MatrixF& mat = object->getWorldTransform();
     tmat.mul(mat, tmat);
 
-    char* returnBuffer = Con::getReturnBuffer(256);
     tmat.getColumn(3, &pos);
     aa = AngAxisF(tmat);
-    dSprintf(returnBuffer, 256, "%g %g %g %g %g %g %g",
-        pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
-    return returnBuffer;
+    return ConsoleValueList::from(pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
 }
 
 ConsoleMethod(SceneObject, getRightVector, const char*, 2, 2, "Returns a vector indicating the right vector of this object.")
 {
-    char* returnBuffer = Con::getReturnBuffer(256);
     const MatrixF& mat = object->getTransform();
     Point3F dir;
     mat.getColumn(0, &dir);
-    dSprintf(returnBuffer, 256, "%g %g %g", dir.x, dir.y, dir.z);
-    return returnBuffer;
+    return ConsoleValueList::from(dir.x, dir.y, dir.z);
 }
 
 ConsoleMethod( SceneObject, getForwardVector, const char*, 2, 2, "Returns a vector indicating the direction this object is facing.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const MatrixF& mat = object->getTransform();
    Point3F dir;
    mat.getColumn(1,&dir);
-   dSprintf(returnBuffer,256,"%g %g %g",dir.x,dir.y,dir.z);
-   return returnBuffer;
+   return ConsoleValueList::from(dir.x, dir.y, dir.z);
 }
 
 ConsoleMethod(SceneObject, getUpVector, const char*, 2, 2, "Returns a vector indicating the up vector of this object.")
 {
-    char* returnBuffer = Con::getReturnBuffer(256);
     const MatrixF& mat = object->getTransform();
     Point3F dir;
     mat.getColumn(2, &dir);
-    dSprintf(returnBuffer, 256, "%g %g %g", dir.x, dir.y, dir.z);
-    return returnBuffer;
+    return ConsoleValueList::from(dir.x, dir.y, dir.z);
 }
 
 ConsoleMethod( SceneObject, setTransform, void, 3, 3, "(Transform T)")
@@ -138,9 +125,10 @@ ConsoleMethod( SceneObject, setTransform, void, 3, 3, "(Transform T)")
    const MatrixF& tmat = object->getTransform();
    tmat.getColumn(3,&pos);
    AngAxisF aa(tmat);
-
-   dSscanf(argv[2],"%g %g %g %g %g %g %g",
-           &pos.x,&pos.y,&pos.z,&aa.axis.x,&aa.axis.y,&aa.axis.z,&aa.angle);
+   if (argv[2].isList()) {
+       pos = argv[2].getPoint3F(); aa = argv[2].getPoint4F(3);
+   } else
+       dSscanf(argv[2].toString(), "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
 
    MatrixF mat;
    aa.setMatrix(&mat);
@@ -150,58 +138,40 @@ ConsoleMethod( SceneObject, setTransform, void, 3, 3, "(Transform T)")
 
 ConsoleMethod( SceneObject, getScale, const char*, 2, 2, "Get scaling as a Point3F.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const VectorF & scale = object->getScale();
-   dSprintf(returnBuffer, 256, "%g %g %g",
-            scale.x, scale.y, scale.z);
-   return(returnBuffer);
+   return ConsoleValueList::from(scale.x, scale.y, scale.z);
 }
 
 ConsoleMethod( SceneObject, setScale, void, 3, 3, "(Point3F scale)")
 {
-   //VectorF scale(0.f,0.f,0.f);
-   //dSscanf(argv[2], "%g %g %g", &scale.x, &scale.y, &scale.z);
-   object->setScale(argv[2]);
+   object->setScale(argv[2].getPoint3F());
 }
 
 ConsoleMethod( SceneObject, getWorldBox, const char*, 2, 2, "Returns six fields, two Point3Fs, containing the min and max points of the worldbox.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const Box3F& box = object->getWorldBox();
-   dSprintf(returnBuffer,256,"%g %g %g %g %g %g",
-            box.min.x, box.min.y, box.min.z,
-            box.max.x, box.max.y, box.max.z);
-   return returnBuffer;
+   return ConsoleValueList::from(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
 }
 
 ConsoleMethod( SceneObject, getWorldBoxCenter, const char*, 2, 2, "Returns the center of the world bounding box.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const Box3F& box = object->getWorldBox();
    Point3F center;
    box.getCenter(&center);
-
-   dSprintf(returnBuffer,256,"%g %g %g", center.x, center.y, center.z);
-   return returnBuffer;
+   return ConsoleValueList::from(center.x, center.y, center.z);
 }
 
 ConsoleMethod( SceneObject, getObjectBox, const char *, 2, 2, "Returns the bounding box relative to the object's origin.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
    const Box3F& box = object->getObjBox();
-   dSprintf(returnBuffer,256,"%g %g %g %g %g %g",
-            box.min.x, box.min.y, box.min.z,
-            box.max.x, box.max.y, box.max.z);
-   return returnBuffer;
+   return ConsoleValueList::from(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
 }
 
 ConsoleMethod(SceneObject, getObjectBoxSize, const char*, 2, 2, "Returns the size of the bounding box for all axes in object coords.")
 {
-    char* returnBuffer = Con::getReturnBuffer(256);
     const Box3F& box = object->getObjBox();
     const Point3F diff = box.min + box.max;
-    dSprintf(returnBuffer, 256, "%g %g %g", diff.x, diff.y, diff.z);
-    return returnBuffer;
+    return ConsoleValueList::from(diff.x, diff.y, diff.z);
 }
 
 ConsoleFunctionGroupBegin( Containers,  "Functions for ray casting and spatial queries.\n\n"
@@ -217,12 +187,12 @@ ConsoleFunction(containerBoxEmpty, bool, 4, 6, "(bitset mask, Point3F center, fl
                "@param  yRadius See above.\n"
                "@param  zRadius See above.")
 {
-   Point3F  center(argv[2]);
+   Point3F  center = argv[2].getPoint3F();
    Point3F  extent;
-   U32      mask = dAtoi(argv[1]);
-   extent.x = dAtof(argv[3]);
-   extent.y = argc > 4 ? dAtof(argv[4]) : extent.x;
-   extent.z = argc > 5 ? dAtof(argv[5]) : extent.x;
+   U32      mask = argv[1].getInt();
+   extent.x = argv[3].getNumber();
+   extent.y = argc > 4 ? argv[4].getNumber() : extent.x;
+   extent.z = argc > 5 ? argv[5].getNumber() : extent.x;
 
    Box3F    B(center - extent, center + extent, true);
 
@@ -235,16 +205,12 @@ ConsoleFunction(containerBoxEmpty, bool, 4, 6, "(bitset mask, Point3F center, fl
 ConsoleFunction( initContainerRadiusSearch, void, 4, 4, "(Point3F pos, float radius, bitset mask)"
                 "Start a search for items within radius of pos, filtering by bitset mask.")
 {
-   Point3F point(argv[1]);
-   F32 r = dAtof(argv[2]);
-   U32 mask = dAtoi(argv[3]);
-
-   gServerContainer.initRadiusSearch(point, r, mask);
+   gServerContainer.initRadiusSearch(argv[1].getPoint3F(), argv[2].getNumber(), argv[3].getInt());
 }
 
 ConsoleFunction( containerSearchNext, S32, 1, 1, "Get next item from a search started with initContainerRadiusSearch.")
 {
-   return gServerContainer.containerSearchNext();
+   return (S64) gServerContainer.containerSearchNext();
 }
 
 ConsoleFunction( containerSearchCurrDist, F32, 1, 1, "Get distance of the center of the current item from the center of the current initContainerRadiusSearch.")
@@ -266,13 +232,13 @@ ConsoleFunction( containerRayCast, const char*, 4, 5, "( Point3F start, Point3F 
                 "            - The x, y, z position that it was struck.\n"
                 "            - The x, y, z of the normal of the face that was struck.")
 {
-   char *returnBuffer = Con::getReturnBuffer(256);
-   Point3F start(argv[1]), end(argv[2]);
-   U32 mask = dAtoi(argv[3]);
+   Point3F start = argv[1].getPoint3F();
+   Point3F end = argv[2].getPoint3F();
+   U32 mask = argv[3].getInt();
 
    SceneObject* pExempt = NULL;
    if (argc > 4) {
-      U32 exemptId = dAtoi(argv[4]);
+      U32 exemptId = argv[4].getInt();
       Sim::findObject(exemptId, pExempt);
    }
    if (pExempt)
@@ -289,17 +255,10 @@ ConsoleFunction( containerRayCast, const char*, 4, 5, "( Point3F start, Point3F 
    // add the hit position and normal?
    if(ret)
    {
-      dSprintf(returnBuffer, 256, "%zu %g %g %g %g %g %g",
-               ret, rinfo.point.x, rinfo.point.y, rinfo.point.z,
-               rinfo.normal.x, rinfo.normal.y, rinfo.normal.z);
+       return ConsoleValueList::from(ret, rinfo.point.x, rinfo.point.y, rinfo.point.z,
+           rinfo.normal.x, rinfo.normal.y, rinfo.normal.z);
    }
-   else
-   {
-      returnBuffer[0] = '0';
-      returnBuffer[1] = '\0';
-   }
-
-   return(returnBuffer);
+   return "";
 }
 
 ConsoleFunctionGroupEnd( Containers );
