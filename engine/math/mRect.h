@@ -19,6 +19,7 @@ class RectI
 
   public:
    RectI() { }
+   RectI(const Point4F& point);
    RectI(const Point2I& in_rMin,
          const Point2I& in_rExtent);
    RectI(const S32 in_left,  const S32 in_top,
@@ -53,6 +54,7 @@ class RectF
 
   public:
    RectF() { }
+   RectF(const Point4F& point);
    RectF(const Point2F& in_rMin,
          const Point2F& in_rExtent);
    RectF(const F32 in_left,  const F32 in_top,
@@ -75,6 +77,7 @@ class RectD
 
   public:
    RectD() { }
+   RectD(const Point4F& point);
    RectD(const Point2D& in_rMin,
          const Point2D& in_rExtent);
    RectD(const F64 in_left,  const F64 in_top,
@@ -91,6 +94,14 @@ class RectD
 //------------------------------------------------------------------------------
 //-------------------------------------- INLINES (RectI)
 //
+inline
+RectI::RectI(const Point4F& point)
+    : point(point.x, point.y),
+      extent(point.z, point.w)
+{
+    //
+}
+
 inline
 RectI::RectI(const Point2I& in_rMin,
              const Point2I& in_rExtent)
@@ -222,6 +233,14 @@ RectI::operator!=(const RectI& in_rCompare) const
 //-------------------------------------- INLINES (RectF)
 //
 inline
+RectF::RectF(const Point4F& point)
+    : point(point.x, point.y),
+      extent(point.z, point.w)
+{
+    //
+}
+
+inline
 RectF::RectF(const Point2F& in_rMin,
              const Point2F& in_rExtent)
  : point(in_rMin),
@@ -277,6 +296,14 @@ inline bool RectF::overlaps(const RectF& clipRect) const
 //------------------------------------------------------------------------------
 //-------------------------------------- INLINES (RectD)
 //
+inline
+RectD::RectD(const Point4F& point)
+    : point(point.x, point.y),
+      extent(point.z, point.w)
+{
+    //
+}
+
 inline
 RectD::RectD(const Point2D& in_rMin,
              const Point2D& in_rExtent)
