@@ -380,9 +380,9 @@ ConsoleFunction(saveChunkFile, bool, 3, 3, "(SimChunk chunk, Filename file)"
                 "Write a chunk hierarchy to a file.")
 {
    SimChunk *rootChunk = NULL;
-   const char *file = argv[2];
+   const char *file = argv[2].toString();
 
-   if(!Sim::findObject(argv[1], rootChunk))
+   if(!Sim::findObject(argv[1].toString(), rootChunk))
    {
       Con::errorf("writeChunkFile - Unable to locate root chunk '%s'", argv[1]);
       return false;
@@ -408,7 +408,7 @@ ConsoleFunction(saveChunkFile, bool, 3, 3, "(SimChunk chunk, Filename file)"
 ConsoleFunction(loadChunkFile, S32, 2, 2, "(Filename file)"
                 "Read a chunk hierarchy from a file.")
 {
-   Resource<ChunkFile> ri = ResourceManager->load(argv[1]);
+   Resource<ChunkFile> ri = ResourceManager->load(argv[1].toString());
 
    if(bool(ri) == false)
    {
@@ -417,5 +417,5 @@ ConsoleFunction(loadChunkFile, S32, 2, 2, "(Filename file)"
    }
 
    // Otherwise we're ok.
-   return ri->getRoot()->getId();
+   return (S64) ri->getRoot()->getId();
 }
