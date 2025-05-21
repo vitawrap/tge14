@@ -268,7 +268,7 @@ void Path::removeObject(SimObject* obj)
 
 ConsoleMethod(Path,getPathId,S32,2, 2,"getPathId();")
 {
-   return object->getPathIndex();
+   return (S64) object->getPathIndex();
 }
 
 
