@@ -156,7 +156,7 @@ ConsoleFunction(alGetString, const char *, 2, 2, "(string item)\n\n"
                 "This wraps alGetString().")
 {
    argc;
-   ALenum e = getEnum(argv[1], (Context|Get));
+   ALenum e = getEnum(argv[1].toString(), (Context | Get));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "alGetString: invalid enum name '%s'", argv[1]);
@@ -174,10 +174,10 @@ ConsoleFunction(alxGetWaveLen, S32, 2, 2, "(string filename)\n\n"
                 "@param filename File to determine length of.\n"
                 "@returns Length in milliseconds.")
 {
-   Resource<AudioBuffer> buffer = AudioBuffer::find(argv[1]);
+   Resource<AudioBuffer> buffer = AudioBuffer::find(argv[1].toString());
    if (bool(buffer)) {
       ALuint alBuffer = buffer->getALBuffer();
-      return alxGetWaveLen(alBuffer);
+      return (S64) alxGetWaveLen(alBuffer);
    }
    else {
       return 0;
@@ -194,10 +194,10 @@ ConsoleFunction(alxCreateSource, S32, 2, 6,
                      "(description, filename, x,y,z)")
 {
    AudioDescription *description = NULL;
-   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1] ) );
+   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1].toString() ) );
    if (profile == NULL)
    {
-      description = dynamic_cast<AudioDescription*>( Sim::findObject( argv[1] ) );
+      description = dynamic_cast<AudioDescription*>( Sim::findObject( argv[1].toString() ) );
       if (description == NULL)
       {
          Con::printf("Unable to locate audio profile/description '%s'", argv[1]);
@@ -208,22 +208,22 @@ ConsoleFunction(alxCreateSource, S32, 2, 6,
    if (profile)
    {
       if (argc == 2)
-         return alxCreateSource(profile);
+         return (S64) alxCreateSource(profile);
 
       MatrixF transform;
-      transform.set(EulerF(0,0,0), Point3F( dAtof(argv[2]),dAtof(argv[3]),dAtof(argv[4]) ));
-      return alxCreateSource(profile, &transform);
+      transform.set(EulerF(0,0,0), Point3F( argv[2].getNumber(), argv[3].getNumber(), argv[4].getNumber()));
+      return (S64) alxCreateSource(profile, &transform);
    }
 
    if (description)
    {
 
       if (argc == 3)
-         return alxCreateSource(description, argv[2]);
+         return (S64) alxCreateSource(description, argv[2].toString());
 
       MatrixF transform;
-      transform.set(EulerF(0,0,0), Point3F( dAtof(argv[3]),dAtof(argv[4]),dAtof(argv[5]) ));
-      return alxCreateSource(description, argv[2], &transform);
+      transform.set(EulerF(0,0,0), Point3F( argv[3].getNumber(), argv[4].getNumber(), argv[5].getNumber()));
+      return (S64) alxCreateSource(description, argv[2].toString(), &transform);
    }
 
    return NULL_AUDIOHANDLE;
@@ -233,14 +233,14 @@ ConsoleFunction(alxCreateSource, S32, 2, 6,
 //-----------------------------------------------
 ConsoleFunction(alxSourcef, void, 4, 4, "(handle, ALenum, value)")
 {
-   ALenum e = getEnum(argv[2], (Source|Set|Float));
+   ALenum e = getEnum(argv[2].toString(), (Source | Set | Float));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "cAudio_alxSourcef: invalid enum name '%s'", argv[2]);
       return;
    }
 
-   alxSourcef(dAtoi(argv[1]), e, dAtof(argv[3]));
+   alxSourcef(argv[1].getInt(), e, argv[3].getNumber());
 }
 
 
@@ -249,7 +249,7 @@ ConsoleFunction(alxSource3f, void, 3, 6, "(handle, ALenum, x, y, z)\n\n"
                 "@note You can replace the last three parameters with a string, "
                 "\"x y z\"")
 {
-   ALenum e = getEnum(argv[2], (Source|Set|Float3));
+   ALenum e = getEnum(argv[2].toString(), (Source | Set | Float3));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "cAudio_alxSource3f: invalid enum name '%s'", argv[2]);
@@ -264,37 +264,37 @@ ConsoleFunction(alxSource3f, void, 3, 6, "(handle, ALenum, x, y, z)\n\n"
 
    Point3F pos;
    if (argc == 4)
-       pos = argv[3];
+       pos = argv[3].getPoint3F();
       //dSscanf(argv[3], "%g %g %g", &pos.x, &pos.y, &pos.z);
    else
    {
-      pos.x = dAtof(argv[3]);
-      pos.y = dAtof(argv[4]);
-      pos.z = dAtof(argv[5]);
+      pos.x = argv[3].getNumber();
+      pos.y = argv[4].getNumber();
+      pos.z = argv[5].getNumber();
    }
 
-   alxSource3f(dAtoi(argv[1]), e, pos.x, pos.y, pos.z);
+   alxSource3f(argv[1].getInt(), e, pos.x, pos.y, pos.z);
 }
 
 
 //-----------------------------------------------
 ConsoleFunction(alxSourcei, void, 4, 4, "(handle, ALenum, value)")
 {
-   ALenum e = getEnum(argv[2], (Source|Set|Int));
+   ALenum e = getEnum(argv[2].toString(), (Source | Set | Int));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "cAudio_alxSourcei: invalid enum name '%s'", argv[2]);
       return;
    }
 
-   alxSourcei(dAtoi(argv[1]), e, dAtoi(argv[3]));
+   alxSourcei(argv[1].getInt(), e, argv[3].getInt());
 }
 
 
 //-----------------------------------------------
 ConsoleFunction(alxGetSourcef, F32, 3, 3, "(handle, ALenum)")
 {
-   ALenum e = getEnum(argv[2], (Source|Get|Float));
+   ALenum e = getEnum(argv[2].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSourcef: invalid enum name '%s'", argv[2]);
@@ -302,7 +302,7 @@ ConsoleFunction(alxGetSourcef, F32, 3, 3, "(handle, ALenum)")
    }
 
    F32 value;
-   alxGetSourcef(dAtoi(argv[1]), e, &value);
+   alxGetSourcef(argv[1].getInt(), e, &value);
    return(value);
 }
 
@@ -310,26 +310,23 @@ ConsoleFunction(alxGetSourcef, F32, 3, 3, "(handle, ALenum)")
 //-----------------------------------------------
 ConsoleFunction(alxGetSource3f, const char *, 3, 3, "(handle, ALenum)" )
 {
-   ALenum e = getEnum(argv[2], (Source|Get|Float));
+   ALenum e = getEnum(argv[2].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSource3f: invalid enum name '%s'", argv[2]);
-      return("0 0 0");
+      return ConsoleValueList::from(0.0, 0.0, 0.0);
    }
 
    F32 value1, value2, value3;
-   alxGetSource3f(dAtoi(argv[1]), e, &value1, &value2, &value3);
-
-   char * ret = Con::getReturnBuffer(64);
-   dSprintf(ret, 64, "%7.3f %7.3 %7.3", value1, value2, value3);
-   return(ret);
+   alxGetSource3f(argv[1].getInt(), e, &value1, &value2, &value3);
+   return ConsoleValueList::from(value1, value2, value3);
 }
 
 
 //-----------------------------------------------
 ConsoleFunction(alxGetSourcei, S32, 3, 3, "(handle, ALenum)")
 {
-   ALenum e = getEnum(argv[2], (Source|Get|Int));
+   ALenum e = getEnum(argv[2].toString(), (Source | Get | Int));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSourcei: invalid enum name '%s'", argv[2]);
@@ -337,7 +334,7 @@ ConsoleFunction(alxGetSourcei, S32, 3, 3, "(handle, ALenum)")
    }
 
    S32 value;
-   alxGetSourcei(dAtoi(argv[1]), e, &value);
+   alxGetSourcei(argv[1].getInt(), e, &value);
    return(value);
 }
 
@@ -347,12 +344,12 @@ ConsoleFunction(alxPlay, S32, 2, 5, "alxPlay(handle) or "
                  "alxPlay(profile) or "
                  "alxPlay(profile, x,y,z)")
 {
-   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1] ) );
+   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1].toString() ) );
    if (argc == 2 && profile == NULL)
    {
-      AUDIOHANDLE handle = dAtoi(argv[1]);  // Then it MUST be a handle.
+      AUDIOHANDLE handle = argv[1].getInt();  // Then it MUST be a handle.
       if (handle != 0)
-         return alxPlay(handle);
+         return (S64) alxPlay(handle);
    }
    if (profile == NULL)
    {
@@ -362,21 +359,21 @@ ConsoleFunction(alxPlay, S32, 2, 5, "alxPlay(handle) or "
 
    Point3F pos;
    if (argc == 3)
-       pos = argv[2];
+       pos = argv[2].getPoint3F();
        //dSscanf(argv[2], "%g %g %g", &pos.x, &pos.y, &pos.z);
    else if(argc == 5)
-      pos.set(dAtof(argv[2]), dAtof(argv[3]), dAtof(argv[4]));
+      pos.set(argv[2].getNumber(), argv[3].getNumber(), argv[4].getNumber());
 
    MatrixF transform;
    transform.set(EulerF(0,0,0), pos);
 
-   return alxPlay(profile, &transform, NULL);
+   return (S64) alxPlay(profile, &transform, NULL);
 }
 
 //-----------------------------------------------
 ConsoleFunction(alxStop, void, 2, 2, "(int handle)")
 {
-   AUDIOHANDLE handle = dAtoi(argv[1]);
+   AUDIOHANDLE handle = argv[1].getInt();
    if(handle == NULL_AUDIOHANDLE)
       return;
    alxStop(handle);
@@ -397,7 +394,7 @@ ConsoleFunction(alxStopAllExceptBlended, void, 1, 1, "() - Stop all sources exce
 //-----------------------------------------------
 ConsoleFunction(alxIsPlaying, bool, 2, 5, "alxIsPlaying(handle)")
 {
-   AUDIOHANDLE handle = dAtoi(argv[1]);
+   AUDIOHANDLE handle = argv[1].getInt();
    if(handle == NULL_AUDIOHANDLE)
       return false;
    return alxIsPlaying(handle);
@@ -409,14 +406,14 @@ ConsoleFunction(alxIsPlaying, bool, 2, 5, "alxIsPlaying(handle)")
 //--------------------------------------------------------------------------
 ConsoleFunction(alxListenerf, void, 3, 3, "alxListener(ALenum, value)")
 {
-   ALenum e = getEnum(argv[1], (Listener|Set|Float));
+   ALenum e = getEnum(argv[1].toString(), (Listener | Set | Float));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "alxListenerf: invalid enum name '%s'", argv[1]);
       return;
    }
 
-   alxListenerf(e, dAtof(argv[2]));
+   alxListenerf(e, argv[2].getNumber());
 }
 
 
@@ -424,7 +421,7 @@ ConsoleFunction(alxListenerf, void, 3, 3, "alxListener(ALenum, value)")
 ConsoleFunction(alListener3f, void, 3, 5, "alListener3f(ALenum, \"x y z\") or "
                                            "alListener3f(ALenum, x, y, z)")
 {
-   ALenum e = getEnum(argv[1], (Listener|Set|Float3));
+   ALenum e = getEnum(argv[1].toString(), (Listener | Set | Float3));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "alListener3f: invalid enum name '%s'", argv[1]);
@@ -439,13 +436,13 @@ ConsoleFunction(alListener3f, void, 3, 5, "alListener3f(ALenum, \"x y z\") or "
 
    Point3F pos;
    if (argc == 3)
-       pos = argv[2];
+       pos = argv[2].getPoint3F();
        //dSscanf(argv[2], "%g %g %g", &pos.x, &pos.y, &pos.z);
    else
    {
-      pos.x = dAtof(argv[2]);
-      pos.y = dAtof(argv[3]);
-      pos.z = dAtof(argv[4]);
+      pos.x = argv[2].getNumber();
+      pos.y = argv[3].getNumber();
+      pos.z = argv[4].getNumber();
    }
 
    alListener3f(e, pos.x, pos.y, pos.z);
@@ -455,7 +452,7 @@ ConsoleFunction(alListener3f, void, 3, 5, "alListener3f(ALenum, \"x y z\") or "
 //-----------------------------------------------
 ConsoleFunction(alxGetListenerf, F32, 2, 2, "alxGetListenerf(Alenum)")
 {
-   ALenum e = getEnum(argv[1], (Source|Get|Float));
+   ALenum e = getEnum(argv[1].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "alxGetListenerf: invalid enum name '%s'", argv[1]);
@@ -471,26 +468,23 @@ ConsoleFunction(alxGetListenerf, F32, 2, 2, "alxGetListenerf(Alenum)")
 //-----------------------------------------------
 ConsoleFunction(alGetListener3f, const char *, 2, 2, "alGetListener3f(Alenum)")
 {
-   ALenum e = getEnum(argv[2], (Source|Get|Float));
+   ALenum e = getEnum(argv[2].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "alGetListener3f: invalid enum name '%s'", argv[1]);
-      return("0 0 0");
+      return ConsoleValueList::from(0.0, 0.0, 0.0);
    }
 
    F32 value1, value2, value3;
    alGetListener3f(e, &value1, &value2, &value3);
-
-   char * ret = Con::getReturnBuffer(64);
-   dSprintf(ret, 64, "%7.3f %7.3 %7.3", value1, value2, value3);
-   return(ret);
+   return ConsoleValueList::from(value1, value2, value3);
 }
 
 
 //-----------------------------------------------
 ConsoleFunction(alGetListeneri, S32, 2, 2, "alGetListeneri(Alenum)")
 {
-   ALenum e = getEnum(argv[1], (Source|Get|Int));
+   ALenum e = getEnum(argv[1].toString(), (Source | Get | Int));
    if(e == AL_INVALID)
    {
       Con::errorf(ConsoleLogEntry::General, "alGetListeneri: invalid enum name '%s'", argv[1]);
@@ -510,10 +504,10 @@ ConsoleFunction(alxGetChannelVolume, F32, 2, 2, "(int channel_id)\n\n"
                 "@param  channel_id  ID of channel to fetch volume from.\n"
                 "@return Volume of channel.")
 {
-   U32 type = dAtoi(argv[1]);
+   U32 type = argv[1].getInt();
    if(type >= Audio::NumAudioTypes)
    {
-      Con::errorf(ConsoleLogEntry::General, "alxGetChannelVolume: invalid channel '%d'", dAtoi(argv[1]));
+      Con::errorf(ConsoleLogEntry::General, "alxGetChannelVolume: invalid channel '%d'", argv[1].getInt());
       return(0.f);
    }
 
@@ -526,12 +520,12 @@ ConsoleFunction(alxSetChannelVolume, bool, 3, 3, "(int channel_id, float volume)
                 "@param volume      New volume of channel, from 0.0f-1.0f"
                 )
 {
-   U32 type = dAtoi(argv[1]);
-   F32 volume = mClampF(dAtof(argv[2]), 0.f, 1.f);
+   U32 type = argv[1].getInt();
+   F32 volume = mClampF(argv[2].getNumber(), 0.f, 1.f);
 
    if(type >= Audio::NumAudioTypes)
    {
-      Con::errorf(ConsoleLogEntry::General, "alxSetChannelVolume: channel '%d' out of range [0, %d]", dAtoi(argv[1]), Audio::NumAudioTypes);
+      Con::errorf(ConsoleLogEntry::General, "alxSetChannelVolume: channel '%d' out of range [0, %d]", argv[1].getInt(), Audio::NumAudioTypes);
       return false;
    }
 
@@ -543,7 +537,7 @@ ConsoleFunction(alxSetChannelVolume, bool, 3, 3, "(int channel_id, float volume)
 //-----------------------------------------------
 ConsoleFunction(alxGetStreamPosition, F32, 2, 2, "alxGetStreamPosition(handle)" )
 {
-   AUDIOHANDLE handle = dAtoi(argv[1]);
+   AUDIOHANDLE handle = argv[1].getInt();
 
    if(handle == NULL_AUDIOHANDLE)
       return -1;
@@ -554,7 +548,7 @@ ConsoleFunction(alxGetStreamPosition, F32, 2, 2, "alxGetStreamPosition(handle)" 
 //-----------------------------------------------
 ConsoleFunction(alxGetStreamDuration, F32, 2, 2, "alxGetStreamDuration(handle)" )
 {
-   AUDIOHANDLE handle = dAtoi(argv[1]);
+   AUDIOHANDLE handle = argv[1].getInt();
 
    if(handle == NULL_AUDIOHANDLE)
       return -1;
