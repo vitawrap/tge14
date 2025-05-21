@@ -356,6 +356,9 @@ public:
 			constructInPlace(&operator[](i), &lcv[i]);
 	}
 
+	ConsoleValue& at(S32 index) { return (*this)[index]; }
+	ConsoleValue const& at(S32 index) const { return (*this)[index]; }
+
 	// SHADOW METHODS! NEVER USE DYNAMICALLY FROM BASE CLASS!
 
 	void clear() {
