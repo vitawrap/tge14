@@ -325,6 +325,17 @@ public:
 	S32 serialize(char* out, S32 size);
 
 	// More specific conversions
+	Point2F getPoint2F() {
+		if (isList())
+			return Point2F(
+				getListValueDefU(0, 0.0).getNumber(),
+				getListValueDefU(1, 0.0).getNumber()
+			);
+		Point2F ret;
+		dSscanf(toString(), "%g %g", &ret.x, &ret.y);
+		return ret;
+	}
+
 	Point3F getPoint3F() {
 		if (isList())
 			return Point3F(
@@ -333,6 +344,19 @@ public:
 				getListValueDefU(2, 0.0).getNumber()
 			);
 		else return Point3F(toString());
+	}
+
+	Point4F getPoint4F() {
+		if (isList())
+			return Point4F(
+				getListValueDefU(0, 0.0).getNumber(),
+				getListValueDefU(1, 0.0).getNumber(),
+				getListValueDefU(2, 0.0).getNumber(),
+				getListValueDefU(3, 0.0).getNumber()
+			);
+		Point4F ret;
+		dSscanf(toString(), "%g %g %g %g", &ret.x, &ret.y, &ret.z, &ret.w);
+		return ret;
 	}
 };
 
