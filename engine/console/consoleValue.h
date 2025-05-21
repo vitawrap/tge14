@@ -21,7 +21,6 @@
 #define CONVALUE_SSO_SIZE 16
 
 // Construct a null console value.
-// (The default constructor makes a list.)
 #define CONVALUE_NULL (ConsoleValue(""))
 
 // Lazy console value string conversion
@@ -217,12 +216,17 @@ public:
 		: type(TypeFloat)
 	{ f = val; }
 
-	ConsoleValue(ConsoleValueList* lcv = NULL)
+	ConsoleValue(ConsoleValueList* lcv)
 		: type(TypeValueList)
 	{
 		if (lcv)	copyList(lcv);
 		else		list = new ConsoleValueList;
 	}
+
+	// Default construct to null string
+	ConsoleValue()
+		: type(TypeString)
+	{ str.length = 0; }
 
 	void clearValue() { clear(true); }
 

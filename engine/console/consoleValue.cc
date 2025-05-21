@@ -126,7 +126,7 @@ S32 ConsoleValue::toString(char* out, S32 size) const {
 }
 
 S32 ConsoleValue::serialize(char* out, S32 size) {
-	ConsoleValue strBuf("");
+	ConsoleValue strBuf;
 	switch (type) {
 	case TypeInt:
 		dSprintf(stringConv, stringCSize, "%d", i);

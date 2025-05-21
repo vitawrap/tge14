@@ -112,7 +112,7 @@ ConsoleFunction(rtrim, const char *,2,2,"(string value)")
          firstWhitespace = pos + 1;
       pos++;
    }
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(str, firstWhitespace);
    return ret;
 }
@@ -132,7 +132,7 @@ ConsoleFunction(trim, const char *,2,2,"(string)")
          firstWhitespace = pos + 1;
       pos++;
    }
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(ptr, firstWhitespace);
    return ret;
 }
@@ -266,7 +266,7 @@ ConsoleFunction(getSubStr, const char *, 4, 4, "getSubStr(string str, int start,
    if (startPos + desiredLen > baseLen)
       actualLen = baseLen - startPos;
 
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(argv[1].toString() + startPos, actualLen);
    return ret;
 }
@@ -284,7 +284,7 @@ ConsoleFunction( stripTrailingSpaces, const char*, 2, 2, "stripTrailingSpaces( s
 
       if ( temp )
       {
-         ConsoleValue ret("");
+         ConsoleValue ret;
          ret.concatStringU( string, temp );
          return( ret );
       }
@@ -376,7 +376,7 @@ static ConsoleValue setUnit(const char *string, U32 index, const char *replace, 
 {
    U32 sz;
    const char *start = string;
-   ConsoleValue ret("");
+   ConsoleValue ret;
    U32 padCount = 0;
 
    while(index--)
@@ -415,7 +415,7 @@ static ConsoleValue removeUnit(const char *string, U32 index, const char *set)
 {
    U32 sz;
    const char *start = string;
-   ConsoleValue ret("");
+   ConsoleValue ret;
 
    while(index--)
    {
@@ -452,7 +452,7 @@ ConsoleFunction(getWord, const char *, 3, 3, "(string text, int index)")
 {
    argc;
    auto pair = getUnit(argv[1].toString(), argv[2].getInt(), " \t\n");
-   ConsoleValue ret("");
+   ConsoleValue ret;
    if (pair.start)
        ret.concatStringU(pair.start, pair.length);
    return ret;
@@ -466,7 +466,7 @@ ConsoleFunction(getWords, const char *, 3, 4, "(string text, int index, int endI
    else
       endIndex = argv[3].getInt();
    auto pair = getUnits(argv[1].toString(), argv[2].getInt(), endIndex, " \t\n");
-   ConsoleValue ret("");
+   ConsoleValue ret;
    if (pair.start)
        ret.concatStringU(pair.start, pair.length);
    return ret;
@@ -495,7 +495,7 @@ ConsoleFunction(getField, const char *, 3, 3, "getField(text, index)")
 {
    argc;
    auto pair = getUnit(argv[1].toString(), argv[2].getInt(), "\t\n");
-   ConsoleValue ret("");
+   ConsoleValue ret;
    if (pair.start)
        ret.concatStringU(pair.start, pair.length);
    return ret;
@@ -509,7 +509,7 @@ ConsoleFunction(getFields, const char *, 3, 4, "getFields(text, index [,endIndex
    else
       endIndex = argv[3].getInt();
    auto pair = getUnits(argv[1].toString(), argv[2].getInt(), endIndex, "\t\n");
-   ConsoleValue ret("");
+   ConsoleValue ret;
    if (pair.start)
        ret.concatStringU(pair.start, pair.length);
    return ret;
@@ -538,7 +538,7 @@ ConsoleFunction(getRecord, const char *, 3, 3, "getRecord(text, index)")
 {
    argc;
    auto pair = getUnit(argv[1].toString(), argv[2].getInt(), "\n");
-   ConsoleValue ret("");
+   ConsoleValue ret;
    if (pair.start)
        ret.concatStringU(pair.start, pair.length);
    return ret;
@@ -552,7 +552,7 @@ ConsoleFunction(getRecords, const char *, 3, 4, "getRecords(text, index [,endInd
    else
       endIndex = argv[3].getInt();
    auto pair = getUnits(argv[1].toString(), argv[2].getInt(), endIndex, "\n");
-   ConsoleValue ret("");
+   ConsoleValue ret;
    if (pair.start)
        ret.concatStringU(pair.start, pair.length);
    return ret;
@@ -586,7 +586,7 @@ ConsoleFunction(firstWord, const char *, 2, 2, "firstWord(text)")
       len = argv[1].getStrlen();
    else
       len = word - string;
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(string, len);
    return ret;
 }
@@ -685,7 +685,7 @@ ConsoleFunction(getTag, const char *, 2, 2, "getTag(textTagString)")
       else
          len = dStrlen(string) + 1;
 
-      ConsoleValue ret("");
+      ConsoleValue ret;
       ret.concatStringU(string + 1, len - 1);
       return ret;
    }
@@ -701,7 +701,7 @@ ConsoleFunctionGroupBegin( Output, "Functions to output to the console." );
 
 ConsoleFunction(echo, void, 2, 0, "echo(text [, ... ])")
 {
-   ConsoleValue ret("");
+   ConsoleValue ret;
    for (S64 i = 1; i < argc; i++)
        ret.concatU(argv[i]);
 
@@ -710,7 +710,7 @@ ConsoleFunction(echo, void, 2, 0, "echo(text [, ... ])")
 
 ConsoleFunction(warn, void, 2, 0, "warn(text [, ... ])")
 {
-   ConsoleValue ret("");
+   ConsoleValue ret;
    for (S64 i = 1; i < argc; i++)
        ret.concatU(argv[i]);
 
@@ -719,7 +719,7 @@ ConsoleFunction(warn, void, 2, 0, "warn(text [, ... ])")
 
 ConsoleFunction(error, void, 2, 0, "error(text [, ... ])")
 {
-   ConsoleValue ret("");
+   ConsoleValue ret;
    for (S64 i = 1; i < argc; i++)
        ret.concatU(argv[i]);
 
@@ -1319,7 +1319,7 @@ ConsoleFunction(fileBase, const char *, 2, 2, "fileBase(fileName)")
    else
       path++;
    char const* ext = dStrrchr(path, '.');
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(path, ext? ext - path : dStrlen(path));
    return ret;
 }
@@ -1332,7 +1332,7 @@ ConsoleFunction(fileName, const char *, 2, 2, "fileName(filePathName)")
       name = argv[1].toString();
    else
       name++;
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(name, dStrlen(name));
    return ret;
 }
@@ -1345,7 +1345,7 @@ ConsoleFunction(filePath, const char *, 2, 2, "filePath(fileName)")
    if(!path)
       return "";
    U32 len = path - arg;
-   ConsoleValue ret("");
+   ConsoleValue ret;
    ret.concatStringU(arg, len);
    return ret;
 }
