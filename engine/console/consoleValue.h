@@ -385,6 +385,13 @@ public:
 		increment();
 		constructInPlace(&last(), &cv);
 	}
+
+	template <typename ...CVArgs>
+	static ConsoleValueList* from(CVArgs const&... args) {
+		auto* list = new ConsoleValueList;
+		int dummy[sizeof...(CVArgs)] = { (list->push_back(args),0)... };
+		return list;
+	}
 };
 
 inline void ConsoleValue::destroyList(ConsoleValueList*& lcv)
