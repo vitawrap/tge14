@@ -347,23 +347,25 @@ public:
 		return ret;
 	}
 
-	Point3F getPoint3F() {
+	// Point3F can be the max of a console box3F, so allow an offset.
+	Point3F getPoint3F(S64 offset = 0) {
 		if (isList())
 			return Point3F(
-				getListValueDefU(0, 0.0).getNumber(),
-				getListValueDefU(1, 0.0).getNumber(),
-				getListValueDefU(2, 0.0).getNumber()
+				getListValueDefU(offset  , 0.0).getNumber(),
+				getListValueDefU(offset+1, 0.0).getNumber(),
+				getListValueDefU(offset+2, 0.0).getNumber()
 			);
 		else return Point3F(toString());
 	}
 
-	Point4F getPoint4F() {
+	// Point4F can be an AngleAxis in a console matrix, so allow an offset.
+	Point4F getPoint4F(S64 offset = 0) {
 		if (isList())
 			return Point4F(
-				getListValueDefU(0, 0.0).getNumber(),
-				getListValueDefU(1, 0.0).getNumber(),
-				getListValueDefU(2, 0.0).getNumber(),
-				getListValueDefU(3, 0.0).getNumber()
+				getListValueDefU(offset  , 0.0).getNumber(),
+				getListValueDefU(offset+1, 0.0).getNumber(),
+				getListValueDefU(offset+2, 0.0).getNumber(),
+				getListValueDefU(offset+3, 0.0).getNumber()
 			);
 		Point4F ret;
 		dSscanf(toString(), "%g %g %g %g", &ret.x, &ret.y, &ret.z, &ret.w);
