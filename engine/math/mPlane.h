@@ -21,6 +21,7 @@ public:
    F32 d;
 
    PlaneF();
+   PlaneF( const Point4F& plane );
    PlaneF( const Point3F& p, const Point3F& n );
    PlaneF( F32 _x, F32 _y, F32 _z, F32 _d);
    PlaneF( const Point3F& j, const Point3F& k, const Point3F& l );
@@ -87,6 +88,12 @@ public:
 
 inline PlaneF::PlaneF()
 {
+}
+
+inline PlaneF::
+   PlaneF( const Point4F& plane )
+{
+    x = plane.x; y = plane.y; z = plane.z; d = plane.w;
 }
 
 inline PlaneF::
