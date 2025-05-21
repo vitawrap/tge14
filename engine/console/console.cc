@@ -558,21 +558,17 @@ void setLocalVariable(const char *name, ConsoleValue value)
 
 void setBoolVariable(const char *varName, bool value)
 {
-   setVariable(varName, value ? "1" : "0");
+   setVariable(varName, value ? 1LL : 0LL);
 }
 
 void setIntVariable(const char *varName, S32 value)
 {
-   char scratchBuffer[32];
-   dSprintf(scratchBuffer, sizeof(scratchBuffer), "%d", value);
-   setVariable(varName, scratchBuffer);
+   setVariable(varName, (S64) value);
 }
 
 void setFloatVariable(const char *varName, F32 value)
 {
-   char scratchBuffer[32];
-   dSprintf(scratchBuffer, sizeof(scratchBuffer), "%g", value);
-   setVariable(varName, scratchBuffer);
+   setVariable(varName, (F64) value);
 }
 
 //---------------------------------------------------------------------------
