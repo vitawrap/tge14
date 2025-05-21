@@ -581,8 +581,9 @@ bool WorldEditor::pasteSelection()
       mSelected.clear();
    for(U32 i = 0; i < mStreamBufs.size(); i++)
    {
-      const char * eval = Con::evaluate((const char *)mStreamBufs[i]);
-      SceneObject * obj = dynamic_cast<SceneObject*>(Sim::findObject(eval));
+      // FIXME: ConsoleValues: Does eval even return values anymore?
+      ConsoleValue eval = Con::evaluate((const char *)mStreamBufs[i]);
+      SceneObject * obj = dynamic_cast<SceneObject*>(Sim::findObject(eval.toString()));
       if(obj && !mSelectionLocked)
          mSelected.addObject(obj);
    }
@@ -1775,12 +1776,12 @@ void WorldEditor::on3DMouseDown(const Gui3DMouseEvent & event)
                if(mSelected.objInSet(info.obj))
                {
                   mSelected.removeObject(info.obj);
-                  Con::executef(this, 3, "onUnSelect", avar("%d", info.obj->getId()));
+                  Con::executef(this, 3, "onUnSelect", info.obj->getId());
                }
                else
                {
                   mSelected.addObject(info.obj);
-                  Con::executef(this, 3, "onSelect", avar("%d", info.obj->getId()));
+                  Con::executef(this, 3, "onSelect", info.obj->getId());
                }
             }
             else
@@ -1790,30 +1791,23 @@ void WorldEditor::on3DMouseDown(const Gui3DMouseEvent & event)
                   mNoMouseDrag = true;
                   mSelected.clear();
                   mSelected.addObject(info.obj);
-                  Con::executef(this, 3, "onSelect", avar("%d", info.obj->getId()));
+                  Con::executef(this, 3, "onSelect", info.obj->getId());
                }
             }
          }
 
          if(event.mouseClickCount > 1)
          {
-            //
-            char buf[16];
-            dSprintf(buf, sizeof(buf), "%d", info.obj->getId());
-
             SimObject * obj = 0;
             if(mRedirectID)
                obj = Sim::findObject(mRedirectID);
-            Con::executef(obj ? obj : this, 2, "onDblClick", buf);
+            Con::executef(obj ? obj : this, 2, "onDblClick", info.obj->getId());
          }
          else {
-            char buf[16];
-            dSprintf(buf, sizeof(buf), "%d", info.obj->getId());
-
             SimObject * obj = 0;
             if(mRedirectID)
                obj = Sim::findObject(mRedirectID);
-            Con::executef(obj ? obj : this, 2, "onClick", buf);
+            Con::executef(obj ? obj : this, 2, "onClick", info.obj->getId());
          }
 
 
@@ -1854,20 +1848,17 @@ void WorldEditor::on3DMouseUp(const Gui3DMouseEvent & event)
 
       for(U32 i = 0; i < mDragSelected.size(); i++)
       {
-         Con::executef(this, 3, "onSelect", avar("%d", mDragSelected[i]->getId()));
+         Con::executef(this, 3, "onSelect", mDragSelected[i]->getId());
          mSelected.addObject(mDragSelected[i]);
       }
       mDragSelected.clear();
 
       if(mSelected.size())
       {
-         char buf[16];
-         dSprintf(buf, sizeof(buf), "%d", mSelected[0]->getId());
-
          SimObject * obj = 0;
          if(mRedirectID)
             obj = Sim::findObject(mRedirectID);
-         Con::executef(obj ? obj : this, 2, "onClick", buf);
+         Con::executef(obj ? obj : this, 2, "onClick", mSelected[0]->getId());
       }
 
       mouseUnlock();
@@ -2316,8 +2307,7 @@ void WorldEditor::updateGuiInfo()
    if(mRedirectID)
       obj = Sim::findObject(mRedirectID);
 
-   char buf[] = "";
-   Con::executef(obj ? obj : this, 2, "onGuiUpdate", buf);
+   Con::executef(obj ? obj : this, 2, "onGuiUpdate", "");
 }
 
 //------------------------------------------------------------------------------
@@ -2487,17 +2477,18 @@ void WorldEditor::initPersistFields()
 //------------------------------------------------------------------------------
 // These methods are needed for the console interfaces.
 
-void WorldEditor::ignoreObjClass(U32 argc, const char** argv)
+void WorldEditor::ignoreObjClass(U32 argc, ConsoleValue* argv)
 {
    for(S32 i = 2; i < argc; i++)
    {
-      ClassInfo::Entry * entry = getClassEntry(argv[i]);
+      StringTableEntry cls = argv[i].toSTString();
+      ClassInfo::Entry * entry = getClassEntry(cls);
       if(entry)
          entry->mIgnoreCollision = true;
       else
       {
          entry = new ClassInfo::Entry;
-         entry->mName = StringTable->insert(argv[i]);
+         entry->mName = cls;
          entry->mIgnoreCollision = true;
          if(!addClassEntry(entry))
             delete entry;
@@ -2539,7 +2530,7 @@ void WorldEditor::selectObject(const char* obj)
 
    if(Sim::findObject(obj, select) && !objClassIgnored(select))
    {
-      Con::executef(this, 3, "onSelect", avar("%d", select->getId()));
+      Con::executef(this, 3, "onSelect", select->getId());
       mSelected.addObject(select);	
    }
 }
@@ -2566,12 +2557,10 @@ S32 WorldEditor::getSelectObject(S32 index)
 	return mSelected[index]->getId();	
 }
 
-const char* WorldEditor::getSelectionCentroid()
+ConsoleValue WorldEditor::getSelectionCentroid()
 {
    const Point3F & centroid = mSelected.getCentroid();
-   char * ret = Con::getReturnBuffer(100);
-   dSprintf(ret, 100, "%g %g %g", centroid.x, centroid.y, centroid.z);
-   return(ret);	
+   return ConsoleValueList::from(centroid.x, centroid.y, centroid.z);
 }
 
 void WorldEditor::dropCurrentSelection()
@@ -2649,12 +2638,12 @@ ConsoleMethod( WorldEditor, clearSelection, void, 2, 2, "")
 
 ConsoleMethod( WorldEditor, selectObject, void, 3, 3, "(SceneObject obj)")
 {
-	object->selectObject(argv[2]);
+	object->selectObject(argv[2].toString());
 }
 
 ConsoleMethod( WorldEditor, unselectObject, void, 3, 3, "(SceneObject obj)")
 {
-	object->unselectObject(argv[2]);
+	object->unselectObject(argv[2].toString());
 }
 
 ConsoleMethod( WorldEditor, getSelectionSize, S32, 2, 2, "")
@@ -2664,7 +2653,7 @@ ConsoleMethod( WorldEditor, getSelectionSize, S32, 2, 2, "")
 
 ConsoleMethod( WorldEditor, getSelectedObject, S32, 3, 3, "(int index)")
 {
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if(index < 0 || index >= object->getSelectionSize())
    {
       Con::errorf(ConsoleLogEntry::General, "WorldEditor::getSelectedObject: invalid object index");
@@ -2718,17 +2707,17 @@ ConsoleMethod( WorldEditor, canPasteSelection, bool, 2, 2, "")
 
 ConsoleMethod( WorldEditor, hideSelection, void, 3, 3, "(bool hide)")
 {
-   object->hideSelection(dAtob(argv[2]));
+   object->hideSelection(argv[2].getInt());
 }
 
 ConsoleMethod( WorldEditor, lockSelection, void, 3, 3, "(bool lock)")
 {
-   object->lockSelection(dAtob(argv[2]));
+   object->lockSelection(argv[2].getInt());
 }
 
 ConsoleMethod( WorldEditor, redirectConsole, void, 3, 3, "( int objID )")
 {
-   object->redirectConsole(dAtoi(argv[2]));
+   object->redirectConsole(argv[2].getInt());
 }
 
 ConsoleMethod( WorldEditor, getMode, const char*, 2, 2, "")
@@ -2745,7 +2734,7 @@ ConsoleMethod( WorldEditor, getMode, const char*, 2, 2, "")
 ConsoleMethod( WorldEditor, setMode, void, 3, 3, "(string newMode)"
               "Sets the mode to one of move, rotate, scale.")
 {
-	if(!object->setMode(argv[2]))
+	if(!object->setMode(argv[2].toString()))
 		Con::warnf(ConsoleLogEntry::General, avar("worldEditor.setMode: invalid mode '%s'", argv[2]));
 }
 

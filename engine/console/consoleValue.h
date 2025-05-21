@@ -325,6 +325,17 @@ public:
 	S32 serialize(char* out, S32 size);
 
 	// More specific conversions
+	Point2I getPoint2I() {
+		if (isList())
+			return Point2I(
+				getListValueDefU(0, 0).getInt(),
+				getListValueDefU(1, 0).getInt()
+			);
+		Point2I ret;
+		dSscanf(toString(), "%d %d", &ret.x, &ret.y);
+		return ret;
+	}
+
 	Point2F getPoint2F() {
 		if (isList())
 			return Point2F(

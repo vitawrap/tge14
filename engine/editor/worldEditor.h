@@ -24,7 +24,7 @@ class WorldEditor : public EditTSCtrl
 
 	public:
 
-	void ignoreObjClass(U32 argc, const char** argv);
+	void ignoreObjClass(U32 argc, ConsoleValue* argv);
 	void clearIgnoreList();
 
 	void undo();
@@ -36,7 +36,7 @@ class WorldEditor : public EditTSCtrl
 	
 	S32 getSelectionSize();
 	S32 getSelectObject(S32 index);	
-	const char* getSelectionCentroid();
+	ConsoleValue getSelectionCentroid();
 	
 	void dropCurrentSelection();
 	void deleteCurrentSelection();

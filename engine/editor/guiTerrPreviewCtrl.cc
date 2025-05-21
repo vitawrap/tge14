@@ -39,42 +39,38 @@ ConsoleMethod( GuiTerrPreviewCtrl, setRoot, void, 2, 2, "Add the origin to the r
 ConsoleMethod( GuiTerrPreviewCtrl, getRoot, const char *, 2, 2, "Return a Point2F representing the position of the root.")
 {
    Point2F p = object->getRoot();
-
-   static char rootbuf[32];
-   dSprintf(rootbuf,sizeof(rootbuf),"%g %g", p.x, -p.y);
-   return rootbuf;
+   return ConsoleValueList::from(p.x, -p.y);
 }
 
-ConsoleMethod( GuiTerrPreviewCtrl, setOrigin, void, 4, 4, "(float x, float y)"
+ConsoleMethod( GuiTerrPreviewCtrl, setOrigin, void, 3, 4, "(float x, float y) or ({x,y}) or (\"x y\")"
               "Set the origin of the view.")
 {
-   object->setOrigin( Point2F( dAtof(argv[2]), -dAtof(argv[3]) ) );
+   if (argc == 3) {
+       object->setOrigin( argv[2].getPoint2F() );
+   } else
+       object->setOrigin( Point2F( argv[2].getNumber(), -argv[3].getNumber() ));
 }
 
 ConsoleMethod( GuiTerrPreviewCtrl, getOrigin, const char*, 2, 2, "Return a Point2F containing the position of the origin.")
 {
    Point2F p = object->getOrigin();
-
-   static char originbuf[32];
-   dSprintf(originbuf,sizeof(originbuf),"%g %g", p.x, -p.y);
-   return originbuf;
+   return ConsoleValueList::from(p.x, -p.y);
 }
 
 ConsoleMethod( GuiTerrPreviewCtrl, getValue, const char*, 2, 2, "Returns a 4-tuple containing: root_x root_y origin_x origin_y")
 {
    Point2F r = object->getRoot();
    Point2F o = object->getOrigin();
-
-   static char valuebuf[64];
-   dSprintf(valuebuf,sizeof(valuebuf),"%g %g %g %g", r.x, -r.y, o.x, -o.y);
-   return valuebuf;
+   return ConsoleValueList::from(r.x, -r.y, o.x, -o.y);
 }
 
 ConsoleMethod( GuiTerrPreviewCtrl, setValue, void, 3, 3, "Accepts a 4-tuple in the same form as getValue returns.\n\n"
               "@see GuiTerrPreviewCtrl::getValue()")
 {
-   Point2F r,o;
-   dSscanf(argv[2],"%g %g %g %g", &r.x, &r.y, &o.x, &o.y);
+   Point4F value = argv[2].getPoint4F();
+
+   Point2F r(value.x, value.y);
+   Point2F o(value.z, value.w);
    r.y = -r.y;
    o.y = -o.y;
    object->reset();

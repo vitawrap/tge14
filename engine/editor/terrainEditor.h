@@ -136,7 +136,7 @@ class TerrainEditor : public EditTSCtrl
 		
 		void setBrushType(const char* type);
 		void setBrushSize(S32 w, S32 h);
-		const char* getBrushPos();
+		ConsoleValue getBrushPos();
 		void setBrushPos(Point2I pos);
 		
 		void setAction(const char* action);
