@@ -93,19 +93,27 @@ ConsoleMethod( MissionArea, getArea, const char *, 2, 2, "()"
    return(buf);
 }
 
-ConsoleMethod( MissionArea, setArea, void, 6, 6, "(int x, int y, int width, int height)")
+ConsoleMethod( MissionArea, setArea, void, 3, 6, "(int x, int y, int width, int height)")
 {
-   if(object->isClientObject())
-   {
+   if(object->isClientObject()) {
       Con::errorf(ConsoleLogEntry::General, "MissionArea::cSetArea - cannot alter client object!");
       return;
    }
 
    RectI rect;
-   rect.point.x = dAtoi(argv[2]);
-   rect.point.y = dAtoi(argv[3]);
-   rect.extent.x = dAtoi(argv[4]);
-   rect.extent.y = dAtoi(argv[5]);
+   if (argv[2].isList() && (argv[2].getListSizeU() == 4)) {
+       rect.point.x =  argv[2].getListValueU(0).getInt();
+       rect.point.y =  argv[2].getListValueU(1).getInt();
+       rect.extent.x = argv[2].getListValueU(2).getInt();
+       rect.extent.y = argv[2].getListValueU(3).getInt();
+   }
+   else if (argc == 6) {
+       rect.point.x =  argv[2].getInt();
+       rect.point.y =  argv[3].getInt();
+       rect.extent.x = argv[4].getInt();
+       rect.extent.y = argv[5].getInt();
+   } else
+       Con::errorf(ConsoleLogEntry::General, "MissionArea::cSetArea - either a list or 4 arguments must be provided!");
 
    object->setArea(rect);
 }
