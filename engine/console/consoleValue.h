@@ -293,7 +293,7 @@ public:
 
 	bool castTo(Type dstType);
 
-	bool isList() const { return type == TypeValueList; }
+	bool isList() const { return type == TypeValueList && list; }
 
 	// Unchecked getters (used after getType() or a successful castTo(T)).
 
