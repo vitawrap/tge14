@@ -80,14 +80,14 @@ bool ScriptObject::onAdd()
    mNameSpace = Con::lookupNamespace(parent);
 
    // Call onAdd in script!
-   Con::executef(this, 2, "onAdd", Con::getIntArg(getId()));
+   Con::executef(this, 2, "onAdd", S64(getId()));
    return true;
 }
 
 void ScriptObject::onRemove()
 {
    // Call onRemove in script!
-   Con::executef(this, 2, "onRemove", Con::getIntArg(getId()));
+   Con::executef(this, 2, "onRemove", S64(getId()));
    Parent::onRemove();
 }
 
@@ -158,13 +158,13 @@ bool ScriptGroup::onAdd()
    mNameSpace = Con::lookupNamespace(parent);
 
    // Call onAdd in script!
-   Con::executef(this, 2, "onAdd", Con::getIntArg(getId()));
+   Con::executef(this, 2, "onAdd", S64(getId()));
    return true;
 }
 
 void ScriptGroup::onRemove()
 {
    // Call onRemove in script!
-   Con::executef(this, 2, "onRemove", Con::getIntArg(getId()));
+   Con::executef(this, 2, "onRemove", S64(getId()));
    Parent::onRemove();
 }
