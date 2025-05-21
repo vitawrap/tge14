@@ -228,26 +228,23 @@ void Sky::onRemove()
 //---------------------------------------------------------------------------
 ConsoleMethod( Sky, stormClouds, void, 4, 4, "(bool show, float duration)")
 {
-   object->stormCloudsOn(dAtoi(argv[2]), dAtof(argv[3]));
+   object->stormCloudsOn(argv[2].getInt(), argv[3].getNumber());
 }
 
 ConsoleMethod( Sky, stormFog, void, 4, 4, "(float percent, float duration)")
 {
-   object->stormFogOn(dAtof(argv[2]), dAtof(argv[3]));
+   object->stormFogOn(argv[2].getNumber(), argv[3].getNumber());
 }
 
 ConsoleMethod( Sky, realFog, void, 6, 6, "( bool show, float max, float min, float speed )")
 {
-   object->stormRealFog(dAtoi(argv[2]), dAtof(argv[3]), dAtof(argv[4]), dAtof(argv[5]));
+   object->stormRealFog(argv[2].getInt(), argv[3].getNumber(), argv[4].getNumber(), argv[5].getNumber());
 }
 
 ConsoleMethod( Sky, getWindVelocity, const char *, 2, 2, "()")
 {
-   char * retBuf = Con::getReturnBuffer(128);
-
    Point3F vel = object->getWindVelocity();
-   dSprintf(retBuf, 128, "%g %g %g", vel.x, vel.y, vel.z);
-   return(retBuf);
+   return ConsoleValueList::from(vel.x, vel.y, vel.z);
 }
 //---------------------------------------------------------------------------
 
@@ -256,18 +253,18 @@ ConsoleMethod( Sky, setWindVelocity, void, 5, 5, "(float x, float y, float z)")
    if(object->isClientObject())
       return;
 
-   Point3F vel(dAtof(argv[2]), dAtof(argv[3]), dAtof(argv[4]));
+   Point3F vel(argv[2].getNumber(), argv[3].getNumber(), argv[4].getNumber());
    object->setWindVelocity(vel);
 }
 
 ConsoleMethod( Sky, stormCloudsShow, void, 3, 3, "(bool showClouds)")
 {
-   object->stormCloudsShow(dAtob(argv[2]));
+   object->stormCloudsShow(argv[2].getInt());
 }
 
 ConsoleMethod( Sky, stormFogShow, void, 3, 3, "(bool show)")
 {
-   object->stormFogShow(dAtob(argv[2]));
+   object->stormFogShow(argv[2].getInt());
 }
 
 //---------------------------------------------------------------------------

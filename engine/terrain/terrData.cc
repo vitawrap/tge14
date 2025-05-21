@@ -1174,7 +1174,7 @@ ConsoleFunction(makeTestTerrain, void, 2, 10, "(string fileName, ...) - makes a 
       {
          char material[256];
          char *ext;
-         dStrcpy(material, argv[i+2]);
+         dStrcpy(material, argv[i+2].toString());
          ext = dStrrchr(material, '.');
          if (ext)
             *ext = 0;
@@ -1209,8 +1209,8 @@ ConsoleFunction(makeTestTerrain, void, 2, 10, "(string fileName, ...) - makes a 
    }
 
    //
-   char filename[256];
-   dStrcpy(filename,argv[1]);
+   char filename[512];
+   dSprintf(filename, sizeof(filename), "%s", argv[1].toString());
    char* ext = dStrrchr(filename, '.');
    if (!ext || dStricmp(ext, ".ter") != 0)
       dStrcat(filename, ".ter");
@@ -1222,8 +1222,8 @@ ConsoleFunction(makeTestTerrain, void, 2, 10, "(string fileName, ...) - makes a 
 //--------------------------------------
 ConsoleMethod(TerrainBlock, save, bool, 3, 3, "(string fileName) - saves the terrain block's terrain file to the specified file name.")
 {
-   char filename[256];
-   dStrcpy(filename,argv[2]);
+   char filename[512];
+   dSprintf(filename, sizeof(filename), "%s", argv[2].toString());
    char *ext = dStrrchr(filename, '.');
    if (!ext || dStricmp(ext, ".ter") != 0)
       dStrcat(filename, ".ter");
@@ -1237,9 +1237,8 @@ ConsoleMethod(TerrainBlock, getSquareSize, F32, 1, 1, "Return the square size of
 
 ConsoleFunction(getTerrainHeight, F32, 2, 2, "(Point2I pos) - gets the terrain height at the specified position.")
 {
-   Point2F pos;
+   Point2F pos = argv[1].getPoint2F();
    F32 height = 0.0f;
-   dSscanf(argv[1],"%g %g",&pos.x,&pos.y);
    TerrainBlock * terrain = dynamic_cast<TerrainBlock*>(Sim::findObject("Terrain"));
    if(terrain)
       if(terrain->isServerObject())
@@ -1254,12 +1253,12 @@ ConsoleFunction(getTerrainHeight, F32, 2, 2, "(Point2I pos) - gets the terrain h
 
 ConsoleMethod(TerrainBlock, setTextureScript, void, 3, 3, "(string script) - sets the texture script associated with this terrain file.")
 {
-   object->getFile()->setTextureScript(argv[2]);
+   object->getFile()->setTextureScript(argv[2].toString());
 }
 
 ConsoleMethod(TerrainBlock, setHeightfieldScript, void, 3, 3, "(string script) - sets the heightfield script associated with this terrain file.")
 {
-   object->getFile()->setHeightfieldScript(argv[2]);
+   object->getFile()->setHeightfieldScript(argv[2].toString());
 }
 
 ConsoleMethod(TerrainBlock, getTextureScript, const char *, 2, 2, "() - gets the texture script associated with the terrain file.")
