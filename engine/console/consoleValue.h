@@ -309,6 +309,9 @@ public:
 	size_t getListSizeU() const { return list->size(); }
 	ConsoleValue& getListValueU(U32 i) { return (*list)[i]; }
 	ConsoleValue const& getListValueU(U32 i) const { return (*list)[i]; }
+	ConsoleValue const& getListValueDefU(U32 i, ConsoleValue const& def = "") const {
+		return getListSizeU() > i? (*list)[i] : def;
+	}
 
 	// Checked toString (mutates console value!)
 	char const* toString() { return castTo(TypeString)? getString() : ""; }
@@ -320,6 +323,17 @@ public:
 
 	// Fancier "toString" method to write down console values with their real syntax.
 	S32 serialize(char* out, S32 size);
+
+	// More specific conversions
+	Point3F getPoint3F() {
+		if (isList())
+			return Point3F(
+				getListValueDefU(0, 0.0).getNumber(),
+				getListValueDefU(1, 0.0).getNumber(),
+				getListValueDefU(2, 0.0).getNumber()
+			);
+		else return Point3F(toString());
+	}
 };
 
 /**
