@@ -631,6 +631,16 @@ struct Math
 
 
 //------------------------------------------------------------------------------
+// std mirrorring
+template <class T> struct dRemoveReference { typedef T Type; };
+template <class T> struct dRemoveReference<T&> { typedef T Type; };
+template <class T> struct dRemoveReference<T&&> { typedef T Type; };
+template <class T>
+constexpr dRemoveReference<T>::Type&& dMove(T&& t) {
+    return static_cast<typename dRemoveReference<T>::Type&&>(t);
+}
+
+//------------------------------------------------------------------------------
 // Networking
 struct NetAddress;
 
