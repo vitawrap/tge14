@@ -519,8 +519,9 @@ namespace Con
    /// @see execute(SimObject *, S32 argc, ConsoleValue argv[])
    template <typename ...CVArgs>
    ConsoleValue executef(SimObject* object, S32 argc, CVArgs const&... args) {
-       ConsoleValue argv[sizeof...(args)] = { args... };
-       return execute(object, argc, argv);
+       ConsoleValue argv[sizeof...(args)] = { 0, args... };
+       if constexpr ((sizeof...(args)) > 1) argv[0] = argv[1];
+       return execute(object, ++argc, argv);
    }
 
    /// Evaluate an arbitrary chunk of code.
