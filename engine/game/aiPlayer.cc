@@ -340,47 +340,34 @@ ConsoleMethod( AIPlayer, clearAim, void, 2, 2, "()"
 ConsoleMethod( AIPlayer, setMoveSpeed, void, 3, 3, "( float speed )"
               "Sets the move speed for an AI object.")
 {
-   object->setMoveSpeed( dAtof( argv[2] ) );
+   object->setMoveSpeed( argv[2].getNumber() );
 }
 
 ConsoleMethod( AIPlayer, setMoveDestination, void, 3, 4, "(Point3F goal, bool slowDown=true)"
               "Tells the AI to move to the location provided.")
 {
-   //Point3F v( 0.0f, 0.0f, 0.0f );
-   //dSscanf( argv[2], "%g %g %g", &v.x, &v.y, &v.z );
-   bool slowdown = (argc > 3)? dAtob(argv[3]): true;
-   object->setMoveDestination( argv[2], slowdown);
+   bool slowdown = (argc > 3)? argv[3].getInt() : true;
+   object->setMoveDestination( argv[2].getPoint3F(), slowdown );
 }
 
 ConsoleMethod( AIPlayer, getMoveDestination, const char *, 2, 2, "()"
               "Returns the point the AI is set to move to.")
 {
    Point3F movePoint = object->getMoveDestination();
-
-   char *returnBuffer = Con::getReturnBuffer( 256 );
-   dSprintf( returnBuffer, 256, "%g %g %g", movePoint.x, movePoint.y, movePoint.z );
-
-   return returnBuffer;
+   return ConsoleValueList::from( movePoint.x, movePoint.y, movePoint.z );
 }
 
 ConsoleMethod( AIPlayer, setAimLocation, void, 3, 3, "( Point3F target )"
               "Tells the AI to aim at the location provided.")
 {
-   //Point3F v( 0.0f,0.0f,0.0f );
-   //dSscanf( argv[2], "%g %g %g", &v.x, &v.y, &v.z );
-
-   object->setAimLocation( argv[2] );
+   object->setAimLocation( argv[2].getPoint3F() );
 }
 
 ConsoleMethod( AIPlayer, getAimLocation, const char *, 2, 2, "()"
               "Returns the point the AI is aiming at.")
 {
    Point3F aimPoint = object->getAimLocation();
-
-   char *returnBuffer = Con::getReturnBuffer( 256 );
-   dSprintf( returnBuffer, 256, "%g %g %g", aimPoint.x, aimPoint.y, aimPoint.z );
-
-   return returnBuffer;
+   return ConsoleValueList::from( aimPoint.x, aimPoint.y, aimPoint.z );
 }
 
 ConsoleMethod( AIPlayer, setAimObject, void, 3, 4, "( GameBase obj, [Point3F offset] )"
@@ -390,11 +377,9 @@ ConsoleMethod( AIPlayer, setAimObject, void, 3, 4, "( GameBase obj, [Point3F off
 
    // Find the target
    GameBase *targetObject;
-   if( Sim::findObject( argv[2], targetObject ) )
+   if( Sim::findObject( argv[2].toString(), targetObject))
    {
-       if (argc == 4)
-           off = argv[3];
-          //dSscanf( argv[3], "%g %g %g", &off.x, &off.y, &off.z );
+      if (argc == 4) off = argv[3].getPoint3F();
 
       object->setAimObject( targetObject, off );
    }
@@ -406,12 +391,12 @@ ConsoleMethod( AIPlayer, getAimObject, S32, 2, 2, "()"
               "Gets the object the AI is targeting.")
 {
    GameBase* obj = object->getAimObject();
-   return obj? obj->getId(): -1;
+   return obj? (S64) obj->getId(): -1LL;
 }
 
 ConsoleMethod(AIPlayer, setFreeLook, void, 3, 3, "(bool) - Set look mode of AIPlayer.")
 {
-    object->setFreeLook( dAtob(argv[2]) );
+    object->setFreeLook( argv[2].getInt() );
 }
 
 ConsoleMethod(AIPlayer, getFreeLook, bool, 2, 2, "() - Get look mode of AIPlayer.")
