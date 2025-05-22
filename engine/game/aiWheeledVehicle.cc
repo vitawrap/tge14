@@ -295,7 +295,7 @@ bool AIWheeledVehicle::getAIMove(Move *movePtr)
  */
 void AIWheeledVehicle::throwCallback( const char *name )
 {
-   Con::executef(getDataBlock(), 2, name, scriptThis());
+   Con::executef(getDataBlock(), 2, name, getId());
 }
 
 
@@ -312,20 +312,19 @@ ConsoleMethod( AIWheeledVehicle, stop, void, 2, 2, "()"
 ConsoleMethod( AIWheeledVehicle, setMoveSpeed, void, 3, 3, "( float speed )"
               "Sets the move speed for an AI object.")
 {
-   object->setMoveSpeed( dAtof( argv[2] ) );
+   object->setMoveSpeed( argv[2].getNumber() );
 }
 
 ConsoleMethod( AIWheeledVehicle, setMoveTolerance, void, 3, 3, "(float speed)" "Sets the movetolerance")
 {
-	object->setMoveTolerance(dAtof(argv[2]));
+	object->setMoveTolerance( argv[2].getNumber() );
 }
 
 ConsoleMethod( AIWheeledVehicle, setMoveDestination, void, 3, 4, "(Point3F goal, bool slowDown=true)"
               "Tells the AI to move to the location provided.")
 {
-   Point3F v( 0.0f, 0.0f, 0.0f );
-   dSscanf( argv[2], "%f %f %f", &v.x, &v.y, &v.z );
-   bool slowdown = (argc > 3)? dAtob(argv[3]): true;
+   Point3F v = argv[2].getPoint3F();
+   bool slowdown = (argc > 3)? argv[3].getInt() : true;
    object->setMoveDestination( v, slowdown);
 }
 
@@ -333,11 +332,7 @@ ConsoleMethod( AIWheeledVehicle, getMoveDestination, const char *, 2, 2, "()"
               "Returns the point the AI is set to move to.")
 {
    Point3F movePoint = object->getMoveDestination();
-
-   char *returnBuffer = Con::getReturnBuffer( 256 );
-   dSprintf( returnBuffer, 256, "%f %f %f", movePoint.x, movePoint.y, movePoint.z );
-
-   return returnBuffer;
+   return ConsoleValueList::from(movePoint.x, movePoint.y, movePoint.z);
 }
 
 

@@ -499,15 +499,21 @@ ConsoleMethod(Camera, setOrbitMode, void, 7, 8, "(GameBase orbitObject, transfor
 
     // This can be 0, then we orbit around a static transform.
     GameBase* orbitObject = NULL;
-    Sim::findObject(argv[2], orbitObject);
+    Sim::findObject(argv[2].toString(), orbitObject);
 
-    dSscanf(argv[3], "%g %g %g %g %g %g %g",
-        &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
-    minDis = dAtof(argv[4]);
-    maxDis = dAtof(argv[5]);
-    curDis = dAtof(argv[6]);
+    if (argv[3].isList()) {
+        pos = argv[3].getPoint3F();
+        aa = argv[3].getPoint4F(3);
+    }
+    else {
+        dSscanf(argv[3].toString(), "%g %g %g %g %g %g %g",
+            &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+    }
+    minDis = argv[4].getNumber();
+    maxDis = argv[5].getNumber();
+    curDis = argv[6].getNumber();
 
-    object->setOrbitMode(orbitObject, pos, aa, minDis, maxDis, curDis, (argc == 8) ? dAtob(argv[7]) : false);
+    object->setOrbitMode(orbitObject, pos, aa, minDis, maxDis, curDis, (argc == 8) ? argv[7].getInt() : false);
 }
 
 ConsoleMethod(Camera, setFlyMode, void, 2, 2, "()"

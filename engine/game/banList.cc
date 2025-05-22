@@ -147,7 +147,7 @@ ConsoleStaticMethod( BanList, addAbsolute, void, 4, 4, "( int ID, TransportAddre
               "@param   TA       Address from which the player connected.\n"
               "@param   banTime  Time at which they will be allowed back in.")
 {
-   gBanList.addBan( dAtoi( argv[1] ), argv[2], dAtoi( argv[3] ) );
+   gBanList.addBan( argv[1].getInt(), argv[2].toString(), argv[3].getInt());
 }
 
 //------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ ConsoleStaticMethod( BanList, add, void, 4, 4, "( int ID, TransportAddress TA, i
               "@param   TA       Address from which the player connected.\n"
               "@param   banTime  Time at which they will be allowed back in.")
 {
-   gBanList.addBanRelative( dAtoi( argv[1] ), argv[2], dAtoi( argv[3] ) );
+   gBanList.addBanRelative( argv[1].getInt(), argv[2].toString(), argv[3].getInt());
 }
 
 //------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ ConsoleStaticMethod( BanList, removeBan, void, 3, 3, "( int ID, TransportAddress
               "@param   TA       Address from which the player connected.\n")
 
 {
-   gBanList.removeBan( dAtoi( argv[1] ), argv[2] );
+   gBanList.removeBan( argv[1].getInt(), argv[2].toString() );
 }
 
 //------------------------------------------------------------------------------
@@ -176,12 +176,12 @@ ConsoleStaticMethod( BanList, isBanned, bool, 3, 3, "( int ID, TransportAddress 
               "@param   ID       Unique ID of the player.\n"
               "@param   TA       Address from which the player connected.\n")
 {
-   return (gBanList.isBanned( dAtoi( argv[1] ), argv[2] ));
+   return gBanList.isBanned( argv[1].getInt(), argv[2].toString() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleStaticMethod( BanList, export, void, 2, 2, "(string filename)"
               "Dump the banlist to a file.")
 {
-   gBanList.exportToFile( argv[1] );
+   gBanList.exportToFile( argv[1].toString() );
 }
