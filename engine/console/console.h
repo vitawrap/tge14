@@ -768,14 +768,14 @@ public:
       static ConsoleConstructor className##name##obj(#className,#name,c##className##name##caster,usage1,minArgs,maxArgs); \
       static inline confunc_ret_##returnType ) c##className##name(className *object, S32 argc, ConsoleValue *argv)
 
-#  define ConsoleStaticMethod(className,name,returnType,minArgs,maxArgs,usage1)                       \
-      static inline returnType c##className##name(S32, ConsoleValue *);                                \
-      static returnType c##className##name##caster(SimObject *object, S32 argc, ConsoleValue *argv) {  \
-         conmethod_ret_##returnType ) c##className##name(argc,argv);                                \
+#  define ConsoleStaticMethod(className,name,returnType,minArgs,maxArgs,usage1)                                        \
+      static inline confunc_ret_##returnType ) c##className##name(S32, ConsoleValue *);                                \
+      static confunc_ret_##returnType ) c##className##name##caster(SimObject *object, S32 argc, ConsoleValue *argv) {  \
+         conmethod_ret_##returnType ) c##className##name(argc,argv);                                  \
       };                                                                                              \
       static ConsoleConstructor                                                                       \
          className##name##obj(#className,#name,c##className##name##caster,usage1,minArgs,maxArgs);    \
-      static inline returnType c##className##name(S32 argc, ConsoleValue *argv)
+      static inline confunc_ret_##returnType ) c##className##name(S32 argc, ConsoleValue *argv)
 
 #  define ConsoleMethodGroupEnd(className, groupName) \
       static ConsoleConstructor className##groupName##__GroupEnd(#className,#groupName,NULL);
