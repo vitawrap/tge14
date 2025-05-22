@@ -86,11 +86,8 @@ void MissionArea::initPersistFields()
 ConsoleMethod( MissionArea, getArea, const char *, 2, 2, "()"
               "Returns 4 fields: starting x, starting y, extents x, extents y")
 {
-   static char buf[48];
-
    RectI area = object->getArea();
-   dSprintf(buf, sizeof(buf), "%d %d %d %d", area.point.x, area.point.y, area.extent.x, area.extent.y);
-   return(buf);
+   return ConsoleValueList::from(area.point.x, area.point.y, area.extent.x, area.extent.y);
 }
 
 ConsoleMethod( MissionArea, setArea, void, 3, 6, "(int x, int y, int width, int height)")
@@ -101,12 +98,8 @@ ConsoleMethod( MissionArea, setArea, void, 3, 6, "(int x, int y, int width, int 
    }
 
    RectI rect;
-   if (argv[2].isList() && (argv[2].getListSizeU() == 4)) {
-       rect.point.x =  argv[2].getListValueU(0).getInt();
-       rect.point.y =  argv[2].getListValueU(1).getInt();
-       rect.extent.x = argv[2].getListValueU(2).getInt();
-       rect.extent.y = argv[2].getListValueU(3).getInt();
-   }
+   if (argv[2].isList())
+       rect = argv[2].getPoint4F();
    else if (argc == 6) {
        rect.point.x =  argv[2].getInt();
        rect.point.y =  argv[3].getInt();

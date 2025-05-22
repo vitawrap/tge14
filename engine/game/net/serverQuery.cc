@@ -371,7 +371,7 @@ void queryLanServers(U32 port, U8 flags, const char* gameType, const char* missi
    Net::stringToAddress( addrText, &addr );
    pushPingBroadcast( &addr );
 
-   Con::executef( 4, "onServerQueryStatus", "start", "Querying LAN servers", "0");
+   Con::executef( 4, "onServerQueryStatus", "start", "Querying LAN servers", 0 );
    processPingsAndQueries( gPingSession );
 }
 
@@ -380,21 +380,21 @@ ConsoleFunction( queryLanServers, void, 12, 12, "queryLanServers(...);" )
 {
    argc;
 
-   U32 lanPort = dAtoi(argv[1]);
-   U8 flags = dAtoi(argv[2]);
+   U32 lanPort = argv[1].getInt();
+   U8 flags = argv[2].getInt();
 
    // It's not a good idea to hold onto args, recursive calls to
    // console exec will trash them.
-   char* gameType = dStrdup(argv[3]);
-   char* missionType = dStrdup(argv[4]);
+   char* gameType = dStrdup(argv[3].toString());
+   char* missionType = dStrdup(argv[4].toString());
 
-   U8 minPlayers = dAtoi(argv[5]);
-   U8 maxPlayers = dAtoi(argv[6]);
-   U8 maxBots = dAtoi(argv[7]);
-   U32 regionMask = dAtoi(argv[8]);
-   U32 maxPing = dAtoi(argv[9]);
-   U16 minCPU = dAtoi(argv[10]);
-   U8 filterFlags = dAtoi(argv[11]);
+   U8 minPlayers = argv[5].getInt();
+   U8 maxPlayers = argv[6].getInt();
+   U8 maxBots = argv[7].getInt();
+   U32 regionMask = argv[8].getInt();
+   U32 maxPing = argv[9].getInt();
+   U16 minCPU = argv[10].getInt();
+   U8 filterFlags = argv[11].getInt();
 
    queryLanServers(lanPort, flags, gameType, missionType, minPlayers, maxPlayers, maxBots,
 	   regionMask, maxPing, minCPU, filterFlags);
@@ -428,7 +428,7 @@ void queryMasterServer(U8 flags, const char* gameType, const char* missionType,
    sgServerQueryActive = true;
    clearServerList();
 
-   Con::executef( 4, "onServerQueryStatus", "start", "Querying master server", "0");
+   Con::executef( 4, "onServerQueryStatus", "start", "Querying master server", 0);
 
    if ( buddyCount == 0 )
    {
@@ -488,20 +488,20 @@ ConsoleFunction( queryMasterServer, void, 11, 11, "queryMasterServer(...);" )
 {
    argc;
 
-   U8 flags = dAtoi(argv[1]);
+   U8 flags = argv[1].getInt();
 
    // It's not a good idea to hold onto args, recursive calls to
    // console exec will trash them.
-   char* gameType = dStrdup(argv[2]);
-   char* missionType = dStrdup(argv[3]);
+   char* gameType = dStrdup(argv[2].toString());
+   char* missionType = dStrdup(argv[3].toString());
 
-   U8 minPlayers = dAtoi(argv[4]);
-   U8 maxPlayers = dAtoi(argv[5]);
-   U8 maxBots = dAtoi(argv[6]);
-   U32 regionMask = dAtoi(argv[7]);
-   U32 maxPing = dAtoi(argv[8]);
-   U16 minCPU = dAtoi(argv[9]);
-   U8 filterFlags = dAtoi(argv[10]);
+   U8 minPlayers = argv[4].getInt();
+   U8 maxPlayers = argv[5].getInt();
+   U8 maxBots = argv[6].getInt();
+   U32 regionMask = argv[7].getInt();
+   U32 maxPing = argv[8].getInt();
+   U16 minCPU = argv[9].getInt();
+   U8 filterFlags = argv[10].getInt();
    U8 buddyCount = 0;
    U32 buddyList = 0;
 
@@ -520,10 +520,8 @@ ConsoleFunction( querySingleServer, void, 3, 3, "querySingleServer(address, flag
    argc;
 
    NetAddress addr;
-   char const* addrText;
-
-   addrText = argv[1];
-   U8 flags = dAtoi(argv[2]);
+   char const* addrText = argv[1].toString();
+   U8 flags = argv[2].getInt();
 
    Net::stringToAddress( addrText, &addr );
    querySingleServer(&addr,flags);
@@ -538,7 +536,7 @@ void queryFavoriteServers( U8 /*flags*/ )
    sActiveFilter.type = ServerFilter::Favorites;
    pushServerFavorites();
 
-   Con::executef( 4, "onServerQueryStatus", "start", "Query favorites...", "0" );
+   Con::executef( 4, "onServerQueryStatus", "start", "Query favorites...", 0 );
    processPingsAndQueries( gPingSession );
 }
 
@@ -561,7 +559,7 @@ void querySingleServer( const NetAddress* addr, U8 /*flags*/ )
       }
    }
 
-   Con::executef( 4, "onServerQueryStatus", "start", "Refreshing server...", "0" );
+   Con::executef( 4, "onServerQueryStatus", "start", "Refreshing server...", 0 );
    gServerPingCount = gServerQueryCount = 0;
    pushPingRequest( addr );
    processPingsAndQueries( gPingSession );
@@ -661,7 +659,7 @@ ConsoleFunction(stopHeartbeat, void, 1, 1, "stopHeartbeat();")
 
 //-----------------------------------------------------------------------------
 
-ConsoleFunction( getServerCount, int, 1, 1, "getServerCount();" )
+ConsoleFunction( getServerCount, S32, 1, 1, "getServerCount();" )
 {
    argv,argc;
    return gServerList.size();
@@ -670,7 +668,7 @@ ConsoleFunction( getServerCount, int, 1, 1, "getServerCount();" )
 ConsoleFunction( setServerInfo, bool, 2, 2, "setServerInfo(index);" )
 {
    argc;
-   U32 index = dAtoi(argv[1]);
+   U32 index = argv[1].getInt();
    if (index >= 0 && index < gServerList.size()) {
       ServerInfo& info = gServerList[index];
 
@@ -730,9 +728,10 @@ Vector<MasterInfo>* getMasterServerList()
    masterList.clear();
 
    for (U32 i = 0; i < 10; i++) {
-      char buffer[50];
+      char buffer[64];
       dSprintf(buffer,sizeof(buffer),"Pref::Master%d",i);
-      const char* master = Con::getVariable(buffer);
+      ConsoleValue masterVar = Con::getVariable(buffer);
+      char const* master = masterVar.toString();
       if (master && *master) {
          NetAddress address;
          // Format for master server variable:
@@ -901,7 +900,7 @@ static void pushServerFavorites()
    for ( S32 i = 0; i < count; i++ )
    {
       dSprintf( buf, sizeof( buf ), "Pref::Client::ServerFavorite%d", i );
-      server = Con::getVariable( buf );
+      server = Con::getVariable( buf ).toSTString();
       if ( server )
       {
          sz = dStrcspn( server, "\t" );
@@ -1122,7 +1121,7 @@ static void processMasterServerQuery( U32 session )
             keepGoing = pickMasterServer();
             if ( keepGoing )
             {
-               Con::executef( 4, "onServerQueryStatus", "update", "Switching master servers...", "0" );
+               Con::executef( 4, "onServerQueryStatus", "update", "Switching master servers...", 0 );
                Net::addressToString( &gMasterServerPing.address, addressString );
             }
          }
@@ -1157,7 +1156,7 @@ static void processMasterServerQuery( U32 session )
 
             Con::printf( "Requesting the server list from master server %s (%d tries left)...", addressString, gMasterServerPing.tryCount );
             if ( gMasterServerPing.tryCount < gMasterServerRetryCount - 1 )
-               Con::executef( 4, "onServerQueryStatus", "update", "Retrying the master server...", "0" );
+               Con::executef( 4, "onServerQueryStatus", "update", "Retrying the master server...", 0 );
          }
       }
 
@@ -1169,7 +1168,7 @@ static void processMasterServerQuery( U32 session )
       else
       {
          Con::errorf( "There are no more master servers to try!" );
-         Con::executef( 4, "onServerQueryStatus", "done", "No master servers found.", "0" );
+         Con::executef( 4, "onServerQueryStatus", "done", "No master servers found.", 0 );
       }
    }
 }
@@ -1396,7 +1395,7 @@ static void updatePingProgress()
       progress = F32( gServerPingCount - pingsLeft ) / F32( gServerPingCount * 2 );
 
    //Con::errorf( ConsoleLogEntry::General, "Ping progress - %d of %d left - progress = %.2f", pingsLeft, gServerPingCount, progress );
-   Con::executef( 4, "onServerQueryStatus", "ping", msg, Con::getFloatArg( progress ) );
+   Con::executef( 4, "onServerQueryStatus", "ping", msg, progress );
 }
 
 //-----------------------------------------------------------------------------
@@ -1416,7 +1415,7 @@ static void updateQueryProgress()
       progress += ( F32( gServerQueryCount - queriesLeft ) / F32( gServerQueryCount * 2 ) );
 
    //Con::errorf( ConsoleLogEntry::General, "Query progress - %d of %d left - progress = %.2f", queriesLeft, gServerQueryCount, progress );
-   Con::executef( 4, "onServerQueryStatus", "query", msg, Con::getFloatArg( progress ) );
+   Con::executef( 4, "onServerQueryStatus", "query", msg, progress );
 }
 
 
@@ -1564,8 +1563,8 @@ static void handleGameMasterInfoRequest( const NetAddress* address, U32 key, U8 
       out->write( U8( flags ) );
       out->write( key );
 
-      writeCString( out, Con::getVariable( "Server::GameType" ) );
-      writeCString( out, Con::getVariable( "Server::MissionType" ) );
+      writeCString( out, Con::getVariable( "Server::GameType" ).toString() );
+      writeCString( out, Con::getVariable( "Server::MissionType" ).toString() );
       temp8 = U8( Con::getIntVariable( "Pref::Server::MaxPlayers" ) );
       out->write( temp8 );
       temp32 = Con::getIntVariable( "Pref::Server::RegionMask" );
@@ -1578,7 +1577,7 @@ static void handleGameMasterInfoRequest( const NetAddress* address, U32 key, U8 
 #endif
       if ( Con::getBoolVariable( "Server::Dedicated" ) )
          temp8 |= ServerInfo::Status_Dedicated;
-      if ( dStrlen( Con::getVariable( "Pref::Server::Password" ) ) > 0 )
+      if ( Con::getVariable( "Pref::Server::Password" ).getStrlen() > 0 )
          temp8 |= ServerInfo::Status_Passworded;
       out->write( temp8 );
       temp8 = U8( Con::getIntVariable( "Server::BotCount" ) );
@@ -1588,7 +1587,8 @@ static void handleGameMasterInfoRequest( const NetAddress* address, U32 key, U8 
       U8 playerCount = U8( Con::getIntVariable( "Server::PlayerCount" ) );
       out->write( playerCount );
 
-      const char* guidList = Con::getVariable( "Server::GuidList" );
+      ConsoleValue guidLVar = Con::getVariable("Server::GuidList");
+      const char* guidList = guidLVar.toString();
       char* buf = new char[dStrlen( guidList ) + 1];
       dStrcpy( buf, guidList );
       char* temp = dStrtok( buf, "\t" );
@@ -1617,7 +1617,7 @@ static void handleGamePingRequest( const NetAddress* address, U32 key, U8 flags 
    if ( GNet->doesAllowConnections() )
    {
       // Do not respond if this is a single-player game:
-      if ( dStricmp( Con::getVariable( "Server::ServerType" ), "SinglePlayer" ) == 0 )
+      if ( dStricmp( Con::getVariable( "Server::ServerType" ).toString(), "SinglePlayer") == 0)
          return;
 
       // Do not respond to offline queries if this is an online server:
@@ -1641,7 +1641,7 @@ static void handleGamePingRequest( const NetAddress* address, U32 key, U8 flags 
 
       // Enforce a 24-character limit on the server name:
       char serverName[25];
-      dStrncpy( serverName, Con::getVariable( "Pref::Server::Name" ), 24 );
+      dStrncpy( serverName, Con::getVariable( "Pref::Server::Name" ).toString(), 24);
       serverName[24] = 0;
       if ( flags & ServerFilter::NoStringCompress )
          writeCString( out, serverName );
@@ -1820,14 +1820,14 @@ static void handleGameInfoRequest( const NetAddress* address, U32 key, U8 flags 
       out->write( key );
 
       if ( compressStrings ) {
-         out->writeString( Con::getVariable( "Server::GameType" ) );
-         out->writeString( Con::getVariable( "Server::MissionType" ) );
-         out->writeString( Con::getVariable( "Server::MissionName" ) );
+         out->writeString( Con::getVariable( "Server::GameType" ).toString() );
+         out->writeString( Con::getVariable( "Server::MissionType" ).toString() );
+         out->writeString( Con::getVariable( "Server::MissionName" ).toString() );
       }
       else {
-         writeCString( out, Con::getVariable( "Server::GameType" ) );
-         writeCString( out, Con::getVariable( "Server::MissionType" ) );
-         writeCString( out, Con::getVariable( "Server::MissionName" ) );
+         writeCString( out, Con::getVariable( "Server::GameType" ).toString() );
+         writeCString( out, Con::getVariable( "Server::MissionType" ).toString() );
+         writeCString( out, Con::getVariable( "Server::MissionName" ).toString() );
       }
 
       U8 status = 0;
@@ -1836,7 +1836,7 @@ static void handleGameInfoRequest( const NetAddress* address, U32 key, U8 flags 
 #endif
       if ( Con::getBoolVariable( "Server::Dedicated" ) )
          status |= ServerInfo::Status_Dedicated;
-      if ( dStrlen( Con::getVariable( "Pref::Server::Password" ) ) )
+      if ( Con::getVariable( "Pref::Server::Password" ).getStrlen() )
          status |= ServerInfo::Status_Passworded;
       out->write( status );
 
@@ -1845,10 +1845,10 @@ static void handleGameInfoRequest( const NetAddress* address, U32 key, U8 flags 
       out->write( U8( Con::getIntVariable( "Server::BotCount" ) ) );
       out->write( U16( Platform::SystemInfo.processor.mhz ) );
       if ( compressStrings )
-         out->writeString( Con::getVariable( "Pref::Server::Info" ) );
+         out->writeString( Con::getVariable( "Pref::Server::Info" ).toString() );
       else
-         writeCString( out, Con::getVariable( "Pref::Server::Info" ) );
-      writeLongCString( out, Con::evaluate( "onServerInfoQuery();" ) );
+         writeCString( out, Con::getVariable( "Pref::Server::Info" ).toString() );
+      writeLongCString( out, Con::evaluate( "onServerInfoQuery();" ).toString() );
 
       BitStream::sendPacketStream(address);
    }

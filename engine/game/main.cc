@@ -73,26 +73,26 @@ ConsoleFunctionGroupBegin( Platform , "General platform functions.");
 ConsoleFunction( lockMouse, void, 2, 2, "(bool isLocked)"
                 "Lock the mouse (or not, depending on the argument's value) to the window.")
 {
-   Platform::setWindowLocked(dAtob(argv[1]));
+   Platform::setWindowLocked(argv[1].getInt());
 }
 
 ConsoleFunction( setNetPort, bool, 2, 2, "(int port)"
                 "Set the network port for the game to use.")
 {
-   return Net::openPort(dAtoi(argv[1]));
+   return Net::openPort(argv[1].getInt());
 }
 
 ConsoleFunction( saveJournal, void, 2, 2, "(string filename)"
                 "Save the journal to the specified file.")
 {
-   Game->saveJournal(argv[1]);
+   Game->saveJournal(argv[1].toString());
 }
 
 ConsoleFunction( playJournal, void, 2, 3, "(string filename, bool break=false)"
                 "Begin playback of a journal from a specified field, optionally breaking at the start.")
 {
-   bool jBreak = (argc > 2)? dAtob(argv[2]): false;
-   Game->playJournal(argv[1],jBreak);
+   bool jBreak = (argc > 2)? argv[2].getInt() : false;
+   Game->playJournal(argv[1].toString(), jBreak);
 }
 
 extern void netInit();
@@ -189,13 +189,13 @@ static void shutdownLibraries()
 ConsoleFunction( getSimTime, S32, 1, 1, "Return the current sim time in milliseconds.\n\n"
                 "Sim time is time since the game started.")
 {
-   return Sim::getCurrentTime();
+   return S64(Sim::getCurrentTime());
 }
 
 ConsoleFunction( getRealTime, S32, 1, 1, "Return the current real time in milliseconds.\n\n"
                 "Real time is platform defined; typically time since the computer booted.")
 {
-   return Platform::getRealMilliseconds();
+   return S64(Platform::getRealMilliseconds());
 }
 
 ConsoleFunctionGroupEnd(Platform);
@@ -597,10 +597,8 @@ void DemoGame::refreshWindow()
 /// Process a console event
 void DemoGame::processConsoleEvent(ConsoleEvent *event)
 {
-   char *argv[2];
-   argv[0] = "eval";
-   argv[1] = event->data;
-   Sim::postCurrentEvent(Sim::getRootGroup(), new SimConsoleEvent(2, const_cast<const char**>(argv), false));
+   ConsoleValue argv[2] = { "eval", event->data };
+   Sim::postCurrentEvent(Sim::getRootGroup(), new SimConsoleEvent(2, argv, false));
 }
 
 /// Process a time event and update all sub-processes

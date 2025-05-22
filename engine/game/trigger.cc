@@ -16,56 +16,56 @@
 
 //-----------------------------------------------------------------------------
 
-ConsoleMethod( TriggerData, onEnterTrigger, void, 4, 4, "( Trigger t, SimObject intruder)")
+ConsoleMethod( TriggerData, onEnterTrigger, void, 4, 4, "(Trigger t, SimObject intruder)")
 {
    Trigger* trigger = NULL;
-   if (Sim::findObject(argv[2], trigger) == false)
+   if (Sim::findObject(argv[2].toString(), trigger) == false)
       return;
 
    // Do nothing with the trigger object id by default...
    SimGroup* pGroup = trigger->getGroup();
    for (SimGroup::iterator itr = pGroup->begin(); itr != pGroup->end(); itr++)
-      Con::executef(*itr, 3, "onTrigger", Con::getIntArg(trigger->getId()), "1");
+      Con::executef(*itr, 3, "onTrigger", trigger->getId(), 1LL);
 }
 
-ConsoleMethod( TriggerData, onLeaveTrigger, void, 4, 4, "( Trigger t, SimObject intruder)")
+ConsoleMethod( TriggerData, onLeaveTrigger, void, 4, 4, "(Trigger t, SimObject intruder)")
 {
    Trigger* trigger = NULL;
-   if (Sim::findObject(argv[2], trigger) == false)
+   if (Sim::findObject(argv[2].toString(), trigger) == false)
       return;
 
    if (trigger->getNumTriggeringObjects() == 0) {
       SimGroup* pGroup = trigger->getGroup();
       for (SimGroup::iterator itr = pGroup->begin(); itr != pGroup->end(); itr++)
-         Con::executef(*itr, 3, "onTrigger", Con::getIntArg(trigger->getId()), "0");
+         Con::executef(*itr, 3, "onTrigger", trigger->getId(), 0LL);
    }
 }
 
 ConsoleMethod( TriggerData, onTickTrigger, void, 3, 3, "(Trigger t)")
 {
    Trigger* trigger = NULL;
-   if (Sim::findObject(argv[2], trigger) == false)
+   if (Sim::findObject(argv[2].toString(), trigger) == false)
       return;
 
    // Do nothing with the trigger object id by default...
    SimGroup* pGroup = trigger->getGroup();
    for (SimGroup::iterator itr = pGroup->begin(); itr != pGroup->end(); itr++)
-      Con::executef(*itr, 2, "onTriggerTick", Con::getIntArg(trigger->getId()));
+      Con::executef(*itr, 2, "onTriggerTick", trigger->getId());
 }
 
 ConsoleMethod( Trigger, getNumObjects, S32, 2, 2, "")
 {
-   return object->getNumTriggeringObjects();
+   return (S64) object->getNumTriggeringObjects();
 }
 
 ConsoleMethod( Trigger, getObject, S32, 3, 3, "(int idx)")
 {
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
 
    if (index >= object->getNumTriggeringObjects() || index < 0)
-      return -1;
+      return -1LL;
    else
-      return object->getObject(U32(index))->getId();
+      return (S64) object->getObject(U32(index))->getId();
 }
 
 //----------------------------------------------------------------------------
@@ -212,14 +212,12 @@ ConsoleGetType( TypeTriggerPolyhedron )
    AssertFatal(currVec == 3, "Internal error: Bad trigger polyhedron");
 
    // Build output string.
-   char* retBuf = Con::getReturnBuffer(1024);
-   dSprintf(retBuf, 1023, "%7.7f %7.7f %7.7f %7.7f %7.7f %7.7f %7.7f %7.7f %7.7f %7.7f %7.7f %7.7f",
+   return ConsoleValueList::from(
             origin.x, origin.y, origin.z,
             vecs[0].x, vecs[0].y, vecs[0].z,
             vecs[2].x, vecs[2].y, vecs[2].z,
-            vecs[1].x, vecs[1].y, vecs[1].z);
-
-   return retBuf;
+            vecs[1].x, vecs[1].y, vecs[1].z
+   );
 }
 
 /* Console polyhedron data type loader
@@ -229,22 +227,25 @@ ConsoleGetType( TypeTriggerPolyhedron )
 */
 ConsoleSetType( TypeTriggerPolyhedron )
 {
-   if (argc != 1) {
-      Con::printf("(TypeTriggerPolyhedron) multiple args not supported for polyhedra");
-      return;
-   }
-
    Point3F origin;
    Point3F vecs[3];
 
-   U32 numArgs = dSscanf(argv[0], "%g %g %g %g %g %g %g %g %g %g %g %g",
-                         &origin.x, &origin.y, &origin.z,
-                         &vecs[0].x, &vecs[0].y, &vecs[0].z,
-                         &vecs[1].x, &vecs[1].y, &vecs[1].z,
-                         &vecs[2].x, &vecs[2].y, &vecs[2].z);
-   if (numArgs != 12) {
-      Con::printf("Bad polyhedron!");
-      return;
+   if (val.isList()) {
+       origin  = val.getPoint3F();
+       vecs[0] = val.getPoint3F(3);
+       vecs[1] = val.getPoint3F(6);
+       vecs[2] = val.getPoint3F(9);
+   }
+   else {
+       U32 numArgs = dSscanf(val.toString(), "%g %g %g %g %g %g %g %g %g %g %g %g",
+                             &origin.x, &origin.y, &origin.z,
+                             &vecs[0].x, &vecs[0].y, &vecs[0].z,
+                             &vecs[1].x, &vecs[1].y, &vecs[1].z,
+                             &vecs[2].x, &vecs[2].y, &vecs[2].z);
+       if (numArgs != 12) {
+          Con::printf("Bad polyhedron!");
+          return;
+       }
    }
 
    Polyhedron* pPoly = reinterpret_cast<Polyhedron*>(dptr);
@@ -308,7 +309,7 @@ bool Trigger::onAdd()
    if(!Parent::onAdd())
       return false;
 
-   Con::executef(this, 2, "onAdd", Con::getIntArg(getId()));
+   Con::executef(this, 2, "onAdd", getId());
 
    Polyhedron temp = mTriggerPolyhedron;
    setTriggerPolyhedron(temp);
@@ -320,7 +321,7 @@ bool Trigger::onAdd()
 
 void Trigger::onRemove()
 {
-   Con::executef(this, 2, "onRemove", Con::getIntArg(getId()));
+   Con::executef(this, 2, "onRemove", getId());
 
    mConvexList->nukeList();
 
@@ -348,7 +349,7 @@ void Trigger::onDeleteNotify(SimObject* obj)
          if (pScene == mObjects[i]) 
          {
             mObjects.erase(i);
-            Con::executef(mDataBlock, 3, "onLeaveTrigger", scriptThis(), Con::getIntArg(pScene->getId()));
+            Con::executef(mDataBlock, 3, "onLeaveTrigger", getId(), pScene->getId());
             break;
          }
       }
@@ -496,7 +497,7 @@ void Trigger::potentialEnterObject(GameBase* enter)
       mObjects.push_back(enter);
       deleteNotify(enter);
 
-      Con::executef(mDataBlock, 3, "onEnterTrigger", scriptThis(), Con::getIntArg(enter->getId()));
+      Con::executef(mDataBlock, 3, "onEnterTrigger", getId(), enter->getId());
    }
 }
 
@@ -521,12 +522,12 @@ void Trigger::processTick(const Move* move)
             GameBase* remove = mObjects[i];
             mObjects.erase(i);
             clearNotify(remove);
-            Con::executef(mDataBlock, 3, "onLeaveTrigger", scriptThis(), remove->scriptThis());
+            Con::executef(mDataBlock, 3, "onLeaveTrigger", getId(), remove->getId());
          }
       }
 
       if (mObjects.size() != 0)
-         Con::executef(mDataBlock, 2, "onTickTrigger", scriptThis());
+         Con::executef(mDataBlock, 2, "onTickTrigger", getId());
    } else {
       mCurrTick += TickMs;
    }

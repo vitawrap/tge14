@@ -1910,14 +1910,14 @@ void Player::updateMove(const Move* move)
    if (!isGhost()) {
       // Vehicle Dismount
       if(move->trigger[2] && isMounted())
-         Con::executef(mDataBlock,2,"doDismount",scriptThis());
+         Con::executef(mDataBlock,2,"doDismount", getId());
 
       if(!inLiquid && mWaterCoverage != 0.0f) {
-         Con::executef(mDataBlock,4,"onEnterLiquid",scriptThis(), Con::getFloatArg(mWaterCoverage), Con::getIntArg(mLiquidType));
+         Con::executef(mDataBlock,4,"onEnterLiquid", getId(), mWaterCoverage, mLiquidType);
          inLiquid = true;
       }
       else if(inLiquid && mWaterCoverage == 0.0f) {
-         Con::executef(mDataBlock,3,"onLeaveLiquid",scriptThis(), Con::getIntArg(mLiquidType));
+         Con::executef(mDataBlock,3,"onLeaveLiquid", getId(), mLiquidType);
          inLiquid = false;
       }
    }
@@ -2528,7 +2528,7 @@ void Player::updateActionThread()
       //The scripting language will get a call back when a script animation has finished...
       //  example: When the chat menu animations are done playing...
       if ( isServerObject() && mActionAnimation.action >= PlayerData::NumTableActionAnims )
-         Con::executef(mDataBlock,3,"animationDone",scriptThis());
+         Con::executef(mDataBlock, 3, "animationDone", getId());
       pickActionAnimation();
    }
 
@@ -3236,13 +3236,13 @@ void Player::checkMissionArea()
        pos.y < area.point.y || pos.y > area.point.y + area.extent.y)) {
       if(mInMissionArea) {
          mInMissionArea = false;
-         Con::executef(mDataBlock,3,"onLeaveMissionArea",scriptThis());
+         Con::executef(mDataBlock,3,"onLeaveMissionArea", getId());
       }
    }
    else if(!mInMissionArea)
    {
       mInMissionArea = true;
-      Con::executef(mDataBlock,3,"onEnterMissionArea",scriptThis());
+      Con::executef(mDataBlock,3,"onEnterMissionArea", getId());
    }
 }
 
@@ -4053,11 +4053,11 @@ ConsoleMethod( Player, getDamageLocation, const char*, 3, 3, "(Point3F pos)")
 {
    const char *buffer1;
    const char *buffer2;
-   char *buff = Con::getReturnBuffer(128);
+   char buff[128];
 
    //Point3F pos;
    //dSscanf(argv[2], "%g %g %g", &pos.x, &pos.y, &pos.z);
-   object->getDamageLocation(argv[2], buffer1, buffer2);
+   object->getDamageLocation(argv[2].getPoint3F(), buffer1, buffer2);
 
    dSprintf(buff, 128, "%s %s", buffer1, buffer2);
    return buff;
@@ -4065,20 +4065,20 @@ ConsoleMethod( Player, getDamageLocation, const char*, 3, 3, "(Point3F pos)")
 
 ConsoleMethod( Player, setArmThread, bool, 3, 3, "(string sequenceName)")
 {
-   return object->setArmThread(argv[2]);
+   return object->setArmThread(argv[2].toString());
 }
 
 ConsoleMethod( Player, setActionThread, bool, 3, 5, "(string sequenceName, bool hold, bool fsp)")
 {
-   bool hold = (argc > 3)? dAtob(argv[3]): false;
-   bool fsp  = (argc > 4)? dAtob(argv[4]): true;
-   return object->setActionThread(argv[2],hold,true,fsp);
+   bool hold = (argc > 3)? argv[3].getInt() : false;
+   bool fsp  = (argc > 4)? argv[4].getInt() : true;
+   return object->setActionThread(argv[2].toString(), hold, true, fsp);
 }
 
 ConsoleMethod( Player, setControlObject, bool, 3, 3, "(ShapeBase obj)")
 {
    ShapeBase* controlObject;
-   if (Sim::findObject(argv[2],controlObject)) {
+   if (Sim::findObject(argv[2].toString(), controlObject)) {
       object->setControlObject(controlObject);
       return true;
    }
@@ -4090,7 +4090,7 @@ ConsoleMethod( Player, setControlObject, bool, 3, 3, "(ShapeBase obj)")
 ConsoleMethod( Player, getControlObject, F32, 2, 2, "Get the current control object.")
 {
    ShapeBase* controlObject = object->getControlObject();
-   return controlObject? controlObject->getId(): 0;
+   return S64(controlObject? controlObject->getId(): 0);
 }
 
 ConsoleMethod( Player, clearControlObject, void, 2, 2, "")
@@ -4100,8 +4100,8 @@ ConsoleMethod( Player, clearControlObject, void, 2, 2, "")
 
 ConsoleMethod( Player, checkDismountPoint, bool, 4, 4, "(Point3F oldPos, Point3F pos)")
 {
-   Point3F oldPos(argv[2]);
-   Point3F pos(argv[3]);
+   Point3F oldPos = argv[2].getPoint3F();
+   Point3F pos = argv[3].getPoint3F();
    //dSscanf(argv[2], "%g %g %g",
    //        &oldPos.x,
    //        &oldPos.y,

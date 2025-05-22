@@ -647,7 +647,7 @@ void fxSunLight::reset(void)
 
 ConsoleMethod(fxSunLight, setEnable, void, 3, 3, "(status)")
 {
-   object->setEnable(dAtob(argv[2]));
+   object->setEnable(argv[2].getInt());
 }
 
 // ********************************************************************************
@@ -656,7 +656,7 @@ ConsoleMethod(fxSunLight, setEnable, void, 3, 3, "(status)")
 
 ConsoleMethod(fxSunLight, setFlareBitmaps, void, 4, 4, "(local, remote)")
 {
-   object->setFlareBitmaps(argv[2], argv[3]);
+   object->setFlareBitmaps(argv[2].toString(), argv[3].toString());
 }
 
 // ********************************************************************************
@@ -665,12 +665,12 @@ ConsoleMethod(fxSunLight, setFlareBitmaps, void, 4, 4, "(local, remote)")
 
 ConsoleMethod(fxSunLight, setSunAzimuth, void, 3, 3, "(azimuth)")
 {
-   object->setSunAzimuth(dAtof(argv[2]));
+   object->setSunAzimuth(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setSunElevation, void, 3, 3, "(elevation)")
 {
-   object->setSunElevation(dAtof(argv[2]));
+   object->setSunElevation(argv[2].getNumber());
 }
 
 // ********************************************************************************
@@ -679,32 +679,32 @@ ConsoleMethod(fxSunLight, setSunElevation, void, 3, 3, "(elevation)")
 
 ConsoleMethod(fxSunLight, setFlareTP, void, 3, 3, "(status)")
 {
-   object->setFlareTP(dAtob(argv[2]));
+   object->setFlareTP(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setFlareColour, void, 5, 5, "(r,g,b)")
 {
-   object->setFlareColour(ColorF(dAtof(argv[2]),dAtof(argv[3]),dAtof(argv[4])));
+   object->setFlareColour(ColorF(argv[2].getNumber(),argv[3].getNumber(),argv[4].getNumber()));
 }
 
 ConsoleMethod(fxSunLight, setFlareBrightness, void, 3, 3, "(brightness)")
 {
-   object->setFlareBrightness(dAtof(argv[2]));
+   object->setFlareBrightness(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setFlareSize, void, 3, 3, "(size)")
 {
-   object->setFlareSize(dAtof(argv[2]));
+   object->setFlareSize(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setFadeTime, void, 3, 3, "(time)")
 {
-   object->setFadeTime(dAtof(argv[2]));
+   object->setFadeTime(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setBlendMode, void, 3, 3, "(mode)")
 {
-   object->setBlendMode(dAtoi(argv[2]));
+   object->setBlendMode(argv[2].getInt());
 }
 
 // ********************************************************************************
@@ -713,72 +713,72 @@ ConsoleMethod(fxSunLight, setBlendMode, void, 3, 3, "(mode)")
 
 ConsoleMethod(fxSunLight, setUseColour, void, 3, 3, "(status)")
 {
-   object->setUseColour(dAtob(argv[2]));
+   object->setUseColour(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setUseBrightness, void, 3, 3, "(status)")
 {
-   object->setUseBrightness(dAtob(argv[2]));
+   object->setUseBrightness(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setUseRotation, void, 3, 3, "(status)")
 {
-   object->setUseRotation(dAtob(argv[2]));
+   object->setUseRotation(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setUseSize, void, 3, 3, "(status)")
 {
-   object->setUseSize(dAtob(argv[2]));
+   object->setUseSize(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setUseAzimuth, void, 3, 3, "(status)")
 {
-   object->setUseAzimuth(dAtob(argv[2]));
+   object->setUseAzimuth(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setUseElevation, void, 3, 3, "(status)")
 {
-   object->setUseElevation(dAtob(argv[2]));
+   object->setUseElevation(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLerpColour, void, 3, 3, "(status)")
 {
-   object->setLerpColour(dAtob(argv[2]));
+   object->setLerpColour(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLerpBrightness, void, 3, 3, "(status)")
 {
-   object->setLerpBrightness(dAtob(argv[2]));
+   object->setLerpBrightness(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLerpRotation, void, 3, 3, "(status)")
 {
-   object->setLerpRotation(dAtob(argv[2]));
+   object->setLerpRotation(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLerpSize, void, 3, 3, "(status)")
 {
-   object->setLerpSize(dAtob(argv[2]));
+   object->setLerpSize(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLerpAzimuth, void, 3, 3, "(status)")
 {
-   object->setLerpAzimuth(dAtob(argv[2]));
+   object->setLerpAzimuth(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLerpElevation, void, 3, 3, "(status)")
 {
-   object->setLerpElevation(dAtob(argv[2]));
+   object->setLerpElevation(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setLinkFlareSize, void, 3, 3, "(status)")
 {
-   object->setLinkFlareSize(dAtob(argv[2]));
+   object->setLinkFlareSize(argv[2].getInt());
 }
 
 ConsoleMethod(fxSunLight, setSingleColourKeys, void, 3, 3, "(status)")
 {
-   object->setSingleColourKeys(dAtob(argv[2]));
+   object->setSingleColourKeys(argv[2].getInt());
 }
 
 // ********************************************************************************
@@ -787,62 +787,62 @@ ConsoleMethod(fxSunLight, setSingleColourKeys, void, 3, 3, "(status)")
 
 ConsoleMethod(fxSunLight, setMinColour, void, 5, 5, "(r,g,b)")
 {
-   object->setMinColour(ColorF(dAtof(argv[2]),dAtof(argv[3]),dAtof(argv[4])));
+   object->setMinColour(ColorF(argv[2].getNumber(),argv[3].getNumber(),argv[4].getNumber()));
 }
 
 ConsoleMethod(fxSunLight, setMaxColour, void, 5, 5, "(r,g,b)")
 {
-   object->setMaxColour(ColorF(dAtof(argv[2]),dAtof(argv[3]),dAtof(argv[4])));
+   object->setMaxColour(ColorF(argv[2].getNumber(),argv[3].getNumber(),argv[4].getNumber()));
 }
 
 ConsoleMethod(fxSunLight, setMinBrightness, void, 3, 3, "(brightness)")
 {
-   object->setMinBrightness(dAtof(argv[2]));
+   object->setMinBrightness(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMaxBrightness, void, 3, 3, "(brightness)")
 {
-   object->setMaxBrightness(dAtof(argv[2]));
+   object->setMaxBrightness(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMinRotation, void, 3, 3, "(rotation)")
 {
-   object->setMinRotation(dAtof(argv[2]));
+   object->setMinRotation(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMaxRotation, void, 3, 3, "(rotation)")
 {
-   object->setMaxRotation(dAtof(argv[2]));
+   object->setMaxRotation(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMinSize, void, 3, 3, "(size)")
 {
-   object->setMinSize(dAtof(argv[2]));
+   object->setMinSize(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMaxSize, void, 3, 3, "(size)")
 {
-   object->setMaxSize(dAtof(argv[2]));
+   object->setMaxSize(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMinAzimuth, void, 3, 3, "(azimuth)")
 {
-   object->setMinAzimuth(dAtof(argv[2]));
+   object->setMinAzimuth(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMaxAzimuth, void, 3, 3, "(azimuth)")
 {
-   object->setMaxAzimuth(dAtof(argv[2]));
+   object->setMaxAzimuth(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMinElevation, void, 3, 3, "(elevation)")
 {
-   object->setMinElevation(dAtof(argv[2]));
+   object->setMinElevation(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setMaxElevation, void, 3, 3, "(elevation)")
 {
-   object->setMaxElevation(dAtof(argv[2]));
+   object->setMaxElevation(argv[2].getNumber());
 }
 
 // ********************************************************************************
@@ -851,42 +851,42 @@ ConsoleMethod(fxSunLight, setMaxElevation, void, 3, 3, "(elevation)")
 
 ConsoleMethod(fxSunLight, setRedKeys, void, 3, 3, "(keys)")
 {
-   object->setRedKeys(argv[2]);
+   object->setRedKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setGreenKeys, void, 3, 3, "(keys)")
 {
-   object->setGreenKeys(argv[2]);
+   object->setGreenKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setBlueKeys, void, 3, 3, "(keys)")
 {
-   object->setBlueKeys(argv[2]);
+   object->setBlueKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setBrightnessKeys, void, 3, 3, "(keys)")
 {
-   object->setBrightnessKeys(argv[2]);
+   object->setBrightnessKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setRotationKeys, void, 3, 3, "(keys)")
 {
-   object->setRotationKeys(argv[2]);
+   object->setRotationKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setSizeKeys, void, 3, 3, "(keys)")
 {
-   object->setSizeKeys(argv[2]);
+   object->setSizeKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setAzimuthKeys, void, 3, 3, "(keys)")
 {
-   object->setAzimuthKeys(argv[2]);
+   object->setAzimuthKeys(argv[2].toString());
 }
 
 ConsoleMethod(fxSunLight, setElevationKeys, void, 3, 3, "(keys)")
 {
-   object->setElevationKeys(argv[2]);
+   object->setElevationKeys(argv[2].toString());
 }
 
 // ********************************************************************************
@@ -895,32 +895,32 @@ ConsoleMethod(fxSunLight, setElevationKeys, void, 3, 3, "(keys)")
 
 ConsoleMethod(fxSunLight, setColourTime, void, 3, 3, "(time)")
 {
-   object->setColourTime(dAtof(argv[2]));
+   object->setColourTime(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setBrightnessTime, void, 3, 3, "(time)")
 {
-   object->setBrightnessTime(dAtof(argv[2]));
+   object->setBrightnessTime(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setRotationTime, void, 3, 3, "(time)")
 {
-   object->setRotationTime(dAtof(argv[2]));
+   object->setRotationTime(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setSizeTime, void, 3, 3, "(time)")
 {
-   object->setSizeTime(dAtof(argv[2]));
+   object->setSizeTime(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setAzimuthTime, void, 3, 3, "(time)")
 {
-   object->setAzimuthTime(dAtof(argv[2]));
+   object->setAzimuthTime(argv[2].getNumber());
 }
 
 ConsoleMethod(fxSunLight, setElevationTime, void, 3, 3, "(time)")
 {
-   object->setElevationTime(dAtof(argv[2]));
+   object->setElevationTime(argv[2].getNumber());
 }
 
 // ********************************************************************************

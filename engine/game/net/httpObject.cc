@@ -300,10 +300,10 @@ U32 HTTPObject::onReceive(U8 *buffer, U32 bufferLen)
 //--------------------------------------
 ConsoleMethod( HTTPObject, get, void, 4, 5, "(TransportAddress addr, string requirstURI, string query=NULL)")
 {
-   object->get(argv[2], argv[3], argc == 4 ? NULL : argv[4]);
+   object->get(argv[2].toString(), argv[3].toString(), argc == 4 ? NULL : argv[4].toString());
 }
 
 ConsoleMethod( HTTPObject, post, void, 6, 6, "(TransportAddress addr, string requestURI, string query, string post)")
 {
-   object->post(argv[2], argv[3], argv[4], argv[5]);
+   object->post(argv[2].toString(), argv[3].toString(), argv[4].toString(), argv[5].toString());
 }

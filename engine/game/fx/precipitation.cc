@@ -243,12 +243,12 @@ void Precipitation::initPersistFields()
 // Console methods...
 ConsoleMethod(Precipitation, setPercentange, void, 3, 3, "precipitation.setPercentage(percentage <0.0 to 1.0>)")
 {
-   object->setPercentage(dAtof(argv[2]));
+   object->setPercentage(argv[2].getNumber());
 }
 
 ConsoleMethod(Precipitation, modifyStorm, void, 4, 4, "precipitation.modifyStorm(Percentage <0 to 1>, Time<sec>)")
 {
-   object->modifyStorm(dAtof(argv[2]), dAtof(argv[3]) * 1000);
+   object->modifyStorm(argv[2].getNumber(), argv[3].getNumber() * 1000);
 }
 
 //--------------------------------------------------------------------------

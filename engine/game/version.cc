@@ -38,7 +38,7 @@ ConsoleFunction(isDebugBuild, bool, 1, 1, "isDebugBuild() - Returns true if the 
 
 ConsoleFunction( getVersionNumber, S32, 1, 1, "Get the version of the build, as a string.")
 {
-   return getVersionNumber();
+   return (S64) getVersionNumber();
 }
 
 ConsoleFunction( getVersionString, const char*, 1, 1, "Get the version of the build, as a string.")

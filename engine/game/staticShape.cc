@@ -355,7 +355,7 @@ ConsoleMethod( StaticShape, setPoweredState, void, 3, 3, "(bool isPowered)")
 {
    if(!object->isServerObject())
       return;
-   object->setPowered(dAtob(argv[2]));
+   object->setPowered(argv[2].getInt());
 }
 
 ConsoleMethod( StaticShape, getPoweredState, bool, 2, 2, "")
@@ -369,7 +369,7 @@ ConsoleMethod(StaticShape, setInterpolate, void, 3, 3, "(bool interp)")
 {
     if (!object->isServerObject())
         return;
-    object->setInterpolate(dAtob(argv[2]));
+    object->setInterpolate(argv[2].getInt());
 }
 
 ConsoleMethod(StaticShape, isInterpolating, bool, 2, 2, "")
@@ -384,12 +384,12 @@ ConsoleMethod(StaticShape, setParent, void, 3, 3, "(simObject parent) - set tran
     if (!object->isServerObject())
         return;
     ShapeBase* obj = NULL;
-    Sim::findObject(argv[2], obj);
+    Sim::findObject(argv[2].toString(), obj);
     object->setTransformParent(obj);    // allow NULL, to detach.
 }
 
 ConsoleMethod(StaticShape, getParent, bool, 2, 2, "get transform parent")
 {
     ShapeBase* parent = object->getTransformParent();
-    return parent? parent->scriptThis() : 0;
+    return S64( parent? parent->getId() : 0 );
 }

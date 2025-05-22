@@ -303,16 +303,13 @@ void Shockwave::initPersistFields()
 //--------------------------------------------------------------------------
 // CONSOLE commands
 //--------------------------------------------------------------------------
-ConsoleMethod(Shockwave, setInitialState, void, 4, 5, "setInitialState( pos, dir, rad )")
+ConsoleMethod(Shockwave, setInitialState, void, 4, 5, "setInitialState(Point3F pos, Point3F dir, F32 rad )")
 {
-   Point3F pos;
-   dSscanf( argv[2], "%f %f %f", &pos.x, &pos.y, &pos.z );
-
-   Point3F dir;
-   dSscanf( argv[3], "%f %f %f", &dir.x, &dir.y, &dir.z );
+   Point3F pos = argv[2].getPoint3F();
+   Point3F dir = argv[3].getPoint3F();
 
    if (argc > 4)
-      object->setInitialState( pos, dir, dAtof(argv[4]) );
+      object->setInitialState( pos, dir, argv[4].getNumber() );
    else
       object->setInitialState( pos, dir );
 }

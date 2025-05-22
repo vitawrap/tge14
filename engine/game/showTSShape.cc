@@ -824,7 +824,7 @@ ConsoleFunction( showShapeLoad, void, 2, 3, "(string shapeName, bool faceCamera)
    cameraMatrix.getColumn(3,&pos);
    vec *= initialShowDistance;
 
-   ShowTSShape * show = new ShowTSShape(argv[1]);
+   ShowTSShape * show = new ShowTSShape(argv[1].toString());
 
    if (show->shapeLoaded())
    {
@@ -927,7 +927,7 @@ ConsoleFunction( showPlay, void, 1, 2, "(int threadNum = -1)")
    }
    else
    {
-      S32 i = dAtoi(argv[1]);
+      S32 i = argv[1].getInt();
       if (i>=0)
          currentShow->setPlay(i,1);
    }
@@ -945,7 +945,7 @@ ConsoleFunction( showStop, void, 1, 2, "(int threadNum = -1)")
    }
    else
    {
-      S32 i = dAtoi(argv[1]);
+      S32 i = argv[1].getInt();
       if (i>=0)
          currentShow->setPlay(i,0);
    }
@@ -957,8 +957,8 @@ ConsoleFunction (showSetScale, void, 3, 3, "(int threadNum, float scale)")
    if (!currentShow)
       return;
 
-   S32 idx = dAtoi(argv[1]);
-   float s = dAtof(argv[2]);
+   S32 idx = argv[1].getInt();
+   float s = argv[2].getNumber();
    if (idx>=0)
       currentShow->setThreadScale(idx,s);
 
@@ -971,8 +971,8 @@ ConsoleFunction( showSetPos, void, 2, 2, "(int threadNum, float pos)")
    if (!currentShow)
       return;
 
-   S32 idx = dAtoi(argv[1]);
-   float s = dAtof(argv[2]);
+   S32 idx = argv[1].getInt();
+   float s = argv[2].getNumber();
    if (idx>=0)
       currentShow->setPos(idx,s);
 }
@@ -993,7 +993,7 @@ ConsoleFunction( showDeleteThread, void, 2, 2, "(int threadNum)")
    if (!currentShow)
       return;
 
-   S32 th = dAtoi(argv[1]);
+   S32 th = argv[1].getInt();
    if (th>=0)
       currentShow->deleteThread(th);
 
@@ -1025,7 +1025,7 @@ ConsoleFunction( showSetCamera, void, 2, 2, "(char orbitShape) t or T to orbit, 
 {
    ShowTSShape * currentShow = ShowTSShape::currentShow;
 
-   if (argv[1][0]=='t' || argv[1][0]=='T' && currentShow)
+   if (dToupper(argv[1].toString()[0]) == 'T' && currentShow)
       // orbit
       currentShow->orbitUs();
    else
@@ -1035,18 +1035,18 @@ ConsoleFunction( showSetCamera, void, 2, 2, "(char orbitShape) t or T to orbit, 
 
 ConsoleFunction(showSetKeyboard, void, 2, 2, "(char moveShape) Set to t or T.")
 {
-   keyboardControlsShape = (argv[1][0]=='t' || argv[1][0]=='T');
+   keyboardControlsShape = (dToupper(argv[1].toString()[0]) == 'T');
 }
 
 ConsoleFunction(showTurnLeft, void, 2, 2, "(float amt)")
 {
-   gShowShapeLeftSpeed = dAtof(argv[1]);
+   gShowShapeLeftSpeed = argv[1].getNumber();
 }
 
 
 ConsoleFunction( showTurnRight, void, 2, 2, "(float amt)")
 {
-   gShowShapeRightSpeed = dAtof(argv[1]);
+   gShowShapeRightSpeed = argv[1].getNumber();
 }
 
 ConsoleFunction( showSetLightDirection, void, 1, 1, "")

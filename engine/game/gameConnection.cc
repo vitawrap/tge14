@@ -81,7 +81,7 @@ GameConnection::~GameConnection()
 {
    delete mAuthInfo;
    for(U32 i = 0; i < mConnectArgc; i++)
-      dFree(mConnectArgv[i]);
+       dFree(mConnectArgv[i]);
    dFree(mJoinPassword);
 }
 
@@ -92,13 +92,13 @@ bool GameConnection::canRemoteCreate()
    return true;
 }
 
-void GameConnection::setConnectArgs(U32 argc, const char **argv)
+void GameConnection::setConnectArgs(U32 argc, ConsoleValue *argv)
 {
    if(argc > MaxConnectArgs)
       argc = MaxConnectArgs;
    mConnectArgc = argc;
    for(U32 i = 0; i < mConnectArgc; i++)
-      mConnectArgv[i] = dStrdup(argv[i]);
+      mConnectArgv[i] = dStrdup(argv[i].toString());
 }
 
 void GameConnection::setJoinPassword(const char *password)
@@ -106,9 +106,9 @@ void GameConnection::setJoinPassword(const char *password)
    mJoinPassword = dStrdup(password);
 }
 
-ConsoleMethod(GameConnection, setJoinPassword, void, 3, 3, "")
+ConsoleMethod(GameConnection, setJoinPassword, void, 3, 3, "(string password)")
 {
-   object->setJoinPassword(argv[2]);
+   object->setJoinPassword(argv[2].toString());
 }
 
 ConsoleMethod(GameConnection, setConnectArgs, void, 3, 17, "")
@@ -152,7 +152,7 @@ void GameConnection::onConnectionEstablished(bool isInitiator)
       setTranslatesStrings(true);
       Sim::getClientGroup()->addObject(this);
 
-      const char *argv[MaxConnectArgs + 2];
+      ConsoleValue argv[MaxConnectArgs + 2];
       argv[0] = "onConnect";
       for(U32 i = 0; i < mConnectArgc; i++)
          argv[i + 2] = mConnectArgv[i];
@@ -254,7 +254,7 @@ bool GameConnection::readConnectRequest(BitStream *stream, const char **errorStr
    }
    setProtocolVersion(currentProtocol < CurrentProtocolVersion ? currentProtocol : CurrentProtocolVersion);
 
-   const char *serverPassword = Con::getVariable("Pref::Server::Password");
+   const char *serverPassword = Con::getVariable("Pref::Server::Password").toString();
    if(serverPassword[0])
    {
       if(dStrcmp(joinPassword, serverPassword))
@@ -270,7 +270,7 @@ bool GameConnection::readConnectRequest(BitStream *stream, const char **errorStr
       *errorString = "CR_INVALID_ARGS";
       return false;
    }
-   const char *connectArgv[MaxConnectArgs + 3];
+   ConsoleValue connectArgv[MaxConnectArgs + 3];
    for(U32 i = 0; i < mConnectArgc; i++)
    {
       char argString[256];
@@ -283,10 +283,10 @@ bool GameConnection::readConnectRequest(BitStream *stream, const char **errorStr
    Net::addressToString(getNetAddress(), buffer);
    connectArgv[2] = buffer;
 
-   const char *ret = Con::execute(this, mConnectArgc + 3, connectArgv);
-   if(ret[0])
+   ConsoleValue ret = Con::execute(this, mConnectArgc + 3, connectArgv);
+   if(!ret.isNullString())
    {
-      *errorString = ret;
+      *errorString = ret.toString();
       return false;
    }
    return true;
@@ -619,7 +619,7 @@ void GameConnection::writeDemoStartBlock(ResizeBitStream *stream)
    stream->write(mLastClientMove);
    stream->write(mFirstMoveIndex);
 
-   stream->writeString(Con::getVariable("$Client::MissionFile"));
+   stream->writeString(Con::getVariable("$Client::MissionFile").toString());
 
    stream->write(U32(mMoveList.size()));
    for(U32 j = 0; j < mMoveList.size(); j++)
@@ -635,7 +635,7 @@ void GameConnection::writeDemoStartBlock(ResizeBitStream *stream)
       {
          stream->writeFlag(true);
          stream->writeString(entry->slotName + 4);
-         stream->writeString(entry->value);
+         stream->writeString(entry->value.toString());
          stream->validate();
       }
       ++itr;
@@ -705,7 +705,7 @@ bool GameConnection::readDemoStartBlock(BitStream *stream)
       char value[256];
       stream->readString(array);
       stream->readString(value);
-      setDataField(slotName, array, value);
+      setDataField(slotName, array, ConsoleValue(value));
    }
    bool ret = Parent::readDemoStartBlock(stream);
    // grab the control object
@@ -735,7 +735,7 @@ bool GameConnection::readDemoStartBlock(BitStream *stream)
 
 void GameConnection::demoPlaybackComplete()
 {
-   static const char *demoPlaybackArgv[1] = { "demoPlaybackComplete" };
+   static ConsoleValue demoPlaybackArgv[1] = { "demoPlaybackComplete" };
    Sim::postCurrentEvent(Sim::getRootGroup(), new SimConsoleEvent(1, demoPlaybackArgv, false));
    Parent::demoPlaybackComplete();
 }
@@ -1223,7 +1223,7 @@ void GameConnection::handleConnectionMessage(U32 message, U32 sequence, U32 ghos
       if(message == DataBlocksDownloadDone)
       {
          if(getDataBlockSequence() == sequence)
-            Con::executef(this, 2, "onDataBlocksDone", Con::getIntArg(getDataBlockSequence()));
+            Con::executef(this, 2, "onDataBlocksDone", getDataBlockSequence());
       }
    }
    Parent::handleConnectionMessage(message, sequence, ghostCount);
@@ -1233,7 +1233,7 @@ void GameConnection::handleConnectionMessage(U32 message, U32 sequence, U32 ghos
 
 ConsoleMethod( GameConnection, transmitDataBlocks, void, 3, 3, "(int sequence)")
 {
-   object->setDataBlockSequence(dAtoi(argv[2]));
+   object->setDataBlockSequence(argv[2].getInt());
    SimDataBlockGroup *g = Sim::getDataBlockGroup();
 
    // find the first one we haven't sent:
@@ -1285,7 +1285,7 @@ ConsoleMethod( GameConnection, resetGhosting, void, 2, 2, "")
 ConsoleMethod( GameConnection, setControlObject, bool, 3, 3, "(ShapeBase object)")
 {
    ShapeBase *gb;
-   if(!Sim::findObject(argv[2], gb))
+   if(!Sim::findObject(argv[2].toString(), gb))
       return false;
 
    object->setControlObject(gb);
@@ -1296,7 +1296,7 @@ ConsoleMethod( GameConnection, getControlObject, S32, 2, 2, "")
 {
    argv;
    SimObject* cp = object->getControlObject();
-   return cp? cp->getId(): 0;
+   return S64(cp? cp->getId(): 0);
 }
 
 ConsoleMethod( GameConnection, isAIControlled, bool, 2, 2, "")
@@ -1307,7 +1307,7 @@ ConsoleMethod( GameConnection, isAIControlled, bool, 2, 2, "")
 ConsoleMethod( GameConnection, play2D, bool, 3, 3, "(AudioProfile ap)")
 {
    AudioProfile *profile;
-   if(!Sim::findObject(argv[2], profile))
+   if(!Sim::findObject(argv[2].toString(), profile))
       return false;
    object->play2D(profile);
    return true;
@@ -1316,15 +1316,16 @@ ConsoleMethod( GameConnection, play2D, bool, 3, 3, "(AudioProfile ap)")
 ConsoleMethod( GameConnection, play3D, bool, 4, 4, "(AudioProfile ap, Transform pos)")
 {
    AudioProfile *profile;
-   if(!Sim::findObject(argv[2], profile))
+   if(!Sim::findObject(argv[2].toString(), profile))
       return false;
 
    Point3F pos(0,0,0);
-   AngAxisF aa;
-   aa.axis.set(0,0,1);
-   aa.angle = 0;
-   dSscanf(argv[3],"%g %g %g %g %g %g %g",
-           &pos.x,&pos.y,&pos.z,&aa.axis.x,&aa.axis.y,&aa.axis.z,&aa.angle);
+   AngAxisF aa(Point3F(0, 0, 1), 0);
+   if (argv[3].isList()) {
+       pos = argv[3].getPoint3F();
+       aa = argv[3].getPoint4F(3);
+   } else dSscanf(argv[3].toString(), "%g %g %g %g %g %g %g",
+               &pos.x,&pos.y,&pos.z,&aa.axis.x,&aa.axis.y,&aa.axis.z,&aa.angle);
    MatrixF mat;
    aa.setMatrix(&mat);
    mat.setColumn(3,pos);
@@ -1335,7 +1336,7 @@ ConsoleMethod( GameConnection, play3D, bool, 4, 4, "(AudioProfile ap, Transform 
 
 ConsoleMethod( GameConnection, chaseCam, bool, 3, 3, "(int size)")
 {
-   S32 size = dAtoi(argv[2]);
+   S32 size = argv[2].getInt();
    if (size != sChaseQueueSize) 
    {
       SAFE_DELETE_ARRAY(sChaseQueue);
@@ -1355,7 +1356,7 @@ ConsoleMethod( GameConnection, chaseCam, bool, 3, 3, "(int size)")
 ConsoleMethod( GameConnection, setControlCameraFov, void, 3, 3, "(int newFOV)"
               "Set new FOV in degrees.")
 {
-   object->setControlCameraFov(dAtoi(argv[2]));
+   object->setControlCameraFov(argv[2].getInt());
 }
 
 ConsoleMethod( GameConnection, getControlCameraFov, F32, 2, 2, "")
@@ -1368,7 +1369,7 @@ ConsoleMethod( GameConnection, getControlCameraFov, F32, 2, 2, "")
 
 ConsoleMethod( GameConnection, setBlackOut, void, 4, 4, "(bool doFade, int timeMS)")
 {
-   object->setBlackOut(dAtob(argv[2]), dAtoi(argv[3]));
+   object->setBlackOut(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod( GameConnection, setMissionCRC, void, 3, 3, "(int CRC)")
@@ -1376,13 +1377,13 @@ ConsoleMethod( GameConnection, setMissionCRC, void, 3, 3, "(int CRC)")
    if(object->isConnectionToServer())
       return;
 
-   object->postNetEvent(new SetMissionCRCEvent(dAtoi(argv[2])));
+   object->postNetEvent(new SetMissionCRCEvent(argv[2].getInt()));
 }
 
 ConsoleMethod( GameConnection, delete, void, 2, 3, "(string reason=NULL) Disconnect a client; reason is sent as part of the disconnect packet.")
 {
    if (argc == 3)
-      object->setDisconnectReason(argv[2]);
+      object->setDisconnectReason(argv[2].toString());
    object->deleteObject();
 }
 
@@ -1397,7 +1398,7 @@ void GameConnection::consoleInit()
 ConsoleMethod(GameConnection, startRecording, void, 3, 3, "(string fileName)records the network connection to a demo file.")
 {
    char fileName[1024];
-   Con::expandScriptFilename(fileName, sizeof(fileName), argv[2]);
+   Con::expandScriptFilename(fileName, sizeof(fileName), argv[2].toString());
    object->startDemoRecord(fileName);
 }
 
@@ -1409,7 +1410,7 @@ ConsoleMethod(GameConnection, stopRecording, void, 2, 2, "()stops the demo recor
 ConsoleMethod(GameConnection, playDemo, bool, 3, 3, "(string demoFileName)plays a previously recorded demo.")
 {
    char filename[1024];
-   Con::expandScriptFilename(filename, sizeof(filename), argv[2]);
+   Con::expandScriptFilename(filename, sizeof(filename), argv[2].toString());
 
    // Note that calling onConnectionEstablished will change the values in argv!
    object->onConnectionEstablished(true);
@@ -1463,7 +1464,7 @@ ConsoleMethod( GameConnection, listClassIDs, void, 2, 2, "() List all of the "
 ConsoleStaticMethod(GameConnection, getServerConnection, S32, 2, 2, "() Get the server connection if any.")
 {
    if(GameConnection::getConnectionToServer())
-      return GameConnection::getConnectionToServer()->getId();
+      return (S64) GameConnection::getConnectionToServer()->getId();
    else
    {
       Con::errorf("GameConnection::getServerConnection - no connection available.");
@@ -1474,7 +1475,7 @@ ConsoleStaticMethod(GameConnection, getServerConnection, S32, 2, 2, "() Get the 
 ConsoleMethod(GameConnection, setCameraObject, S32, 3, 3, "")
 {
    ShapeBase *obj;
-   if(!Sim::findObject(argv[2], obj))
+   if(!Sim::findObject(argv[2].toString(), obj))
       return false;
    
    object->setCameraObject(obj);
@@ -1484,7 +1485,7 @@ ConsoleMethod(GameConnection, setCameraObject, S32, 3, 3, "")
 ConsoleMethod(GameConnection, getCameraObject, S32, 2, 2, "")
 {
    SimObject *obj = object->getCameraObject();
-   return obj ? obj->getId() : 0;
+   return S64( obj ? obj->getId() : 0 );
 }
 
 ConsoleMethod(GameConnection, clearCameraObject, void, 2, 2, "")
@@ -1501,15 +1502,16 @@ ConsoleMethod(GameConnection, isFirstPerson, bool, 2, 2, "() True if this connec
 
 ConsoleMethod(GameConnection, setFirstPerson, void, 3, 3, "(bool firstPerson) Sets this connection into or out of first person mode.")
 {
-   object->setFirstPerson(dAtob(argv[2]));
+   object->setFirstPerson(argv[2].getInt());
 }
 
 //-----------------------------------------------------------------------------
 // Camera FX interface
 //-----------------------------------------------------------------------------
 
-ConsoleMethod(GameConnection, shakeCamera, void, 6, 6, "(F32 falloff, VectorF freq, VectorF amp, F32 duration) - Manually shake a client's camera")
+ConsoleMethod(GameConnection, shakeCamera, void, 6, 6, "(F32 falloff, Point3F freq, Point3F amp, F32 duration) - Manually shake a client's camera")
 {
     if (!object->isConnectionToServer())
-        object->postNetEvent(new CameraShakeEvent(dAtof(argv[2]), VectorF(argv[3]), VectorF(argv[4]), dAtof(argv[5])));
+        object->postNetEvent(new CameraShakeEvent(
+            argv[2].getNumber(), argv[3].getPoint3F(), argv[4].getPoint3F(), argv[5].getNumber()));
 }

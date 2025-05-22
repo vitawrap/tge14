@@ -342,7 +342,7 @@ void PathCamera::popFront()
 void PathCamera::onNode(S32 node)
 {
    if (!isGhost())
-      Con::executef(mDataBlock,3,"onNode",scriptThis(), Con::getIntArg(node));
+      Con::executef(mDataBlock, 3, "onNode", getId(), node);
 }
 
 
@@ -447,20 +447,21 @@ void PathCamera::unpackUpdate(NetConnection *con, BitStream *stream)
 
 ConsoleMethod(PathCamera,setPosition,void,3, 3,"PathCamera.setPosition(pos);")
 {
-   object->setPosition(dAtof(argv[2]));
+   object->setPosition(argv[2].getNumber());
 }
 
 ConsoleMethod(PathCamera,setTarget,void,3, 3,"PathCamera.setTarget(pos);")
 {
-   object->setTarget(dAtof(argv[2]));
+   object->setTarget(argv[2].getNumber());
 }
 
 ConsoleMethod(PathCamera,setState,void,3, 3,"PathCamera.setState({forward,backward,stop});")
 {
-   if (!dStricmp(argv[2],"forward"))
+   char const* state = argv[2].toString();
+   if (!dStricmp(state,"forward"))
       object->setState(PathCamera::Forward);
    else
-      if (!dStricmp(argv[2],"backward"))
+      if (!dStricmp(state,"backward"))
          object->setState(PathCamera::Backward);
       else
          object->setState(PathCamera::Stop);
@@ -468,7 +469,7 @@ ConsoleMethod(PathCamera,setState,void,3, 3,"PathCamera.setState({forward,backwa
 
 ConsoleMethod(PathCamera,reset,void,2,3,"PathCamera.reset(speed=0);")
 {
-   object->reset((argc >= 3)? dAtof(argv[2]): 1);
+   object->reset((argc >= 3)? argv[2].getNumber() : 1);
 }
 
 
@@ -489,18 +490,26 @@ ConsoleMethod(PathCamera,pushBack,void,6, 6,"PathCamera.pushBack(transform,speed
 {
    Point3F pos;
    AngAxisF aa(Point3F(0,0,0),0);
-   dSscanf(argv[2], "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+   if (argv[2].isList()) {
+       pos = argv[2].getPoint3F();
+       aa = argv[2].getPoint4F(3);
+   } else dSscanf(argv[2].toString(), "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
    QuatF rot(aa);
-   object->pushBack( new CameraSpline::Knot(pos, rot, dAtof(argv[3]), resolveKnotType(argv[4]), resolveKnotPath(argv[5])) );
+   object->pushBack( new CameraSpline::Knot(pos, rot, argv[3].getNumber(),
+       resolveKnotType(argv[4].toString()), resolveKnotPath(argv[5].toString())));
 }
 
 ConsoleMethod(PathCamera,pushFront,void,6, 6,"PathCamera.pushFront(transform,speed,type,path);")
 {
    Point3F pos;
    AngAxisF aa(Point3F(0,0,0),0);
-   dSscanf(argv[2], "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+   if (argv[2].isList()) {
+       pos = argv[2].getPoint3F();
+       aa = argv[2].getPoint4F(3);
+   } else dSscanf(argv[2].toString(), "%g %g %g %g %g %g %g", &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
    QuatF rot(aa);
-   object->pushFront( new CameraSpline::Knot(pos, rot, dAtof(argv[3]), resolveKnotType(argv[4]), resolveKnotPath(argv[5])) );
+   object->pushFront( new CameraSpline::Knot(pos, rot, argv[3].getNumber(),
+       resolveKnotType(argv[4].toString()), resolveKnotPath(argv[5].toString())));
 }
 
 ConsoleMethod(PathCamera,popFront,void,2, 2,"PathCamera.popFront();")

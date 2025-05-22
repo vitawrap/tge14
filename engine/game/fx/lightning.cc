@@ -36,12 +36,11 @@ ConsoleMethod( Lightning, strikeRandomPoint, void, 2, 2, "")
    if (object->isServerObject()) object->strikeRandomPoint();
 }
 
-ConsoleMethod( Lightning, strikeObject, void, 3, 3, "(ShapeBase id)")
+ConsoleMethod( Lightning, strikeObject, void, 3, 3, "(ShapeBase nameOrId)")
 {
-   S32 id = dAtoi(argv[2]);
    ShapeBase* pSB;
 
-   if (object->isServerObject() && Sim::findObject(id, pSB))
+   if (object->isServerObject() && Sim::findObject(argv[2].toString(), pSB))
       object->strikeObject(pSB);
 }
 
@@ -904,17 +903,10 @@ void Lightning::applyDamage( const Point3F& hitPosition,
 {
    if (!isClientObject() && hitObject != NULL)
    {
-      char *posArg = Con::getArgBuffer(64);
-      char *normalArg = Con::getArgBuffer(64);
+      auto* lHit = ConsoleValueList::from(hitPosition.x, hitPosition.y, hitPosition.z);
+      auto* lNorm = ConsoleValueList::from(hitNormal.x, hitNormal.y, hitNormal.z);
 
-      dSprintf(posArg, 64, "%g %g %g", hitPosition.x, hitPosition.y, hitPosition.z);
-      dSprintf(normalArg, 64, "%g %g %g", hitNormal.x, hitNormal.y, hitNormal.z);
-
-      Con::executef(mDataBlock, 5, "applyDamage",
-         Con::getIntArg(getId()),
-         Con::getIntArg(hitObject->getId()),
-         posArg,
-         normalArg);
+      Con::executef(mDataBlock, 5, "applyDamage", getId(), hitObject->getId(), lHit, lNorm);
    }
 }
 

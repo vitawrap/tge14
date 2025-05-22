@@ -115,7 +115,7 @@ F32 GuiClockHud::getTime()
 
 ConsoleMethod(GuiClockHud,setTime,void,3, 3,"(time in sec)Sets the current base time for the clock")
 {
-   object->setTime(dAtof(argv[2]));
+   object->setTime(argv[2].getNumber());
 }
 
 ConsoleMethod(GuiClockHud,getTime, F32, 2, 2,"()Returns current time in secs.")

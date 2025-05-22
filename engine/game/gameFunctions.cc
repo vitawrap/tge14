@@ -15,22 +15,22 @@ U32 gServerQueryIndex = 0;
 //SERVER FUNCTIONS ONLY
 ConsoleFunctionGroupBegin( Containers, "Spatial query functions. <b>Server side only!</b>");
 
-ConsoleFunction(containerFindFirst, const char*, 6, 6, "(bitset type, Point3F point, float x, float y, float z)"
+ConsoleFunction(containerFindFirst, S32, 6, 6, "(bitset type, Point3F point, float x, float y, float z)"
                 "Find objects matching the bitmask type within a box centered at point, with extents x, y, z.\n\n"
                 "Returns the first object found; thereafter, you can get more results using containerFindNext().")
 {
    //find out what we're looking for
-   U32 typeMask = U32(dAtoi(argv[1]));
+   U32 typeMask = argv[1].getInt();
 
    //find the center of the container volume
-   Point3F origin(argv[2]);
+   Point3F origin = argv[2].getPoint3F();
    //dSscanf(argv[2], "%g %g %g", &origin.x, &origin.y, &origin.z);
 
    //find the box dimensions
    Point3F size(0, 0, 0);
-   size.x = mFabs(dAtof(argv[3]));
-   size.y = mFabs(dAtof(argv[4]));
-   size.z = mFabs(dAtof(argv[5]));
+   size.x = mFabs(argv[3].getNumber());
+   size.y = mFabs(argv[4].getNumber());
+   size.z = mFabs(argv[5].getNumber());
 
    //build the container volume
    Box3F queryBox;
@@ -45,25 +45,17 @@ ConsoleFunction(containerFindFirst, const char*, 6, 6, "(bitset type, Point3F po
 
    //return the first element
    gServerQueryIndex = 0;
-   char *buff = Con::getReturnBuffer(100);
    if (gServerQueryList.mList.size())
-      dSprintf(buff, 100, "%d", gServerQueryList.mList[gServerQueryIndex++]->getId());
-   else
-      buff[0] = '\0';
-
-   return buff;
+      return (S64) gServerQueryList.mList[gServerQueryIndex++]->getId();
+   return 0LL;
 }
 
-ConsoleFunction( containerFindNext, const char*, 1, 1, "Get more results from a previous call to containerFindFirst().")
+ConsoleFunction( containerFindNext, S32, 1, 1, "Get more results from a previous call to containerFindFirst().")
 {
    //return the next element
-   char *buff = Con::getReturnBuffer(100);
    if (gServerQueryIndex < gServerQueryList.mList.size())
-      dSprintf(buff, 100, "%d", gServerQueryList.mList[gServerQueryIndex++]->getId());
-   else
-      buff[0] = '\0';
-
-   return buff;
+      return (S64) gServerQueryList.mList[gServerQueryIndex++]->getId();
+   return 0LL;
 }
 
 ConsoleFunctionGroupEnd( Containers );

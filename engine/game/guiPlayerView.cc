@@ -62,36 +62,37 @@ void GuiPlayerView::initPersistFields()
 ConsoleMethod( GuiPlayerView, setModel, void, 4, 4, "playerView.setModel( playermodel, skin )" )
 {
    argc;
-   object->setPlayerModel( argv[2], argv[3] );
+   object->setPlayerModel( argv[2].toString(), argv[3].toString() );
 }
 
 ConsoleMethod(GuiPlayerView, setImage, void, 4, 5, "playerView.setImage( playermodel, skin, mountN = 0 )")
 {
-    object->setImage( argv[2], argv[3], argc == 4? 0 : dAtoi(argv[4]) );
+    object->setImage( argv[2].toString(), argv[3].toString(), argc == 4 ? 0 : argv[4].getInt());
 }
 
 ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( name )" )
 {
    argc;
-   object->setPlayerSeq( argv[2] );
+   object->setPlayerSeq( argv[2].toString() );
 }
 
 ConsoleMethod(GuiPlayerView, setModelColor, void, 4, 4, "playerView.setModelColor( nodeName, colorF )")
 {
     argc;
     ColorF color(1.f, 1.f, 1.f, 1.f);
-    dSscanf(argv[3], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
-
-    object->setModelColor(argv[2], color);
+    color = argv[3].getColorF();
+    //dSscanf(argv[3], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
+    object->setModelColor(argv[2].toString(), color);
 }
 
 ConsoleMethod(GuiPlayerView, setImageColor, void, 5, 5, "playerView.setImageColor( mountPoint, nodeName, colorF )")
 {
     argc;
     ColorF color(1.f, 1.f, 1.f, 1.f);
-    dSscanf(argv[4], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
+    color = argv[4].getColorF();
+    //dSscanf(argv[4], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
 
-    object->setImageColor(dAtoi(argv[2]), argv[3], color);
+    object->setImageColor(argv[2].getInt(), argv[3].toString(), color);
 }
 
 ConsoleMethod(GuiPlayerView, fitModel, void, 2, 2, "playerView.fitModel() - Calculate ideal FOV for model")

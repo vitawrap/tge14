@@ -817,7 +817,7 @@ void Item::updatePos(const U32 /*mask*/, const F32 dt)
       {
          notifyCollision();
          if(bool(safePtr))
-            Con::executef(mDataBlock, 2, "onStickyCollision", scriptThis());
+            Con::executef(mDataBlock, 2, "onStickyCollision", getId());
       }
       else
          notifyCollision();
@@ -827,12 +827,12 @@ void Item::updatePos(const U32 /*mask*/, const F32 dt)
       {
          if(!mInLiquid && mWaterCoverage != 0.0f)
          {
-            Con::executef(mDataBlock,4,"onEnterLiquid",scriptThis(), Con::getFloatArg(mWaterCoverage), Con::getIntArg(mLiquidType));
+            Con::executef(mDataBlock,4,"onEnterLiquid",scriptThis(), mWaterCoverage, mLiquidType);
             mInLiquid = true;
          }
          else if(mInLiquid && mWaterCoverage == 0.0f)
          {
-            Con::executef(mDataBlock,3,"onLeaveLiquid",scriptThis(), Con::getIntArg(mLiquidType));
+            Con::executef(mDataBlock,3,"onLeaveLiquid",scriptThis(), mLiquidType);
             mInLiquid = false;
          }
       }
@@ -1013,12 +1013,12 @@ ConsoleMethod(Item, setCollisionTimeout, bool, 3, 4, "(ShapeBase obj [, S32 n])"
               "Disable collisions against obj for n ticks.")
 {
    ShapeBase* source;
-   if (Sim::findObject(dAtoi(argv[2]),source))
+   if (Sim::findObject(argv[2].toString(), source))
    {
       if (argc == 3)
           object->setCollisionTimeout(source);
       else if (argc == 4)
-          object->setCollisionTimeout(source, dAtoi(argv[3]));
+          object->setCollisionTimeout(source, argv[3].getInt());
       return true;
    }
 
@@ -1028,31 +1028,25 @@ ConsoleMethod(Item, setCollisionTimeout, bool, 3, 4, "(ShapeBase obj [, S32 n])"
 ConsoleMethod( Item, getLastStickyPos, const char *, 2, 2, "()"
               "Get the position on the surface on which the object is stuck.")
 {
-   char* ret = Con::getReturnBuffer(256);
-   if (object->isServerObject())
-      dSprintf(ret, 255, "%g %g %g",
-               object->mStickyCollisionPos.x,
-               object->mStickyCollisionPos.y,
-               object->mStickyCollisionPos.z);
-   else
-      dStrcpy(ret, "0 0 0");
-
-   return ret;
+    if (object->isServerObject())
+        return ConsoleValueList::from(
+            object->mStickyCollisionPos.x,
+            object->mStickyCollisionPos.y,
+            object->mStickyCollisionPos.z
+        );
+    return ConsoleValueList::from(0.0, 0.0, 0.0);
 }
 
 ConsoleMethod( Item, getLastStickyNormal, const char *, 2, 2, "()"
               "Get the normal of the surface on which the object is stuck.")
 {
-   char* ret = Con::getReturnBuffer(256);
    if (object->isServerObject())
-      dSprintf(ret, 255, "%g %g %g",
-               object->mStickyCollisionNormal.x,
-               object->mStickyCollisionNormal.y,
-               object->mStickyCollisionNormal.z);
-   else
-      dStrcpy(ret, "0 0 0");
-
-   return ret;
+       return ConsoleValueList::from(
+            object->mStickyCollisionNormal.x,
+            object->mStickyCollisionNormal.y,
+            object->mStickyCollisionNormal.z
+       );
+   return ConsoleValueList::from(0.0, 0.0, 0.0);
 }
 
 //----------------------------------------------------------------------------
