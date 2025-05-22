@@ -16,6 +16,12 @@
 #ifndef _STRINGTABLE_H_
 #include "core/stringTable.h"
 #endif
+#ifndef _MPOINT_H_
+#include "math/mPoint.h"
+#endif
+#ifndef _COLOR_H_
+#include "core/color.h"
+#endif
 
 // Size for small string in console value
 #define CONVALUE_SSO_SIZE 16
@@ -29,6 +35,7 @@
 ((cv).getType() == ConsoleValue::TypeString? (cv).getStringU() : ConsoleValue((cv)).toString())
 
 class ConsoleValueList;
+class MemStream;
 
 /**
 	Console value object used at runtime.
@@ -165,6 +172,9 @@ private:
 		}
 	}
 
+	void innerPack(MemStream& stream) const;
+	bool innerUnpack(MemStream& stream);
+
 public:
 	~ConsoleValue() { clear(); }
 
@@ -295,6 +305,9 @@ public:
 
 	bool isList() const { return type == TypeValueList && list; }
 
+	// Works for local and remote tagged strings
+	bool isTagString() const { return (type == TypeString) && (getString()[0] == StringTagPrefixByte); }
+
 	// Unchecked getters (used after getType() or a successful castTo(T)).
 
 	S64 getIntU() const { return i; }
@@ -314,6 +327,7 @@ public:
 	}
 
 	// Checked toString (mutates console value!)
+	// Make sure the lifetime of the ConsoleValue guarantees the lifetime of the ptr to the string!
 	char const* toString() { return castTo(TypeString)? getString() : ""; }
 	StringTableEntry toSTString() { return StringTable->insert(toString()); }
 	S64 getStrlen() { return castTo(TypeString)? str.length : 0 ; }
@@ -371,6 +385,23 @@ public:
 		dSscanf(toString(), "%g %g %g %g", &ret.x, &ret.y, &ret.z, &ret.w);
 		return ret;
 	}
+
+	ColorF getColorF() {
+		if (isList())
+			return ColorF(
+				getListValueDefU(0, 0.0).getNumber(),
+				getListValueDefU(1, 0.0).getNumber(),
+				getListValueDefU(2, 0.0).getNumber(),
+				getListValueDefU(3, 1.0).getNumber() // default alpha: 1.0
+			);
+		ColorF ret(0.f, 0.f, 0.f, 1.f);
+		dSscanf(toString(), "%g %g %g %g", &ret.red, &ret.green, &ret.blue, &ret.alpha);
+		return ret;
+	}
+
+	// Network serialization
+	void pack(U64 size, char* buffer) const;
+	bool unpack(U64 size, char* buffer);
 };
 
 /**
@@ -383,7 +414,7 @@ class ConsoleValueList : public Vector<ConsoleValue>
 
 public:
 	// Auto-increment ref-count when constructing
-	ConsoleValueList(bool incRef = true)
+	ConsoleValueList(bool incRef = false)
 		: mRefCount(incRef)
 		, Parent()
 	{}
@@ -425,8 +456,11 @@ public:
 
 	template <typename ...CVArgs>
 	static ConsoleValueList* from(CVArgs const&... args) {
+		S64 i = 0;
 		auto* list = new ConsoleValueList;
-		int dummy[sizeof...(CVArgs)] = { (list->push_back(args),0)... };
+		list->increment(sizeof...(CVArgs));
+		int dummy[sizeof...(CVArgs)] =
+		{ (constructInPlace(&list[i++], &args),0)... };
 		return list;
 	}
 };

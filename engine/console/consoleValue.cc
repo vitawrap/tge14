@@ -5,6 +5,7 @@
 
 #include "console/console.h"
 #include "console/consoleValue.h"
+#include "core/memstream.h"
 
 const int stringCSize = 1024;
 thread_local static char stringConv[stringCSize];
@@ -159,4 +160,80 @@ S32 ConsoleValue::serialize(char* out, S32 size) {
 	}
 
 	dSprintf(out, size, "%s", strBuf.getString());
+}
+
+void ConsoleValue::innerPack(MemStream& stream) const
+{
+	switch (type) {
+	case TypeInt:
+		stream.write((U8)'I');
+		stream.write(i);
+		break;
+	case TypeFloat:
+		stream.write((U8)'F');
+		stream.write(f);
+		break;
+	case TypeString:
+		stream.write((U8)'S');
+		stream.writeString(getString());
+	case TypeValueList:
+		stream.write((U8)'L');
+		stream.write((U16)list->size());
+		for (S32 i = 0; i < list->size(); ++i)
+			list->at(i).innerPack(stream);
+		break;
+	}
+}
+
+bool ConsoleValue::innerUnpack(MemStream& stream)
+{
+	clear(true);
+
+	U8 key;
+	stream.read(&key);
+	switch (key) {
+	case 'I':
+		type = TypeInt;
+		stream.read(&i);
+		break;
+	case 'F':
+		type = TypeFloat;
+		stream.read(&f);
+		break;
+	case 'S': {
+		type = TypeString;
+		char stringBuffer[256];
+		stream.readString(stringBuffer);
+		setString(stringBuffer);
+	}
+		break;
+	case 'L': {
+		type = TypeValueList;
+		list = new ConsoleValueList(true);
+		U16 listSize;
+		stream.read(&listSize);
+		while (listSize--) {
+			ConsoleValue val;
+			if (!val.innerUnpack(stream))
+				return false;
+			list->push_back(val);
+		}
+	}
+		break;
+	default:
+		return false;
+	}
+	return true;
+}
+
+void ConsoleValue::pack(U64 size, char* buffer) const
+{
+	MemStream stream(size, buffer, false, true);
+	innerPack(stream);
+}
+
+bool ConsoleValue::unpack(U64 size, char* buffer)
+{
+	MemStream stream(size, buffer, true, false);
+	return innerUnpack(stream);
 }
