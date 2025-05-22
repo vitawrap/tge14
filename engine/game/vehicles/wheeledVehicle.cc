@@ -1427,10 +1427,10 @@ void WheeledVehicle::unpackUpdate(NetConnection *con, BitStream *stream)
 
 ConsoleMethod(WheeledVehicle, setWheelSteering, bool, 4, 4, "obj.setWheelSteering(wheel#,float)")
 {
-   S32 wheel = dAtoi(argv[2]);
+   S32 wheel = argv[2].getInt();
    if (wheel >= 0 && wheel < object->getWheelCount()) 
    {
-      object->setWheelSteering(wheel,dAtof(argv[3]));
+      object->setWheelSteering(wheel,argv[3].getNumber());
       return true;
    }
    else
@@ -1441,10 +1441,10 @@ ConsoleMethod(WheeledVehicle, setWheelSteering, bool, 4, 4, "obj.setWheelSteerin
 
 ConsoleMethod(WheeledVehicle, setWheelPowered, bool, 4, 4, "obj.setWheelPowered(wheel#,bool)")
 {
-   S32 wheel = dAtoi(argv[2]);
+   S32 wheel = argv[2].getInt();
    if (wheel >= 0 && wheel < object->getWheelCount()) 
    {
-      object->setWheelPowered(wheel,dAtob(argv[3]));
+      object->setWheelPowered(wheel,argv[3].getInt());
       return true;
    }
    else
@@ -1456,9 +1456,9 @@ ConsoleMethod(WheeledVehicle, setWheelPowered, bool, 4, 4, "obj.setWheelPowered(
 ConsoleMethod(WheeledVehicle, setWheelTire, bool, 4, 4, "obj.setWheelTire(wheel#,tire)")
 {
    WheeledVehicleTire* tire;
-   if (Sim::findObject(argv[3],tire)) 
+   if (Sim::findObject(argv[3].toString(), tire))
    {
-      S32 wheel = dAtoi(argv[2]);
+      S32 wheel = argv[2].getInt();
       if (wheel >= 0 && wheel < object->getWheelCount()) 
       {
          object->setWheelTire(wheel,tire);
@@ -1476,9 +1476,9 @@ ConsoleMethod(WheeledVehicle, setWheelTire, bool, 4, 4, "obj.setWheelTire(wheel#
 ConsoleMethod(WheeledVehicle, setWheelSpring, bool, 4, 4, "obj.setWheelSpring(wheel#,spring)")
 {
    WheeledVehicleSpring* spring;
-   if (Sim::findObject(argv[3],spring)) 
+   if (Sim::findObject(argv[3].toString(), spring))
    {
-      S32 wheel = dAtoi(argv[2]);
+      S32 wheel = argv[2].getInt();
       if (wheel >= 0 && wheel < object->getWheelCount()) 
       {
          object->setWheelSpring(wheel,spring);

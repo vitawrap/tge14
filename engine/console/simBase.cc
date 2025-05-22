@@ -1686,7 +1686,7 @@ SimConsoleEvent::SimConsoleEvent(S32 argc, ConsoleValue *argv, bool onObject)
    mArgc = argc;
 
    // Copy arguments over for thread safety...
-   mArgv = (ConsoleValue *) dMalloc(argc * sizeof(ConsoleValue));
+   mArgv = new ConsoleValue[argc];
 
    for(S32 i = 0; i < argc; i++)
        mArgv[i] = argv[i];
@@ -1694,7 +1694,7 @@ SimConsoleEvent::SimConsoleEvent(S32 argc, ConsoleValue *argv, bool onObject)
 
 SimConsoleEvent::~SimConsoleEvent()
 {
-   dFree(mArgv);
+   delete[] mArgv;
 }
 
 void SimConsoleEvent::process(SimObject* object)

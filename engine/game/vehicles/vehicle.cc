@@ -980,11 +980,11 @@ void Vehicle::updatePos(F32 dt)
 
       // Water script callbacks
       if (!inLiquid && mWaterCoverage != 0.0f) {
-         Con::executef(mDataBlock,4,"onEnterLiquid",scriptThis(), Con::getFloatArg(mWaterCoverage), Con::getIntArg(mLiquidType));
+         Con::executef(mDataBlock,4,"onEnterLiquid", getId(), mWaterCoverage, mLiquidType);
          inLiquid = true;
       }
       else if (inLiquid && mWaterCoverage == 0.0f) {
-         Con::executef(mDataBlock,3,"onLeaveLiquid",scriptThis(), Con::getIntArg(mLiquidType));
+         Con::executef(mDataBlock,3,"onLeaveLiquid", getId(), mLiquidType);
          inLiquid = false;
       }
 
