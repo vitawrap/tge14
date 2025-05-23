@@ -730,9 +730,9 @@ U32 VarNode::precompile(TypeReq type)
 
    precompileIdent(varName);
    if(arrayIndex)
-      return arrayIndex->precompile(TypeReqValue) + 2;
+      return arrayIndex->precompile(TypeReqValue) + 3;
    else
-      return 2;
+      return 3;
 }
 
 U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
@@ -746,8 +746,8 @@ U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
     } else
         codeStream[ip++] = local ? OP_SETCURLOCAL : OP_SETCURVAR;
     codeStream[ip] = STEtoU64(varName, ip);
-    codeStream[ip] = OP_LOADVAR;
     ip++;
+    codeStream[ip++] = OP_LOADVAR;
     return ip;
 }
 
