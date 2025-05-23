@@ -896,7 +896,7 @@ breakContinue:
             callArgv = &valueStack[TOP - (callArgc - 1)];
 
             if(callType == FuncCallExprNode::FunctionCall) {
-               nsEntry = *((Namespace::Entry **) &code[ip-2]);
+               nsEntry = *((Namespace::Entry **) &code[ip-3]);
                ns = NULL;
             }
             else if(callType == FuncCallExprNode::MethodCall)
