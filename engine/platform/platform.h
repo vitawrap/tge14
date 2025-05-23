@@ -255,6 +255,8 @@ enum DriveType
    DRIVETYPE_UNKNOWN = 5
 };
 
+class ConsoleValue;
+
 struct Platform
 {
    static void sleep(U32 ms);
@@ -636,7 +638,7 @@ template <class T> struct dRemoveReference { typedef T Type; };
 template <class T> struct dRemoveReference<T&> { typedef T Type; };
 template <class T> struct dRemoveReference<T&&> { typedef T Type; };
 template <class T>
-constexpr dRemoveReference<T>::Type&& dMove(T&& t) {
+constexpr typename dRemoveReference<T>::Type&& dMove(T&& t) {
     return static_cast<typename dRemoveReference<T>::Type&&>(t);
 }
 
