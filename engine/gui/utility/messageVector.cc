@@ -19,9 +19,9 @@ ConsoleMethod( MessageVector, pushBackLine, void, 4, 4, "(string msg, int tag=0)
 {
    U32 tag = 0;
    if (argc == 4)
-      tag = dAtoi(argv[3]);
+      tag = argv[3].getInt();
 
-   object->pushBackLine(argv[2], tag);
+   object->pushBackLine(argv[2].toString(), tag);
 }
 
 ConsoleMethod( MessageVector, popBackLine, bool, 2, 2, "()"
@@ -41,9 +41,9 @@ ConsoleMethod( MessageVector, pushFrontLine, void, 3, 4, "(string msg, int tag=0
 {
    U32 tag = 0;
    if (argc == 4)
-      tag = dAtoi(argv[3]);
+      tag = argv[3].getInt();
 
-   object->pushFrontLine(argv[2], tag);
+   object->pushFrontLine(argv[2].toString(), tag);
 }
 
 ConsoleMethod( MessageVector, popFrontLine, bool, 2, 2,
@@ -62,22 +62,22 @@ ConsoleMethod( MessageVector, popFrontLine, bool, 2, 2,
 ConsoleMethod( MessageVector, insertLine, bool, 4, 5, "(int insertPos, string msg, int tag=0)"
               "Insert a new line into the vector at the specified position.")
 {
-   U32 pos = U32(dAtoi(argv[2]));
+   U32 pos = U32(argv[2].getInt());
    if (pos > object->getNumLines())
       return false;
 
    S32 tag = 0;
    if (argc == 5)
-      tag = dAtoi(argv[4]);
+      tag = argv[4].getInt();
 
-   object->insertLine(pos, argv[3], tag);
+   object->insertLine(pos, argv[3].toString(), tag);
    return true;
 }
 
 ConsoleMethod( MessageVector, deleteLine, bool, 3, 3, "(int deletePos)"
                "Delete the line at the specified position.")
 {
-   U32 pos = U32(dAtoi(argv[2]));
+   U32 pos = U32(argv[2].getInt());
    if (pos >= object->getNumLines())
       return false;
 
@@ -90,20 +90,20 @@ ConsoleMethod( MessageVector, dump, void, 3, 4, "(string filename, string header
 {
 
    if ( argc == 4 )
-      object->dump( argv[2], argv[3] );
+      object->dump( argv[2].toString(), argv[3].toString() );
    else
-      object->dump( argv[2] );
+      object->dump( argv[2].toString() );
 }
 
 ConsoleMethod( MessageVector, getNumLines, S32, 2, 2, "Get the number of lines in the vector.")
 {
-   return object->getNumLines();
+   return (S64) object->getNumLines();
 }
 
 ConsoleMethod( MessageVector, getLineTextByTag, const char*, 3, 3, "(int tag)"
               "Scan through the lines in the vector, returning the first line that has a matching tag.")
 {
-   U32 tag = dAtoi(argv[2]);
+   U32 tag = argv[2].getInt();
 
    for(U32 i = 0; i < object->getNumLines(); i++)
       if(object->getLine(i).messageTag == tag)
@@ -114,18 +114,18 @@ ConsoleMethod( MessageVector, getLineTextByTag, const char*, 3, 3, "(int tag)"
 ConsoleMethod( MessageVector, getLineIndexByTag, S32, 3, 3, "(int tag)"
               "Scan through the vector, returning the line number of the first line that matches the specified tag; else returns -1 if no match was found.")
 {
-   U32 tag = dAtoi(argv[2]);
+   U32 tag = argv[2].getInt();
 
    for(U32 i = 0; i < object->getNumLines(); i++)
       if(object->getLine(i).messageTag == tag)
-         return i;
+         return S64(i);
    return -1;
 }
 
 ConsoleMethod( MessageVector, getLineText, const char*, 3, 3, "(int line)"
               "Get the text at a specified line.")
 {
-   U32 pos = U32(dAtoi(argv[2]));
+   U32 pos = U32(argv[2].getInt());
    if (pos >= object->getNumLines()) {
       Con::errorf(ConsoleLogEntry::General, "MessageVector::getLineText(con): out of bounds line");
       return "";
@@ -137,7 +137,7 @@ ConsoleMethod( MessageVector, getLineText, const char*, 3, 3, "(int line)"
 ConsoleMethod( MessageVector, getLineTag, S32, 3, 3, "(int line)"
               "Get the tag of a specified line.")
 {
-   U32 pos = U32(dAtoi(argv[2]));
+   U32 pos = U32(argv[2].getInt());
    if (pos >= object->getNumLines()) {
       Con::errorf(ConsoleLogEntry::General, "MessageVector::getLineTag(con): out of bounds line");
       return 0;

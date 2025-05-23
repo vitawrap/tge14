@@ -151,10 +151,10 @@ void GuiInspector::inspectObject( SimObject *object )
 
 ConsoleMethod( GuiInspector, inspect, void, 3, 3, "Inspect(Object)")
 {
-   SimObject * target = Sim::findObject(argv[2]);
+   SimObject * target = Sim::findObject(argv[2].toString());
    if(!target)
    {
-      if(dAtoi(argv[2]) > 0)
+      if(argv[2].getInt() > 0)
          Con::warnf("%s::inspect(): invalid object: %s", argv[0], argv[2]);
       
       object->clearGroups();
@@ -176,12 +176,11 @@ void GuiInspector::setName( StringTableEntry newName )
 
    // Only assign a new name if we provide one
    mTarget->assignName(name);
-
 }
 
 ConsoleMethod( GuiInspector, setName, void, 3, 3, "setName(NewObjectName)")
 {
-   object->setName(argv[2]);
+   object->setName(argv[2].toString()); // STE required but setName already inserts it.
 }
 
 
@@ -233,7 +232,7 @@ GuiInspectorField::~GuiInspectorField()
 //////////////////////////////////////////////////////////////////////////
 // Get/Set Data Functions
 //////////////////////////////////////////////////////////////////////////
-void GuiInspectorField::setData( StringTableEntry data )
+void GuiInspectorField::setData( ConsoleValue& data )
 {
    if( mField == NULL || mTarget == NULL )
       return;
@@ -248,7 +247,7 @@ void GuiInspectorField::setData( StringTableEntry data )
    mTarget->inspectPostApply();
 }
 
-StringTableEntry GuiInspectorField::getData()
+ConsoleValue GuiInspectorField::getData()
 {
    if( mField == NULL || mTarget == NULL )
       return "";
@@ -361,11 +360,11 @@ bool GuiInspectorField::onAdd()
    return true;
 }
 
-void GuiInspectorField::updateValue( StringTableEntry newValue )
+void GuiInspectorField::updateValue( ConsoleValue& newValue )
 {
    GuiTextEditCtrl *ctrl = dynamic_cast<GuiTextEditCtrl*>( mEdit );
    if( ctrl != NULL )
-      ctrl->setText( newValue );
+      ctrl->setText( newValue.toString() ); // FIXME: This used to require a STE for no reason.
 }
 
 ConsoleMethod( GuiInspectorField, apply, void, 3,3, "apply(newValue);" )
@@ -994,24 +993,23 @@ GuiInspectorDynamicField::GuiInspectorDynamicField( GuiInspectorGroup* parent, S
    mRenameCtrl = NULL;
 }
 
-void GuiInspectorDynamicField::setData( StringTableEntry data )
+void GuiInspectorDynamicField::setData( ConsoleValue& data )
 {
    if( mTarget == NULL || mDynField == NULL )
       return;
 
    char buf[1024];
-   const char * newValue = mEdit->getScriptValue();
-   dStrcpy( buf, newValue ? newValue : "" );
+   ConsoleValue newValue = mEdit->getScriptValue();
+   dStrcpy( buf, newValue.toString() );
    collapseEscape(buf);
 
-   mTarget->getFieldDictionary()->setFieldValue(mDynField->slotName, buf);
+   mTarget->getFieldDictionary()->setFieldValue(mDynField->slotName, ConsoleValue(buf));
 
    // Force our edit to update
    updateValue( data );
-
 }
 
-StringTableEntry GuiInspectorDynamicField::getData()
+ConsoleValue GuiInspectorDynamicField::getData()
 {
    if( mTarget == NULL || mDynField == NULL )
       return "";
@@ -1047,7 +1045,7 @@ void GuiInspectorDynamicField::renameField( StringTableEntry newFieldName )
    }
 
    // Grab our current dynamic field value
-   StringTableEntry currentValue = getData();
+   ConsoleValue currentValue = getData();
 
    // Create our new field with the value of our old field and the new fields name!
    mTarget->setDataField( newFieldName, NULL, currentValue );
@@ -1062,7 +1060,7 @@ void GuiInspectorDynamicField::renameField( StringTableEntry newFieldName )
    }
 
    // Set our old fields data to "" (which will effectively erase the field)
-   mTarget->setDataField( getFieldName(), NULL, "" );
+   mTarget->setDataField( getFieldName(), NULL, ConsoleValue("") );
    
    // Assign our dynamic field pointer (where we retrieve field information from) to our new field pointer
    mDynField = newEntry;
@@ -1081,7 +1079,7 @@ void GuiInspectorDynamicField::renameField( StringTableEntry newFieldName )
 
 ConsoleMethod( GuiInspectorDynamicField, renameField, void, 3,3, "field.renameField(newDynamicFieldName);" )
 {
-   object->renameField( argv[2] );
+   object->renameField( argv[2].toSTString() );
 }
 
 bool GuiInspectorDynamicField::onAdd()
@@ -1237,7 +1235,7 @@ GuiControl* GuiInspectorDatablockField::constructEditControl()
    // Let's make it look pretty.
    retCtrl->setField( "profile", "InspectorTypeEnumProfile" );
 
-   menu->setField("text", getData());
+   menu->setField("text", getData().toString());
 
    registerEditControl( retCtrl );
 

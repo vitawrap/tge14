@@ -100,10 +100,10 @@ protected:
    void registerEditControl( GuiControl *ctrl );
 public:
    virtual GuiControl* constructEditControl();
-   virtual void        updateValue( StringTableEntry newValue );
    virtual StringTableEntry getFieldName() { return ( mField != NULL ) ? mField->pFieldname : ""; };
-   virtual void              setData( StringTableEntry data );
-   virtual StringTableEntry  getData();
+   virtual void				updateValue( ConsoleValue& newValue );
+   virtual void             setData( ConsoleValue& data );
+   virtual ConsoleValue 	getData();
 
    virtual void resize(const Point2I &newPosition, const Point2I &newExtent);
    virtual bool onAdd();
@@ -178,8 +178,8 @@ public:
    ~GuiInspectorDynamicField() {};
    DECLARE_CONOBJECT(GuiInspectorDynamicField);
 
-   virtual void              setData( StringTableEntry data );
-   virtual StringTableEntry  getData();
+   void             setData( ConsoleValue& data ) override;
+   ConsoleValue 	getData() override;
 
    virtual StringTableEntry getFieldName() { return ( mDynField != NULL ) ? mDynField->slotName : ""; };
 

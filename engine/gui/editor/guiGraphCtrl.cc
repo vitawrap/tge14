@@ -260,20 +260,20 @@ void GuiGraphCtrl::setGraphType(S32 plotID, const char *graphType)
 ConsoleMethod(GuiGraphCtrl, addDatum, void, 4, 4, "(int plotID, float v)"
               "Add a data point to the given plot.")
 {
-   S32 plotID = dAtoi(argv[2]);
+   S32 plotID = argv[2].getInt();
    if(plotID > object->MaxPlots)
    {
 	   Con::errorf("Invalid plotID.");
 	   return;
    }
-   object->addDatum( plotID, dAtof(argv[3]));
+   object->addDatum( plotID, argv[3].getNumber());
 }
 
 ConsoleMethod(GuiGraphCtrl, getDatum, F32, 4, 4, "(int plotID, int samples)"
               "Get a data point from the plot specified, samples from the start of the graph.")
 {
-   S32 plotID = dAtoi(argv[2]);
-   S32 samples = dAtoi(argv[3]);
+   S32 plotID = argv[2].getInt();
+   S32 samples = argv[3].getInt();
 
    if(plotID > object->MaxPlots)
    {
@@ -292,7 +292,7 @@ ConsoleMethod(GuiGraphCtrl, getDatum, F32, 4, 4, "(int plotID, int samples)"
 ConsoleMethod(GuiGraphCtrl, addAutoPlot, void, 5, 5, "(int plotID, string variable, int update)"
 			  "Adds a data point with value variable, every update ms.")
 {
-   S32 plotID = dAtoi(argv[2]);
+   S32 plotID = argv[2].getInt();
 
    if(plotID > object->MaxPlots)
    {
@@ -300,13 +300,13 @@ ConsoleMethod(GuiGraphCtrl, addAutoPlot, void, 5, 5, "(int plotID, string variab
 	   return;
    }
 
-   object->addAutoPlot(plotID,argv[3],dAtoi(argv[4]));
+   object->addAutoPlot(plotID, argv[3].toString(), argv[4].getInt());
 }
 
 ConsoleMethod(GuiGraphCtrl, removeAutoPlot, void, 3, 3, "(int plotID)"
 			  "Stops automatic pointing over set interval.")
 {
-   S32 plotID = dAtoi(argv[2]);
+   S32 plotID = argv[2].getInt();
 
    if(plotID > object->MaxPlots)
    {
@@ -320,7 +320,7 @@ ConsoleMethod(GuiGraphCtrl, removeAutoPlot, void, 3, 3, "(int plotID)"
 ConsoleMethod(GuiGraphCtrl, setGraphType, void, 4, 4, "(int plotID, string graphType)"
 			  "Change GraphType of plot plotID.")
 {
-	S32 plotID = dAtoi(argv[2]);
+	S32 plotID = argv[2].getInt();
 
 	if(plotID > object->MaxPlots)
 	{
@@ -328,7 +328,7 @@ ConsoleMethod(GuiGraphCtrl, setGraphType, void, 4, 4, "(int plotID, string graph
 		return;
 	}
 
-	object->setGraphType(dAtoi(argv[2]), argv[3]);
+	object->setGraphType(argv[2].getInt(), argv[3].toString());
 }
 
 ConsoleMethod(GuiGraphCtrl, matchScale, void, 3, GuiGraphCtrl::MaxPlots+2, "(int plotID, int plotID, ...)"
@@ -337,14 +337,15 @@ ConsoleMethod(GuiGraphCtrl, matchScale, void, 3, GuiGraphCtrl::MaxPlots+2, "(int
     F32 Max = 0;
 	for(int i=0; i < (argc-2); i++)
 	{
-		if(dAtoi(argv[2+i]) > object->MaxPlots)
+		S64 plot = argv[2+i].getInt();
+		if(plot > object->MaxPlots)
 		{
 			Con::errorf("Invalid plotID.");
 			return;
 		}
-		if (object->mPlots[dAtoi(argv[2+i])].mGraphMax > Max)
-			Max = object->mPlots[dAtoi(argv[2+i])].mGraphMax;
+		if (object->mPlots[plot].mGraphMax > Max)
+			Max = object->mPlots[plot].mGraphMax;
 	}
 	for(int i=0; i < (argc-2); i++)
-		object->mPlots[dAtoi(argv[2+i])].mGraphMax = Max;
+		object->mPlots[argv[2+i].getInt()].mGraphMax = Max;
 }

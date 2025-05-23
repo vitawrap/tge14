@@ -30,19 +30,19 @@ void GuiTheoraCtrl::initPersistFields()
 {
 	Parent::initPersistFields();
 
-   addGroup("Playback");
+	addGroup("Playback");
 
 	addField("theoraFile",  TypeFilename,  Offset(mFilename,          GuiTheoraCtrl));
 	addField("done",        TypeBool,      Offset(mDone,              GuiTheoraCtrl));
-   addField("stopOnSleep", TypeBool,      Offset(mStopOnSleep,       GuiTheoraCtrl));
-   addField("backgroundColor", TypeColorI,Offset(mBackgroundColor,   GuiTheoraCtrl));
+	addField("stopOnSleep", TypeBool,      Offset(mStopOnSleep,       GuiTheoraCtrl));
+	addField("backgroundColor", TypeColorI,Offset(mBackgroundColor,   GuiTheoraCtrl));
 
-   endGroup("Playback");
+	endGroup("Playback");
 }
 
 ConsoleMethod( GuiTheoraCtrl, setFile, void, 3, 3, "(string filename) Set an Ogg Theora file to play.")
 {
-	object->setFile(argv[2]);
+	object->setFile(argv[2].toString());
 }
 
 ConsoleMethod( GuiTheoraCtrl, stop, void, 2, 2, "() Stop playback.")

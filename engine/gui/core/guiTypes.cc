@@ -330,7 +330,7 @@ void GuiControlProfile::incRefCount()
 {
    if(!mRefCount++)
    {
-      sFontCacheDirectory = Con::getVariable("$GUI::fontCacheDirectory");
+      sFontCacheDirectory = Con::getVariable("$GUI::fontCacheDirectory").toSTString();
 
       //verify the font
       mFont = GFont::create(mFontType, mFontSize, sFontCacheDirectory);
@@ -362,14 +362,14 @@ ConsoleType( GuiProfile, TypeGuiProfile, sizeof(GuiControlProfile*) )
 ConsoleSetType( TypeGuiProfile )
 {
    GuiControlProfile *profile = NULL;
-   if(argc == 1)
-      Sim::findObject(argv[0], profile);
+   Sim::findObject(val.toString(), profile);
 
-   AssertWarn(profile != NULL, avar("GuiControlProfile: requested gui profile (%s) does not exist.", argv[0]));
+   AssertWarn(profile != NULL, avar("GuiControlProfile: requested gui profile (%s) does not exist.", val.toString()));
    if(!profile)
       profile = dynamic_cast<GuiControlProfile*>(Sim::findObject("GuiDefaultProfile"));
 
-   AssertFatal(profile != NULL, avar("GuiControlProfile: unable to find specified profile (%s) and GuiDefaultProfile does not exist!", argv[0]));
+   AssertFatal(profile != NULL, avar("GuiControlProfile: unable to find specified profile (%s) and GuiDefaultProfile does not exist!",
+       val.toString()));
 
    GuiControlProfile **obj = (GuiControlProfile **)dptr;
    if((*obj) == profile)
@@ -384,9 +384,6 @@ ConsoleSetType( TypeGuiProfile )
 
 ConsoleGetType( TypeGuiProfile )
 {
-   static char returnBuffer[256];
-
    GuiControlProfile **obj = (GuiControlProfile**)dptr;
-   dSprintf(returnBuffer, sizeof(returnBuffer), "%s", *obj ? (*obj)->getName() : "");
-   return returnBuffer;
+   return *obj ? (*obj)->getName() : "";
 }

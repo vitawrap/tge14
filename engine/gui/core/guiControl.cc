@@ -789,7 +789,6 @@ void GuiControl::setControlProfile(GuiControlProfile *prof)
    mProfile = prof;
    if(mAwake)
       mProfile->incRefCount();
-
 }
 
 void GuiControl::onPreRender()
@@ -811,7 +810,7 @@ ConsoleMethod( GuiControl, getValue, const char*, 2, 2, "")
 
 ConsoleMethod( GuiControl, setActive, void, 3, 3, "(bool active)")
 {
-   object->setActive(dAtob(argv[2]));
+   object->setActive(argv[2].getInt());
 }
 
 ConsoleMethod( GuiControl, isActive, bool, 2, 2, "")
@@ -821,12 +820,12 @@ ConsoleMethod( GuiControl, isActive, bool, 2, 2, "")
 
 ConsoleMethod( GuiControl, setVisible, void, 3, 3, "(bool visible)")
 {
-   object->setVisible(dAtob(argv[2]));
+   object->setVisible(argv[2].getInt());
 }
 
 ConsoleMethod( GuiControl, makeFirstResponder, void, 3, 3, "(bool isFirst)")
 {
-   object->makeFirstResponder(dAtob(argv[2]));
+   object->makeFirstResponder(argv[2].getInt());
 }
 
 ConsoleMethod( GuiControl, isVisible, bool, 2, 2, "")
@@ -843,71 +842,65 @@ ConsoleMethod( GuiControl, setProfile, void, 3, 3, "(GuiControlProfile p)")
 {
    GuiControlProfile * profile;
 
-   if(Sim::findObject(argv[2], profile))
+   if(Sim::findObject(argv[2].toString(), profile))
       object->setControlProfile(profile);
 }
 
 ConsoleMethod( GuiControl, resize, void, 6, 6, "(int x, int y, int w, int h)")
 {
-   Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
-   Point2I newExt(dAtoi(argv[4]), dAtoi(argv[5]));
+   Point2I newPos(argv[2].getInt(), argv[3].getInt());
+   Point2I newExt(argv[4].getInt(), argv[5].getInt());
    object->resize(newPos, newExt);
 }
 
 ConsoleMethod(GuiControl, setExtent, void, 4, 4, "(int x, int y)")
 {
-    Point2I newExt(dAtoi(argv[2]), dAtoi(argv[3]));
+    Point2I newExt(argv[2].getInt(), argv[3].getInt());
     object->setExtent(newExt);
 }
 
 ConsoleMethod( GuiControl, getPosition, const char*, 2, 2, "")
 {
-   char *retBuffer = Con::getReturnBuffer(64);
    const Point2I &pos = object->getPosition();
-   dSprintf(retBuffer, 64, "%d %d", pos.x, pos.y);
-   return retBuffer;
+   return ConsoleValueList::from(pos.x, pos.y);
 }
 
 ConsoleMethod( GuiControl, getExtent, const char*, 2, 2, "Get the width and height of the control.")
 {
-   char *retBuffer = Con::getReturnBuffer(64);
    const Point2I &ext = object->getExtent();
-   dSprintf(retBuffer, 64, "%d %d", ext.x, ext.y);
-   return retBuffer;
+   return ConsoleValueList::from(ext.x, ext.y);
 }
 
 ConsoleMethod( GuiControl, getMinExtent, const char*, 2, 2, "Get the minimum allowed size of the control.")
 {
-   char *retBuffer = Con::getReturnBuffer(64);
    const Point2I &minExt = object->getMinExtent();
-   dSprintf(retBuffer, 64, "%d %d", minExt.x, minExt.y);
-   return retBuffer;
+   return ConsoleValueList::from(minExt.x, minExt.y);
 }
 
 ConsoleMethod(GuiControl, easePositionLinearTo, void, 5, 5, "(int x, int y, S32 ms)")
 {
-    Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
-    object->easePositionTo(newPos, GuiControl::linear, dAtoi(argv[4]));
+    Point2I newPos(argv[2].getInt(), argv[3].getInt());
+    object->easePositionTo(newPos, GuiControl::linear, argv[4].getInt());
 }
 
 ConsoleMethod(GuiControl, easePositionElasticTo, void, 5, 6, "(int x, int y, S32 ms[, bool in = true])")
 {
-    Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
+    Point2I newPos(argv[2].getInt(), argv[3].getInt());
     GuiControl::easeFnOptions fn = GuiControl::elasticIn;
-    if (argc > 5 && !dAtob(argv[5]))
+    if (argc > 5 && !argv[5].getInt())
         fn = GuiControl::elasticOut;
 
-    object->easePositionTo(newPos, fn, dAtoi(argv[4]));
+    object->easePositionTo(newPos, fn, argv[4].getInt());
 }
 
 ConsoleMethod(GuiControl, easePositionSmoothTo, void, 5, 6, "(int x, int y, S32 ms[, bool in = true])")
 {
-    Point2I newPos(dAtoi(argv[2]), dAtoi(argv[3]));
+    Point2I newPos(argv[2].getInt(), argv[3].getInt());
     GuiControl::easeFnOptions fn = GuiControl::sinIn;
-    if (argc > 5 && !dAtob(argv[5]))
+    if (argc > 5 && !argv[5].getInt())
         fn = GuiControl::sinOut;
 
-    object->easePositionTo(newPos, fn, dAtoi(argv[4]));
+    object->easePositionTo(newPos, fn, argv[4].getInt());
 }
 
 ConsoleMethod(GuiControl, easeStop, void, 2, 2, "()")
@@ -921,22 +914,18 @@ ConsoleMethod(GuiControl, getPosIfCentered, const char*, 3, 4,
 {
     Point2I pos(0, 0);
     if (argc > 3)
-        pos.set(dAtoi(argv[2]), dAtoi(argv[3]));
+        pos.set(argv[2].getInt(), argv[3].getInt());
     else
-        dSscanf(argv[2], "%d %d", &pos.x, &pos.y);
+        pos = argv[2].getPoint2I();
 
-    char* retBuffer = Con::getReturnBuffer(64);
     const Point2I& originPos = pos - (object->getExtent() / 2);
-    dSprintf(retBuffer, 64, "%d %d", originPos.x, originPos.y);
-    return retBuffer;
+    return ConsoleValueList::from(originPos.x, originPos.y);
 }
 
 ConsoleMethod(GuiControl, getCenter, const char*, 2, 2, "")
 {
-    char* retBuffer = Con::getReturnBuffer(64);
     const Point2I& pos = object->getPosition() + (object->getExtent() / 2);
-    dSprintf(retBuffer, 64, "%d %d", pos.x, pos.y);
-    return retBuffer;
+    return ConsoleValueList::from(pos.x, pos.y);
 }
 
 void GuiControl::onRemove()
@@ -961,12 +950,12 @@ void GuiControl::onChildRemoved( GuiControl *child )
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //
 
-const char *GuiControl::getScriptValue()
+ConsoleValue GuiControl::getScriptValue()
 {
-   return NULL;
+   return "";
 }
 
-void GuiControl::setScriptValue(const char *value)
+void GuiControl::setScriptValue(ConsoleValue& value)
 {
    value;
 }
@@ -1003,7 +992,7 @@ void GuiControl::setSizing(S32 horz, S32 vert)
 }
 
 
-void GuiControl::setVariable(const char *value)
+void GuiControl::setVariable(ConsoleValue const& value)
 {
    if (mConsoleVariable[0])
       Con::setVariable(mConsoleVariable, value);
@@ -1021,11 +1010,11 @@ void GuiControl::setFloatVariable(F32 value)
       Con::setFloatVariable(mConsoleVariable, value);
 }
 
-const char * GuiControl::getVariable()
+ConsoleValue GuiControl::getVariable()
 {
    if (mConsoleVariable[0])
       return Con::getVariable(mConsoleVariable);
-   else return NULL;
+   else return "";
 }
 
 S32 GuiControl::getIntVariable()
@@ -1456,9 +1445,7 @@ void GuiControl::onAction()
    //execute the console command
    if (mConsoleCommand[0])
    {
-   	  char buf[16];
-      dSprintf(buf, sizeof(buf), "%d", getId());
-      Con::setVariable("$ThisControl", buf);
+      Con::setVariable("$ThisControl", (S64) getId());
       Con::evaluate(mConsoleCommand, false);
    }
    else

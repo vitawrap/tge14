@@ -49,9 +49,9 @@ public:
    // Override able methods for custom edit fields
    //////////////////////////////////////////////////////////////////////////
    virtual GuiControl*        constructEditControl();
-   virtual void               setData( StringTableEntry data );
-   virtual StringTableEntry   getData();
-   virtual void               updateValue( StringTableEntry newValue );
+   void               setData( ConsoleValue& data ) override;
+   ConsoleValue		  getData() override;
+   void               updateValue( ConsoleValue& newValue ) override;
 };
 
 

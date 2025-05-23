@@ -16,20 +16,18 @@ GuiProgressCtrl::GuiProgressCtrl()
    mProgress = 0.0f;
 }
 
-const char* GuiProgressCtrl::getScriptValue()
+ConsoleValue GuiProgressCtrl::getScriptValue()
 {
-   char * ret = Con::getReturnBuffer(64);
-   dSprintf(ret, 64, "%g", mProgress);
-   return ret;
+   return mProgress;
 }
 
-void GuiProgressCtrl::setScriptValue(const char *value)
+void GuiProgressCtrl::setScriptValue(ConsoleValue& value)
 {
    //set the value
-   if (! value)
+   if (value.isNullString())
       mProgress = 0.0f;
    else
-      mProgress = dAtof(value);
+      mProgress = value.getNumber();
 
    //validate the value
    mProgress = mClampF(mProgress, 0.f, 1.f);
@@ -38,10 +36,10 @@ void GuiProgressCtrl::setScriptValue(const char *value)
 
 void GuiProgressCtrl::onPreRender()
 {
-   const char * var = getVariable();
-   if(var)
+   ConsoleValue var = getVariable();
+   if(!var.isNullString())
    {
-      F32 value = mClampF(dAtof(var), 0.f, 1.f);
+      F32 value = mClampF(var.getNumber(), 0.f, 1.f);
       if(value != mProgress)
       {
          mProgress = value;

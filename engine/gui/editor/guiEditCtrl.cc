@@ -36,7 +36,7 @@ GuiEditCtrl::GuiEditCtrl()
 ConsoleMethod( GuiEditCtrl, setRoot, void, 3, 3, "(GuiControl root)")
 {
    GuiControl *ctrl;
-   if(!Sim::findObject(argv[2], ctrl))
+   if(!Sim::findObject(argv[2].toString(), ctrl))
       return;
    object->setRoot(ctrl);
 }
@@ -45,18 +45,18 @@ ConsoleMethod( GuiEditCtrl, setRoot, void, 3, 3, "(GuiControl root)")
 ConsoleMethod( GuiEditCtrl, addNewCtrl, void, 3, 3, "(GuiControl ctrl)")
 {
    GuiControl *ctrl;
-   if(!Sim::findObject(argv[2], ctrl))
+   if(!Sim::findObject(argv[2].toString(), ctrl))
       return;
    object->addNewControl(ctrl);
 }
 ConsoleMethod( GuiEditCtrl, addSelection, void, 3, 3, "selects a control.")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    object->addSelection(id);
 }
 ConsoleMethod( GuiEditCtrl, removeSelection, void, 3, 3, "deselects a control.")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    object->removeSelection(id);
 }
 
@@ -68,7 +68,7 @@ ConsoleMethod( GuiEditCtrl, select, void, 3, 3, "(GuiControl ctrl)")
 {
    GuiControl *ctrl;
 
-   if(!Sim::findObject(argv[2], ctrl))
+   if(!Sim::findObject(argv[2].toString(), ctrl))
       return;
 
    object->setSelection(ctrl, false);
@@ -78,7 +78,7 @@ ConsoleMethod( GuiEditCtrl, setCurrentAddSet, void, 3, 3, "(GuiControl ctrl)")
 {
    GuiControl *addSet;
 
-   if (!Sim::findObject(argv[2], addSet))
+   if (!Sim::findObject(argv[2].toString(), addSet))
    {
       Con::printf("%s(): Invalid control: %s", argv[0], argv[2]);
       return;
@@ -93,7 +93,7 @@ ConsoleMethod( GuiEditCtrl, toggle, void, 2, 2, "Toggle activation.")
 
 ConsoleMethod( GuiEditCtrl, justify, void, 3, 3, "(int mode)" )
 {
-   object->justifySelection((GuiEditCtrl::Justification)dAtoi(argv[2]));
+   object->justifySelection((GuiEditCtrl::Justification) argv[2].getInt());
 }
 
 ConsoleMethod( GuiEditCtrl, bringToFront, void, 2, 2, "")
@@ -113,17 +113,17 @@ ConsoleMethod( GuiEditCtrl, deleteSelection, void, 2, 2, "Delete the selected te
 
 ConsoleMethod( GuiEditCtrl, moveSelection, void, 4, 4, "(int deltax, int deltay)")
 {
-   object->moveSelection(Point2I(dAtoi(argv[2]), dAtoi(argv[3])));
+   object->moveSelection(Point2I(argv[2].getInt(), argv[3].getInt()));
 }
 
 ConsoleMethod( GuiEditCtrl, saveSelection, void, 3, 3, "(string fileName)")
 {
-   object->saveSelection(argv[2]);
+   object->saveSelection(argv[2].toString());
 }
 
 ConsoleMethod( GuiEditCtrl, loadSelection, void, 3, 3, "(string fileName)")
 {
-   object->loadSelection(argv[2]);
+   object->loadSelection(argv[2].toString());
 }
 
 ConsoleMethod( GuiEditCtrl, selectAll, void, 2, 2, "()")
@@ -134,18 +134,13 @@ ConsoleMethod( GuiEditCtrl, selectAll, void, 2, 2, "()")
 
 ConsoleMethod( GuiEditCtrl, getSelected, const char *, 2, 2, "() - Gets the GUI control(s) the editor is currently selecting" )
 {
-   char *returnText = Con::getReturnBuffer(128);
-   dStrcpy( returnText, "" );
+   auto* list = new ConsoleValueList;
    const Vector<GuiControl *> *selected = object->getSelected();
 
    for( Vector<GuiControl *>::const_iterator i = selected->begin(); i != selected->end(); i++ )
-   {
-      char temp[8];
-      dSprintf( temp, 8, "%d ", (*i)->getId() );
-      dStrcat( returnText, temp );
-   }
-
-   return returnText;
+      list->push_back((S64) (*i)->getId());
+   
+   return list;
 }
 
 bool GuiEditCtrl::onWake()

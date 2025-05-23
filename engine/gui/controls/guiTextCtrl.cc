@@ -25,13 +25,13 @@ GuiTextCtrl::GuiTextCtrl()
 ConsoleMethod( GuiTextCtrl, setText, void, 3, 3, "obj.setText( newText )" )
 {
    argc;
-   object->setText( argv[2] );
+   object->setText( argv[2].toString() );
 }
 
 ConsoleMethod( GuiTextCtrl, setTextID, void, 3, 3, "obj.setTextID( newText )" )
 {
 	argc;
-	object->setTextID( argv[2] );
+	object->setTextID( argv[2].toString() );
 }
 void GuiTextCtrl::initPersistFields()
 {
@@ -73,7 +73,8 @@ bool GuiTextCtrl::onWake()
 
    if ( mConsoleVariable[0] )
    {
-      const char *txt = Con::getVariable( mConsoleVariable );
+      ConsoleValue txtVal = Con::getVariable(mConsoleVariable);
+      const char* txt = txtVal.toString();
       if ( txt )
       {
          if ( dStrlen( txt ) > mMaxStrLen )
@@ -81,11 +82,11 @@ bool GuiTextCtrl::onWake()
             char* buf = new char[mMaxStrLen + 1];
             dStrncpy( buf, txt, mMaxStrLen );
             buf[mMaxStrLen] = 0;
-            setScriptValue( buf );
+            setScriptValue( ConsoleValue(buf) );
             delete [] buf;
          }
          else
-            setScriptValue( txt );
+            setScriptValue( ConsoleValue(txt) );
       }
    }
    
@@ -175,9 +176,9 @@ void GuiTextCtrl::setTextID(S32 id)
 //------------------------------------------------------------------------------
 void GuiTextCtrl::onPreRender()
 {
-   const char * var = getVariable();
-   if(var && var[0] && dStricmp((char*)mText, var))
-      setText(var);
+   ConsoleValue var = getVariable();
+   if(!var.isNullString() && dStricmp((char*)mText, var.toString()))
+      setText(var.toString());
 }
 
 //------------------------------------------------------------------------------
@@ -193,14 +194,14 @@ void GuiTextCtrl::onRender(Point2I offset, const RectI &updateRect)
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //
 
-const char *GuiTextCtrl::getScriptValue()
+ConsoleValue GuiTextCtrl::getScriptValue()
 {
    return getText();
 }
 
-void GuiTextCtrl::setScriptValue(const char *val)
+void GuiTextCtrl::setScriptValue(ConsoleValue& val)
 {
-   setText(val);
+   setText(val.toString());
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //

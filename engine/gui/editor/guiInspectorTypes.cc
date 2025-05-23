@@ -22,13 +22,13 @@ GuiControl* GuiInspectorTypeEnum::constructEditControl()
    // Let's make it look pretty.
    retCtrl->setField( "profile", "InspectorTypeEnumProfile" );
 
-   menu->setField("text", getData());
+   menu->setField("text", getData().toString());
 
    registerEditControl( retCtrl );
 
    // Configure it to update our value when the popup is closed
    char szBuffer[512];
-   dSprintf( szBuffer, 512, "%d.apply(%d.getText());",getId(),menu->getId() );
+   dSprintf( szBuffer, 512, "%d.apply(%d.getText());", getId(), menu->getId() );
    menu->setField("Command", szBuffer );
 
    //now add the entries
@@ -45,14 +45,14 @@ void GuiInspectorTypeEnum::consoleInit()
    ConsoleBaseType::getType(TypeEnum)->setInspectorFieldType("GuiInspectorTypeEnum");
 }
 
-void GuiInspectorTypeEnum::updateValue( StringTableEntry newValue )
+void GuiInspectorTypeEnum::updateValue( ConsoleValue& newValue )
 {
    GuiPopUpMenuCtrl *ctrl = dynamic_cast<GuiPopUpMenuCtrl*>( mEdit );
    if( ctrl != NULL )
-      ctrl->setText( newValue );
+      ctrl->setText( newValue.toString() );
 }
 
-void GuiInspectorTypeEnum::setData( StringTableEntry data )
+void GuiInspectorTypeEnum::setData( ConsoleValue& data )
 {
    if( mField == NULL || mTarget == NULL )
       return;
@@ -63,7 +63,7 @@ void GuiInspectorTypeEnum::setData( StringTableEntry data )
    updateValue( data );
 }
 
-StringTableEntry  GuiInspectorTypeEnum::getData()
+ConsoleValue GuiInspectorTypeEnum::getData()
 {
    if( mField == NULL || mTarget == NULL )
       return "";
@@ -144,7 +144,7 @@ GuiControl* GuiInspectorTypeGuiProfile::constructEditControl()
    // Let's make it look pretty.
    retCtrl->setField( "profile", "InspectorTypeEnumProfile" );
 
-   menu->setField("text", getData());
+   menu->setField("text", getData().toString());
 
    registerEditControl( retCtrl );
 
