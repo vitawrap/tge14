@@ -243,7 +243,7 @@ U32 IfStmtNode::precompileStmt(U32 loopCount)
       endifOffset = ifSize + 2 + exprSize;
    else
    {
-      elseOffset = exprSize + 2 + ifSize + 2;
+      elseOffset = exprSize + ifSize + 4;
       U32 elseSize = precompileBlock(elseBlock, loopCount);
       endifOffset = elseOffset + elseSize;
    }
@@ -354,7 +354,6 @@ U32 LoopStmtNode::compileStmt(U64 *codeStream, U64 ip, U32, U32)
 
    codeStream[ip++] = integer ? OP_JMPIF : OP_JMPIFF;
    codeStream[ip++] = start + loopBlockStartOffset;
-
    return ip;
 }
 
@@ -676,6 +675,8 @@ U32 IntUnaryExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
       codeStream[ip++] = OP_NOT;
    else if(op == '~')
       codeStream[ip++] = OP_ONESCOMPLEMENT;
+   else
+      AssertFatal(false, "Invalid int unary operator.");
    // FIXME: Does this work weirdly with TypeReqNone too??? breakpoint on this please!
    conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
@@ -1343,13 +1344,10 @@ U32 ObjectDeclNode::precompileSubObject(bool)
    // OP_END_OBJECT 1
    // root? 1
 
-   U32 argSize = 0;
+   U32 argSize = classNameExpr->precompile(TypeReqValue) + objectNameExpr->precompile(TypeReqValue);
    precompileIdent(parentObject);
    for(ExprNode *exprWalk = argList; exprWalk; exprWalk = (ExprNode *) exprWalk->getNext())
       argSize += exprWalk->precompile(TypeReqValue);
-   argSize += classNameExpr->precompile(TypeReqValue);
-
-   U32 nameSize = objectNameExpr->precompile(TypeReqValue);
 
    U32 slotSize = 0;
    for(SlotAssignNode *slotWalk = slotDecls; slotWalk; slotWalk = (SlotAssignNode *) slotWalk->getNext())
@@ -1360,7 +1358,7 @@ U32 ObjectDeclNode::precompileSubObject(bool)
    for(ObjectDeclNode *objectWalk = subObjects; objectWalk; objectWalk = (ObjectDeclNode *) objectWalk->getNext())
       subObjSize += objectWalk->precompileSubObject(false);
 
-   failOffset = 8 + nameSize + argSize + slotSize + subObjSize;
+   failOffset = 9 + argSize + slotSize + subObjSize;
    return failOffset;
 }
 
