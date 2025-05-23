@@ -187,6 +187,7 @@ public:
 			i = rhs.i;
 			break;
 		case TypeString:
+			str.length = 0;
 			setString(rhs.getString());
 			break;
 		case TypeValueList:
@@ -488,6 +489,7 @@ inline ConsoleValue& ConsoleValue::operator = (ConsoleValue const& rhs) {
 		i = rhs.i;
 		break;
 	case TypeString:
+		if (this != &rhs) str.length = 0;
 		setString(rhs.getString());
 		break;
 	case TypeValueList:
