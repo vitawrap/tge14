@@ -159,6 +159,8 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>CompileAsCpp</CompileAs>
       <FloatingPointModel>Strict</FloatingPointModel>
+      <PreprocessToFile>false</PreprocessToFile>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg_DEBUG.lib;lpng_DEBUG.lib;lungif_DEBUG.lib;zlib_DEBUG.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -248,6 +250,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>true</FloatingPointExceptions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <AdditionalDependencies>WINMM.LIB;WSOCK32.LIB;ljpeg.lib;lpng.lib;lungif.lib;zlib.lib;vfw32.lib;ogg_static.lib;theora_static.lib;vorbis_static.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -1052,6 +1055,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\vc6\TorqueDemo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
