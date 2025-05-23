@@ -190,6 +190,10 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
    static char traceBuffer[1024];
    U32 i;
 
+#ifdef TORQUE_DEBUG
+   U32 DBG_ENTER_TOP = TOP;
+#endif
+
    incRefCount();
    FloatIntConv conv;
    char *curStringTable;
@@ -1108,6 +1112,7 @@ execFinished:
    }
 
    // curFieldArray is also free'd here implicitly.
+   AssertFatal(DBG_ENTER_TOP == TOP, "The stack was not cleaned up correctly.");
 
    decRefCount();
    return returnVal;

@@ -211,7 +211,7 @@ inline S32 convertLEndianToHost(S32 i) { return S32(convertLEndianToHost(U32(i))
 // Input structures and functions - all input is pushed into the input event queue
 template <class T> class Vector;
 class Point2I;
-class ConsoleValue;
+struct ConsoleValue;
 
 // Theese emuns must be globally scoped so that they work
 // with the inline assembly
@@ -255,7 +255,7 @@ enum DriveType
    DRIVETYPE_UNKNOWN = 5
 };
 
-class ConsoleValue;
+struct ConsoleValue;
 
 struct Platform
 {

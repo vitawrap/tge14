@@ -1583,18 +1583,14 @@ void ShapeBase::unmount()
 void ShapeBase::onMount(ShapeBase* obj,S32 node)
 {
    if (!isGhost()) {
-      char buff1[32];
-      dSprintf(buff1,sizeof(buff1),"%d",node);
-      Con::executef(mDataBlock,4,"onMount",getId(),obj->getId(),buff1);
+      Con::executef(mDataBlock,4,"onMount",getId(),obj->getId(),node);
    }
 }
 
 void ShapeBase::onUnmount(ShapeBase* obj,S32 node)
 {
    if (!isGhost()) {
-      char buff1[32];
-      dSprintf(buff1,sizeof(buff1),"%d",node);
-      Con::executef(mDataBlock,4,"onUnmount",getId(),obj->getId(),buff1);
+      Con::executef(mDataBlock,4,"onUnmount",getId(),obj->getId(),node);
    }
 }
 

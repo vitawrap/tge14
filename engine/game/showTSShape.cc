@@ -526,9 +526,7 @@ void ShowTSShape::render()
       // set slider value to be correct
       if (slider && slider->mAwake)
       {
-         char buffer[32];
-         dSprintf(buffer,32,"%g",(F32)shapeInstance->getCurrentDetail()+1.0f-shapeInstance->getCurrentIntraDetail());
-         slider->setScriptValue(buffer);
+         slider->setScriptValue( ConsoleValue((F32)shapeInstance->getCurrentDetail() + 1.0f - shapeInstance->getCurrentIntraDetail()) );
       }
    }
    else
@@ -605,9 +603,7 @@ void ShowTSShape::advanceTime(U32 delta)
       S32 th = threadList->getSelectedCell().y;
       if (currentShow->getPlay(th))
       {
-         char buffer[32];
-         dSprintf(buffer,32,"%g",currentShow->getPos(th));
-         slider->setScriptValue(buffer);
+         slider->setScriptValue( ConsoleValue(currentShow->getPos(th)) );
       }
       else
          currentShow->setPos(th,slider->getValue());
@@ -895,9 +891,7 @@ ConsoleFunction( showSelectSequence, void, 1, 1, "")
       GuiSliderCtrl * slider = static_cast<GuiSliderCtrl*>(Sim::findObject("threadPosition"));
       if (slider && slider->getRoot())
       {
-         char buffer[32];
-         dSprintf(buffer,32,"%g",currentShow->getPos(threadNum));
-         slider->setScriptValue(buffer);
+         slider->setScriptValue( ConsoleValue(currentShow->getPos(threadNum)) );
       }
    }
 

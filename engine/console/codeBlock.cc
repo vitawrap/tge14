@@ -509,6 +509,8 @@ ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *strin
    lineBreakPairs = code + codeSize;
 
    smBreakLineCount = 0;
+   // compileBlock compiles statements without a final OP_VAL_TO_NULL,
+   // so OP_RETURN will catch the last pushed stack entry.
    U64 lastIp = compileBlock(statementList, code, 0, 0, 0);
    code[lastIp++] = OP_RETURN;
    

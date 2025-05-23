@@ -16,8 +16,6 @@
 #include "console/compiler.h"
 #include "console/stringStack.h"
 
-extern StringStack STR;
-
 ExprEvalState gEvalState;
 StmtNode *statementList;
 ConsoleConstructor *ConsoleConstructor::first = NULL;
@@ -828,7 +826,7 @@ ConsoleValue execute(S32 argc, ConsoleValue argv[])
          warnf(ConsoleLogEntry::Script, "%s: Unknown command.", argv[0]);
 
          // Clean up arg buffers, if any.
-         STR.clearFunctionOffset();
+         // STR.clearFunctionOffset();
          return "";
       }
       return ent->execute(argc, argv, &gEvalState);
@@ -863,7 +861,7 @@ ConsoleValue execute(SimObject *object, S32 argc, ConsoleValue argv[])
          //warnf(ConsoleLogEntry::Script, "%s: undefined for object '%s' - id %d", funcName, object->getName(), object->getId());
 
          // Clean up arg buffers, if any.
-         STR.clearFunctionOffset();
+         // STR.clearFunctionOffset();
          return "";
       }
       else

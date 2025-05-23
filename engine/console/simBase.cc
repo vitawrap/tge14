@@ -751,8 +751,7 @@ void SimObject::setDataField(StringTableEntry slotName, const char *array, Conso
       else
       {
          char buf[256];
-         dStrcpy(buf, slotName);
-         dStrcat(buf, array);
+         dSprintf(buf, sizeof(buf), "%s%s", slotName, array);
          mFieldDictionary->setFieldValue(StringTable->insert(buf), value);
       }
    }

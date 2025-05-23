@@ -26,7 +26,7 @@ enum devices
 
 struct Resolution;
 class DisplayDevice;
-class ConsoleValue;
+struct ConsoleValue;
 
 class Video
 {

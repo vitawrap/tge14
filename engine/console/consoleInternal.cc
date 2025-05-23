@@ -481,20 +481,20 @@ ConsoleFunction(backtrace, void, 1, 1, "Print the call stack.")
          totalSize += dStrlen(gEvalState.stack[i].scopeNamespace->mName) + 2;
    }
 
-   char *buf = Con::getReturnBuffer(totalSize + 1);
-   buf[0] = 0;
-   buf[totalSize] = 0;
+   ReturnBuffer buf(totalSize + 1);
+   (*buf)[0] = 0;
+   (*buf)[totalSize] = 0;
    for(U32 i = 0; i < gEvalState.stack.size(); i++)
    {
-      dStrcat(buf, "->");
+      dStrcat(*buf, "->");
       if(gEvalState.stack[i].scopeNamespace && gEvalState.stack[i].scopeNamespace->mName)
       {
-         dStrcat(buf, gEvalState.stack[i].scopeNamespace->mName);
-         dStrcat(buf, "::");
+         dStrcat(*buf, gEvalState.stack[i].scopeNamespace->mName);
+         dStrcat(*buf, "::");
       }
-      dStrcat(buf, (name = gEvalState.stack[i].scopeName)? name : noScope);
+      dStrcat(*buf, (name = gEvalState.stack[i].scopeName)? name : noScope);
    }
-   Con::printf("BackTrace: %s", buf);
+   Con::printf("BackTrace: %s", *buf);
 
 }
 

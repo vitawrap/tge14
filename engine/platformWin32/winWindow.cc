@@ -1188,9 +1188,7 @@ static void InitOpenGL()
 ConsoleFunction( getDesktopResolution, const char*, 1, 1, "getDesktopResolution()" )
 {
    argc; argv;
-   char buffer[256];
-   dSprintf( buffer, sizeof( buffer ), "%d %d %d", winState.desktopWidth, winState.desktopHeight, winState.desktopBitsPixel );
-   return buffer;
+   return ConsoleValueList::from( winState.desktopWidth, winState.desktopHeight, winState.desktopBitsPixel );
 }
 
 //--------------------------------------
