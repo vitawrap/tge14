@@ -185,10 +185,13 @@ public:
 		case TypeInt:
 		case TypeFloat:
 			i = rhs.i;
+			break;
 		case TypeString:
 			setString(rhs.getString());
+			break;
 		case TypeValueList:
 			copyList(rhs.list);
+			break;
 		}
 	}
 
@@ -235,7 +238,10 @@ public:
 
 	ConsoleValue(char const* val)
 		: type(TypeString)
-	{ setString(val); }
+	{
+		str.length = 0;
+		setString(val);
+	}
 
 	ConsoleValue(S32 val)
 		: ConsoleValue((S64) val)
@@ -480,10 +486,13 @@ inline ConsoleValue& ConsoleValue::operator = (ConsoleValue const& rhs) {
 	case TypeInt:
 	case TypeFloat:
 		i = rhs.i;
+		break;
 	case TypeString:
 		setString(rhs.getString());
+		break;
 	case TypeValueList:
 		copyList(rhs.list);
+		break;
 	}
 	if (shared) list->decRef();
 	return *this;
