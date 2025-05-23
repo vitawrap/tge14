@@ -23,10 +23,6 @@
 #include "core/color.h"
 #endif
 
-// Some clever microsoft guy thought this was a good idea
-#pragma push_macro("small")
-#undef small
-
 // Size for small string in console value
 #define CONVALUE_SSO_SIZE 16
 
@@ -55,7 +51,7 @@ struct ConsoleValue {
 	union {
 		struct {
 			union {
-				char small[CONVALUE_SSO_SIZE];	///< Small-size string
+				char smal[CONVALUE_SSO_SIZE];	///< Small-size string
 				char* ptr;
 			};
 			U32 length;
@@ -105,7 +101,7 @@ private:
 				str.ptr = (char*) dRealloc(str.ptr, strPSize(len));
 			else if (oldLen < CONVALUE_SSO_SIZE) {
 				str.ptr = (char*) dMalloc(strPSize(len));
-				if (intact) dMemmove(str.ptr, str.small, oldLen + 1);
+				if (intact) dMemmove(str.ptr, str.smal, oldLen + 1);
 			}
 			return str.ptr;
 		}
@@ -113,7 +109,7 @@ private:
 			dFree(str.ptr);
 			str.ptr = NULL;
 		}
-		return str.small;
+		return str.smal;
 	}
 
 	void setString(char const* in) {
@@ -154,7 +150,7 @@ private:
 	}
 
 	char const* getString() const {
-		return str.length < CONVALUE_SSO_SIZE ? str.small : str.ptr;
+		return str.length < CONVALUE_SSO_SIZE ? str.smal : str.ptr;
 	}
 
 	void clearString() {
@@ -424,6 +420,8 @@ public:
 		constructInPlace(&last(), &cv);
 	}
 
+	// Static constructor
+
 	template <typename ...CVArgs>
 	static ConsoleValueList* from(CVArgs const&... args) {
 		S64 i = 0;
@@ -560,5 +558,4 @@ public:
 	char* operator *() { return mBuffer; }
 };
 
-#pragma pop_macro("small")
 #endif
