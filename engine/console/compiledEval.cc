@@ -191,7 +191,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
    U32 i;
 
 #ifdef TORQUE_DEBUG
-   U32 DBG_ENTER_TOP = TOP;
+   S32 DBG_ENTER_TOP = TOP;
 #endif
 
    incRefCount();
