@@ -746,6 +746,7 @@ U32 VarNode::compile(U64 *codeStream, U64 ip, TypeReq type)
     } else
         codeStream[ip++] = local ? OP_SETCURLOCAL : OP_SETCURVAR;
     codeStream[ip] = STEtoU64(varName, ip);
+    codeStream[ip] = OP_LOADVAR;
     ip++;
     return ip;
 }
