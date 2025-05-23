@@ -13,6 +13,10 @@ thread_local static char stringConv[stringCSize];
 bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 	ConsoleValue::Type const srcType = type;
 
+	F64 fval;
+	S64 ival;
+	ConsoleValueList* vlist;
+
 	switch (dstType) {
 	case TypeString:
 		switch (srcType) {
@@ -28,7 +32,7 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 
 		case TypeValueList:
 			// In true torquescript fashion, string->list can become a word list.
-			ConsoleValueList* vlist = list;
+			vlist = list;
 			str.length = 0;
 			for (ConsoleValue* itr = vlist->begin(); itr != vlist->end(); itr++) {
 				concatU(*itr);
@@ -49,7 +53,7 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 	case TypeFloat:
 		switch (srcType) {
 		case TypeString:
-			F64 fval = dAtof(getString());
+			fval = dAtof(getString());
 			clearString();	// clear union
 			f = fval;
 			break;
@@ -77,7 +81,7 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 	case TypeInt:
 		switch (srcType) {
 		case TypeString:
-			S64 ival = dAtoi(getString());
+			ival = dAtoi(getString());
 			clearString();	// clear union
 			i = ival;
 			break;
@@ -159,7 +163,7 @@ S32 ConsoleValue::serialize(char* out, S32 size) {
 		break;
 	}
 
-	dSprintf(out, size, "%s", strBuf.getString());
+	return dSprintf(out, size, "%s", strBuf.getString());
 }
 
 void ConsoleValue::innerPack(MemStream& stream) const
@@ -167,7 +171,7 @@ void ConsoleValue::innerPack(MemStream& stream) const
 	switch (type) {
 	case TypeInt:
 		stream.write((U8)'I');
-		stream.write(i);
+		stream.write((S32) i); // TODO: Split into two S32's
 		break;
 	case TypeFloat:
 		stream.write((U8)'F');
@@ -192,9 +196,12 @@ bool ConsoleValue::innerUnpack(MemStream& stream)
 	U8 key;
 	stream.read(&key);
 	switch (key) {
-	case 'I':
+	case 'I': {
 		type = TypeInt;
-		stream.read(&i);
+		S32 smallInt;
+		stream.read(&smallInt);
+		i = (S64) smallInt;
+	}
 		break;
 	case 'F':
 		type = TypeFloat;
@@ -236,4 +243,9 @@ bool ConsoleValue::unpack(U64 size, char* buffer)
 {
 	MemStream stream(size, buffer, true, false);
 	return innerUnpack(stream);
+}
+
+bool ConsoleValue::isTagString() const
+{
+	return (type == TypeString) && (getString()[0] == StringTagPrefixByte);
 }

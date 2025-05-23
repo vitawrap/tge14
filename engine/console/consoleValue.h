@@ -23,6 +23,10 @@
 #include "core/color.h"
 #endif
 
+// Some clever microsoft guy thought this was a good idea
+#pragma push_macro("small")
+#undef small
+
 // Size for small string in console value
 #define CONVALUE_SSO_SIZE 16
 
@@ -192,23 +196,7 @@ public:
 		}
 	}
 
-	ConsoleValue& operator = (ConsoleValue const& rhs) {
-		// Edge case where self-assignment can lose the list from clearing.
-		bool shared = type == TypeValueList && list && this == &rhs;
-		if (shared) list->incRef();
-		clear();
-		switch ((type = rhs.type)) {
-		case TypeInt:
-		case TypeFloat:
-			i = rhs.i;
-		case TypeString:
-			setString(rhs.getString());
-		case TypeValueList:
-			copyList(rhs.list);
-		}
-		if (shared) list->decRef();
-		return *this;
-	}
+	inline ConsoleValue& operator = (ConsoleValue const& rhs);
 
 	ConsoleValue(S64 val)
 		: type(TypeInt)
@@ -230,12 +218,7 @@ public:
 		: type(TypeFloat)
 	{ f = val; }
 
-	ConsoleValue(ConsoleValueList* lcv)
-		: type(TypeValueList)
-	{
-		if (lcv)	copyList(lcv);
-		else		list = new ConsoleValueList;
-	}
+	inline ConsoleValue(ConsoleValueList* lcv);
 
 	// Default construct to null string
 	ConsoleValue()
@@ -244,45 +227,18 @@ public:
 
 	void clearValue() { clear(true); }
 
-	bool isNull() const {
-		switch (type) {
-		case TypeInt:
-		case TypeFloat:
-			return i == 0;
-		case TypeString:
-			return str.length == 0;
-		case TypeValueList:
-			return list->empty() || (list->size() == 1 && (*list)[0].isNull());
-		}
-		return false;
-	}
-
 	// More restrictive null check
 	bool isNullString() const {
 		return type == TypeString && str.length == 0;
 	}
 
+	inline bool isNull() const;
+
 	// Quick float getter
-	F64 getNumber() const {
-		switch (type) {
-		case TypeInt: return i;
-		case TypeFloat: return f;
-		case TypeString: return dAtof(getString());
-		case TypeValueList:
-			return list->empty() ? 0.0 : (*list)[0].getNumber();
-		}
-	}
+	inline F64 getNumber() const;
 
 	// Quick integer getter
-	S64 getInt() const {
-		switch (type) {
-		case TypeInt: return i;
-		case TypeFloat: return f;
-		case TypeString: return dAtoi(getString());
-		case TypeValueList:
-			return list->empty() ? 0 : (*list)[0].getInt();
-		}
-	}
+	inline S64 getInt() const;
 
 	S64 compare(ConsoleValue right, bool caseSens = false, bool strict = false) const {
 		if (!strict)
@@ -299,8 +255,7 @@ public:
 				return !(list == right.list);	// TODO: List equality compare
 			}
 		}
-		else
-			return 1LL; // this works, return non-equal
+		return 1LL; // this works, return non-equal
 	}
 
 	Type getType() const { return type; }
@@ -310,7 +265,7 @@ public:
 	bool isList() const { return type == TypeValueList && list; }
 
 	// Works for local and remote tagged strings
-	bool isTagString() const { return (type == TypeString) && (getString()[0] == StringTagPrefixByte); }
+	bool isTagString() const;
 
 	// Unchecked getters (used after getType() or a successful castTo(T)).
 
@@ -320,15 +275,13 @@ public:
 	S64 getStrlenU() const { return str.length; }
 	void concatU(ConsoleValue& v) { v.castTo(TypeString); concat(v); }
 	void concatStringU(char const* string, size_t len) { concatString(string, len); }
-	Vector<ConsoleValue> const& getListU() const { return *list; }
-	Vector<ConsoleValue>& getListU() { return *list; }
 
-	size_t getListSizeU() const { return list->size(); }
-	ConsoleValue& getListValueU(U32 i) { return (*list)[i]; }
-	ConsoleValue const& getListValueU(U32 i) const { return (*list)[i]; }
-	ConsoleValue const& getListValueDefU(U32 i, ConsoleValue const& def = "") const {
-		return getListSizeU() > i? (*list)[i] : def;
-	}
+	inline ConsoleValueList const& getListU() const;
+	inline ConsoleValueList& getListU();
+	inline size_t getListSizeU() const;
+	inline ConsoleValue& getListValueU(U32 i);
+	inline ConsoleValue const& getListValueU(U32 i) const;
+	inline ConsoleValue const& getListValueDefU(U32 i, ConsoleValue const& def = "") const;
 
 	// Checked toString (mutates console value!)
 	// Make sure the lifetime of the ConsoleValue guarantees the lifetime of the ptr to the string!
@@ -477,10 +430,35 @@ public:
 		auto* list = new ConsoleValueList;
 		list->increment(sizeof...(CVArgs));
 		int dummy[sizeof...(CVArgs)] =
-		{ (constructInPlace(&list[i++], &args),0)... };
+		{ (constructInPlace<ConsoleValue>(&list->at(i++), &ConsoleValue(args)),0)... };
 		return list;
 	}
 };
+
+inline ConsoleValue::ConsoleValue(ConsoleValueList* lcv)
+	: type(TypeValueList)
+{
+	if (lcv)	copyList(lcv);
+	else		list = new ConsoleValueList;
+}
+
+inline ConsoleValue& ConsoleValue::operator = (ConsoleValue const& rhs) {
+	// Edge case where self-assignment can lose the list from clearing.
+	bool shared = type == TypeValueList && list && this == &rhs;
+	if (shared) list->incRef();
+	clear();
+	switch ((type = rhs.type)) {
+	case TypeInt:
+	case TypeFloat:
+		i = rhs.i;
+	case TypeString:
+		setString(rhs.getString());
+	case TypeValueList:
+		copyList(rhs.list);
+	}
+	if (shared) list->decRef();
+	return *this;
+}
 
 inline void ConsoleValue::destroyList(ConsoleValueList*& lcv)
 {
@@ -494,6 +472,62 @@ inline void ConsoleValue::copyList(ConsoleValueList* lcv)
 	AssertFatal(lcv, "Copying null list in ConsoleValue!");
 	lcv->incRef();
 	list = lcv;
+}
+
+inline size_t ConsoleValue::getListSizeU() const
+{ return list->size(); }
+
+inline ConsoleValue& ConsoleValue::getListValueU(U32 i)
+{ return (*list)[i]; }
+
+inline ConsoleValue const& ConsoleValue::getListValueU(U32 i) const
+{ return (*list)[i]; }
+
+inline ConsoleValue const& ConsoleValue::getListValueDefU(U32 i, ConsoleValue const& def) const {
+	return getListSizeU() > i ? (*list)[i] : def;
+}
+
+inline ConsoleValueList const& ConsoleValue::getListU() const
+{ return *list; }
+
+inline ConsoleValueList& ConsoleValue::getListU()
+{ return *list; }
+
+inline bool ConsoleValue::isNull() const {
+	switch (type) {
+	case TypeInt:
+	case TypeFloat:
+		return i == 0;
+	case TypeString:
+		return str.length == 0;
+	case TypeValueList:
+		return list->empty() || (list->size() == 1 && (*list)[0].isNull());
+	}
+	return false;
+}
+
+// Quick float getter
+inline F64 ConsoleValue::getNumber() const {
+	switch (type) {
+	case TypeInt: return i;
+	case TypeFloat: return f;
+	case TypeString: return dAtof(getString());
+	case TypeValueList:
+		return list->empty() ? 0.0 : (*list)[0].getNumber();
+	}
+	return 0.0;
+}
+
+// Quick integer getter
+inline S64 ConsoleValue::getInt() const {
+	switch (type) {
+	case TypeInt: return i;
+	case TypeFloat: return f;
+	case TypeString: return dAtoi(getString());
+	case TypeValueList:
+		return list->empty() ? 0 : (*list)[0].getInt();
+	}
+	return 0LL;
 }
 
 // 32-byte limit is somewhat arbitrary, but huge console values will be significantly slower.
@@ -526,4 +560,5 @@ public:
 	char* operator *() { return mBuffer; }
 };
 
+#pragma pop_macro("small")
 #endif
