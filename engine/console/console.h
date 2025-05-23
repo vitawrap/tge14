@@ -483,6 +483,14 @@ namespace Con
    ///
    /// @{
 
+   template<typename T> struct CVCast { typedef T Type; };
+   template<> struct CVCast<U32> { typedef S64 Type; };
+   template<> struct CVCast<dsize_t> { typedef S64 Type; };
+   template<> struct CVCast<char[]> { typedef char const* Type; };
+   template<typename T> constexpr typename CVCast<T>::Type Cast(T in) {
+       return static_cast<typename CVCast<T>::Type>(in);
+   }
+
    /// Call a script function from C/C++ code.
    ///
    /// @param argc      Number of elements in the argv parameter
@@ -498,7 +506,7 @@ namespace Con
    /// @see execute(S32 argc, const char* argv[])
    template <typename ...CVArgs>
    ConsoleValue executef(S32 argc, CVArgs const&... args) {
-       ConsoleValue argv[sizeof...(args)] = { args... };
+       ConsoleValue argv[sizeof...(args)] = { ConsoleValue(Cast(args))... };
        return execute(argc, argv);
    }
 
@@ -519,8 +527,8 @@ namespace Con
    /// @see execute(SimObject *, S32 argc, ConsoleValue argv[])
    template <typename ...CVArgs>
    ConsoleValue executef(SimObject* object, S32 argc, CVArgs const&... args) {
-       ConsoleValue argv[sizeof...(args)] = { 0, args... };
-       if constexpr ((sizeof...(args)) > 1) argv[0] = argv[1];
+       ConsoleValue argv[sizeof...(args)+1] = { "", ConsoleValue(Cast(args))...};
+       if ((sizeof...(args)) > 1) argv[0] = argv[1];
        return execute(object, ++argc, argv);
    }
 
@@ -695,7 +703,7 @@ public:
    /// @{
 
    ConsoleConstructor(const char *className, const char *funcName, ValueCallback sfunc, const char* usage,  S32 minArgs, S32 maxArgs);
-   ConsoleConstructor(const char *className, const char *funcName, VoidCallback   vfunc, const char* usage,  S32 minArgs, S32 maxArgs);
+   ConsoleConstructor(const char *className, const char *funcName, VoidCallback  vfunc, const char* usage,  S32 minArgs, S32 maxArgs);
    /// @}
 
    /// @name Magic Console Constructors
@@ -724,7 +732,7 @@ public:
 
 // hackery for ConsoleValues...
 #define confunc_ret_finalize(t)             t
-#define confunc_ret_coerce(t)               ConsoleValue
+#define confunc_ret_coerce(...)             ConsoleValue
 #define confunc_ret_S32                     confunc_ret_finalize(ConsoleValue
 #define confunc_ret_F32                     confunc_ret_finalize(ConsoleValue
 #define confunc_ret_bool                    confunc_ret_finalize(ConsoleValue
@@ -734,7 +742,7 @@ public:
 
 #define conmethod_ret_nullify(t)
 #define conmethod_ret_finalize(t)           t
-#define conmethod_ret_coerce(t)             return
+#define conmethod_ret_coerce(...)           return
 #define conmethod_ret_S32                   conmethod_ret_finalize(return
 #define conmethod_ret_F32                   conmethod_ret_finalize(return
 #define conmethod_ret_bool                  conmethod_ret_finalize(return
@@ -749,7 +757,7 @@ public:
       static ConsoleConstructor gConsoleFunctionGroup##groupName##__GroupBegin(NULL,#groupName,usage);
 
 #  define ConsoleFunction(name,returnType,minArgs,maxArgs,usage1)                         \
-      static confunc_ret_##returnType ) c##name(SimObject *, S32, ConsoleValue *argv);                     \
+      static confunc_ret_##returnType ) c##name(SimObject *, S32, ConsoleValue *argv);    \
       static ConsoleConstructor g##name##obj(NULL,#name,c##name,usage1,minArgs,maxArgs);  \
       static confunc_ret_##returnType ) c##name(SimObject *, S32 argc, ConsoleValue *argv)
 

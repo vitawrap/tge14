@@ -194,6 +194,37 @@ public:
 
 	inline ConsoleValue& operator = (ConsoleValue const& rhs);
 
+	ConsoleValue& operator = (ConsoleValue&& rhs) {
+		if (&rhs == this) return *this;
+		clear();
+		switch ((type = rhs.type))
+		{
+		case ConsoleValue::TypeInt:
+		case ConsoleValue::TypeFloat:
+			i = rhs.i;
+			break;
+		case ConsoleValue::TypeString:
+			str.length = rhs.str.length;
+			if (str.length >= CONVALUE_SSO_SIZE) {
+				str.ptr = rhs.str.ptr;
+				rhs.str.ptr = NULL; // also works to NT the small buffer.
+			} else
+				dMemmove(str.smal, rhs.str.smal, str.length + 1);
+			break;
+		case ConsoleValue::TypeValueList:
+			list = rhs.list;
+			break;
+		}
+		// Set rhs to null string.
+		rhs.type = TypeString;
+		rhs.str.length = 0;
+		return *this;
+	}
+
+	ConsoleValue(ConsoleValue&& rhs) {
+		(void)((*this) = dMove(rhs));
+	}
+
 	ConsoleValue(S64 val)
 		: type(TypeInt)
 	{ i = val; }
@@ -428,7 +459,7 @@ public:
 		auto* list = new ConsoleValueList;
 		list->increment(sizeof...(CVArgs));
 		int dummy[sizeof...(CVArgs)] =
-		{ (constructInPlace<ConsoleValue>(&list->at(i++), &ConsoleValue(args)),0)... };
+		{ (constructInPlace<ConsoleValue>(&list->at(i++), &ConsoleValue(Con::Cast(args))),0)... };
 		return list;
 	}
 };
