@@ -36,7 +36,7 @@ extern StringTableEntry gCurrentRoot;
 }
 
 ConsoleValue valueStack[MaxStackSize];
-U32 TOP = 0;
+S32 TOP = -1; // Push always moves cursor first.
 
 static inline void popValueStack(int n = 1) {
     while (n--) valueStack[TOP--].clearValue();
