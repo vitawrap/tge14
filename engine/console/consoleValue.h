@@ -167,8 +167,8 @@ private:
 		}
 		// If we need a coherent value afterwards, just nullify it.
 		if (coherent) {
-			type = TypeInt;
-			i = 0;
+			type = TypeString;
+			str.length = 0;
 		}
 	}
 
@@ -396,6 +396,19 @@ public:
 			);
 		ColorF ret(0.f, 0.f, 0.f, 1.f);
 		dSscanf(toString(), "%g %g %g %g", &ret.red, &ret.green, &ret.blue, &ret.alpha);
+		return ret;
+	}
+
+	ColorI getColorI() {
+		if (isList())
+			return ColorI(
+				getListValueDefU(0,  0).getInt(),
+				getListValueDefU(1,  0).getInt(),
+				getListValueDefU(2,  0).getInt(),
+				getListValueDefU(3,255).getInt() // default alpha: 255
+			);
+		ColorI ret(0, 0, 0, 255);
+		dSscanf(toString(), "%hhu %hhu %hhu %hhu", &ret.red, &ret.green, &ret.blue, &ret.alpha);
 		return ret;
 	}
 

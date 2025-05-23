@@ -37,14 +37,18 @@ bool GuiDirectoryTreeCtrl::onAdd()
    // much as windows does.
 
    ResourceManager->initExcludedDirectories();
+   char const* RootPath = ResourceManager->getModPaths();
 
-   StringTableEntry RootPath = ResourceManager->getModPaths();
-   //getUnit(argv[1], dAtoi(argv[2]), " \t\n");
+   char modBuffer[1024];
    S32 modCount = getUnitCount( RootPath, ";" );
    for( S32 i = 0; i < modCount; i++ )
    {
       // Compose full mod path location, and dump the path to our vector
-      StringTableEntry currentMod = getUnit( RootPath, i, ";" );
+      auto unit = getUnit( RootPath, i, ";" );
+      dStrncpy(modBuffer, unit.start, unit.length);
+      modBuffer[unit.length] = 0;
+      StringTableEntry currentMod = modBuffer; // this is never useful as an STE but whatever.
+
       char fullModPath [512];
       dMemset( fullModPath, 0, 512 );
       dSprintf( fullModPath, 512, "%s/%s/", Platform::getWorkingDirectory(), currentMod );
@@ -85,7 +89,7 @@ bool GuiDirectoryTreeCtrl::onVirtualParentExpand(Item *item)
    if( !item || !item->isExpanded() )
       return true;
 
-   StringTableEntry pathToExpand = item->getValue();
+   StringTableEntry pathToExpand = item->getValue().toSTString();
 
    if( !pathToExpand )
    {
@@ -137,7 +141,13 @@ void GuiDirectoryTreeCtrl::addPathToTree( StringTableEntry path )
    // Identify which root (volume) this path belongs to (if any)
    S32 root = getFirstRootItem();
    StringTableEntry ourPath = &path[ dStrcspn( path, "//" ) + 1];
-   StringTableEntry ourRoot = getUnit( path, 0, "//" );
+
+   char pathBuffer[1024];
+   auto unit = getUnit( path, 0, "//" );
+   dStrncpy(pathBuffer, unit.start, unit.length);
+   pathBuffer[unit.length] = 0;
+
+   StringTableEntry ourRoot = pathBuffer;
    // There are no current roots, we can safely create one
    if( root == 0 )
    {
@@ -147,7 +157,7 @@ void GuiDirectoryTreeCtrl::addPathToTree( StringTableEntry path )
    {
       while( root != 0 )
       {
-         if( dStrcmp( getItemValue( root ), ourRoot ) == 0 )
+         if( dStrcmp( getItemValue( root ).toString(), ourRoot) == 0)
          {
             recurseInsert( getItem( root ), ourPath );
             break;
@@ -164,11 +174,11 @@ void GuiDirectoryTreeCtrl::addPathToTree( StringTableEntry path )
 
 void GuiDirectoryTreeCtrl::onItemSelected( Item *item )
 {
-   Con::executef( this, 2, "onSelectPath", avar("%s",item->getValue()) );
+   Con::executef( this, 2, "onSelectPath", item->getValue() );
 
-   mSelPath = StringTable->insert( item->getValue() );
+   mSelPath = item->getValue().toSTString();
 
-   if( Platform::hasSubDirectory( item->getValue() ) )
+   if( Platform::hasSubDirectory( mSelPath ) )
       item->setVirtualParent( true );
 }
 
@@ -197,7 +207,7 @@ void GuiDirectoryTreeCtrl::recurseInsert( Item* parent, StringTableEntry path )
    // only insert blindly if we have no root
    if( !parent )
    {
-      itemIndex = insertItem( 0, curPos, curPos );
+      itemIndex = insertItem( 0, curPos, ConsoleValue(curPos) );
       getItem( itemIndex )->setNormalImage( Icon_FolderClosed );
       getItem( itemIndex )->setExpandedImage( Icon_Folder );
    }
@@ -216,7 +226,7 @@ void GuiDirectoryTreeCtrl::recurseInsert( Item* parent, StringTableEntry path )
 
          itemIndex = insertItem( item->getID(), curPos);
 
-         getItem( itemIndex )->setValue( szValue );
+         getItem( itemIndex )->setValue( ConsoleValue(szValue) );
          getItem( itemIndex )->setNormalImage( Icon_FolderClosed );
          getItem( itemIndex )->setExpandedImage( Icon_Folder );
 
@@ -236,7 +246,7 @@ void GuiDirectoryTreeCtrl::recurseInsert( Item* parent, StringTableEntry path )
       if( ( dStrcmp( delim, "" ) == 0 ) && item )
       {
          item->setExpanded( false );
-         if( parent && Platform::hasSubDirectory( item->getValue() ) )
+         if( parent && Platform::hasSubDirectory( item->getValue().toString() ) )
             item->setVirtualParent( true );
       }
    }
@@ -245,7 +255,7 @@ void GuiDirectoryTreeCtrl::recurseInsert( Item* parent, StringTableEntry path )
       if( item )
       {
          item->setExpanded( false );
-         if( parent &&  Platform::hasSubDirectory( item->getValue() ) )
+         if( parent &&  Platform::hasSubDirectory( item->getValue().toString() ) )
             item->setVirtualParent( true );
       }
    }
@@ -255,38 +265,37 @@ void GuiDirectoryTreeCtrl::recurseInsert( Item* parent, StringTableEntry path )
 
 }
 
-
-StringTableEntry GuiDirectoryTreeCtrl::getUnit(const char *string, U32 index, const char *set)
+GuiDirectoryTreeCtrl::UnitPair
+GuiDirectoryTreeCtrl::getUnit(const char *string, U32 index, const char *set)
 {
    U32 sz;
    while(index--)
    {
       if(!*string)
-         return "";
+         return { NULL, 0 };
       sz = dStrcspn(string, set);
       if (string[sz] == 0)
-         return "";
+         return { NULL, 0 };
       string += (sz + 1);
    }
    sz = dStrcspn(string, set);
    if (sz == 0)
-      return "";
-   char *ret = Con::getReturnBuffer(sz+1);
-   dStrncpy(ret, string, sz);
-   ret[sz] = '\0';
-   return ret;
+      return { NULL, 0 };
+   return { string, sz };
 }
-StringTableEntry GuiDirectoryTreeCtrl::getUnits(const char *string, S32 startIndex, S32 endIndex, const char *set)
+
+GuiDirectoryTreeCtrl::UnitPair
+GuiDirectoryTreeCtrl::getUnits(const char *string, S32 startIndex, S32 endIndex, const char *set)
 {
    S32 sz;
    S32 index = startIndex;
    while(index--)
    {
       if(!*string)
-         return "";
+         return { NULL, 0 };
       sz = dStrcspn(string, set);
       if (string[sz] == 0)
-         return "";
+         return { NULL, 0 };
       string += (sz + 1);
    }
    const char *startString = string;
@@ -301,10 +310,7 @@ StringTableEntry GuiDirectoryTreeCtrl::getUnits(const char *string, S32 startInd
    if(!*string)
       string++;
    U32 totalSize = (U32(string - startString));
-   char *ret = Con::getReturnBuffer(totalSize);
-   dStrncpy(ret, startString, totalSize - 1);
-   ret[totalSize-1] = '\0';
-   return ret;
+   return { startString, totalSize - 1 };
 }
 
 U32 GuiDirectoryTreeCtrl::getUnitCount(const char *string, const char *set)
@@ -343,7 +349,7 @@ StringTableEntry GuiDirectoryTreeCtrl::getSelectedPath()
 
 ConsoleMethod( GuiDirectoryTreeCtrl, setSelectedPath, bool, 3, 3, "setSelectedPath(path) - expands the tree to the specified path")
 {
-   return object->setSelectedPath( argv[2] );
+   return object->setSelectedPath( argv[2].toSTString() );
 }
 
 bool GuiDirectoryTreeCtrl::setSelectedPath( StringTableEntry path )
@@ -359,7 +365,7 @@ bool GuiDirectoryTreeCtrl::setSelectedPath( StringTableEntry path )
    // see if we have a child that matches what we want
    for(U32 i = 0; i < mItems.size(); i++)
    {
-      if( dStricmp( mItems[i]->getValue(), path ) == 0 )
+      if( dStricmp( mItems[i]->getValue().toString(), path) == 0)
       {
          Item* item = mItems[i];
          AssertFatal(item,"GuiDirectoryTreeCtrl::setSelectedPath - Item Index Bad, Fatal Mistake!!!");

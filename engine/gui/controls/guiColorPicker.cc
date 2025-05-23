@@ -352,35 +352,28 @@ void GuiColorPickerCtrl::onMouseUp(const GuiEvent &)
 }
 
 //--------------------------------------------------------------------------
-const char *GuiColorPickerCtrl::getScriptValue()
+ConsoleValue GuiColorPickerCtrl::getScriptValue()
 {
-   static char temp[256];
    ColorF color = getValue();
-   dSprintf(temp,256,"%f %f %f %f",color.red, color.green, color.blue, color.alpha);
-   return temp; 
+   return ConsoleValueList::from(color.red, color.green, color.blue, color.alpha);
 }
 
 //--------------------------------------------------------------------------    
-void GuiColorPickerCtrl::setScriptValue(const char *value)
+void GuiColorPickerCtrl::setScriptValue(ConsoleValue& value)
 {
-   ColorF newValue;
-   dSscanf(value, "%f %f %f %f", &newValue.red, &newValue.green, &newValue.blue, &newValue.alpha);
-   setValue(newValue);
+   setValue(value.getColorF());
 }
 
 ConsoleMethod(GuiColorPickerCtrl, getSelectorPos, const char*, 2, 2, "Gets the current position of the selector")
 {
-   char *temp = Con::getReturnBuffer(256);
    Point2I pos;
    pos = object->getSelectorPos();
-   dSprintf(temp,256,"%d %d",pos.x, pos.y); 
-   return temp;
+   return ConsoleValueList::from(pos.x, pos.y);
 }
 
 ConsoleMethod(GuiColorPickerCtrl, setSelectorPos, void, 3, 3, "Sets the current position of the selector")
 {
-   Point2I newPos;
-   dSscanf(argv[2], "%d %d", &newPos.x, &newPos.y);
+   Point2I newPos = argv[2].getPoint2I();
    object->setSelectorPos(newPos);
 }
 

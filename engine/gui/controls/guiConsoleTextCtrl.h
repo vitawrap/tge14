@@ -27,7 +27,7 @@ public:
 
 protected:
    const char *mConsoleExpression;
-   const char *mResult;
+   ConsoleValue mResult;
    Resource<GFont> mFont;
 
 public:
@@ -51,8 +51,8 @@ public:
    void onRender(Point2I offset, const RectI &updateRect);
 
    //Console methods
-   const char *getScriptValue();
-   void setScriptValue(const char *value);
+   ConsoleValue getScriptValue() override;
+   void setScriptValue(ConsoleValue& value) override;
 };
 
 #endif //_GUI_TEXT_CONTROL_H_

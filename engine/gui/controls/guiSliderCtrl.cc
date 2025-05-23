@@ -45,13 +45,13 @@ ConsoleMethod( GuiSliderCtrl, getValue, F32, 2, 2, "Get the position of the slid
 }
 
 //----------------------------------------------------------------------------
-void GuiSliderCtrl::setScriptValue(const char *val)
+void GuiSliderCtrl::setScriptValue(ConsoleValue& val)
 {
-	mValue = dAtof(val);
+   mValue = val.getNumber();
    updateThumb(mValue);
 }
 
-void GuiSliderCtrl::onStaticModified(const char* slot)
+void GuiSliderCtrl::onStaticModified(StringTableEntry slot)
 {
     // Also visually register edits from script
     if (isAwake() && slot == StringTable->insert("value"))
@@ -134,9 +134,7 @@ void GuiSliderCtrl::onMouseUp(const GuiEvent &)
    mouseUnlock();
    if (mConsoleCommand[0])
    {
-   	char buf[16];
-      dSprintf(buf, sizeof(buf), "%d", getId());
-      Con::setVariable("$ThisControl", buf);
+      Con::setVariable("$ThisControl", (S64) getId());
       Con::evaluate(mConsoleCommand, false);
    }
 }

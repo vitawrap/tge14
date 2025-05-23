@@ -46,9 +46,15 @@ public:
    bool setSelectedPath( StringTableEntry path );
    bool buildIconTable(const char * icons);
 
+   // I LOVE REPEATING CODE!!!!!!!!!!!!!!!!!!!!!
+   struct UnitPair {
+       char const* start;
+       U32 length;
+   };
+
    // Mod Path Parsing
-   StringTableEntry getUnit(const char *string, U32 index, const char *set);
-   StringTableEntry getUnits(const char *string, S32 startIndex, S32 endIndex, const char *set);
+   UnitPair getUnit(const char *string, U32 index, const char *set);
+   UnitPair getUnits(const char *string, S32 startIndex, S32 endIndex, const char *set);
    U32 getUnitCount(const char *string, const char *set);
 
 

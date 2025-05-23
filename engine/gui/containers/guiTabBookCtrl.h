@@ -47,8 +47,8 @@ public:
 	{
 		AlignTop,   ///< Align the tabs on the top of the tab book control
 		AlignBottom,///< Align the tabs on the bottom of the tab book control
-      AlignLeft,  ///< Unsupported currently
-      AlignRight  ///< Unsupported currently
+		AlignLeft,  ///< Unsupported currently
+		AlignRight  ///< Unsupported currently
 	};
 
 private:

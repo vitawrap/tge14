@@ -17,7 +17,6 @@ GuiConsoleTextCtrl::GuiConsoleTextCtrl()
 {
    //default fonts
    mConsoleExpression = NULL;
-   mResult = NULL;
 }
 
 void GuiConsoleTextCtrl::initPersistFields()
@@ -69,16 +68,17 @@ void GuiConsoleTextCtrl::setText(const char *txt)
 
 void GuiConsoleTextCtrl::calcResize()
 {
-   if (!mResult)
+   if (mResult.isNullString())
       return;
 
    //resize
    if (mProfile->mAutoSizeWidth)
    {
+      char const* result = mResult.toString();
       if (mProfile->mAutoSizeHeight)
-         resize(mBounds.point, Point2I(mFont->getStrWidth((const UTF8 *)mResult) + 4, mFont->getHeight() + 4));
+         resize(mBounds.point, Point2I(mFont->getStrWidth((const UTF8 *) result) + 4, mFont->getHeight() + 4));
       else
-         resize(mBounds.point, Point2I(mFont->getStrWidth((const UTF8 *)mResult) + 4, mBounds.extent.y));
+         resize(mBounds.point, Point2I(mFont->getStrWidth((const UTF8 *) result) + 4, mBounds.extent.y));
    }
    else if (mProfile->mAutoSizeHeight)
    {
@@ -89,8 +89,10 @@ void GuiConsoleTextCtrl::calcResize()
 
 void GuiConsoleTextCtrl::onPreRender()
 {
-   if (mConsoleExpression)
+   if (mConsoleExpression) {
+      // FIXME: Result will most likely be nothing with the new system.
       mResult = Con::evaluatef("$temp = %s;", mConsoleExpression);
+   }
    calcResize();
 }
 
@@ -113,9 +115,10 @@ void GuiConsoleTextCtrl::onRender(Point2I offset, const RectI &updateRect)
    glVertex2i(r.point.x,  r.extent.y-1);
    glEnd();
 
-   if (mResult)
+   if (!mResult.isNullString())
    {
-      S32 txt_w = mFont->getStrWidth((const UTF8 *)mResult);
+      char const* result = mResult.toString();
+      S32 txt_w = mFont->getStrWidth((const UTF8 *)result);
       Point2I localStart;
       switch (mProfile->mAlignment)
       {
@@ -135,7 +138,7 @@ void GuiConsoleTextCtrl::onRender(Point2I offset, const RectI &updateRect)
 
       //draw the text
       dglSetBitmapModulation(mProfile->mFontColor);
-      dglDrawText(mFont, globalStart, mResult, mProfile->mFontColors);
+      dglDrawText(mFont, globalStart, result, mProfile->mFontColors);
    }
 
    //render the child controls
@@ -144,14 +147,14 @@ void GuiConsoleTextCtrl::onRender(Point2I offset, const RectI &updateRect)
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //
 
-const char *GuiConsoleTextCtrl::getScriptValue()
+ConsoleValue GuiConsoleTextCtrl::getScriptValue()
 {
    return getText();
 }
 
-void GuiConsoleTextCtrl::setScriptValue(const char *val)
+void GuiConsoleTextCtrl::setScriptValue(ConsoleValue& val)
 {
-   setText(val);
+   setText(val.toString());
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- //

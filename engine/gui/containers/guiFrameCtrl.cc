@@ -39,26 +39,26 @@ void GuiFrameSetCtrl::initPersistFields()
 //-----------------------------------------------------------------------------
 ConsoleMethod( GuiFrameSetCtrl, frameBorder, void, 3, 4, "(int index, bool enable=true)")
 {
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if (argc == 3)
       object->frameBorderEnable(index);
    else
-      object->frameBorderEnable(index, argv[3]);
+      object->frameBorderEnable(index, argv[3].toString());
 }
 
 ConsoleMethod( GuiFrameSetCtrl, frameMovable, void, 3, 4, "(int index, bool enable=true)" )
 {
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if (argc == 3)
       object->frameBorderMovable(index);
    else
-      object->frameBorderMovable(index, argv[3]);
+      object->frameBorderMovable(index, argv[3].toString());
 }
 
 ConsoleMethod( GuiFrameSetCtrl, frameMinExtent, void, 5, 5, "(int index, int w, int h)")
 {
-   Point2I extent(getMax(0, dAtoi(argv[3])), getMax(0, dAtoi(argv[4])));
-   object->frameMinExtent(dAtoi(argv[2]), extent);
+   Point2I extent(getMax(0, argv[3].getInt()), getMax(0, argv[4].getInt()));
+   object->frameMinExtent(argv[2].getInt(), extent);
 }
 
 ConsoleMethod( GuiFrameSetCtrl, addColumn, void, 2, 2, "")
@@ -113,7 +113,7 @@ ConsoleMethod( GuiFrameSetCtrl, getRowCount, S32, 2, 2, "")
 
 ConsoleMethod( GuiFrameSetCtrl, getColumnOffset, S32, 3, 3, "(int index)")
 {
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if(index < 0 || index > object->columnOffsets()->size())
    {
       Con::errorf(ConsoleLogEntry::General, "Column index out of range");
@@ -124,7 +124,7 @@ ConsoleMethod( GuiFrameSetCtrl, getColumnOffset, S32, 3, 3, "(int index)")
 
 ConsoleMethod( GuiFrameSetCtrl, getRowOffset, S32, 3, 3, "(int index)")
 {
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if(index < 0 || index > object->rowOffsets()->size())
    {
       Con::errorf(ConsoleLogEntry::General, "Row index out of range");
@@ -137,7 +137,7 @@ ConsoleMethod( GuiFrameSetCtrl, setColumnOffset, void, 4, 4, "(int index, int of
 {
    Vector<S32> & columns = *(object->columnOffsets());
 
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if(index < 0 || index > columns.size())
    {
       Con::errorf(ConsoleLogEntry::General, "Column index out of range");
@@ -145,7 +145,7 @@ ConsoleMethod( GuiFrameSetCtrl, setColumnOffset, void, 4, 4, "(int index, int of
    }
 
    //
-   S32 offset = dAtoi(argv[3]);
+   S32 offset = argv[3].getInt();
 
    // check the offset
    if(((index > 0) && (offset < columns[index-1])) ||
@@ -163,7 +163,7 @@ ConsoleMethod( GuiFrameSetCtrl, setRowOffset, void, 4, 4, "(int index, int offse
 {
    Vector<S32> & rows = *(object->rowOffsets());
 
-   S32 index = dAtoi(argv[2]);
+   S32 index = argv[2].getInt();
    if(index < 0 || index > rows.size())
    {
       Con::errorf(ConsoleLogEntry::General, "Row index out of range");
@@ -171,7 +171,7 @@ ConsoleMethod( GuiFrameSetCtrl, setRowOffset, void, 4, 4, "(int index, int offse
    }
 
    //
-   S32 offset = dAtoi(argv[3]);
+   S32 offset = argv[3].getInt();
 
    // check the offset
    if(((index > 0) && (offset < rows[index-1])) ||

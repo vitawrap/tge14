@@ -57,8 +57,8 @@ public:
    void displayText( S32 xOffset, S32 yOffset );
 
    //Console methods
-   const char *getScriptValue();
-   void setScriptValue(const char *value);
+   ConsoleValue getScriptValue() override;
+   void setScriptValue(ConsoleValue& value) override;
 };
 
 #endif //_GUI_TEXT_CONTROL_H_

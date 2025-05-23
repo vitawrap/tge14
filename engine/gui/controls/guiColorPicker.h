@@ -95,8 +95,8 @@ class GuiColorPickerCtrl : public GuiControl
    void setValue(ColorF &value) {mBaseColor = value;}
    /// NOTE: getValue() returns baseColor if pallet (since pallet controls can't "pick" colours themselves)
    ColorF getValue() {return mDisplayMode == pPallet ? mBaseColor : mPickColor;}
-   const char *getScriptValue();
-   void setScriptValue(const char *value);
+   ConsoleValue getScriptValue() override;
+   void setScriptValue(ConsoleValue& value) override;
    void updateColor() {mPositionChanged = true;}
    /// @}
    
