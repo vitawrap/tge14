@@ -193,6 +193,9 @@ public:
 	}
 
 	ConsoleValue& operator = (ConsoleValue const& rhs) {
+		// Edge case where self-assignment can lose the list from clearing.
+		bool shared = type == TypeValueList && list && this == &rhs;
+		if (shared) list->incRef();
 		clear();
 		switch ((type = rhs.type)) {
 		case TypeInt:
@@ -203,6 +206,7 @@ public:
 		case TypeValueList:
 			copyList(rhs.list);
 		}
+		if (shared) list->decRef();
 		return *this;
 	}
 
