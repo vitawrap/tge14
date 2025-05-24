@@ -296,8 +296,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
    const char * val;
    for(;;)
    {
-      U32 instruction = code[ip++];
-breakContinue:
+      U64 instruction = code[ip++];
+
       switch(instruction)
       {
          case OP_FUNC_DECL:
