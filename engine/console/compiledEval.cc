@@ -36,7 +36,7 @@ extern StringTableEntry gCurrentRoot;
 }
 
 ConsoleValue valueStack[MaxStackSize];
-S32 TOP = -1; // Push always moves cursor first.
+S32 TOP = 0; // This should be -1, but torque always needs an extra argument for a function name...
 
 static inline void popValueStack(int n = 1) {
     while (n--) valueStack[TOP--].clearValue();
@@ -204,7 +204,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
       // assume this points into a function decl:
       U32 fnArgc = code[ip + 5];
       thisFunctionName = U64toSTE(code[ip]);
-      argc = getMin(argc-1, fnArgc); // argv[0] is func name
+      argc = getMin(argc-1, fnArgc); // Get argc that need to be populated for this call. argv[0] is the func name.
       if(gEvalState.traceOn)
       {
          traceBuffer[0] = 0;
@@ -285,9 +285,9 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
    U32 callArgc;
    ConsoleValue *callArgv;
 
-   ConsoleValue curFieldArray{ "" };
-   ConsoleValue curArray{ "" };
-   ConsoleValue returnVal{ "" };
+   ConsoleValue curFieldArray;
+   ConsoleValue curArray;
+   ConsoleValue returnVal;
 
    CodeBlock *saveCodeBlock = smCurrentCodeBlock;
    smCurrentCodeBlock = this;
@@ -337,7 +337,7 @@ breakContinue:
 
             // Get the constructor arguments off the stack.
             // argv = {0: NULL, 1: ClassName, 2: ObjectName, 3...N: Constructor args}
-            callArgv = &valueStack[TOP - (callArgc - 1)];
+            callArgv = &valueStack[TOP - callArgc];
 
             // Con::printf("Creating object...");
 
@@ -893,7 +893,7 @@ breakContinue:
             
             // Args are already pushed on the string stack, retrieve them.
             // argv = {0: FuncName, 1: Object, 2...N: args} or {0: FuncName, 1...N: args}
-            callArgv = &valueStack[TOP - (callArgc - 1)];
+            callArgv = &valueStack[TOP - callArgc];
 
             if(callType == FuncCallExprNode::FunctionCall) {
                nsEntry = *((Namespace::Entry **) &code[ip-3]);
@@ -952,7 +952,7 @@ breakContinue:
             if(nsEntry->mType == Namespace::Entry::ScriptFunctionType)
             {
                if (nsEntry->mFunctionOffset) {
-                  returnVal = nsEntry->mCode->exec(nsEntry->mFunctionOffset, fnName, nsEntry->mNamespace, callArgc, callArgv, false, nsEntry->mPackage, -1);
+                  returnVal = nsEntry->mCode->exec(nsEntry->mFunctionOffset, fnName, nsEntry->mNamespace, callArgc+1, callArgv, false, nsEntry->mPackage, -1);
                   if (callArgc) {
                       popValueStack(callArgc-1); // only pop arg stack for script functions called within script.
                       valueStack[TOP] = returnVal;
@@ -964,7 +964,7 @@ breakContinue:
             }
             else
             {
-               if((nsEntry->mMinArgs && S32(callArgc) < nsEntry->mMinArgs) || (nsEntry->mMaxArgs && S32(callArgc) > nsEntry->mMaxArgs))
+               if((nsEntry->mMinArgs && S32(callArgc+1) < nsEntry->mMinArgs) || (nsEntry->mMaxArgs && S32(callArgc+1) > nsEntry->mMaxArgs))
                {
                   const char* nsName = ns? ns->mName: "";
                   Con::warnf(ConsoleLogEntry::Script, "%s: %s::%s - wrong number of arguments.", getFileLine(ip-4), nsName, fnName);
@@ -974,13 +974,13 @@ breakContinue:
                {
                   if(nsEntry->mType == Namespace::Entry::VoidCallbackType)
                   {
-                     nsEntry->cb.mVoidCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                     nsEntry->cb.mVoidCallbackFunc(gEvalState.thisObject, callArgc+1, callArgv);
                      popValueStack(callArgc);
                      if (code[ip] != OP_VAL_TO_NONE)
                          Con::warnf(ConsoleLogEntry::General, "%s: Call to %s in %s uses result of void function call.", getFileLine(ip - 4), fnName, functionName);
                      else ip++; // void: if OP_VAL_TO_NONE, nothing to pop -> skip.
                   } else {
-                     returnVal = nsEntry->cb.mStringCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                     returnVal = nsEntry->cb.mStringCallbackFunc(gEvalState.thisObject, callArgc+1, callArgv);
                      if (code[ip] != OP_VAL_TO_NONE) {
                          if (callArgc) {
                              popValueStack(callArgc-1); // pop arg stack for engine functions called within script.
