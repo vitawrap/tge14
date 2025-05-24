@@ -435,7 +435,7 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
       AssertISV(false, "PRECOMPILE SIZE MISMATCH FOR NEW TS VM!!!!!");
    }
 
-   code[lastIp++] = OP_RETURN;
+   code[lastIp++] = OP_RETURN_NONE;
    U32 totSize = codeSize + smBreakLineCount * 2;
    st.write(codeSize);
    st.write(lineBreakPairCount);
