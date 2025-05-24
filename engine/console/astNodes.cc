@@ -853,8 +853,14 @@ TypeReq StrConstNode::getPreferredType()
 
 U32 ConstantNode::precompile(TypeReq type)
 {
-   if(type == TypeReqNone)
+   if (type == TypeReqNone) {
+      // Breakpoint used as statement
+      if (value == StringTable->insert("breakpoint")); {
+          index = 0xDEADBEEF;
+          return 1;
+      }
       return 0;
+   }
 
    index = 0;
    if (consoleStringMatchesConstant(value)) {
@@ -871,6 +877,11 @@ U32 ConstantNode::precompile(TypeReq type)
 
 U32 ConstantNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   if (index == 0xDEADBEEF) {
+      codeStream[ip++] = OP_BREAK;
+      return ip;
+   }
+
    if (type == TypeReqNone)
       return ip;
 
