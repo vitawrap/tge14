@@ -1151,7 +1151,8 @@ static void InitOpenGL()
    DisplayDevice::init();
 
    // Get the video settings from the prefs:
-   const char* resString = Con::getVariable( "$pref::Video::resolution" ).toString();
+   ConsoleValue res = Con::getVariable("$pref::Video::resolution");
+   const char* resString = res.toString();
    char* tempBuf = new char[dStrlen( resString ) + 1];
    dStrcpy( tempBuf, resString );
    char* temp = dStrtok( tempBuf, " x\0" );

@@ -254,7 +254,8 @@ bool GameConnection::readConnectRequest(BitStream *stream, const char **errorStr
    }
    setProtocolVersion(currentProtocol < CurrentProtocolVersion ? currentProtocol : CurrentProtocolVersion);
 
-   const char *serverPassword = Con::getVariable("Pref::Server::Password").toString();
+   ConsoleValue pwVar = Con::getVariable("Pref::Server::Password");
+   const char *serverPassword = pwVar.toString();
    if(serverPassword[0])
    {
       if(dStrcmp(joinPassword, serverPassword))

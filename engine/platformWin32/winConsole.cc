@@ -34,7 +34,8 @@ void WinConsole::enable(bool enabled)
    if(winConsoleEnabled)
    {
       AllocConsole();
-      const char *title = Con::getVariable("Con::WindowTitle").toString();
+      ConsoleValue titleVar = Con::getVariable("Con::WindowTitle");
+      const char *title = titleVar.toString();
       if (title && *title)
       {
 #ifdef UNICODE

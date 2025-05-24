@@ -1089,7 +1089,7 @@ bool SceneLighting::light(BitSet32 flags)
 
    // remove the '.mis' extension from the mission name
    char misName[256];
-   dSprintf(misName, sizeof(misName), "%s", Con::getVariable("$Client::MissionFile"));
+   dSprintf(misName, sizeof(misName), "%s", Con::getVariable("$Client::MissionFile").toString());
    char * dot = dStrstr((const char*)misName, ".mis");
    if(dot)
       *dot = '\0';
@@ -1388,7 +1388,8 @@ void SceneLighting::processCache()
       return;
 
    // sort the entries by the correct method
-   const char * purgeMethod = Con::getVariable("$pref::sceneLighting::purgeMethod").toString();
+   ConsoleValue purgeVal = Con::getVariable("$pref::sceneLighting::purgeMethod");
+   const char * purgeMethod = purgeVal.toString();
    if(!purgeMethod)
       purgeMethod = "";
 

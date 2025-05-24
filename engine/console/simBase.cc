@@ -356,8 +356,10 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
 {
    const AbstractClassRep::FieldList &list = getFieldList();
    char expandedBuffer[1024];
-   const char *docRoot = Con::getVariable("$DocRoot").toString();
-   const char *modRoot = Con::getVariable("$ModRoot").toString();
+   ConsoleValue docVal = Con::getVariable("$DocRoot");
+   ConsoleValue modVal = Con::getVariable("$ModRoot");
+   const char *docRoot = docVal.toString();
+   const char *modRoot = modVal.toString();
    S32 docRootLen = dStrlen(docRoot);
    S32 modRootLen = dStrlen(modRoot);
 
