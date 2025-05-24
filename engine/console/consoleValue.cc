@@ -26,7 +26,7 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 			break;
 
 		case TypeFloat:
-			dSprintf(stringConv, stringCSize, "%f", f);
+			dSprintf(stringConv, stringCSize, "%g", f);
 			setString(stringConv);
 			break;
 

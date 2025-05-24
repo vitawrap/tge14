@@ -118,6 +118,7 @@ private:
 		char* buf = validateStrSize(newLen);
 		if (newLen > 0)
 			dMemmove(buf, in, (str.length + 1) * sizeof(char));
+		else str.smal[0] = 0;
 	}
 
 	void copyString(ConsoleValue const& rhs) {
@@ -125,6 +126,7 @@ private:
 		char* buf = validateStrSize(newLen);
 		if (newLen > 0)
 			dMemcpy(buf, rhs.getString(), (str.length + 1) * sizeof(char));
+		else str.smal[0] = 0;
 	}
 
 	void concat(ConsoleValue const& rhs) {
@@ -169,6 +171,7 @@ private:
 		// If we need a coherent value afterwards, just nullify it.
 		if (coherent) {
 			type = TypeString;
+			str.smal[0] = 0;
 			str.length = 0;
 		}
 	}
@@ -215,6 +218,7 @@ public:
 				rhs.str.ptr = NULL; // also works to NT the small buffer.
 			} else if (str.length > 0)
 				dMemmove(str.smal, rhs.str.smal, str.length + 1);
+			else str.smal[0] = 0;
 			break;
 		case ConsoleValue::TypeValueList:
 			list = rhs.list;
@@ -222,6 +226,7 @@ public:
 		}
 		// Set rhs to null string.
 		rhs.type = TypeString;
+		rhs.str.smal[0] = 0;
 		rhs.str.length = 0;
 		return *this;
 	}
@@ -258,7 +263,10 @@ public:
 	// Default construct to null string
 	ConsoleValue()
 		: type(TypeString)
-	{ str.length = 0; }
+	{
+		str.length = 0;
+		str.smal[0] = 0;
+	}
 
 	void clearValue() { clear(true); }
 
@@ -283,9 +291,11 @@ public:
 			switch (type) {
 			case TypeInt: return i - right.i;
 			case TypeFloat: return f - right.f;
-			case TypeString: return caseSens ?
-				dStrcmp(getString(), right.getString()) :
-				dStricmp(getString(), right.getString());
+			case TypeString: return 
+				str.length == right.str.length?
+					(caseSens ? dStrcmp(getString(), right.getString()) :
+					dStricmp(getString(), right.getString()))
+				: str.length - right.str.length;
 			case TypeValueList:
 				return !(list == right.list);	// TODO: List equality compare
 			}
@@ -491,7 +501,7 @@ inline ConsoleValue& ConsoleValue::operator = (ConsoleValue const& rhs) {
 		break;
 	case TypeString:
 		if (this != &rhs) str.length = 0;
-		setString(rhs.getString());
+		copyString(rhs);
 		break;
 	case TypeValueList:
 		copyList(rhs.list);
