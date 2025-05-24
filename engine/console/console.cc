@@ -791,7 +791,7 @@ bool expandScriptFilename(char *filename, U32 size, const char *src)
 ConsoleValue evaluate(const char* string, bool echo, const char *fileName)
 {
    if (echo)
-      Con::printf("%s%s", getVariable( "$Con::Prompt" ), string);
+      Con::printf("%s%s", getVariable( "$Con::Prompt" ).toString(), string);
 
    if(fileName)
       fileName = StringTable->insert(fileName);
