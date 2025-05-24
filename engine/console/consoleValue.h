@@ -192,7 +192,7 @@ public:
 			break;
 		case TypeString:
 			str.length = 0;
-			setString(rhs.getString());
+			copyString(rhs);
 			break;
 		case TypeValueList:
 			copyList(rhs.list);
