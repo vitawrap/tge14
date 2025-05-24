@@ -80,7 +80,7 @@ ConsoleMethod( GuiEditCtrl, setCurrentAddSet, void, 3, 3, "(GuiControl ctrl)")
 
    if (!Sim::findObject(argv[2].toString(), addSet))
    {
-      Con::printf("%s(): Invalid control: %s", argv[0], argv[2]);
+      Con::printf("setCurrentAddSet(): Invalid control: %s", argv[2].toString());
       return;
    }
    object->setCurrentAddSet(addSet);

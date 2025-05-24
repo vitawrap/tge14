@@ -155,7 +155,7 @@ ConsoleMethod( GuiInspector, inspect, void, 3, 3, "Inspect(Object)")
    if(!target)
    {
       if(argv[2].getInt() > 0)
-         Con::warnf("%s::inspect(): invalid object: %s", argv[0], argv[2]);
+         Con::warnf("GuiInspector::inspect(): invalid object: %s", argv[2].toString());
       
       object->clearGroups();
       return;

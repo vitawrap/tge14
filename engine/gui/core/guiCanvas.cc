@@ -42,7 +42,7 @@ ConsoleMethod( GuiCanvas, setContent, void, 3, 3, "(GuiControl ctrl)"
    {
       if (!Sim::findObject(argv[2].getStringU(), gui))
       {
-         Con::printf("%s(): Invalid control: %s", argv[0].getStringU(), argv[2].getStringU());
+         Con::printf("GuiCanvas::setContent(): Invalid control: %s", argv[2].getStringU());
          return;
       }
    }
@@ -59,7 +59,7 @@ ConsoleMethod( GuiCanvas, pushDialog, void, 3, 4, "(GuiControl ctrl, int layer)"
 
    if (!Sim::findObject(argv[2].toString(), gui))
    {
-      Con::printf("%s(): Invalid control: %s", argv[0].getStringU(), argv[2].toString());
+      Con::printf("GuiCanvas::pushDialog(): Invalid control: %s", argv[2].toString());
       return;
    }
 
@@ -81,7 +81,7 @@ ConsoleMethod( GuiCanvas, popDialog, void, 2, 3, "(GuiControl ctrl=NULL)")
    {
       if (!Sim::findObject(argv[2].toString(), gui))
       {
-         Con::printf("%s(): Invalid control: %s", argv[0].getStringU(), argv[2].toString());
+         Con::printf("GuiCanvas::popDialog(): Invalid control: %s", argv[2].toString());
          return;
       }
    }
