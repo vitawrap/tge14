@@ -1050,6 +1050,10 @@ breakContinue:
          //   //TelDebugger->executionStopped(this, breakLine);
          //   goto breakContinue;
          //}
+         case OP_BREAK:
+             AssertISV(false, "Breakpoint requested.");
+             break;
+
          case OP_INVALID:
 
          default:
