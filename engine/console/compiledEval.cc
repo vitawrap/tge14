@@ -766,7 +766,7 @@ breakContinue:
              break;
 
          case OP_LOADVAR:
-            valueStack[TOP++] = gEvalState.getVariable();
+            valueStack[++TOP] = gEvalState.getVariable();
             break;
 
          case OP_SAVEVAR:
