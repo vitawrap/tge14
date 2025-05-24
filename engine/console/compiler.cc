@@ -39,12 +39,10 @@ namespace Compiler
    }
 
    bool consoleStringIsNumber(const char* str) {
-       while (dIsspace(*str)) ++str;
+       if (!str || !str[0]) return false;
        char* pEnd;
        (void) dStrtod(str, &pEnd);
-       if (str == pEnd) return false;
-       while (dIsspace(*pEnd)) ++pEnd;
-       return 0 == *pEnd;
+       return (*pEnd == 0) || (pEnd[dStrspn(pEnd, " \t")] == 0);
    }
 
    bool consoleStringMatchesConstant(const char* str) {
