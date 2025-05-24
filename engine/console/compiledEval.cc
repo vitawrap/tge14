@@ -64,17 +64,14 @@ static ConsoleValue getNamespaceList(Namespace *ns)
 
 F64 consoleStringToNumber(const char *str, StringTableEntry file, U32 line)
 {
-   F64 val = dAtof(str);
-   if (val != 0)
+   char* end;
+   F64 val = dStrtod(str, &end);
+   if (*end == 0 || (end[dStrspn(end, " \t")] == 0))
        return val;
    else if (!dStricmp(str, "true"))
        return 1;
    else if (!dStricmp(str, "false"))
        return 0;
-   else if (!dStricmp(str, "debugBreak"))
-   {
-       AssertFatal(0, "Script break");
-   }
    else if(file)
    {
       Con::warnf(ConsoleLogEntry::General, "%s (%d): string always evaluates to 0.", file, line);
