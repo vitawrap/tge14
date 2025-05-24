@@ -465,7 +465,7 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    return true;
 }
 
-ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *string, bool noCalls, int setFrame)
+ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *string, bool noCalls, int setFrame, bool noretval)
 {
    STEtoU64 = evalSTEtoU64;
    consoleAllocReset();
@@ -512,7 +512,7 @@ ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *strin
    // compileBlock compiles statements without a final OP_VAL_TO_NULL,
    // so OP_RETURN will catch the last pushed stack entry.
    U64 lastIp = compileBlock(statementList, code, 0, 0, 0);
-   code[lastIp++] = OP_RETURN;
+   code[lastIp++] = noretval? OP_RETURN_NONE : OP_RETURN;
    
    consoleAllocReset();
 
