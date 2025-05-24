@@ -145,21 +145,22 @@ S32 ConsoleValue::serialize(char* out, S32 size) {
 
 	case TypeString:
 		// TODO: Failsafe for expandEscape size
+		const_cast<char*>(getString())[str.length] = 0;
 		expandEscape(stringConv, getString());
-		strBuf.concat("\"");
-		strBuf.concat(stringConv);
-		strBuf.concat("\"");
+		strBuf.concatStringU("\"", 1);
+		strBuf.concatStringU(stringConv, dStrlen(stringConv));
+		strBuf.concatStringU("\"", 1);
 		break;
 
 	case TypeValueList:
 		strBuf.concat("{");
 		for (ConsoleValue* itr = list->begin(); itr != list->end(); itr++) {
 			itr->serialize(stringConv, stringCSize);
-			strBuf.concat(stringConv);
+			strBuf.concatStringU(stringConv, dStrlen(stringConv));
 			if (itr + 1 != list->end())
-				strBuf.concat(",");
+				strBuf.concatStringU(",", 1);
 		}
-		strBuf.concat("}");
+		strBuf.concatStringU("}", 1);
 		break;
 	}
 

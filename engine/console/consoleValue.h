@@ -100,8 +100,9 @@ private:
 			if (grow) // try to keep contents when we can...
 				str.ptr = (char*) dRealloc(str.ptr, strPSize(len));
 			else if (oldLen < CONVALUE_SSO_SIZE) {
-				str.ptr = (char*) dMalloc(strPSize(len));
-				if (intact) dMemmove(str.ptr, str.smal, oldLen + 1);
+				auto* ptr = (char*) dMalloc(strPSize(len));
+				if (intact) dMemmove(ptr, str.smal, oldLen + 1);
+				str.ptr = ptr;
 			}
 			return str.ptr;
 		}
@@ -212,7 +213,7 @@ public:
 			if (str.length >= CONVALUE_SSO_SIZE) {
 				str.ptr = rhs.str.ptr;
 				rhs.str.ptr = NULL; // also works to NT the small buffer.
-			} else
+			} else if (str.length > 0)
 				dMemmove(str.smal, rhs.str.smal, str.length + 1);
 			break;
 		case ConsoleValue::TypeValueList:
