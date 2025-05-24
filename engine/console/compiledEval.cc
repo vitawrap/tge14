@@ -563,44 +563,43 @@ breakContinue:
          }
 
          case OP_JMPIFFNOT:
-            if(valueStack[TOP].getNumber())
-            {
+            if(valueStack[TOP].getNumber()) {
                ip++;
+               popValueStack();
                break;
             }
             popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIFNOT:
-            if(valueStack[TOP].getInt())
-            {
+            if(valueStack[TOP].getInt()) {
                ip++;
+               popValueStack();
                break;
             }
             popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIFF:
-            if(!valueStack[TOP].getNumber())
-            {
+            if(!valueStack[TOP].getNumber()) {
                ip++;
+               popValueStack();
                break;
             }
             popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIF:
-            if(!valueStack[TOP].getInt())
-            {
+            if(!valueStack[TOP].getInt()) {
                ip ++;
+               popValueStack();
                break;
             }
             popValueStack();
             ip = code[ip];
             break;
          case OP_JMPIFNOT_NP:
-            if(valueStack[TOP].getInt())
-            {
+            if(valueStack[TOP].getInt()) {
                popValueStack();
                ip++;
                break;
@@ -608,8 +607,7 @@ breakContinue:
             ip = code[ip];
             break;
          case OP_JMPIF_NP:
-            if(!valueStack[TOP].getInt())
-            {
+            if(!valueStack[TOP].getInt()) {
                popValueStack();
                ip++;
                break;
