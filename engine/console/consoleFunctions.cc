@@ -755,7 +755,7 @@ ConsoleFunction(echo, void, 2, 0, "echo(text [, ... ])")
    for (S64 i = 1; i < argc; i++)
        ret.concatU(argv[i]);
 
-   Con::printf("%s", ret);
+   Con::printf("%s", ret.getStringU());
 }
 
 ConsoleFunction(warn, void, 2, 0, "warn(text [, ... ])")
@@ -764,7 +764,7 @@ ConsoleFunction(warn, void, 2, 0, "warn(text [, ... ])")
    for (S64 i = 1; i < argc; i++)
        ret.concatU(argv[i]);
 
-   Con::warnf(ConsoleLogEntry::General, "%s", ret);
+   Con::warnf(ConsoleLogEntry::General, "%s", ret.getStringU());
 }
 
 ConsoleFunction(error, void, 2, 0, "error(text [, ... ])")
@@ -773,7 +773,7 @@ ConsoleFunction(error, void, 2, 0, "error(text [, ... ])")
    for (S64 i = 1; i < argc; i++)
        ret.concatU(argv[i]);
 
-   Con::errorf(ConsoleLogEntry::General, "%s", ret);
+   Con::errorf(ConsoleLogEntry::General, "%s", ret.getStringU());
 }
 
 ConsoleFunction(expandEscape, const char *, 2, 2, "expandEscape(text)")
