@@ -334,7 +334,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
             // Get the constructor arguments off the stack.
             // argv = {0: NULL, 1: ClassName, 2: ObjectName, 3...N: Constructor args}
-            callArgv = &valueStack[TOP - callArgc];
+            callArgv = &valueStack[TOP - callArgc + 1];
 
             // Con::printf("Creating object...");
 
@@ -495,8 +495,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                if(placeAtRoot)
                {
                   // Deal with the instantGroup if we're being put at the root.
-                  const char *addGroupName = Con::getVariable("instantGroup").toString();
-                  if(!Sim::findObject(addGroupName, grp))
+                  if(!Sim::findObject(Con::getVariable("instantGroup").toString(), grp))
                      Sim::findObject(RootGroupId, grp);
                }
                else
@@ -521,7 +520,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
             // store the new object's ID on the stack (overwriting the group/set
             // id, if one was given, otherwise getting pushed)
-            if(placeAtRoot) 
+            if(placeAtRoot)
                valueStack[TOP] = currentNewObject->scriptThis();
             else
                valueStack[++TOP] = currentNewObject->scriptThis();
