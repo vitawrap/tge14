@@ -74,6 +74,7 @@ struct ConsoleValue {
 	} type;
 
 private:
+	friend class ConsoleValueList;
 	typedef char Char;
 
 	// Deref list and discard.
@@ -436,8 +437,7 @@ public:
 
 	ConsoleValueList::~ConsoleValueList() {
 		for (ConsoleValue* itr = begin(); itr != end(); itr++)
-			itr->~ConsoleValue();
-		Parent::~Vector();
+			itr->clear();
 	}
 
 	void incRef() const { ++mRefCount; }
