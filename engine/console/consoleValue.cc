@@ -22,11 +22,13 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 		switch (srcType) {
 		case TypeInt:
 			dSprintf(stringConv, stringCSize, "%d", i);
+			str.length = 0; // reset state
 			setString(stringConv);
 			break;
 
 		case TypeFloat:
 			dSprintf(stringConv, stringCSize, "%g", f);
+			str.length = 0; // reset state
 			setString(stringConv);
 			break;
 
@@ -92,9 +94,13 @@ bool ConsoleValue::castTo(ConsoleValue::Type dstType) {
 
 		case TypeValueList:
 			if (list->size()) {
-				*this = list->first();
+				vlist = list;
+				*this = vlist->first();
 				castTo(dstType);
-			} else i = 0;
+				destroyList(vlist);
+				break;
+			}
+			i = 0;
 			destroyList(list);
 			break;
 
