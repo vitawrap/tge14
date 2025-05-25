@@ -187,6 +187,7 @@ void ConsoleValue::innerPack(MemStream& stream) const
 	case TypeString:
 		stream.write((U8)'S');
 		stream.writeString(getString());
+		break;
 	case TypeValueList:
 		stream.write((U8)'L');
 		stream.write((U16)list->size());
