@@ -480,10 +480,10 @@ ConsoleFunction(getTimeSinceStart, S32, 2, 2, "getTimeSinceStart(%scheduleId);")
 ConsoleFunction(schedule, S32, 4, 0, "schedule(time, refobject|0, command, <arg1...argN>)")
 {
    U32 timeDelta = U32(argv[1].getNumber());
-   SimObject *refObject = Sim::findObject(argv[2].toSTString());
+   SimObject *refObject = Sim::findObject(argv[2].toString());
    if(!refObject)
    {
-      if(!argv[2].isNull())
+      if(argv[2].getStringU()[0] != '0')
          return 0;
 
       refObject = Sim::getRootGroup();
