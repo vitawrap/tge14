@@ -239,11 +239,10 @@ void SimFieldDictionary::writeFields(SimObject *obj, Stream &stream, U32 tabStop
             continue;
 
          writeTabs(stream, tabStop+1);
-         dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = ", walk->slotName);
-         size_t used = dStrlen(expandedBuffer);
-         walk->value.serialize(expandedBuffer + used, 1024 - used);
-         dStrcat(expandedBuffer, ";\r\n");
-         stream.write(dStrlen(expandedBuffer),expandedBuffer);
+         size_t used = dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = ", walk->slotName);
+         used += walk->value.serialize(expandedBuffer + used, 1024 - used);
+         dStrcpy(expandedBuffer + used, ";\r\n");
+         stream.write(used + dStrlen(expandedBuffer + used), expandedBuffer);
       }
    }
 }
