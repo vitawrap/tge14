@@ -797,7 +797,7 @@ ConsoleValue evaluate(const char* string, bool echo, const char *fileName)
       fileName = StringTable->insert(fileName);
 
    CodeBlock *newCodeBlock = new CodeBlock();
-   return newCodeBlock->compileExec(fileName, string, false, fileName ? -1 : 0, false);
+   return newCodeBlock->compileExec(fileName, string, false, fileName ? -1 : 0);
 }
 
 //------------------------------------------------------------------------------
@@ -808,7 +808,7 @@ ConsoleValue evaluatef(const char* string, ...)
    va_start(args, string);
    dVsprintf(buffer, sizeof(buffer), string, args);
    CodeBlock *newCodeBlock = new CodeBlock();
-   return newCodeBlock->compileExec(NULL, buffer, false, 0, false);
+   return newCodeBlock->compileExec(NULL, buffer, false, 0);
 }
 
 ConsoleValue execute(S32 argc, ConsoleValue argv[])

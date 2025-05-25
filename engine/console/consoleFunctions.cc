@@ -969,7 +969,7 @@ ConsoleFunction(exec, bool, 2, 4, "exec(fileName [, nocalls [,journalScript]])")
       script[fileSize] = 0;
       Con::printf("Executing (journal-read) %s.", scriptFileName);
       CodeBlock *newCodeBlock = new CodeBlock();
-      newCodeBlock->compileExec(scriptFileName, script, noCalls, true);
+      newCodeBlock->compileExec(scriptFileName, script, noCalls);
       delete [] script;
 
       execDepth--;
@@ -1111,7 +1111,7 @@ ConsoleFunction(exec, bool, 2, 4, "exec(fileName [, nocalls [,journalScript]])")
          CodeBlock *newCodeBlock = new CodeBlock();
          StringTableEntry name = StringTable->insert(scriptFileName);
 
-         newCodeBlock->compileExec(name, script, noCalls, true);
+         newCodeBlock->compileExec(name, script, noCalls);
          ret = true;
       }
       else
