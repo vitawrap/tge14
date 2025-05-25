@@ -528,7 +528,7 @@ namespace Con
    template <typename ...CVArgs>
    ConsoleValue executef(SimObject* object, S32 argc, CVArgs const&... args) {
        ConsoleValue argv[sizeof...(args)+1] = { "", ConsoleValue(Cast(args))...};
-       if ((sizeof...(args)) > 1) argv[0] = argv[1];
+       if (sizeof...(args)) argv[0] = dMove(argv[1]);
        return execute(object, ++argc, argv);
    }
 
