@@ -130,7 +130,6 @@ void Dictionary::exportVariables(const char *varString, const char *fileName, bo
    dQsort((void *) &sortList[0], sortList.size(), sizeof(Entry *), varCompare);
 
    Vector<Entry *>::iterator s;
-   char expandBuffer[1024];
    FileStream strm;
 
    if(fileName)
@@ -144,19 +143,17 @@ void Dictionary::exportVariables(const char *varString, const char *fileName, bo
          strm.setPosition(strm.getStreamSize());
    }
 
+   char serialBuffer[1024];
    char buffer[1024];
    const char *cat = fileName ? "\r\n" : "";
 
-   const char* intFormat = runnable ? "%s = %d;%s" : "%s %d%s";
-   const char* fltFormat = runnable ? "%s = %g;%s" : "%s %g%s";
-   const char* strFormat = runnable ? "%s = \"%s\";%s" : "%s %s%s";
+   const char* exportFormat = runnable ? "%s = %s;%s" : "%s %s%s";
    for(s = sortList.begin(); s != sortList.end(); s++)
    {
       StringTableEntry name = runnable ? (*s)->name : ++(*s)->name;    // Omit dollar in simple list mode
 
-      (*s)->getValue().serialize(buffer, 1024);
-      expandEscape(expandBuffer, buffer);
-      dSprintf(buffer, sizeof(buffer), strFormat, name, expandBuffer, cat);
+      (*s)->getValue().serialize(serialBuffer, 1024);
+      dSprintf(buffer, sizeof(buffer), exportFormat, name, serialBuffer, cat);
       if(fileName)
          strm.write(dStrlen(buffer), buffer);
       else
