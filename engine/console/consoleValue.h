@@ -443,7 +443,7 @@ public:
 	void incRef() const { ++mRefCount; }
 	void decRef() {
 		// TODO: Free'd list pool?
-		if (--mRefCount)
+		if (!--mRefCount)
 			delete this;
 	}
 
