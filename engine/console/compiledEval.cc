@@ -182,14 +182,125 @@ void CodeBlock::getFunctionArgs(char buffer[1024], U64 ip)
    }
 }
 
+//------------------------------------------------------------
+
+// Define this to debug the interpreter (stack and function names)
+#define TORQUE_DEBUG_INTERPRETER
+
+#ifdef TORQUE_DEBUG_INTERPRETER
+
+static int debugCallDepth = -1;
+static const char* debugTab = "                                                               ";
+static StringTableEntry debugScope[1024];
+
+static void dumpInterpreterState(U64 op) {
+    /// The opcodes for the TorqueScript VM.
+    static char const* InstructionNames[] = {
+        "OP_FUNC_DECL",
+        "OP_CREATE_OBJECT",
+        "OP_ADD_OBJECT",
+        "OP_END_OBJECT",
+        "OP_INSTANCEOF_OBJECT",
+        "OP_JMPIFFNOT",
+        "OP_JMPIFNOT",
+        "OP_JMPIFF",
+        "OP_JMPIF",
+        "OP_JMPIFNOT_NP",
+        "OP_JMPIF_NP",
+        "OP_JMP",
+        "OP_RETURN",
+        "OP_RETURN_NONE",
+        "OP_CMPEQ",
+        "OP_CMPGR",
+        "OP_CMPGE",
+        "OP_CMPLT",
+        "OP_CMPLE",
+        "OP_CMPNE",
+        "OP_XOR",
+        "OP_MOD",
+        "OP_BITAND",
+        "OP_BITOR",
+        "OP_NOT",
+        "OP_ONESCOMPLEMENT",
+        "OP_SHR",
+        "OP_SHL",
+        "OP_AND",
+        "OP_OR",
+        "OP_ADD",
+        "OP_SUB",
+        "OP_MUL",
+        "OP_DIV",
+        "OP_NEG",
+        "OP_SETCURVAR",
+        "OP_SETCURVAR_CREATE",
+        "OP_SETCURVAR_ARRAY",
+        "OP_SETCURVAR_ARRAY_CREATE",
+        "OP_SETCURLOCAL",
+        "OP_SETCURLOCAL_CREATE",
+        "OP_SETCURLOCAL_ARRAY",
+        "OP_SETCURLOCAL_ARRAY_CREATE",
+        "OP_LOADVAR",
+        "OP_SAVEVAR",
+        "OP_SETCUROBJECT",
+        "OP_SETCUROBJECT_NEW",
+        "OP_SETCURFIELD",
+        "OP_SETCURFIELD_ARRAY",
+        "OP_LOADFIELD",
+        "OP_SAVEFIELD",
+        "OP_STRNOTNULL",
+        "OP_VAL_TO_NONE",
+        "OP_LOADIMMED_UINT",
+        "OP_LOADIMMED_FLT",
+        "OP_TAG_TO_STR",
+        "OP_LOADIMMED_STR",
+        "OP_LOADIMMED_IDENT",
+        "OP_CALLFUNC_RESOLVE",
+        "OP_CALLFUNC",
+        "OP_CONCAT_STR",
+        "OP_CONCAT_CHAR",
+        "OP_CONCAT_STR_COMMA",
+        "OP_COMPARE_STR",
+        "OP_BREAK",
+        "OP_INVALID"
+    };
+    static_assert(sizeof(InstructionNames) / sizeof(InstructionNames[0]) == (CompiledInstructions::OP_INVALID+1),
+        "Debug instruction names have to be updated.");
+
+    dPrintf("\r%s%02llu %s [", (debugTab + 63) - debugCallDepth, op, InstructionNames[op]);
+    for (S32 i = 0; i < TOP + 1; ++i) {
+        char serz[1024];
+        valueStack[i].serialize(serz, sizeof(serz));
+        dPrintf(i == TOP ? "%s" : "%s, ", serz);
+    }
+    dPrintf("]\n%sScope: %s", (debugTab + 63) - debugCallDepth, debugScope[debugCallDepth]);
+
+    // Go really slow when dumping.
+    Platform::sleep(10);
+}
+
+static void dumpInterpreterEntry(char const* name) {
+    debugScope[++debugCallDepth] = name? StringTable->insert(name) : "";
+    dPrintf("%s-------------------------------------------- Entering %s - TOP = %d\n",
+        (debugTab + 63) - debugCallDepth, name, TOP);
+}
+
+static void dumpInterpreterExit() {
+    dPrintf("%s-------------------------------------------- Exiting - TOP = %d\n",
+        (debugTab + 63) - debugCallDepth, TOP);
+    --debugCallDepth;
+}
+
+#define TS_EXEC_DBG_HOOK(name, ...) name(__VA_ARGS__)
+#else
+#define TS_EXEC_DBG_HOOK(name, ...)
+#endif
+
 ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNamespace, U32 argc, ConsoleValue *argv, bool noCalls, StringTableEntry packageName, S32 setFrame)
 {
    static char traceBuffer[1024];
    U32 i;
 
-#ifdef TORQUE_DEBUG
-   S32 DBG_ENTER_TOP = TOP;
-#endif
+   S32 saveTop = TOP;
 
    incRefCount();
    FloatIntConv conv;
@@ -288,6 +399,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
    CodeBlock *saveCodeBlock = smCurrentCodeBlock;
    smCurrentCodeBlock = this;
+
+   TS_EXEC_DBG_HOOK(dumpInterpreterEntry, this->name ? name : functionName);
    if(this->name)
    {
       Con::gCurrentFile = this->name;
@@ -617,7 +730,12 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          case OP_RETURN:
             returnVal = valueStack[TOP];
             popValueStack();
+            TS_EXEC_DBG_HOOK(dumpInterpreterState, instruction); // need to do this here.
+            goto execFinished;
+
          case OP_RETURN_NONE:
+            returnVal.clearValue();
+            TS_EXEC_DBG_HOOK(dumpInterpreterState, instruction); // need to do this here.
             goto execFinished;
 
          case OP_CMPEQ:
@@ -1059,6 +1177,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             // error!
             goto execFinished;
       }
+
+      TS_EXEC_DBG_HOOK(dumpInterpreterState,instruction);
    }
 execFinished:
 
@@ -1109,11 +1229,13 @@ execFinished:
       Con::gCurrentRoot = saveCodeBlock->mRoot;
    }
 
-   // curFieldArray is also free'd here implicitly.
-   AssertFatal(DBG_ENTER_TOP == TOP, "The stack was not cleaned up correctly.");
+   TS_EXEC_DBG_HOOK(dumpInterpreterExit);
+   TS_EXEC_DBG_HOOK(AssertFatal, TOP >= saveTop, "Value stack is corrupted."); // TODO: Fix ops to always return stack to TOP.
+   popValueStack(TOP - saveTop);
 
    decRefCount();
    return returnVal;
+   // curFieldArray is also free'd here implicitly.
 }
 
 //------------------------------------------------------------
