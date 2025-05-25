@@ -414,13 +414,8 @@ ConsoleType( ColorI, TypeColorI, sizeof(ColorI) )
 
 ConsoleGetType( TypeColorI )
 {
-   ColorI* color = (ColorI*)dptr;
-   auto* vl = new ConsoleValueList;
-   vl->push_back((S64)color->red);
-   vl->push_back((S64)color->green);
-   vl->push_back((S64)color->blue);
-   vl->push_back((S64)color->alpha);
-   return vl;
+   ColorI* color = (ColorI*)dptr;   // TODO: Use ConsoleValueList::from(...)
+   return ConsoleValueList::from(color->red, color->green, color->blue, color->alpha);
 }
 
 ConsoleSetType( TypeColorI )
