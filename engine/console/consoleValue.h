@@ -248,7 +248,7 @@ public:
 		: type(TypeString)
 	{
 		str.length = 0;
-		setString(val);
+		setString(val? val : "");
 	}
 
 	ConsoleValue(S32 val)
