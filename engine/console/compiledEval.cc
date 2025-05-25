@@ -967,6 +967,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             // This deals with a function that is potentially living in a namespace.
             fnNamespace = U64toSTE(code[ip+1]);
             fnName      = U64toSTE(code[ip]);
+            callArgc    = code[ip+3];
 
             // Try to look it up.
             ns = Namespace::find(fnNamespace);  // Awful.
@@ -978,8 +979,11 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   "%s: Unable to find function %s%s%s",
                   getFileLine(ip-4), fnNamespace ? fnNamespace : "",
                   fnNamespace ? "::" : "", fnName);
-               // FIXME: The line below is useless, right???
-               //STR.getArgcArgv(fnName, &callArgc, &callArgv);
+               // The stack however remain coherent, push a null...
+               if (callArgc) {
+                   popValueStack(callArgc - 1);
+                   valueStack[TOP] = "";
+               } else valueStack[++TOP] = "";
                break;
             }
             // Now, rewrite our code a bit (ie, avoid future lookups) and fall
