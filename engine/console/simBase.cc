@@ -747,7 +747,7 @@ void SimObject::setDataField(StringTableEntry slotName, const char *array, Conso
       if(!mFieldDictionary)
          mFieldDictionary = new SimFieldDictionary;
 
-      if(!array)
+      if(!array || !*array)
          mFieldDictionary->setFieldValue(slotName, value);
       else
       {
@@ -762,15 +762,13 @@ ConsoleValue SimObject::getDataField(StringTableEntry slotName, const char *arra
 {
    if(mFlags.test(ModStaticFields))
    {
-      S32 array1 = array ? dAtoi(array) : -1;
+      S32 array1 = array ? dAtoi(array) : 0;
       const AbstractClassRep::Field *fld = findField(slotName);
    
       if(fld)
       {
-         if(array1 == -1 && fld->elementCount == 1)
-            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), 0, fld->table);
          if(array1 >= 0 && array1 < fld->elementCount)
-            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table);// + typeSizes[fld.type] * array1));
+            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table);
          return "";
       }
    }
@@ -780,15 +778,12 @@ ConsoleValue SimObject::getDataField(StringTableEntry slotName, const char *arra
       if(!mFieldDictionary)
          return "";
 
-      if(!array) 
-      {
+      if(!array || !*array) 
          return mFieldDictionary->getFieldValue(slotName);
-      }
       else
       {
          static char buf[256];
-         dStrcpy(buf, slotName);
-         dStrcat(buf, array);
+         dSprintf(buf, sizeof(buf), "%s%s", slotName, array);
          return mFieldDictionary->getFieldValue(StringTable->insert(buf));
       }
    }
