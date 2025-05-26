@@ -904,7 +904,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
          case OP_SETCURFIELD:
             curField = U64toSTE(code[ip]);
-            curFieldArray = CONVALUE_NULL;
+            curFieldArray.clearValue();
             ip++;
             break;
 
@@ -918,7 +918,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             if(curObject)
                valueStack[++TOP] = curObject->getDataField(curField, curFieldArray.toString());
             else
-               valueStack[++TOP] = CONVALUE_NULL;
+               valueStack[++TOP].clearValue();
             break;
 
          case OP_SAVEFIELD:
