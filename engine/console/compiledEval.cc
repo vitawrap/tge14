@@ -1232,7 +1232,7 @@ execFinished:
    }
 
    TS_EXEC_DBG_HOOK(dumpInterpreterExit);
-   TS_EXEC_DBG_HOOK(AssertFatal, TOP >= saveTop, "Value stack is corrupted."); // TODO: Fix ops to always return stack to TOP.
+   AssertFatal(TOP >= saveTop, "Value stack is corrupted."); // TODO: Fix ops to always return stack to TOP.
    popValueStack(TOP - saveTop);
 
    decRefCount();
