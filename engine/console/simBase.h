@@ -1326,6 +1326,7 @@ namespace Sim
 
    SimObject* findObject(SimObjectId);
    SimObject* findObject(const char* name);
+   SimObject* findObject(ConsoleValue& cval);
    template<class T> inline bool findObject(SimObjectId id,T*&t)
    {
       t = dynamic_cast<T*>(findObject(id));
