@@ -39,7 +39,7 @@ namespace Compiler
    }
 
    bool consoleStringIsNumber(const char* str) {
-       if (!str || !str[0]) return false;
+       if (!str || !str[0] || str[dStrspn(str, " \t")] == 0) return false;
        char* pEnd;
        (void) dStrtod(str, &pEnd);
        return (*pEnd == 0) || (pEnd[dStrspn(pEnd, " \t")] == 0);
