@@ -1337,6 +1337,11 @@ namespace Sim
       t = dynamic_cast<T*>(findObject(objectName));
       return t != NULL;
    }
+   template<class T> inline bool findObject(ConsoleValue& objectVal, T*& t)
+   {
+       t = dynamic_cast<T*>(findObject(objectVal));
+       return t != NULL;
+   }
 
    void advanceToTime(SimTime time);
    void advanceTime(SimTime delta);
