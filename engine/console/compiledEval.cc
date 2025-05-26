@@ -1060,7 +1060,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   }
                }
                popValueStack(callArgc);
-               valueStack[++TOP] = CONVALUE_NULL;
+               valueStack[++TOP].clearValue();
                break;
             }
             if(nsEntry->mType == Namespace::Entry::ScriptFunctionType)
@@ -1074,7 +1074,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                       valueStack[++TOP] = returnVal;
                }
                else // no body, return null on stack
-                  valueStack[++TOP] = CONVALUE_NULL;
+                  valueStack[++TOP].clearValue();
             }
             else
             {
