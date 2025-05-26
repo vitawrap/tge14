@@ -205,7 +205,7 @@ public:
 
 	ConsoleValue& operator = (ConsoleValue&& rhs) {
 		if (&rhs == this) return *this;
-		clear();
+		clear(); // crashes here after the end of execute for GameConnection::onDrop(%client, %reason)
 		switch ((type = rhs.type))
 		{
 		case ConsoleValue::TypeInt:
@@ -232,8 +232,32 @@ public:
 		return *this;
 	}
 
+	// Ugly duplicate code of above assignment operator (with some useless lines removed)
 	ConsoleValue(ConsoleValue&& rhs) {
-		(void)((*this) = dMove(rhs));
+		switch ((type = rhs.type))
+		{
+		case ConsoleValue::TypeInt:
+		case ConsoleValue::TypeFloat:
+			i = rhs.i;
+			break;
+		case ConsoleValue::TypeString:
+			str.length = rhs.str.length;
+			if (str.length >= CONVALUE_SSO_SIZE) {
+				str.ptr = rhs.str.ptr;
+				rhs.str.ptr = NULL; // also works to NT the small buffer.
+			}
+			else if (str.length > 0)
+				dMemmove(str.smal, rhs.str.smal, str.length + 1);
+			else str.smal[0] = 0;
+			break;
+		case ConsoleValue::TypeValueList:
+			list = rhs.list;
+			break;
+		}
+		// Set rhs to null string.
+		rhs.type = TypeString;
+		rhs.str.smal[0] = 0;
+		rhs.str.length = 0;
 	}
 
 	ConsoleValue(S64 val)
