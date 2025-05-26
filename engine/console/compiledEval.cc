@@ -608,7 +608,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                if(placeAtRoot)
                {
                   // Deal with the instantGroup if we're being put at the root.
-                  if(!Sim::findObject(Con::getVariable("instantGroup").toString(), grp))
+                  if(!Sim::findObject(Con::getVariable("instantGroup"), grp))
                      Sim::findObject(RootGroupId, grp);
                }
                else
@@ -653,7 +653,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
          case OP_INSTANCEOF_OBJECT:
          {
-            SimObject* object = Sim::findObject( valueStack[TOP-1].toSTString() );
+            SimObject* object = Sim::findObject( valueStack[TOP-1] );
             var = valueStack[TOP].toSTString();
             bool found = false;
             if (object)
@@ -891,9 +891,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             break;
 
          case OP_SETCUROBJECT:
-            if (valueStack[TOP].getType() == ConsoleValue::TypeInt)
-                curObject = Sim::findObject(valueStack[TOP].getIntU());
-            else curObject = Sim::findObject(valueStack[TOP].toSTString());
+            curObject = Sim::findObject(valueStack[TOP]);
             popValueStack();
             break;
 
@@ -1018,7 +1016,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             else if(callType == FuncCallExprNode::MethodCall)
             {
                saveObject = gEvalState.thisObject;
-               gEvalState.thisObject = Sim::findObject(callArgv[1].toString());
+               gEvalState.thisObject = Sim::findObject(callArgv[1]);
                if(!gEvalState.thisObject)
                {
                   gEvalState.thisObject = 0;
