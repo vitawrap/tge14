@@ -164,7 +164,7 @@ private:
 	}
 
 	void clear(bool coherent = false) {
-		if (type == TypeString && str.length >= CONVALUE_SSO_SIZE)
+		if ((type == TypeString) && (str.length >= CONVALUE_SSO_SIZE))
 			dFree(str.ptr);
 		else if (type == TypeValueList) {
 			destroyList(list);
@@ -241,8 +241,8 @@ public:
 	{ i = val; }
 
 	ConsoleValue(bool val)
-		: ConsoleValue((S64)val)
-	{}
+		: type(TypeInt)
+	{ i = val; }
 
 	ConsoleValue(char const* val)
 		: type(TypeString)
@@ -260,6 +260,43 @@ public:
 	{ f = val; }
 
 	inline ConsoleValue(ConsoleValueList* lcv);
+
+	ConsoleValue& operator = (S64 value) {
+		clear();
+		type = TypeInt; i = value;
+		return *this;
+	}
+
+	ConsoleValue& operator = (S32 value) {
+		clear();
+		type = TypeInt; i = value;
+		return *this;
+	}
+
+	ConsoleValue& operator = (U32 value) {
+		clear();
+		type = TypeInt; i = value;
+		return *this;
+	}
+
+	ConsoleValue& operator = (F64 value) {
+		clear();
+		type = TypeFloat; f = value;
+		return *this;
+	}
+
+	ConsoleValue& operator = (F32 value) {
+		clear();
+		type = TypeFloat; f = value;
+		return *this;
+	}
+
+	ConsoleValue& operator = (char const* value) {
+		clear();
+		type = TypeString; str.length = 0;
+		setString(value ? value : "");
+		return *this;
+	}
 
 	// Default construct to null string
 	ConsoleValue()
