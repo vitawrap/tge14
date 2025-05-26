@@ -853,12 +853,13 @@ TypeReq StrConstNode::getPreferredType()
 
 U32 ConstantNode::precompile(TypeReq type)
 {
+   // Breakpoint used as statement
+   if (value == StringTable->insert("breakpoint")) {
+       index = 0xDEADBEEF;
+       return 1;
+   }
+
    if (type == TypeReqNone) {
-      // Breakpoint used as statement
-      if (value == StringTable->insert("breakpoint")); {
-          index = 0xDEADBEEF;
-          return 1;
-      }
       return 0;
    }
 
