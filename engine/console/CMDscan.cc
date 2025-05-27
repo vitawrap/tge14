@@ -8838,9 +8838,11 @@ int CMDGetCurrentLine()
 void cmderror(char *, ...)
 {
    gSyntaxError = true;
-   if(fileName)
+   if(fileName) {
       Con::errorf(ConsoleLogEntry::Script, "%s Line: %d - Syntax error.",
          fileName, lineIndex);
+      Con::executef(3, "onSyntaxError", fileName, lineIndex);
+   }
    else
       Con::errorf(ConsoleLogEntry::Script, "Syntax error in input.");
 }
