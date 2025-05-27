@@ -402,8 +402,8 @@ U32 FloatBinaryExprNode::precompile(TypeReq type)
 
 U32 FloatBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = right->compile(codeStream, ip, TypeReqValue);
    ip = left->compile(codeStream, ip, TypeReqValue);
+   ip = right->compile(codeStream, ip, TypeReqValue);
    U32 operand = OP_INVALID;
    switch(op)
    {
@@ -506,8 +506,8 @@ U32 IntBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    }
    else
    {
-      ip = right->compile(codeStream, ip, subType);
       ip = left->compile(codeStream, ip, subType);
+      ip = right->compile(codeStream, ip, subType);
       codeStream[ip++] = operand;
    }
    conversionOp(TypeReqValue, type, codeStream, ip);
@@ -645,8 +645,8 @@ U32 InstanceOfExprNode::precompile(TypeReq type)
 U32 InstanceOfExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
 {
     // Left could either be an object name or an object id, handle both.
-    ip = right->compile(codeStream, ip, TypeReqValue);
     ip = left->compile(codeStream, ip, TypeReqValue);
+    ip = right->compile(codeStream, ip, TypeReqValue);
     codeStream[ip++]= OP_INSTANCEOF_OBJECT;
 
     // At this point the stack has the result.
