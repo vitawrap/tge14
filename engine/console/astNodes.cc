@@ -1032,6 +1032,8 @@ U32 AssignOpExprNode::precompile(TypeReq type)
 
    // conversion OP if necessary.
    getAssignOpTypeOp(op, operand);
+   subType = TypeReqValue;  // Used to be either float or int.
+
    precompileIdent(varName);
    U32 size = expr->precompile(subType) + 3 + conversionSize(subType, type);
    if(!arrayIndex)
