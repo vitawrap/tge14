@@ -1393,8 +1393,8 @@ namespace Sim
                                                                                                      \
       if (!val.isList()) {                                                                           \
          *reinterpret_cast<T**>(dptr) = NULL;                                                        \
-         if (val.toString()[0] && !Sim::findObject(val.toString(),*reinterpret_cast<T**>(dptr)))     \
-            Con::printf("Object '%s' is not a member of the '%s' data block class", val.getStringU(), #T);    \
+         if (!val.isNull() && !Sim::findObject(val, *reinterpret_cast<T**>(dptr)))                   \
+            Con::printf("Object '%s' is not a member of the '%s' data block class", val.toString(), #T);    \
       }                                                                                              \
       else                                                                                           \
          Con::printf("Cannot set list to a single pointer.");                                        \
