@@ -1090,8 +1090,10 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   {
                      nsEntry->cb.mVoidCallbackFunc(gEvalState.thisObject, callArgc+1, callArgv);
                      popValueStack(callArgc);
-                     if (code[ip] != OP_VAL_TO_NONE)
+                     if (code[ip] != OP_VAL_TO_NONE) {
                          Con::warnf(ConsoleLogEntry::General, "%s: Call to %s in %s uses result of void function call.", getFileLine(ip - 4), fnName, functionName);
+                         valueStack[++TOP].clearValue(); // feed it something so it doesn't break.
+                     }
                      else ip++; // void: if OP_VAL_TO_NONE, nothing to pop -> skip.
                   } else {
                      returnVal = nsEntry->cb.mStringCallbackFunc(gEvalState.thisObject, callArgc+1, callArgv);
