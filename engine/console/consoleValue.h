@@ -345,7 +345,7 @@ public:
 	// Quick integer getter
 	inline S64 getInt() const;
 
-	S64 compare(ConsoleValue right, bool caseSens = false, bool strict = false) const {
+	S64 compare(ConsoleValue& right, bool caseSens = false, bool strict = false) const {
 		if (!strict)
 			right.castTo(type);
 
