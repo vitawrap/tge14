@@ -1078,49 +1078,30 @@ TypeReq AssignOpExprNode::getPreferredType()
 
 //------------------------------------------------------------
 
-U32 TTagSetStmtNode::precompileStmt(U32 loopCount)
+U32 ValueListExprNode::precompile(TypeReq type)
 {
-   loopCount;
-   return 0;
+   U32 size = 0;
+   for (ExprNode* exprWalk = list; exprWalk; exprWalk = (ExprNode*)exprWalk->getNext())
+       size += exprWalk->precompile(TypeReqValue);
+   return size + 2 + conversionSize(TypeReqValue, type);
 }
 
-U32 TTagSetStmtNode::compileStmt(U64*, U64 ip, U32, U32)
+U32 ValueListExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
 {
+   U32 argc = 0;
+   for (ExprNode* exprWalk = list; exprWalk; exprWalk = (ExprNode*)exprWalk->getNext()) {
+       ip = exprWalk->compile(codeStream, ip, TypeReqValue);
+       ++argc;
+   }
+   codeStream[ip++] = OP_LOADIMMED_LIST;
+   codeStream[ip++] = argc;
+   conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
 }
 
-//------------------------------------------------------------
-
-U32 TTagDerefNode::precompile(TypeReq)
+TypeReq ValueListExprNode::getPreferredType()
 {
-   return 0;
-}
-
-U32 TTagDerefNode::compile(U64*, U64 ip, TypeReq)
-{
-   return ip;
-}
-
-TypeReq TTagDerefNode::getPreferredType()
-{
-   return TypeReqNone;
-}
-
-//------------------------------------------------------------
-
-U32 TTagExprNode::precompile(TypeReq)
-{
-   return 0;
-}
-
-U32 TTagExprNode::compile(U64*, U64 ip, TypeReq)
-{
-   return ip;
-}
-
-TypeReq TTagExprNode::getPreferredType()
-{
-   return TypeReqNone;
+   return TypeReqValue;
 }
 
 //------------------------------------------------------------

@@ -254,6 +254,7 @@ static void dumpInterpreterState(U64 op) {
         "OP_TAG_TO_STR",
         "OP_LOADIMMED_STR",
         "OP_LOADIMMED_IDENT",
+        "OP_LOADIMMED_LIST",
         "OP_CALLFUNC_RESOLVE",
         "OP_CALLFUNC",
         "OP_CONCAT_STR",
@@ -960,6 +961,21 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          case OP_LOADIMMED_IDENT:
             valueStack[++TOP] = U64toSTE(code[ip++]);
             break;
+
+         case OP_LOADIMMED_LIST:
+         {
+             U32 elems = code[ip++];
+             auto* cvl = new ConsoleValueList;
+             cvl->increment(elems);
+             for (S32 i = 0; i < elems; ++i)
+                constructInPlace(&cvl->at(i), &valueStack[TOP - (elems-i) + 1]);
+             if (elems) {
+                popValueStack(elems-1);
+                valueStack[TOP] = cvl;
+             } else
+                valueStack[++TOP] = cvl;
+             break;
+         }
 
          case OP_CALLFUNC_RESOLVE:
             // This deals with a function that is potentially living in a namespace.

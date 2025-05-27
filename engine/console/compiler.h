@@ -103,6 +103,7 @@ namespace Compiler
       OP_TAG_TO_STR,
       OP_LOADIMMED_STR,
       OP_LOADIMMED_IDENT,
+      OP_LOADIMMED_LIST,
 
       OP_CALLFUNC_RESOLVE,
       OP_CALLFUNC,

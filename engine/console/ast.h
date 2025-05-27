@@ -341,32 +341,11 @@ struct AssignOpExprNode : ExprNode
    TypeReq getPreferredType();
 };
 
-struct TTagSetStmtNode : StmtNode
+struct ValueListExprNode : ExprNode
 {
-   StringTableEntry tag;
-   ExprNode *valueExpr;
-   ExprNode *stringExpr;
+   ExprNode *list;
 
-   static TTagSetStmtNode *alloc(StringTableEntry tag, ExprNode *valueExpr, ExprNode *stringExpr);
-   U32 precompileStmt(U32 loopCount);
-   U32 compileStmt(U64* codeStream, U64 ip, U32 continuePoint, U32 breakPoint);
-};
-
-struct TTagDerefNode : ExprNode
-{
-   ExprNode *expr;
-
-   static TTagDerefNode *alloc(ExprNode *expr);
-   U32 precompile(TypeReq type);
-   U32 compile(U64* codeStream, U64 ip, TypeReq type);
-   TypeReq getPreferredType();
-};
-
-struct TTagExprNode : ExprNode
-{
-   StringTableEntry tag;
-
-   static TTagExprNode *alloc(StringTableEntry tag);
+   static ValueListExprNode* alloc(ExprNode* exprList);
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();

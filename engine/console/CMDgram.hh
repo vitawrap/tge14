@@ -64,25 +64,25 @@ extern int cmddebug;
     CMDUNDEF = 257,                /* "invalid token"  */
     rwDEFINE = 258,                /* rwDEFINE  */
     rwDECLARE = 259,               /* rwDECLARE  */
-    rwBREAK = 260,                 /* rwBREAK  */
-    rwELSE = 261,                  /* rwELSE  */
-    rwCONTINUE = 262,              /* rwCONTINUE  */
-    rwIF = 263,                    /* rwIF  */
-    rwRETURN = 264,                /* rwRETURN  */
-    rwWHILE = 265,                 /* rwWHILE  */
-    rwDO = 266,                    /* rwDO  */
-    rwDEFAULT = 267,               /* rwDEFAULT  */
-    rwNAMESPACE = 268,             /* rwNAMESPACE  */
-    rwFOR = 269,                   /* rwFOR  */
-    rwDATABLOCK = 270,             /* rwDATABLOCK  */
-    rwSWITCH = 271,                /* rwSWITCH  */
-    rwCASE = 272,                  /* rwCASE  */
-    rwSWITCHSTR = 273,             /* rwSWITCHSTR  */
-    rwCASEOR = 274,                /* rwCASEOR  */
-    rwPACKAGE = 275,               /* rwPACKAGE  */
-    ILLEGAL_TOKEN = 276,           /* ILLEGAL_TOKEN  */
-    INTCONST = 277,                /* INTCONST  */
-    TTAG = 278,                    /* TTAG  */
+    rwCVLSTART = 260,              /* rwCVLSTART  */
+    rwBREAK = 261,                 /* rwBREAK  */
+    rwELSE = 262,                  /* rwELSE  */
+    rwCONTINUE = 263,              /* rwCONTINUE  */
+    rwIF = 264,                    /* rwIF  */
+    rwRETURN = 265,                /* rwRETURN  */
+    rwWHILE = 266,                 /* rwWHILE  */
+    rwDO = 267,                    /* rwDO  */
+    rwDEFAULT = 268,               /* rwDEFAULT  */
+    rwNAMESPACE = 269,             /* rwNAMESPACE  */
+    rwFOR = 270,                   /* rwFOR  */
+    rwDATABLOCK = 271,             /* rwDATABLOCK  */
+    rwSWITCH = 272,                /* rwSWITCH  */
+    rwCASE = 273,                  /* rwCASE  */
+    rwSWITCHSTR = 274,             /* rwSWITCHSTR  */
+    rwCASEOR = 275,                /* rwCASEOR  */
+    rwPACKAGE = 276,               /* rwPACKAGE  */
+    ILLEGAL_TOKEN = 277,           /* ILLEGAL_TOKEN  */
+    INTCONST = 278,                /* INTCONST  */
     VAR = 279,                     /* VAR  */
     IDENT = 280,                   /* IDENT  */
     STRATOM = 281,                 /* STRATOM  */
@@ -126,7 +126,7 @@ extern int cmddebug;
 #if ! defined CMDSTYPE && ! defined CMDSTYPE_IS_DECLARED
 union CMDSTYPE
 {
-#line 75 "CMDgram.y"
+#line 74 "CMDgram.y"
 
    char              c;
    int               i;

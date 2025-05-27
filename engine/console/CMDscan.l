@@ -155,8 +155,8 @@ HEXDIGIT [a-fA-F0-9]
 "!" |
 ":" | 
 ";" |
-"{" | 
-"}" | 
+"{" |
+"}" |
 "," |
 "&" |
 "%" |
@@ -183,6 +183,7 @@ HEXDIGIT [a-fA-F0-9]
 "namespace" { cmdlval.i = lineIndex; return(rwNAMESPACE); }
 "true"      { cmdlval.i = 1; return INTCONST; }
 "false"     { cmdlval.i = 0; return INTCONST; }
+"#{"        return(cmdlval.i = rwCVLSTART);
 {VAR}       return(Sc_ScanVar());
 {ID}        { CMDtext[CMDleng] = 0; cmdlval.s = StringTable->insert(CMDtext); return(IDENT); }
 0[xX]{HEXDIGIT}+ return(Sc_ScanHex());

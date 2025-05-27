@@ -250,30 +250,11 @@ AssignOpExprNode *AssignOpExprNode::alloc(StringTableEntry varName, ExprNode *ar
    return ret;
 }
 
-TTagSetStmtNode *TTagSetStmtNode::alloc(StringTableEntry tag, ExprNode *valueExpr, ExprNode *stringExpr)
+ValueListExprNode* ValueListExprNode::alloc(ExprNode* exprList)
 {
-   Con::printf("TTagExprNode::alloc(%s);", tag);
-   TTagSetStmtNode *ret = (TTagSetStmtNode *) consoleAlloc(sizeof(TTagSetStmtNode));
+   ValueListExprNode* ret = (ValueListExprNode *) consoleAlloc(sizeof(ValueListExprNode));
    constructInPlace(ret);
-   ret->tag = tag;
-   ret->valueExpr = valueExpr;
-   ret->stringExpr = stringExpr;
-   return ret;
-}
-
-TTagDerefNode *TTagDerefNode::alloc(ExprNode *expr)
-{
-   TTagDerefNode *ret = (TTagDerefNode *) consoleAlloc(sizeof(TTagDerefNode));
-   constructInPlace(ret);
-   ret->expr = expr;
-   return ret;
-}
-
-TTagExprNode *TTagExprNode::alloc(StringTableEntry tag)
-{
-   TTagExprNode *ret = (TTagExprNode *) consoleAlloc(sizeof(TTagExprNode));
-   constructInPlace(ret);
-   ret->tag = tag;
+   ret->list = exprList;
    return ret;
 }
 
