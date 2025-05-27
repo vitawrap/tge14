@@ -54,7 +54,7 @@ struct ConsoleValue {
 				char smal[CONVALUE_SSO_SIZE];	///< Small-size string
 				char* ptr;
 			};
-			U32 length;
+			S32 length;
 		} str;
 		S64 i;
 		F64 f;
