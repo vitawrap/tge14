@@ -275,7 +275,7 @@ static void dumpInterpreterState(U64 op) {
     dPrintf("]\n%sScope: %s", (debugTab + 63) - debugCallDepth, debugScope[debugCallDepth]);
 
     // Go really slow when dumping.
-    Platform::sleep(10);
+    //Platform::sleep(10);
 }
 
 static void dumpInterpreterEntry(char const* name) {
