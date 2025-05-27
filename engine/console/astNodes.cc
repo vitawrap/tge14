@@ -1047,7 +1047,6 @@ U32 AssignOpExprNode::precompile(TypeReq type)
 
 U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = expr->compile(codeStream, ip, subType);
    if(arrayIndex)
    {
       // TODO: This can be simplified to remove OP_LOADIMMED_IDENT
@@ -1064,6 +1063,7 @@ U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       ip++;
    }
    codeStream[ip++] = OP_LOADVAR;
+   ip = expr->compile(codeStream, ip, subType);
    codeStream[ip++] = operand;
    codeStream[ip++] = OP_SAVEVAR;
    conversionOp(subType, type, codeStream, ip);
