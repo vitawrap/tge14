@@ -1102,7 +1102,11 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                              popValueStack(callArgc-1); // pop arg stack for engine functions called within script.
                              valueStack[TOP] = returnVal;
                          } else valueStack[++TOP] = returnVal;
-                     } else ip++; // engine callbacks do not push to the valueStack, "returnVal" is all we get.
+                     }
+                     else {
+                         popValueStack(callArgc);
+                         ip++; // engine callbacks do not push to the valueStack, "returnVal" is all we get.
+                     }
                   }
                }
             }
