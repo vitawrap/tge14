@@ -400,7 +400,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
    CodeBlock *saveCodeBlock = smCurrentCodeBlock;
    smCurrentCodeBlock = this;
 
-   TS_EXEC_DBG_HOOK(dumpInterpreterEntry, this->name ? name : functionName);
+   TS_EXEC_DBG_HOOK(dumpInterpreterEntry, thisFunctionName? thisFunctionName : (this->name ? this->name : name) );
    if(this->name)
    {
       Con::gCurrentFile = this->name;
