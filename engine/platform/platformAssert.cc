@@ -60,13 +60,13 @@ bool PlatformAssert::process(Type         assertType,
    processing = true;
 
    // always dump to the Assert to the Console
-   //if (Con::isActive())
-   //{
-   //   if (assertType == Warning)
-	  //    Con::warnf(ConsoleLogEntry::Assert, "%s: (%s @ %ld) %s", typeName[assertType], filename, lineNumber, message);
-   //   else
-	  //    Con::errorf(ConsoleLogEntry::Assert, "%s: (%s @ %ld) %s", typeName[assertType], filename, lineNumber, message);
-   //}
+   if (Con::isActive())
+   {
+      if (assertType == Warning)
+	      Con::warnf(ConsoleLogEntry::Assert, "%s: (%s @ %ld) %s", typeName[assertType], filename, lineNumber, message);
+      else
+	      Con::errorf(ConsoleLogEntry::Assert, "%s: (%s @ %ld) %s", typeName[assertType], filename, lineNumber, message);
+   }
 
    // if not a WARNING pop-up a dialog box
    if (assertType != Warning)
