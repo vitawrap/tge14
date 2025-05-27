@@ -1301,6 +1301,7 @@ U32 SlotAssignOpNode::precompile(TypeReq type)
    // convert to return type if necessary.
 
    getAssignOpTypeOp(op, operand);
+   subType = TypeReqValue; // Used to be either float or int.
    precompileIdent(slotName);
 
    U32 size = valueExpr->precompile(subType) + objectExpr->precompile(TypeReqValue) + 6;
