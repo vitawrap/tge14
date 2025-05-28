@@ -185,7 +185,7 @@ void CodeBlock::getFunctionArgs(char buffer[1024], U64 ip)
 //------------------------------------------------------------
 
 // Define this to debug the interpreter (stack and function names)
-#define TORQUE_DEBUG_INTERPRETER
+//#define TORQUE_DEBUG_INTERPRETER
 
 #ifdef TORQUE_DEBUG_INTERPRETER
 
@@ -1193,6 +1193,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          //}
          case OP_BREAK:
              AssertISV(false, "Breakpoint requested.");
+             valueStack[++TOP].clearValue();
              break;
 
          case OP_INVALID:
