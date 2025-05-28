@@ -194,10 +194,10 @@ ConsoleFunction(alxCreateSource, S32, 2, 6,
                      "(description, filename, x,y,z)")
 {
    AudioDescription *description = NULL;
-   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1].toString() ) );
+   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1] ) );
    if (profile == NULL)
    {
-      description = dynamic_cast<AudioDescription*>( Sim::findObject( argv[1].toString() ) );
+      description = dynamic_cast<AudioDescription*>( Sim::findObject( argv[1] ) );
       if (description == NULL)
       {
          Con::printf("Unable to locate audio profile/description '%s'", argv[1]);
@@ -344,7 +344,7 @@ ConsoleFunction(alxPlay, S32, 2, 5, "alxPlay(handle) or "
                  "alxPlay(profile) or "
                  "alxPlay(profile, x,y,z)")
 {
-   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1].toString() ) );
+   AudioProfile *profile = dynamic_cast<AudioProfile*>( Sim::findObject( argv[1] ) );
    if (argc == 2 && profile == NULL)
    {
       AUDIOHANDLE handle = argv[1].getInt();  // Then it MUST be a handle.

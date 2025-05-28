@@ -151,7 +151,7 @@ void GuiInspector::inspectObject( SimObject *object )
 
 ConsoleMethod( GuiInspector, inspect, void, 3, 3, "Inspect(Object)")
 {
-   SimObject * target = Sim::findObject(argv[2].toString());
+   SimObject * target = Sim::findObject(argv[2]);
    if(!target)
    {
       if(argv[2].getInt() > 0)

@@ -19,7 +19,7 @@
 ConsoleMethod( TriggerData, onEnterTrigger, void, 4, 4, "(Trigger t, SimObject intruder)")
 {
    Trigger* trigger = NULL;
-   if (Sim::findObject(argv[2].toString(), trigger) == false)
+   if (Sim::findObject(argv[2], trigger) == false)
       return;
 
    // Do nothing with the trigger object id by default...
@@ -31,7 +31,7 @@ ConsoleMethod( TriggerData, onEnterTrigger, void, 4, 4, "(Trigger t, SimObject i
 ConsoleMethod( TriggerData, onLeaveTrigger, void, 4, 4, "(Trigger t, SimObject intruder)")
 {
    Trigger* trigger = NULL;
-   if (Sim::findObject(argv[2].toString(), trigger) == false)
+   if (Sim::findObject(argv[2], trigger) == false)
       return;
 
    if (trigger->getNumTriggeringObjects() == 0) {
@@ -44,7 +44,7 @@ ConsoleMethod( TriggerData, onLeaveTrigger, void, 4, 4, "(Trigger t, SimObject i
 ConsoleMethod( TriggerData, onTickTrigger, void, 3, 3, "(Trigger t)")
 {
    Trigger* trigger = NULL;
-   if (Sim::findObject(argv[2].toString(), trigger) == false)
+   if (Sim::findObject(argv[2], trigger) == false)
       return;
 
    // Do nothing with the trigger object id by default...

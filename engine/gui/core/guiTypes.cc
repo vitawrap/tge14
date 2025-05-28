@@ -362,7 +362,7 @@ ConsoleType( GuiProfile, TypeGuiProfile, sizeof(GuiControlProfile*) )
 ConsoleSetType( TypeGuiProfile )
 {
    GuiControlProfile *profile = NULL;
-   Sim::findObject(val.toString(), profile);
+   Sim::findObject(val, profile);
 
    AssertWarn(profile != NULL, avar("GuiControlProfile: requested gui profile (%s) does not exist.", val.toString()));
    if(!profile)

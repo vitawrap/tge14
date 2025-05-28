@@ -78,7 +78,7 @@ ConsoleMethod( SimpleNetObject, setMessage, void, 3, 3, "(string msg)")
 ConsoleFunction( msg, void, 3, 3, "(NetConnection id, string message)"
                 "Send a SimpleNetObject message to the specified connection.")
 {
-   NetConnection *con = (NetConnection *) Sim::findObject(argv[1].toString());
+   NetConnection *con = (NetConnection *) Sim::findObject(argv[1]);
    if(con)
       con->postNetEvent(new SimpleMessageEvent(argv[2].toString()));
 }

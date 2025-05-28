@@ -1638,7 +1638,7 @@ ConsoleMethod( TerrainEditor, attachTerrain, void, 2, 3, "(TerrainBlock terrain)
    }
    else  // attach to named object
    {
-      terrBlock = dynamic_cast<TerrainBlock*>(Sim::findObject(argv[2].toString()));
+      terrBlock = dynamic_cast<TerrainBlock*>(Sim::findObject(argv[2]));
 
       if(!terrBlock)
          Con::errorf(ConsoleLogEntry::Script, "TerrainEditor::attach: failed to attach to object '%s'", argv[2]);

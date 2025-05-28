@@ -497,7 +497,7 @@ ConsoleMethod(GameBase, setDataBlock, bool, 3, 3, "(DataBlock db)"
               "Assign this GameBase to use the specified datablock.")
 {
    GameBaseData* data;
-   if (Sim::findObject(argv[2].toString(), data)) {
+   if (Sim::findObject(argv[2], data)) {
       return object->setDataBlock(data);
    }
    Con::errorf("Could not find data block \"%s\"",argv[2]);

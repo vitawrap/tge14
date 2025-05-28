@@ -17,7 +17,7 @@ ConsoleMethod(GuiMessageVectorCtrl, attach, bool, 3, 3, "(MessageVector item)"
               "Make this gui control display messages from the specified MessageVector")
 {
    MessageVector* pMV = NULL;
-   Sim::findObject(argv[2].toString(), pMV);
+   Sim::findObject(argv[2], pMV);
    if (pMV == NULL) {
       Con::errorf(ConsoleLogEntry::General, "Could not find MessageVector: %s", argv[2]);
       return false;

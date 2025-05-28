@@ -432,7 +432,8 @@ ConsoleFunctionGroupBegin ( SimFunctions, "Functions relating to Sim.");
 ConsoleFunction(nameToID, S32, 2, 2, "nameToID(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[1].toSTString());
+   // I suppose this is the only place where forcing argv1 to string would help.
+   SimObject *obj = Sim::findObject(argv[1].toString());
    if(obj)
       return S64(obj->getId());
    else
@@ -442,10 +443,12 @@ ConsoleFunction(nameToID, S32, 2, 2, "nameToID(object)")
 ConsoleFunction(isObject, bool, 2, 2, "isObject(object)")
 {
    argc;
-   if (argv[1].isNull())
+   // isObject relies on flawed behavior from Sim::findObject(const char*)
+   // where it fails to find objects with negative ids, namely RootGroup.
+   if (argv[1].isNull() || argv[1].getInt() < 0)
       return false;
    else
-      return (Sim::findObject(argv[1].toSTString()) != NULL);
+      return (Sim::findObject(argv[1].toString()) != NULL);
 }
 
 ConsoleFunction(cancel,void,2,2,"cancel(eventId)")
@@ -480,10 +483,10 @@ ConsoleFunction(getTimeSinceStart, S32, 2, 2, "getTimeSinceStart(%scheduleId);")
 ConsoleFunction(schedule, S32, 4, 0, "schedule(time, refobject|0, command, <arg1...argN>)")
 {
    U32 timeDelta = U32(argv[1].getNumber());
-   SimObject *refObject = Sim::findObject(argv[2].toString());
+   SimObject *refObject = Sim::findObject(argv[2]);
    if(!refObject)
    {
-      if(argv[2].getStringU()[0] != '0')
+      if(argv[2].toString()[0] != '0')
          return 0;
 
       refObject = Sim::getRootGroup();
@@ -1377,7 +1380,7 @@ ConsoleMethod(SimSet, add, void, 3, 0, "set.add(obj1,...)")
 {
    for(S32 i = 2; i < argc; i++)
    {
-      SimObject *obj = Sim::findObject(argv[i].toSTString());
+      SimObject *obj = Sim::findObject(argv[i]);
       if(obj)
          object->addObject(obj);
       else
@@ -1389,7 +1392,7 @@ ConsoleMethod(SimSet, remove, void, 3, 0, "set.remove(obj1,...)")
 {
    for(S32 i = 2; i < argc; i++)
    {
-      SimObject *obj = Sim::findObject(argv[i].toSTString());
+      SimObject *obj = Sim::findObject(argv[i]);
       object->lock();
       if(obj && object->find(object->begin(),object->end(),obj) != object->end())
          object->removeObject(obj);
@@ -1426,7 +1429,7 @@ ConsoleMethod(SimSet, getObject, S32, 3, 3, "set.getObject(objIndex)")
 ConsoleMethod(SimSet, isMember, bool, 3, 3, "set.isMember(object)")
 {
    argc;
-   SimObject *testObject = Sim::findObject(argv[2].toSTString());
+   SimObject *testObject = Sim::findObject(argv[2]);
    if(!testObject)
    {
       Con::printf("SimSet::isMember: %s is not an object.", argv[2]);
@@ -1450,7 +1453,7 @@ ConsoleMethod(SimSet, isMember, bool, 3, 3, "set.isMember(object)")
 ConsoleMethod(SimSet, bringToFront, void, 3, 3, "set.bringToFront(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[2].toSTString());
+   SimObject *obj = Sim::findObject(argv[2]);
    if(!obj)
       return;
    object->bringObjectToFront(obj);
@@ -1459,7 +1462,7 @@ ConsoleMethod(SimSet, bringToFront, void, 3, 3, "set.bringToFront(object)")
 ConsoleMethod(SimSet, pushToBack, void, 3, 3, "set.pushToBack(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[2].toSTString());
+   SimObject *obj = Sim::findObject(argv[2]);
    if(!obj)
       return;
    object->pushObjectToBack(obj);

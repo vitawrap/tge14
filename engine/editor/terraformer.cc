@@ -1290,7 +1290,7 @@ ConsoleMethod( Terraformer, canyon, bool, 6, 6, "(int dest_register, int frequen
 ConsoleMethod( Terraformer, previewScaled, void, 4, 4, "(GuiTerrPreviewCtrl destination, int source)")
 {
    GuiTerrPreviewCtrl *dcc;
-   Sim::findObject(argv[2].toString(), dcc);
+   Sim::findObject(argv[2], dcc);
 
    const GBitmap* bmp = object->getScaledGreyscale(argv[3].getInt());
 
@@ -1301,7 +1301,7 @@ ConsoleMethod( Terraformer, previewScaled, void, 4, 4, "(GuiTerrPreviewCtrl dest
 ConsoleMethod( Terraformer, preview, void, 4, 4, "(GuiTerrPreviewCtrl destination, int register)")
 {
    GuiTerrPreviewCtrl *bmc;
-   Sim::findObject(argv[2].toString(), bmc);
+   Sim::findObject(argv[2], bmc);
 
    const GBitmap* bmp = object->getGreyscale( argv[3].getInt() );
 

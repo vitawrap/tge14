@@ -3566,7 +3566,7 @@ ConsoleMethod( ShapeBase, playAudio, bool, 4, 4, "(int slot, AudioProfile ap)")
    U32 slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
       AudioProfile* profile;
-      if (Sim::findObject(argv[3].toString(), profile)) {
+      if (Sim::findObject(argv[3], profile)) {
          object->playAudio(slot,profile);
          return true;
       }
@@ -3640,7 +3640,7 @@ ConsoleMethod( ShapeBase, mountObject, bool, 4, 4, "( ShapeBase object, int slot
               "Mount ourselves on an object in the specified slot.")
 {
    ShapeBase *target;
-   if (Sim::findObject(argv[2].toString(), target)) {
+   if (Sim::findObject(argv[2], target)) {
       S32 node = argv[3].getInt();
       if (node >= 0 && node < ShapeBaseData::NumMountPoints)
          object->mountObject(target,node);
@@ -3653,7 +3653,7 @@ ConsoleMethod( ShapeBase, unmountObject, bool, 3, 3, "(ShapeBase obj)"
               "Unmount an object from ourselves.")
 {
    ShapeBase *target;
-   if (Sim::findObject(argv[2].toString(), target)) {
+   if (Sim::findObject(argv[2], target)) {
       object->unmountObject(target);
       return true;
    }
@@ -3702,7 +3702,7 @@ ConsoleMethod( ShapeBase, getMountNodeObject, S32, 3, 3, "(int node)")
 ConsoleMethod( ShapeBase, mountImage, bool, 4, 6, "(ShapeBaseImageData image, int slot, bool loaded=true, string skinTag=NULL)")
 {
    ShapeBaseImageData* imageData;
-   if (Sim::findObject(argv[2].toString(), imageData)) {
+   if (Sim::findObject(argv[2], imageData)) {
       U32 slot = argv[3].getInt();
       bool loaded = (argc >= 5)? argv[4].getInt() : true;
       StringHandle team;
@@ -3753,7 +3753,7 @@ ConsoleMethod( ShapeBase, isImageFiring, bool, 3, 3, "(int slot)")
 ConsoleMethod( ShapeBase, isImageMounted, bool, 3, 3, "(ShapeBaseImageData db)")
 {
    ShapeBaseImageData* imageData;
-   if (Sim::findObject(argv[2].toString(), imageData))
+   if (Sim::findObject(argv[2], imageData))
       return object->isImageMounted(imageData);
    return false;
 }
@@ -3761,7 +3761,7 @@ ConsoleMethod( ShapeBase, isImageMounted, bool, 3, 3, "(ShapeBaseImageData db)")
 ConsoleMethod( ShapeBase, getMountSlot, S32, 3, 3, "(ShapeBaseImageData db)")
 {
    ShapeBaseImageData* imageData;
-   if (Sim::findObject(argv[2].toString(), imageData))
+   if (Sim::findObject(argv[2], imageData))
       return object->getMountSlot(imageData);
    return -1LL;
 }

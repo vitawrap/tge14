@@ -25,8 +25,8 @@ AmbientAudioManager::AmbientAudioManager()
 ConsoleFunction(setPowerAudioProfiles, void, 3, 3, "( AudioProfile powerUp, AudioProfile powerDown)"
                 "Set the ambient audio manager's power up/down profiles.")
 {
-   gAmbientAudioManager.mPowerUpProfile = dynamic_cast<AudioProfile*>(Sim::findObject(argv[1].toString()));
-   gAmbientAudioManager.mPowerDownProfile = dynamic_cast<AudioProfile*>(Sim::findObject(argv[2].toString()));
+   gAmbientAudioManager.mPowerUpProfile = dynamic_cast<AudioProfile*>(Sim::findObject(argv[1]));
+   gAmbientAudioManager.mPowerDownProfile = dynamic_cast<AudioProfile*>(Sim::findObject(argv[2]));
 }
 
 void AmbientAudioManager::addEmitter(AudioEmitter * emitter)

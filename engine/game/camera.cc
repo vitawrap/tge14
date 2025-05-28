@@ -499,7 +499,7 @@ ConsoleMethod(Camera, setOrbitMode, void, 7, 8, "(GameBase orbitObject, transfor
 
     // This can be 0, then we orbit around a static transform.
     GameBase* orbitObject = NULL;
-    Sim::findObject(argv[2].toString(), orbitObject);
+    Sim::findObject(argv[2], orbitObject);
 
     if (argv[3].isList()) {
         pos = argv[3].getPoint3F();

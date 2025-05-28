@@ -686,7 +686,7 @@ RotatingDoor::DoorState RotatingDoor::getState() const
 // Console methods
 ConsoleMethod(RotatingDoor, open, void, 3, 3, "(SimObject activator)")
 {
-	object->requestOpen(dynamic_cast<SceneObject*>(Sim::findObject(argv[2].toString())));
+	object->requestOpen(dynamic_cast<SceneObject*>(Sim::findObject(argv[2])));
 }
 
 ConsoleMethod(RotatingDoor, close, void, 2, 2, "close the door if open")
@@ -697,7 +697,7 @@ ConsoleMethod(RotatingDoor, close, void, 2, 2, "close the door if open")
 ConsoleMethod(RotatingDoor, canCollideWith, bool, 3, 3, "(SceneObject)")
 {
 	SceneObject* obj = NULL;
-	if (Sim::findObject(argv[2].toString(), obj))
+	if (Sim::findObject(argv[2], obj))
 		return object->canCollideWith(obj);
 	else return false;
 }

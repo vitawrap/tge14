@@ -40,7 +40,7 @@ ConsoleMethod( Lightning, strikeObject, void, 3, 3, "(ShapeBase nameOrId)")
 {
    ShapeBase* pSB;
 
-   if (object->isServerObject() && Sim::findObject(argv[2].toString(), pSB))
+   if (object->isServerObject() && Sim::findObject(argv[2], pSB))
       object->strikeObject(pSB);
 }
 

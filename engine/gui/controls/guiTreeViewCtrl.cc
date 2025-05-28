@@ -3394,7 +3394,7 @@ ConsoleMethod(GuiTreeViewCtrl, buildIconTable, bool, 3,3, "(builds an icon table
 ConsoleMethod( GuiTreeViewCtrl, open, void, 3, 4, "(SimSet obj, bool okToEdit=true) Set the root of the tree view to the specified object, or to the root set.")
 {
    SimSet *treeRoot = NULL;
-   SimObject* target = Sim::findObject(argv[2].toString());
+   SimObject* target = Sim::findObject(argv[2]);
 
    bool okToEdit = true;
 

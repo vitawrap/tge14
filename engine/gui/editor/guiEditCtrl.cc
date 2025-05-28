@@ -36,7 +36,7 @@ GuiEditCtrl::GuiEditCtrl()
 ConsoleMethod( GuiEditCtrl, setRoot, void, 3, 3, "(GuiControl root)")
 {
    GuiControl *ctrl;
-   if(!Sim::findObject(argv[2].toString(), ctrl))
+   if(!Sim::findObject(argv[2], ctrl))
       return;
    object->setRoot(ctrl);
 }
@@ -45,7 +45,7 @@ ConsoleMethod( GuiEditCtrl, setRoot, void, 3, 3, "(GuiControl root)")
 ConsoleMethod( GuiEditCtrl, addNewCtrl, void, 3, 3, "(GuiControl ctrl)")
 {
    GuiControl *ctrl;
-   if(!Sim::findObject(argv[2].toString(), ctrl))
+   if(!Sim::findObject(argv[2], ctrl))
       return;
    object->addNewControl(ctrl);
 }
@@ -68,7 +68,7 @@ ConsoleMethod( GuiEditCtrl, select, void, 3, 3, "(GuiControl ctrl)")
 {
    GuiControl *ctrl;
 
-   if(!Sim::findObject(argv[2].toString(), ctrl))
+   if(!Sim::findObject(argv[2], ctrl))
       return;
 
    object->setSelection(ctrl, false);
@@ -78,7 +78,7 @@ ConsoleMethod( GuiEditCtrl, setCurrentAddSet, void, 3, 3, "(GuiControl ctrl)")
 {
    GuiControl *addSet;
 
-   if (!Sim::findObject(argv[2].toString(), addSet))
+   if (!Sim::findObject(argv[2], addSet))
    {
       Con::printf("setCurrentAddSet(): Invalid control: %s", argv[2].toString());
       return;

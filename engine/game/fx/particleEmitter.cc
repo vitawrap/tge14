@@ -282,8 +282,7 @@ void ParticleEmitterNode::setEmitterDataBlock(ParticleEmitterData* data)
 
 ConsoleMethod(ParticleEmitterNode, setEmitterDataBlock, void, 3, 3, "(data)")
 {
-   ParticleEmitterData* data = dynamic_cast<ParticleEmitterData*>(Sim::findObject(argv[2].getInt()));
-   if (!data) data = dynamic_cast<ParticleEmitterData*>(Sim::findObject(argv[2].toString()));
+   ParticleEmitterData* data = dynamic_cast<ParticleEmitterData*>(Sim::findObject(argv[2]));
 
    if (data) object->setEmitterDataBlock(data);
 }

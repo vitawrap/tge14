@@ -1286,7 +1286,7 @@ ConsoleMethod( GameConnection, resetGhosting, void, 2, 2, "")
 ConsoleMethod( GameConnection, setControlObject, bool, 3, 3, "(ShapeBase object)")
 {
    ShapeBase *gb;
-   if(!Sim::findObject(argv[2].toString(), gb))
+   if(!Sim::findObject(argv[2], gb))
       return false;
 
    object->setControlObject(gb);
@@ -1308,7 +1308,7 @@ ConsoleMethod( GameConnection, isAIControlled, bool, 2, 2, "")
 ConsoleMethod( GameConnection, play2D, bool, 3, 3, "(AudioProfile ap)")
 {
    AudioProfile *profile;
-   if(!Sim::findObject(argv[2].toString(), profile))
+   if(!Sim::findObject(argv[2], profile))
       return false;
    object->play2D(profile);
    return true;
@@ -1317,7 +1317,7 @@ ConsoleMethod( GameConnection, play2D, bool, 3, 3, "(AudioProfile ap)")
 ConsoleMethod( GameConnection, play3D, bool, 4, 4, "(AudioProfile ap, Transform pos)")
 {
    AudioProfile *profile;
-   if(!Sim::findObject(argv[2].toString(), profile))
+   if(!Sim::findObject(argv[2], profile))
       return false;
 
    Point3F pos(0,0,0);
@@ -1476,7 +1476,7 @@ ConsoleStaticMethod(GameConnection, getServerConnection, S32, 2, 2, "() Get the 
 ConsoleMethod(GameConnection, setCameraObject, S32, 3, 3, "")
 {
    ShapeBase *obj;
-   if(!Sim::findObject(argv[2].toString(), obj))
+   if(!Sim::findObject(argv[2], obj))
       return false;
    
    object->setCameraObject(obj);

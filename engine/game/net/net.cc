@@ -184,7 +184,7 @@ ConsoleFunction( commandToServer, void, 2, RemoteCommandEvent::MaxRemoteCommandA
 ConsoleFunction( commandToClient, void, 3, RemoteCommandEvent::MaxRemoteCommandArgs + 2, "(NetConnection client, string func, ...)")
 {
    NetConnection *conn;
-   if(!Sim::findObject(argv[1].toString(), conn))
+   if(!Sim::findObject(argv[1], conn))
       return;
    sendRemoteCommand(conn, argc - 2, argv + 2);
 }

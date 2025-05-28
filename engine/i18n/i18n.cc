@@ -53,7 +53,7 @@ ConsoleFunction(setCoreLangTable, void, 2, 2, "(LangTable)")
 {
 	LangTable *lt;
    
-   if(Sim::findObject(argv[1].toString(), lt))
+   if(Sim::findObject(argv[1], lt))
 		gCoreLangTable = lt;
    else
       Con::errorf("setCoreLangTable - Unable to find LanTable '%s'", argv[1]);

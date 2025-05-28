@@ -384,7 +384,7 @@ ConsoleMethod(StaticShape, setParent, void, 3, 3, "(simObject parent) - set tran
     if (!object->isServerObject())
         return;
     ShapeBase* obj = NULL;
-    Sim::findObject(argv[2].toString(), obj);
+    Sim::findObject(argv[2], obj);
     object->setTransformParent(obj);    // allow NULL, to detach.
 }
 

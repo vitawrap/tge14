@@ -460,7 +460,7 @@ ConsoleSetType( TypeSimObjectPtr )
    if(!val.isList())
    {
       SimObject **obj = (SimObject **)dptr;
-      *obj = Sim::findObject(val.getInt());
+      *obj = Sim::findObject(val);
    }
    else
       Con::printf("(TypeSimObjectPtr) Cannot set list to a single object id.");

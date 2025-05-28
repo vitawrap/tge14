@@ -4078,7 +4078,7 @@ ConsoleMethod( Player, setActionThread, bool, 3, 5, "(string sequenceName, bool 
 ConsoleMethod( Player, setControlObject, bool, 3, 3, "(ShapeBase obj)")
 {
    ShapeBase* controlObject;
-   if (Sim::findObject(argv[2].toString(), controlObject)) {
+   if (Sim::findObject(argv[2], controlObject)) {
       object->setControlObject(controlObject);
       return true;
    }

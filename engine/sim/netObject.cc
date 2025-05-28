@@ -131,7 +131,7 @@ ConsoleMethod(NetObject,scopeToClient,void,3,3,"(NetConnection %client)"
 {
    argc;
    NetConnection *conn;
-   if(!Sim::findObject(argv[2].toString(), conn))
+   if(!Sim::findObject(argv[2], conn))
    {
       Con::errorf(ConsoleLogEntry::General, "NetObject::scopeToClient: Couldn't find connection %s", argv[2]);
       return;
@@ -144,7 +144,7 @@ ConsoleMethod(NetObject,clearScopeToClient,void,3,3,"clearScopeToClient(%client)
 {
    argc;
    NetConnection *conn;
-   if(!Sim::findObject(argv[2].toString(), conn))
+   if(!Sim::findObject(argv[2], conn))
    {
       Con::errorf(ConsoleLogEntry::General, "NetObject::clearScopeToClient: Couldn't find connection %s", argv[2]);
       return;

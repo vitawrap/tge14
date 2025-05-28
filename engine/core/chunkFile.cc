@@ -382,7 +382,7 @@ ConsoleFunction(saveChunkFile, bool, 3, 3, "(SimChunk chunk, Filename file)"
    SimChunk *rootChunk = NULL;
    const char *file = argv[2].toString();
 
-   if(!Sim::findObject(argv[1].toString(), rootChunk))
+   if(!Sim::findObject(argv[1], rootChunk))
    {
       Con::errorf("writeChunkFile - Unable to locate root chunk '%s'", argv[1]);
       return false;

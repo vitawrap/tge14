@@ -842,7 +842,7 @@ ConsoleMethod( GuiControl, setProfile, void, 3, 3, "(GuiControlProfile p)")
 {
    GuiControlProfile * profile;
 
-   if(Sim::findObject(argv[2].toString(), profile))
+   if(Sim::findObject(argv[2], profile))
       object->setControlProfile(profile);
 }
 

@@ -1122,7 +1122,7 @@ ConsoleMethod(NetConnection, getGhostID, S32, 3, 3, "( S32 realID ) Convert a re
    NetObject * foo;
 
    // FIXME: Actually I think toString is not a danger for StringTable->lookupn.
-   if(Sim::findObject(argv[2].toString(), foo))
+   if(Sim::findObject(argv[2], foo))
    {
       return object->getGhostIndex(foo);
    }

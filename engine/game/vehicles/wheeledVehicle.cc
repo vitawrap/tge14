@@ -1456,7 +1456,7 @@ ConsoleMethod(WheeledVehicle, setWheelPowered, bool, 4, 4, "obj.setWheelPowered(
 ConsoleMethod(WheeledVehicle, setWheelTire, bool, 4, 4, "obj.setWheelTire(wheel#,tire)")
 {
    WheeledVehicleTire* tire;
-   if (Sim::findObject(argv[3].toString(), tire))
+   if (Sim::findObject(argv[3], tire))
    {
       S32 wheel = argv[2].getInt();
       if (wheel >= 0 && wheel < object->getWheelCount()) 
@@ -1476,7 +1476,7 @@ ConsoleMethod(WheeledVehicle, setWheelTire, bool, 4, 4, "obj.setWheelTire(wheel#
 ConsoleMethod(WheeledVehicle, setWheelSpring, bool, 4, 4, "obj.setWheelSpring(wheel#,spring)")
 {
    WheeledVehicleSpring* spring;
-   if (Sim::findObject(argv[3].toString(), spring))
+   if (Sim::findObject(argv[3], spring))
    {
       S32 wheel = argv[2].getInt();
       if (wheel >= 0 && wheel < object->getWheelCount()) 

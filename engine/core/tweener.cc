@@ -113,7 +113,7 @@ ConsoleFunction(tween, S32, 5, 5, "(object, property, targetValue, timeMS) - lin
 {
 	argc;
 	TweenerBase* tweener = tweener->create(
-		Sim::findObject(argv[1].toString()), argv[2].toString(), argv[3], argv[4].getInt());
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) return TweenerBase::pushLiveTween(tweener);
 	return -1;
 }
@@ -122,7 +122,7 @@ ConsoleFunction(tweenIn, S32, 5, 5, "(object, property, targetValue, timeMS) - e
 {
 	argc;
 	TweenerBase* tweener = tweener->create(
-		Sim::findObject(argv[1].toString()), argv[2].toString(), argv[3], argv[4].getInt());
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) {
 		tweener->setFunction(tweenEaseIn);
 		return TweenerBase::pushLiveTween(tweener);
@@ -134,7 +134,7 @@ ConsoleFunction(tweenOut, S32, 5, 5, "(object, property, targetValue, timeMS) - 
 {
 	argc;
 	TweenerBase* tweener = tweener->create(
-		Sim::findObject(argv[1].toString()), argv[2].toString(), argv[3], argv[4].getInt());
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) {
 		tweener->setFunction(tweenEaseOut);
 		return TweenerBase::pushLiveTween(tweener);
@@ -146,7 +146,7 @@ ConsoleFunction(tweenInOut, S32, 5, 5, "(object, property, targetValue, timeMS) 
 {
 	argc;
 	TweenerBase* tweener = tweener->create(
-		Sim::findObject(argv[1].toString()), argv[2].toString(), argv[3], argv[4].getInt());
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) {
 		tweener->setFunction(tweenEaseInOut);
 		return TweenerBase::pushLiveTween(tweener);

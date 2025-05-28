@@ -377,7 +377,7 @@ ConsoleMethod( AIPlayer, setAimObject, void, 3, 4, "( GameBase obj, [Point3F off
 
    // Find the target
    GameBase *targetObject;
-   if( Sim::findObject( argv[2].toString(), targetObject))
+   if( Sim::findObject( argv[2], targetObject))
    {
       if (argc == 4) off = argv[3].getPoint3F();
 

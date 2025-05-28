@@ -1013,7 +1013,7 @@ ConsoleMethod(Item, setCollisionTimeout, bool, 3, 4, "(ShapeBase obj [, S32 n])"
               "Disable collisions against obj for n ticks.")
 {
    ShapeBase* source;
-   if (Sim::findObject(argv[2].toString(), source))
+   if (Sim::findObject(argv[2], source))
    {
       if (argc == 3)
           object->setCollisionTimeout(source);
