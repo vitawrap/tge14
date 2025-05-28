@@ -1199,17 +1199,15 @@ U32 SlotAccessNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
    if(type == TypeReqNone)
       return ip;
-
+   if (arrayExpr)
+       ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
    ip = objectExpr->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = OP_SETCUROBJECT;
    codeStream[ip++] = OP_SETCURFIELD;
    codeStream[ip] = STEtoU64(slotName, ip);
    ip++;
    if(arrayExpr)
-   {
-      ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
       codeStream[ip++] = OP_SETCURFIELD_ARRAY;
-   }
    codeStream[ip++] = OP_LOADFIELD;
    return ip;
 }
@@ -1255,21 +1253,23 @@ U32 SlotAssignNode::precompile(TypeReq type)
 
 U32 SlotAssignNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   // [value]
    ip = valueExpr->compile(codeStream, ip, TypeReqValue);
+   // [value, array]
+   if(arrayExpr)
+       ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
+   // [value, array, object]
    if(objectExpr)
    {
       ip = objectExpr->compile(codeStream, ip, TypeReqValue);
-      codeStream[ip++] = OP_SETCUROBJECT;
+      codeStream[ip++] = OP_SETCUROBJECT;   // pop object
    }
    else codeStream[ip++] = OP_SETCUROBJECT_NEW;
    codeStream[ip++] = OP_SETCURFIELD;
    codeStream[ip] = STEtoU64(slotName, ip);
    ip++;
    if(arrayExpr)
-   {
-      ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
-      codeStream[ip++] = OP_SETCURFIELD_ARRAY;
-   }
+      codeStream[ip++] = OP_SETCURFIELD_ARRAY;  // pop array
    codeStream[ip++] = OP_SAVEFIELD;
    conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
@@ -1313,16 +1313,15 @@ U32 SlotAssignOpNode::precompile(TypeReq type)
 U32 SlotAssignOpNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
    ip = valueExpr->compile(codeStream, ip, subType);
+   if (arrayExpr)
+       ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
    ip = objectExpr->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = OP_SETCUROBJECT;
    codeStream[ip++] = OP_SETCURFIELD;
    codeStream[ip] = STEtoU64(slotName, ip);
    ip++;
    if(arrayExpr)
-   {
-      ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
       codeStream[ip++] = OP_SETCURFIELD_ARRAY;
-   }
    codeStream[ip++] = OP_LOADFIELD;
    codeStream[ip++] = operand;
    codeStream[ip++] = OP_SAVEFIELD;
