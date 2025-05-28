@@ -90,8 +90,8 @@ void GuiConsoleTextCtrl::calcResize()
 void GuiConsoleTextCtrl::onPreRender()
 {
    if (mConsoleExpression) {
-      // FIXME: Result will most likely be nothing with the new system.
-      mResult = Con::evaluatef("$temp = %s;", mConsoleExpression);
+      // Explicit return is needed with consolevalue stack.
+      mResult = Con::evaluatef("return $temp = %s;", mConsoleExpression);
    }
    calcResize();
 }
