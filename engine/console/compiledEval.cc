@@ -740,52 +740,52 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             goto execFinished;
 
          case OP_CMPEQ:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) == 0);
+            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) == 0);
             popValueStack();
             break;
 
          case OP_CMPGR:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) > 0);
+            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) > 0);
             popValueStack();
             break;
 
          case OP_CMPGE:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) >= 0);
+            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) >= 0);
             popValueStack();
             break;
 
          case OP_CMPLT:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) < 0);
+            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) < 0);
             popValueStack();
             break;
 
          case OP_CMPLE:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) <= 0);
+            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) <= 0);
             popValueStack();
             break;
 
          case OP_CMPNE:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) != 0);
+            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) != 0);
             popValueStack();
             break;
 
          case OP_XOR:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() ^ valueStack[TOP].getInt());
+            valueStack[TOP-1] = S64(valueStack[TOP].getInt() ^ valueStack[TOP-1].getInt());
             popValueStack();
             break;
 
          case OP_MOD:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() % valueStack[TOP].getInt());
+            valueStack[TOP-1] = S64(valueStack[TOP].getInt() % valueStack[TOP-1].getInt());
             popValueStack();
             break;
 
          case OP_BITAND:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() & valueStack[TOP].getInt());
+            valueStack[TOP-1] = S64(valueStack[TOP].getInt() & valueStack[TOP-1].getInt());
             popValueStack();
             break;
 
          case OP_BITOR:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() | valueStack[TOP].getInt());
+            valueStack[TOP-1] = S64(valueStack[TOP].getInt() | valueStack[TOP-1].getInt());
             popValueStack();
             break;
 
@@ -798,31 +798,31 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             break;
 
          case OP_SHR:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() >> valueStack[TOP].getInt());
+            valueStack[TOP-1] = S64(valueStack[TOP].getInt() >> valueStack[TOP-1].getInt());
             popValueStack();
             break;
 
          case OP_SHL:
-            valueStack[TOP-1] = S64(valueStack[TOP-1].getInt() << valueStack[TOP].getInt());
+            valueStack[TOP-1] = S64(valueStack[TOP].getInt() << valueStack[TOP-1].getInt());
             popValueStack();
             break;
 
          case OP_ADD:
-            valueStack[TOP-1] = F64(valueStack[TOP-1].getNumber() + valueStack[TOP].getNumber());
+            valueStack[TOP-1] = F64(valueStack[TOP].getNumber() + valueStack[TOP-1].getNumber());
             popValueStack();
             break;
 
          case OP_SUB:
-            valueStack[TOP-1] = F64(valueStack[TOP-1].getNumber() - valueStack[TOP].getNumber());
+            valueStack[TOP-1] = F64(valueStack[TOP].getNumber() - valueStack[TOP-1].getNumber());
             popValueStack();
             break;
 
          case OP_MUL:
-            valueStack[TOP-1] = F64(valueStack[TOP-1].getNumber() * valueStack[TOP].getNumber());
+            valueStack[TOP-1] = F64(valueStack[TOP].getNumber() * valueStack[TOP-1].getNumber());
             popValueStack();
             break;
          case OP_DIV:
-            valueStack[TOP-1] = F64(valueStack[TOP-1].getNumber() / valueStack[TOP].getNumber());
+            valueStack[TOP-1] = F64(valueStack[TOP].getNumber() / valueStack[TOP-1].getNumber());
             popValueStack();
             break;
          case OP_NEG:

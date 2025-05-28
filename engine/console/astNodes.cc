@@ -107,6 +107,22 @@ void FunctionDeclStmtNode::setPackage(StringTableEntry packageName)
 //------------------------------------------------------------
 //
 // Console language compilers
+// 
+// A note about IntBinaryExprNode and FloatBinaryExprNode:
+// The set of all operators they use have to assume a reverse
+// layout of the stack, hence why they compile their nodes in
+// reverse order. And hence why compiledEval.cc reflects that
+// in the operand loading order for those OPs.
+// 
+// That is done so AssignOpExprNode and SlotAssignOpNode can
+// first load their right-hand operand before starting the
+// atomic logic of loading their own field before performing
+// the binary operator.
+// 
+// This way, non-commutative operators like -, <<, >>, /
+// can behave as expected, without having to come up with
+// a way that inevitably breaks the atomic variable loading
+// cycle.
 //
 //------------------------------------------------------------
 
@@ -402,8 +418,8 @@ U32 FloatBinaryExprNode::precompile(TypeReq type)
 
 U32 FloatBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
-   ip = left->compile(codeStream, ip, TypeReqValue);
    ip = right->compile(codeStream, ip, TypeReqValue);
+   ip = left->compile(codeStream, ip, TypeReqValue);
    U32 operand = OP_INVALID;
    switch(op)
    {
@@ -432,6 +448,7 @@ TypeReq FloatBinaryExprNode::getPreferredType()
 
 //------------------------------------------------------------
 
+// ALL OF THOSE OPERATORS NEED TO FLIP THEIR USE OF THE STACK!
 void IntBinaryExprNode::getSubTypeOperand()
 {
    subType = TypeReqValue;
@@ -506,8 +523,8 @@ U32 IntBinaryExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    }
    else
    {
-      ip = left->compile(codeStream, ip, subType);
       ip = right->compile(codeStream, ip, subType);
+      ip = left->compile(codeStream, ip, subType);
       codeStream[ip++] = operand;
    }
    conversionOp(TypeReqValue, type, codeStream, ip);
@@ -972,6 +989,7 @@ TypeReq AssignExprNode::getPreferredType()
 
 //------------------------------------------------------------
 
+// ALL OF THESE NEED THEIR USE OF THE STACK TO BE FLIPPED!
 static void getAssignOpTypeOp(S32 op, U32 &operand)
 {
    switch(op)
@@ -1047,6 +1065,7 @@ U32 AssignOpExprNode::precompile(TypeReq type)
 
 U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   ip = expr->compile(codeStream, ip, subType);
    if(arrayIndex)
    {
       // TODO: This can be simplified to remove OP_LOADIMMED_IDENT
@@ -1063,7 +1082,6 @@ U32 AssignOpExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       ip++;
    }
    codeStream[ip++] = OP_LOADVAR;
-   ip = expr->compile(codeStream, ip, subType);
    codeStream[ip++] = operand;
    codeStream[ip++] = OP_SAVEVAR;
    conversionOp(subType, type, codeStream, ip);
@@ -1294,6 +1312,7 @@ U32 SlotAssignOpNode::precompile(TypeReq type)
 
 U32 SlotAssignOpNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   ip = valueExpr->compile(codeStream, ip, subType);
    ip = objectExpr->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = OP_SETCUROBJECT;
    codeStream[ip++] = OP_SETCURFIELD;
@@ -1305,7 +1324,6 @@ U32 SlotAssignOpNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       codeStream[ip++] = OP_SETCURFIELD_ARRAY;
    }
    codeStream[ip++] = OP_LOADFIELD;
-   ip = valueExpr->compile(codeStream, ip, subType);
    codeStream[ip++] = operand;
    codeStream[ip++] = OP_SAVEFIELD;
    conversionOp(subType, type, codeStream, ip);
