@@ -488,7 +488,7 @@ static CameraSpline::Knot::Path resolveKnotPath(const char *arg)
 
 ConsoleMethod(PathCamera,pushBack,void,6, 6,"PathCamera.pushBack(transform,speed,type,path);")
 {
-   Point3F pos;
+   Point3F pos(0, 0, 0);
    AngAxisF aa(Point3F(0,0,0),0);
    if (argv[2].isList()) {
        pos = argv[2].getPoint3F();
@@ -501,7 +501,7 @@ ConsoleMethod(PathCamera,pushBack,void,6, 6,"PathCamera.pushBack(transform,speed
 
 ConsoleMethod(PathCamera,pushFront,void,6, 6,"PathCamera.pushFront(transform,speed,type,path);")
 {
-   Point3F pos;
+   Point3F pos(0, 0, 0);
    AngAxisF aa(Point3F(0,0,0),0);
    if (argv[2].isList()) {
        pos = argv[2].getPoint3F();
