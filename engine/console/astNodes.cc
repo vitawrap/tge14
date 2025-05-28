@@ -1255,6 +1255,7 @@ U32 SlotAssignNode::precompile(TypeReq type)
 
 U32 SlotAssignNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   ip = valueExpr->compile(codeStream, ip, TypeReqValue);
    if(objectExpr)
    {
       ip = objectExpr->compile(codeStream, ip, TypeReqValue);
@@ -1269,7 +1270,6 @@ U32 SlotAssignNode::compile(U64 *codeStream, U64 ip, TypeReq type)
       ip = arrayExpr->compile(codeStream, ip, TypeReqValue);
       codeStream[ip++] = OP_SETCURFIELD_ARRAY;
    }
-   ip = valueExpr->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = OP_SAVEFIELD;
    conversionOp(TypeReqValue, type, codeStream, ip);
    return ip;
