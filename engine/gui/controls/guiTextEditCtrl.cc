@@ -521,8 +521,8 @@ bool GuiTextEditCtrl::onKeyDown(const GuiEvent &event)
             UTF8 buf[GuiTextCtrl::MAX_STRING_LENGTH + 1];
 
             //first, make sure there's something in the clipboard to copy...
-            const char *temp = Platform::getClipboard().toString();
-            ConsoleValue strip = GuiMLTextCtrl::stripControlChars(temp);
+            ConsoleValue temp = Platform::getClipboard();
+            ConsoleValue strip = GuiMLTextCtrl::stripControlChars(temp.toString());
             UTF8 *clipBuf = (UTF8*)strip.getStringU();
             if (dStrlen(clipBuf) <= 0)
                return true;
