@@ -729,7 +729,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             break;
 
          case OP_RETURN:
-            returnVal = valueStack[TOP];
+            returnVal = dMove(valueStack[TOP]);
             popValueStack();
             TS_EXEC_DBG_HOOK(dumpInterpreterState, instruction); // need to do this here.
             goto execFinished;
