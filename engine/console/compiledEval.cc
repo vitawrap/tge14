@@ -996,8 +996,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                // The stack however remain coherent, push a null...
                if (callArgc) {
                    popValueStack(callArgc - 1);
-                   valueStack[TOP] = "";
-               } else valueStack[++TOP] = "";
+                   valueStack[TOP].clearValue();
+               } else valueStack[++TOP].clearValue();
                break;
             }
             // Now, rewrite our code a bit (ie, avoid future lookups) and fall
