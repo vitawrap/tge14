@@ -868,6 +868,13 @@ ConsoleFunction(call, const char *, 2, 0, "call(funcName [,args ...])")
    return Con::execute(argc - 1, argv + 1);
 }
 
+ConsoleFunction(callDeferred, S32, 2, 0, "taskid = callDeferred(funcName [,args ...])")
+{
+   SimConsoleThreadExecCallback cb;
+   SimConsoleThreadExecEvent* evt = new SimConsoleThreadExecEvent(argc-1, argv+1, false, &cb);
+   return (S64) Sim::postEvent(Sim::getRootGroup(), evt, Sim::getCurrentTime());
+}
+
 static U32 execDepth = 0;
 static U32 journalDepth = 1;
 
