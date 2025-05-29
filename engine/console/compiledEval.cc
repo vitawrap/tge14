@@ -1154,29 +1154,11 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             popValueStack();
             break;
 
-         //case OP_ADVANCE_STR_NUL:
-         //   STR.advanceChar(0);
-         //   break;
-
-         //case OP_REWIND_STR:
-         //   STR.rewind();
-         //   break;
-
-         //case OP_TERMINATE_REWIND_STR:  // Can be called after dynamic variable name lookup ($a[b])
-         //   STR.rewindTerminate();
-         //   break;
-
          case OP_COMPARE_STR:
             valueStack[TOP-1] = S64(!valueStack[TOP-1].compare(valueStack[TOP]));
             popValueStack();
             break;
-         /*case OP_PUSH:
-            STR.push();
-            break;
 
-         case OP_PUSH_FRAME:
-            STR.pushFrame();
-            break;*/
          //case OP_BREAK:
          //{
          //   //append the ip and codeptr before managing the breakpoint!
