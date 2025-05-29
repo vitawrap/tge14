@@ -1085,9 +1085,9 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   returnVal = nsEntry->mCode->exec(nsEntry->mFunctionOffset, fnName, nsEntry->mNamespace, callArgc+1, callArgv, false, nsEntry->mPackage, -1);
                   if (callArgc) {
                       popValueStack(callArgc-1); // only pop arg stack for script functions called within script.
-                      valueStack[TOP] = returnVal;
+                      valueStack[TOP] = dMove(returnVal);
                   } else
-                      valueStack[++TOP] = returnVal;
+                      valueStack[++TOP] = dMove(returnVal);
                }
                else // no body, return null on stack
                   valueStack[++TOP].clearValue();
@@ -1116,8 +1116,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                      if (code[ip] != OP_VAL_TO_NONE) {
                          if (callArgc) {
                              popValueStack(callArgc-1); // pop arg stack for engine functions called within script.
-                             valueStack[TOP] = returnVal;
-                         } else valueStack[++TOP] = returnVal;
+                             valueStack[TOP] = dMove(returnVal);
+                         } else valueStack[++TOP] = dMove(returnVal);
                      }
                      else {
                          popValueStack(callArgc);
