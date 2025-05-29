@@ -82,38 +82,6 @@ F64 consoleStringToNumber(const char *str, StringTableEntry file, U32 line)
 
 //------------------------------------------------------------
 
-//namespace Con
-//{
-//
-//   char *getReturnBuffer(U32 bufferSize)
-//   {
-//      return STR.getReturnBuffer(bufferSize);
-//   }
-//
-//   char *getArgBuffer(U32 bufferSize)
-//   {
-//      return STR.getArgBuffer(bufferSize);
-//   }
-//
-//   char *getFloatArg(F64 arg)
-//   {
-//
-//      char *ret = STR.getArgBuffer(32);
-//      dSprintf(ret, 32, "%g", arg);
-//      return ret;
-//   }
-//
-//   char *getIntArg(S32 arg)
-//   {
-//
-//      char *ret = STR.getArgBuffer(32);
-//      dSprintf(ret, 32, "%d", arg);
-//      return ret;
-//   }
-//}
-
-//------------------------------------------------------------
-
 inline void ExprEvalState::setCurVarName(StringTableEntry name)
 {
     currentVariable = globalVars.lookup(name);
