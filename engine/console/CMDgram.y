@@ -69,7 +69,7 @@ void cmderror(char *, ...);
 %token <i> opSHL opSHR opPLASN opMIASN opMLASN opDVASN opMODASN opANDASN
 %token <i> opXORASN opORASN opSLASN opSRASN
 %token <i> opEQ opNE opGE opLE opAND opOR opSTREQ
-%token <i> opCOLONCOLON
+%token <i> opRANGE opCOLONCOLON
 
 %union {
    char              c;
@@ -140,6 +140,7 @@ void cmderror(char *, ...);
 %left '*' '/' '%'
 %right '!' '~' opPLUSPLUS opMINUSMINUS UNARY
 %left '.'
+%left opIDXSTART
 
 %%
 
@@ -400,6 +401,10 @@ expr
       { $$ = StrcatExprNode::alloc($1, $3, $2); }
    | expr opINSTANCE expr
       { $$ = InstanceOfExprNode::alloc($1, $3); }
+   | expr opIDXSTART expr ']'
+      { $1->append($3); $$ = FuncCallExprNode::alloc(StringTable->insert("getWord"), NULL, $1, false); }
+   | expr opIDXSTART expr opRANGE expr ']'
+      { $3->append($5); $1->append($3); $$ = FuncCallExprNode::alloc(StringTable->insert("getWords"), NULL, $1, false); }
    | '!' expr
       { $$ = IntUnaryExprNode::alloc($1, $2); }
    | '~' expr

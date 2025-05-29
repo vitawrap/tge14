@@ -112,6 +112,8 @@ HEXDIGIT [a-fA-F0-9]
 "|="        return(cmdlval.i = opORASN);
 "<<="       return(cmdlval.i = opSLASN);
 ">>="       return(cmdlval.i = opSRASN);
+".."        return(cmdlval.i = opRANGE);
+"#["        return(cmdlval.i = opIDXSTART);
 "instanceof" return(cmdlval.i = opINSTANCE);
 "NL"        {cmdlval.i = '\n'; return '@'; }
 "TAB"       {cmdlval.i = '\t'; return '@'; }

@@ -109,15 +109,17 @@ extern int cmddebug;
     opAND = 302,                   /* opAND  */
     opOR = 303,                    /* opOR  */
     opSTREQ = 304,                 /* opSTREQ  */
-    opCOLONCOLON = 305,            /* opCOLONCOLON  */
-    opMDASN = 306,                 /* opMDASN  */
-    opNDASN = 307,                 /* opNDASN  */
-    opNTASN = 308,                 /* opNTASN  */
-    opCAT = 309,                   /* opCAT  */
-    opSTRNE = 310,                 /* opSTRNE  */
-    opFORGIVE = 311,               /* opFORGIVE  */
-    opINSTANCE = 312,              /* opINSTANCE  */
-    UNARY = 313                    /* UNARY  */
+    opRANGE = 305,                 /* opRANGE  */
+    opCOLONCOLON = 306,            /* opCOLONCOLON  */
+    opMDASN = 307,                 /* opMDASN  */
+    opNDASN = 308,                 /* opNDASN  */
+    opNTASN = 309,                 /* opNTASN  */
+    opCAT = 310,                   /* opCAT  */
+    opSTRNE = 311,                 /* opSTRNE  */
+    opFORGIVE = 312,               /* opFORGIVE  */
+    opINSTANCE = 313,              /* opINSTANCE  */
+    UNARY = 314,                   /* UNARY  */
+    opIDXSTART = 315               /* opIDXSTART  */
   };
   typedef enum cmdtokentype cmdtoken_kind_t;
 #endif
@@ -143,7 +145,7 @@ union CMDSTYPE
    AssignDecl        asn;
    IfStmtNode *      ifnode;
 
-#line 147 "CMDgram.hh"
+#line 149 "CMDgram.hh"
 
 };
 typedef union CMDSTYPE CMDSTYPE;
