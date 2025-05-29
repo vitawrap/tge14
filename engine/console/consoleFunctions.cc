@@ -747,6 +747,18 @@ ConsoleFunctionGroupEnd( TaggedStrings );
 
 //----------------------------------------------------------------
 
+ConsoleFunctionGroupBegin(Lists, "Functions dealing with the console list type.");
+
+ConsoleFunction(isList, bool, 2, 2, "isList(value)")
+{
+    argc;
+    return argv[1].isList();
+}
+
+ConsoleFunctionGroupEnd(Lists);
+
+//----------------------------------------------------------------
+
 ConsoleFunctionGroupBegin( Output, "Functions to output to the console." );
 
 ConsoleFunction(echo, void, 2, 0, "echo(text [, ... ])")
