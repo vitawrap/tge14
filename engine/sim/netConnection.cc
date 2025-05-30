@@ -139,10 +139,10 @@ U32 NetConnection::getSequence()
    return mConnectSequence;
 }
 
-static U32 gPacketRateToServer = 32;
 static U32 gPacketUpdateDelayToServer = 32;
-static U32 gPacketRateToClient = 10;
-static U32 gPacketSize = 200;
+static U32 gPacketRateToServer = 32;
+static U32 gPacketRateToClient = 16;
+static U32 gPacketSize = 1000;  // 1500 is the hard cap, as it's the actual buffer size.
 
 void NetConnection::consoleInit()
 {
@@ -169,8 +169,8 @@ void NetConnection::checkMaxRate()
       gPacketRateToClient = 1;
 
    // Limit packet size.
-   if(gPacketSize > 450)
-      gPacketSize = 450;
+   if(gPacketSize > 1000)
+      gPacketSize = 1000;
    if(gPacketSize < 100)
       gPacketSize = 100;
 
