@@ -215,6 +215,9 @@ class Vehicle: public ShapeBase
     void renderMountedImage(SceneState *state, SceneRenderImage *image);
     virtual bool getAIMove(Move* move);
 
+   // Overrideable criterion for the rigid to go at rest when velocity is low enough.
+   virtual bool rigidCanRest() const { return true; }
+
 public:
    // Test code...
    static ClippedPolyList* sPolyList;

@@ -947,7 +947,8 @@ void Vehicle::updatePos(F32 dt)
          F32 k = mRigid.getKineticEnergy();
          F32 G = sVehicleGravity * dt;
          F32 Kg = 0.5 * mRigid.mass * G * G;
-         if (k < sRestTol * Kg && ++restCount > sRestCount)
+         if ((k < sRestTol * Kg && ++restCount > sRestCount)
+             && rigidCanRest()) // ...and also ask subclasses if it's okay to rest.
             mRigid.setAtRest();
       }
       else

@@ -140,6 +140,7 @@ class WheeledVehicle: public Vehicle
    WheeledVehicleData* mDataBlock;
 
    bool mBraking;
+   S32 mNumWheelsWithContact;   // How many wheels actually had contact in the last tick or frame.
    TSThread* mTailLightThread;
    AUDIOHANDLE mJetSound;
    AUDIOHANDLE mEngineSound;
@@ -192,6 +193,9 @@ class WheeledVehicle: public Vehicle
    void updateJetSound();
 
    U32 getCollisionMask();
+
+protected:
+   bool rigidCanRest() const override;
 
 public:
    DECLARE_CONOBJECT(WheeledVehicle);

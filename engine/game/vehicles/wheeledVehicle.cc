@@ -418,6 +418,7 @@ WheeledVehicle::WheeledVehicle()
    mSquealSound = 0;
    mTailLightThread = 0;
    mSteeringThread = 0;
+   mNumWheelsWithContact = 0;
 
    for (S32 i = 0; i < WheeledVehicleData::MaxWheels; i++) {
       mWheel[i].springThread = 0;
@@ -773,6 +774,9 @@ void WheeledVehicle::updateForces(F32 dt)
    if (contactCount)
       verticalLoad /= contactCount;
 
+   // Save this for our "rigidCanRest" implementation.
+   mNumWheelsWithContact = contactCount;
+
    // Sum up spring and wheel torque forces
    for (Wheel* wheel = mWheel; wheel < wend; wheel++)  
    {
@@ -1036,6 +1040,11 @@ void WheeledVehicle::extendWheels(bool clientHack)
    enableCollision();
 }
 
+bool WheeledVehicle::rigidCanRest() const {
+    if (mDataBlock)
+        return mDataBlock->wheelCount == mNumWheelsWithContact;
+    return true;
+}
 
 //----------------------------------------------------------------------------
 /** Update wheel steering and suspension threads.
