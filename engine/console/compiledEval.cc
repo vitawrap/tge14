@@ -708,7 +708,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             goto execFinished;
 
          case OP_CMPEQ:
-            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) == 0);
+            // EQ is not inverted, because this allows "" == 0 using the cast of "" to 0.
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) == 0);
             popValueStack();
             break;
 
@@ -733,7 +734,8 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             break;
 
          case OP_CMPNE:
-            valueStack[TOP-1] = S64(valueStack[TOP].compare(valueStack[TOP-1]) != 0);
+            // NE is not inverted, because this allows "" == 0 using the cast of "" to 0.
+            valueStack[TOP-1] = S64(valueStack[TOP-1].compare(valueStack[TOP]) != 0);
             popValueStack();
             break;
 
