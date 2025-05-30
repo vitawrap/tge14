@@ -68,9 +68,9 @@ MaterialPropertyMap::MapEntry* MaterialPropertyMap::getNCMapEntry(StringTableEnt
    return const_cast<MapEntry*>(getMapEntry(name));
 }
 
-bool MaterialPropertyMap::addMapping(const S32 argc, const char** argv)
+bool MaterialPropertyMap::addMapping(const S32 argc, ConsoleValue* argv)
 {
-   const char* matName = StringTable->insert(argv[0]);
+   const char* matName = argv[0].toSTString();
 
    MapEntry* pEntry = getNCMapEntry(matName);
    if (pEntry != NULL) {
@@ -93,7 +93,7 @@ bool MaterialPropertyMap::addMapping(const S32 argc, const char** argv)
    pEntry->detailMapScale = .5f;
 
    for (U32 i = 1; S32(i) < argc; i++) {
-      const char* param = argv[i];
+      const char* param = argv[i].toString();
 
       if (dStrnicmp(param, "detail:", dStrlen("detail:")) == 0) {
          // Set the detail map

@@ -47,6 +47,7 @@ SOURCE.CONSOLE=\
 	console/consoleObject.cc \
 	console/consoleParser.cc \
 	console/consoleTypes.cc \
+	console/consoleValue.cc \
 	console/cmdgram.cc \
 	console/CMDscan.cc \
 	console/dynamicTypes.cc \

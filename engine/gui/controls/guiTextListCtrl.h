@@ -54,8 +54,8 @@ class GuiTextListCtrl : public GuiArrayCtrl
    virtual void setCellSize( const Point2I &size ){ mCellSize = size; }
    virtual void getCellSize(       Point2I &size ){ size = mCellSize; }
 
-   const char *getScriptValue();
-   void setScriptValue(const char *value);
+   ConsoleValue getScriptValue() override;
+   void setScriptValue(ConsoleValue& value) override;
 
    U32 getNumEntries();
 

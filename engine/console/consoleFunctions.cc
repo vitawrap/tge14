@@ -26,9 +26,9 @@ static char scriptFilenameBuffer[1024];
 ConsoleFunction(expandFilename, const char*, 2, 2, "(string filename)")
 {
    argc;
-   char* ret = Con::getReturnBuffer( 1024 );
-   Con::expandScriptFilename(ret, 1024, argv[1]);
-   return ret;
+   char expandBuffer[1024];
+   Con::expandScriptFilename(expandBuffer, 1024, argv[1].toString());
+   return expandBuffer;
 }
 
 ConsoleFunctionGroupBegin(StringFunctions, "General string manipulation functions.");
@@ -37,21 +37,21 @@ ConsoleFunction(strcmp, S32, 3, 3, "(string one, string two)"
                 "Case sensitive string compare.")
 {
    argc;
-   return dStrcmp(argv[1], argv[2]);
+   return argv[1].compare(argv[2], true);
 }
 
 ConsoleFunction(stricmp, S32, 3, 3, "(string one, string two)"
                 "Case insensitive string compare.")
 {
    argc;
-   return dStricmp(argv[1], argv[2]);
+   return argv[1].compare(argv[2], false);
 }
 
 ConsoleFunction(strlen, S32, 2, 2, "(string str)"
                "Calculate the length of a string in characters.")
 {
    argc;
-   return dStrlen(argv[1]);
+   return argv[1].getStrlen();
 }
 
 ConsoleFunction(strstr, S32 , 3, 3, "(string one, string two) "
@@ -61,11 +61,13 @@ ConsoleFunction(strstr, S32 , 3, 3, "(string one, string two) "
    argc;
    // returns the start of the sub string argv[2] in argv[1]
    // or -1 if not found.
+   char const* a = argv[1].toString();
+   char const* b = argv[2].toString();
 
-   const char *retpos = dStrstr(argv[1], argv[2]);
+   const char *retpos = dStrstr(a, b);
    if(!retpos)
       return -1;
-   return retpos - argv[1];
+   return retpos - a;
 }
 
 ConsoleFunction(strpos, S32, 3, 4, "(string hay, string needle, int offset=0) "
@@ -74,15 +76,17 @@ ConsoleFunction(strpos, S32, 3, 4, "(string hay, string needle, int offset=0) "
    S32 ret = -1;
    S32 start = 0;
    if(argc == 4)
-      start = dAtoi(argv[3]);
-   U32 sublen = dStrlen(argv[2]);
-   U32 strlen = dStrlen(argv[1]);
+      start = argv[3].getInt();
+   U32 sublen = argv[2].getStrlen();
+   U32 strlen = argv[1].getStrlen();
    if(start < 0)
       return -1;
    if(sublen + start > strlen)
       return -1;
+   char const* hay    = argv[1].getStringU();
+   char const* needle = argv[2].getStringU();
    for(; start + sublen <= strlen; start++)
-      if(!dStrncmp(argv[1] + start, argv[2], sublen))
+      if(!dStrncmp(hay + start, needle, sublen))
          return start;
    return -1;
 }
@@ -90,7 +94,7 @@ ConsoleFunction(strpos, S32, 3, 4, "(string hay, string needle, int offset=0) "
 ConsoleFunction(ltrim, const char *,2,2,"(string value)")
 {
    argc;
-   const char *ret = argv[1];
+   const char *ret = argv[1].toString();
    while(*ret == ' ' || *ret == '\n' || *ret == '\t')
       ret++;
    return ret;
@@ -101,23 +105,22 @@ ConsoleFunction(rtrim, const char *,2,2,"(string value)")
    argc;
    S32 firstWhitespace = 0;
    S32 pos = 0;
-   const char *str = argv[1];
+   const char *str = argv[1].toString();
    while(str[pos])
    {
       if(str[pos] != ' ' && str[pos] != '\n' && str[pos] != '\t')
          firstWhitespace = pos + 1;
       pos++;
    }
-   char *ret = Con::getReturnBuffer(firstWhitespace + 1);
-   dStrncpy(ret, argv[1], firstWhitespace);
-   ret[firstWhitespace] = 0;
+   ConsoleValue ret;
+   ret.concatStringU(str, firstWhitespace);
    return ret;
 }
 
 ConsoleFunction(trim, const char *,2,2,"(string)")
 {
    argc;
-   const char *ptr = argv[1];
+   const char *ptr = argv[1].toString();
    while(*ptr == ' ' || *ptr == '\n' || *ptr == '\t')
       ptr++;
    S32 firstWhitespace = 0;
@@ -129,9 +132,8 @@ ConsoleFunction(trim, const char *,2,2,"(string)")
          firstWhitespace = pos + 1;
       pos++;
    }
-   char *ret = Con::getReturnBuffer(firstWhitespace + 1);
-   dStrncpy(ret, ptr, firstWhitespace);
-   ret[firstWhitespace] = 0;
+   ConsoleValue ret;
+   ret.concatStringU(ptr, firstWhitespace);
    return ret;
 }
 
@@ -139,13 +141,15 @@ ConsoleFunction(stripChars, const char*, 3, 3, "(string value, string chars) "
                 "Remove all the characters in chars from value." )
 {
    argc;
-   char* ret = Con::getReturnBuffer( dStrlen( argv[1] ) + 1 );
-   dStrcpy( ret, argv[1] );
-   U32 pos = dStrcspn( ret, argv[2] );
-   while ( pos < dStrlen( ret ) )
+   char const* value = argv[1].toString();
+   char const* set = argv[2].toString();
+   ReturnBuffer ret(dStrlen(value) + 1);
+   dStrcpy( *ret, value );
+   U32 pos = dStrcspn( *ret, set );
+   while ( pos < dStrlen( *ret ) )
    {
-      dStrcpy( ret + pos, ret + pos + 1 );
-      pos = dStrcspn( ret, argv[2] );
+      dStrcpy( *ret + pos, *ret + pos + 1 );
+      pos = dStrcspn( *ret, set );
    }
    return( ret );
 }
@@ -153,9 +157,10 @@ ConsoleFunction(stripChars, const char*, 3, 3, "(string value, string chars) "
 ConsoleFunction(stripColorCodes, const char*, 2,2,  "(stringtoStrip) - "
                 "remove TorqueML color codes from the string.")
 {
-   char* ret = Con::getReturnBuffer( dStrlen( argv[1] ) + 1 );
-   dStrcpy(ret, argv[1]);
-   Con::stripColorChars(ret);
+   char const* str = argv[1].toString();
+   ReturnBuffer ret( dStrlen( str ) + 1 );
+   dStrcpy(*ret, str);
+   Con::stripColorChars(*ret);
    return ret;
 }
 
@@ -163,67 +168,73 @@ ConsoleFunction(strlwr,const char *,2,2,"(string) "
                 "Convert string to lower case.")
 {
    argc;
-   char *ret = Con::getReturnBuffer(dStrlen(argv[1]) + 1);
-   dStrcpy(ret, argv[1]);
-   return dStrlwr(ret);
+   char const* str = argv[1].toString();
+   ReturnBuffer ret(dStrlen(str) + 1);
+   dStrcpy(*ret, str);
+   return dStrlwr(*ret);
 }
 
 ConsoleFunction(strupr,const char *,2,2,"(string) "
                 "Convert string to upper case.")
 {
-   argc;
-   char *ret = Con::getReturnBuffer(dStrlen(argv[1]) + 1);
-   dStrcpy(ret, argv[1]);
-   return dStrupr(ret);
+    argc;
+    char const* str = argv[1].toString();
+    ReturnBuffer ret(dStrlen(str) + 1);
+    dStrcpy(*ret, str);
+    return dStrupr(*ret);
 }
 
 ConsoleFunction(strchr,const char *,3,3,"(string,char)")
 {
    argc;
-   const char *ret = dStrchr(argv[1], argv[2][0]);
+   const char *ret = dStrchr(argv[1].toString(), argv[2].toString()[0]);
    return ret ? ret : "";
 }
 
 ConsoleFunction(startsWith,bool,3,3,"(string,sequence)")
 {
    argc;
-   return dStrnicmp(argv[1], argv[2], dStrlen(argv[2])) == 0;
+   return dStrnicmp(argv[1].toString(), argv[2].toString(), argv[2].getStrlen()) == 0;
 }
 
 ConsoleFunction(strreplace, const char *, 4, 4, "(string source, string from, string to)")
 {
-   argc;
-   S32 fromLen = dStrlen(argv[2]);
-   if(!fromLen)
-      return argv[1];
+   char const* source = argv[1].toString();
+   char const* from = argv[2].toString();
+   char const* to = argv[3].toString();
 
-   S32 toLen = dStrlen(argv[3]);
+   argc;
+   S32 fromLen = dStrlen(from);
+   if(!fromLen)
+      return source;
+
+   S32 toLen = dStrlen(to);
    S32 count = 0;
-   const char *scan = argv[1];
+   const char *scan = source;
    while(scan)
    {
-      scan = dStrstr(scan, argv[2]);
+      scan = dStrstr(scan, from);
       if(scan)
       {
          scan += fromLen;
          count++;
       }
    }
-   char *ret = Con::getReturnBuffer(dStrlen(argv[1]) + 1 + (toLen - fromLen) * count);
+   ReturnBuffer ret(dStrlen(source) + 1 + (toLen - fromLen) * count);
    U32 scanp = 0;
    U32 dstp = 0;
    for(;;)
    {
-      const char *scan = dStrstr(argv[1] + scanp, argv[2]);
+      const char *scan = dStrstr(source + scanp, from);
       if(!scan)
       {
-         dStrcpy(ret + dstp, argv[1] + scanp);
+         dStrcpy(*ret + dstp, source + scanp);
          return ret;
       }
-      U32 len = scan - (argv[1] + scanp);
-      dStrncpy(ret + dstp, argv[1] + scanp, len);
+      U32 len = scan - (source + scanp);
+      dStrncpy(*ret + dstp, source + scanp, len);
       dstp += len;
-      dStrcpy(ret + dstp, argv[3]);
+      dStrcpy(*ret + dstp, to);
       dstp += toLen;
       scanp += len + fromLen;
    }
@@ -240,15 +251,14 @@ ConsoleFunction(getSubStr, const char *, 4, 4, "getSubStr(string str, int start,
    //  to either the end of the string, or argv[3] characters, whichever
    //  comes first.
    //
-   S32 startPos   = dAtoi(argv[2]);
-   S32 desiredLen = dAtoi(argv[3]);
+   S32 startPos   = argv[2].getInt();
+   S32 desiredLen = argv[3].getInt();
    if (startPos < 0 || desiredLen < 0) {
       Con::errorf(ConsoleLogEntry::Script, "getSubStr(...): error, starting position and desired length must be >= 0: (%d, %d)", startPos, desiredLen);
-
       return "";
    }
 
-   S32 baseLen = dStrlen(argv[1]);
+   S32 baseLen = argv[1].getStrlen();
    if (baseLen < startPos)
       return "";
 
@@ -256,10 +266,8 @@ ConsoleFunction(getSubStr, const char *, 4, 4, "getSubStr(string str, int start,
    if (startPos + desiredLen > baseLen)
       actualLen = baseLen - startPos;
 
-   char *ret = Con::getReturnBuffer(actualLen + 1);
-   dStrncpy(ret, argv[1] + startPos, actualLen);
-   ret[actualLen] = '\0';
-
+   ConsoleValue ret;
+   ret.concatStringU(argv[1].toString() + startPos, actualLen);
    return ret;
 }
 
@@ -267,18 +275,18 @@ ConsoleFunction(getSubStr, const char *, 4, 4, "getSubStr(string str, int start,
 ConsoleFunction( stripTrailingSpaces, const char*, 2, 2, "stripTrailingSpaces( string )" )
 {
    argc;
-   S32 temp = S32(dStrlen( argv[1] ));
+   S32 temp = S32(argv[1].getStrlen());
    if ( temp )
    {
-      while ( ( argv[1][temp - 1] == ' ' || argv[1][temp - 1] == '_' ) && temp >= 1 )
+      char const* string = argv[1].getStringU();
+      while ( ( string[temp - 1] == ' ' || string[temp - 1] == '_' ) && temp >= 1 )
          temp--;
 
       if ( temp )
       {
-         char* returnString = Con::getReturnBuffer( temp + 1 );
-         dStrncpy( returnString, argv[1], U32(temp) );
-         returnString[temp] = '\0';
-         return( returnString );			
+         ConsoleValue ret;
+         ret.concatStringU( string, temp );
+         return( ret );
       }
    }
 
@@ -289,38 +297,40 @@ ConsoleFunctionGroupEnd(StringFunctions);
 
 //--------------------------------------
 
-static const char *getUnit(const char *string, U32 index, const char *set)
+struct UnitPair {
+    char const* start;
+    U32 length;
+};
+
+static UnitPair getUnit(const char *string, U32 index, const char *set)
 {
    U32 sz;
    while(index--)
    {
       if(!*string)
-         return "";
+          return { NULL, 0 };
       sz = dStrcspn(string, set);
       if (string[sz] == 0)
-         return "";
+          return { NULL, 0 };
       string += (sz + 1);
    }
    sz = dStrcspn(string, set);
    if (sz == 0)
-      return "";
-   char *ret = Con::getReturnBuffer(sz+1);
-   dStrncpy(ret, string, sz);
-   ret[sz] = '\0';
-   return ret;
+       return { NULL, 0 };
+   return { string, sz };
 }
 
-static const char *getUnits(const char *string, S32 startIndex, S32 endIndex, const char *set)
+static UnitPair getUnits(const char *string, S32 startIndex, S32 endIndex, const char *set)
 {
    S32 sz;
    S32 index = startIndex;
    while(index--)
    {
       if(!*string)
-         return "";
+         return { NULL, 0 };
       sz = dStrcspn(string, set);
       if (string[sz] == 0)
-         return "";
+         return { NULL, 0 };
       string += (sz + 1);
    }
    const char *startString = string;
@@ -335,10 +345,7 @@ static const char *getUnits(const char *string, S32 startIndex, S32 endIndex, co
    if(!*string)
       string++;
    U32 totalSize = (U32(string - startString));
-   char *ret = Con::getReturnBuffer(totalSize);
-   dStrncpy(ret, startString, totalSize - 1);
-   ret[totalSize-1] = '\0';
-   return ret;
+   return { startString, totalSize - 1 };
 }
 
 static U32 getUnitCount(const char *string, const char *set)
@@ -365,12 +372,11 @@ static U32 getUnitCount(const char *string, const char *set)
 }
 
 
-static const char* setUnit(const char *string, U32 index, const char *replace, const char *set)
+static ConsoleValue setUnit(const char *string, U32 index, const char *replace, const char *set)
 {
    U32 sz;
    const char *start = string;
-   char *ret = Con::getReturnBuffer(dStrlen(string) + dStrlen(replace) + 1);
-   ret[0] = '\0';
+   ConsoleValue ret;
    U32 padCount = 0;
 
    while(index--)
@@ -387,13 +393,12 @@ static const char* setUnit(const char *string, U32 index, const char *replace, c
    }
    // copy first chunk
    sz = string-start;
-   dStrncpy(ret, start, sz);
+   ret.concatStringU(start, sz);
    for(U32 i = 0; i < padCount; i++)
-      ret[sz++] = set[0];
+      ret.concatStringU(set, 1);
 
    // replace this unit
-   ret[sz] = '\0';
-   dStrcat(ret, replace);
+   ret.concatStringU(replace, dStrlen(replace));
 
    // copy remaining chunks
    sz = dStrcspn(string, set);         // skip chunk we're replacing
@@ -401,22 +406,20 @@ static const char* setUnit(const char *string, U32 index, const char *replace, c
       return ret;
 
    string += sz;
-   dStrcat(ret, string);
+   ret.concatStringU(string, dStrlen(string));
    return ret;
 }
 
-
-static const char* removeUnit(const char *string, U32 index, const char *set)
+// FIXME: Test this function thoroughly (trailing delimiter logic is fragile now.)
+static ConsoleValue removeUnit(const char *string, U32 index, const char *set)
 {
    U32 sz;
    const char *start = string;
-   char *ret = Con::getReturnBuffer(dStrlen(string) + 1);
-   ret[0] = '\0';
-   U32 padCount = 0;
+   ConsoleValue ret;
 
    while(index--)
    {
-      sz = dStrcspn(string, set);
+      sz = dStrcspn(string, set); // length until char in set
       // if there was no unit out there... return the original string
       if(string[sz] == 0)
          return start;
@@ -425,21 +428,19 @@ static const char* removeUnit(const char *string, U32 index, const char *set)
    }
    // copy first chunk
    sz = string-start;
-   dStrncpy(ret, start, sz);
-   ret[sz] = 0;
+   ret.concatStringU(start, sz);
 
    // copy remaining chunks
-   sz = dStrcspn(string, set);         // skip chunk we're removing
+   S32 remn = dStrcspn(string, set);   // skip chunk we're removing
 
-   if(string[sz] == 0) {               // if that was the last...
-      if(string != start) {
-         ret[string - start - 1] = 0;  // then kill any trailing delimiter
-      }
+   if(string[remn] == 0) {             // if that was the last...
+      // then kill any trailing delimiter
+      ret.concatStringU(string, sz + remn - (string != start));
       return ret;                      // and bail
    }
 
-   string += sz + 1; // skip the extra field delimiter
-   dStrcat(ret, string);
+   string += remn + 1; // skip the extra field delimiter
+   ret.concatStringU(string, dStrlen(string));
    return ret;
 }
 
@@ -447,45 +448,92 @@ static const char* removeUnit(const char *string, U32 index, const char *set)
 //--------------------------------------
 ConsoleFunctionGroupBegin( FieldManipulators, "Functions to manipulate data returned in the form of \"x y z\".");
 
-ConsoleFunction(getWord, const char *, 3, 3, "(string text, int index)")
+ConsoleFunction(getWord, const char *, 3, 3, "(string|list values, int index)")
 {
    argc;
-   return getUnit(argv[1], dAtoi(argv[2]), " \t\n");
+   S64 index = argv[2].getInt();
+   if (argv[1].isList())
+       return argv[1].getListSizeU() > index ? argv[1].getListValueU(index) : "";
+   else {
+       auto pair = getUnit(argv[1].toString(), index, " \t\n");
+       ConsoleValue ret;
+       if (pair.start)
+           ret.concatStringU(pair.start, pair.length);
+       return ret;
+   }
 }
 
-ConsoleFunction(getWords, const char *, 3, 4, "(string text, int index, int endIndex=INF)")
+ConsoleFunction(getWords, const char *, 3, 4, "(string|list values, int index, int endIndex=INF) - Returns a new list.")
 {
+   S64 index = argv[2].getInt();
    U32 endIndex;
    if(argc==3)
       endIndex = 1000000;
    else
-      endIndex = dAtoi(argv[3]);
-   return getUnits(argv[1], dAtoi(argv[2]), endIndex, " \t\n");
+      endIndex = argv[3].getInt();
+   if (argv[1].isList()) {
+       S64 listSize = argv[1].getListSizeU();
+       auto* sublist = new ConsoleValueList;
+       for (int i = index; i < getMin(endIndex + 1, listSize); ++i)
+           sublist->push_back(argv[1].getListValueU(i));
+       return sublist;
+   }
+   else {
+       auto pair = getUnits(argv[1].toString(), index, endIndex, " \t\n");
+       ConsoleValue ret;
+       if (pair.start)
+           ret.concatStringU(pair.start, pair.length);
+       return ret;
+   }
 }
 
-ConsoleFunction(setWord, const char *, 4, 4, "newText = setWord(text, index, replace)")
+ConsoleFunction(setWord, const char *, 4, 4, "newText = setWord(text, index, replace) OR setWord(list, index, replace)")
 {
    argc;
-   return setUnit(argv[1], dAtoi(argv[2]), argv[3], " \t\n");
+   auto& val = argv[1];
+   U32 index = argv[2].getInt();
+   if (val.isList()) {
+       while (val.getListSizeU() <= index) val.list->push_back("");
+       val.list->at(index) = dMove(argv[3]);
+       return val;
+   }
+   return setUnit(val.toString(), index, argv[3].toString(), " \t\n");
 }
 
-ConsoleFunction(removeWord, const char *, 3, 3, "newText = removeWord(text, index)")
+ConsoleFunction(removeWord, const char *, 3, 3, "newText = removeWord(text, index) OR removeWord(list, index)")
 {
    argc;
-   return removeUnit(argv[1], dAtoi(argv[2]), " \t\n");
+   auto& val = argv[1];
+   U32 index = argv[2].getInt();
+   if (val.isList()) {
+       if (val.getListSizeU() > index) {
+           for (S32 i = index; (i+1) < val.getListSizeU(); ++i)
+               val.list->at(i) = val.list->at(i+1);
+           val.list->at(index).clearValue();
+           val.list->decrement();
+       }
+       return val;
+   }
+   return removeUnit(val.toString(), index, " \t\n");
 }
 
 ConsoleFunction(getWordCount, S32, 2, 2, "getWordCount(text)")
 {
    argc;
-   return getUnitCount(argv[1], " \t\n");
+   if (argv[1].isList())
+       return (S64) argv[1].getListSizeU();
+   return (S64) getUnitCount(argv[1].toString(), " \t\n");
 }
 
 //--------------------------------------
 ConsoleFunction(getField, const char *, 3, 3, "getField(text, index)")
 {
    argc;
-   return getUnit(argv[1], dAtoi(argv[2]), "\t\n");
+   auto pair = getUnit(argv[1].toString(), argv[2].getInt(), "\t\n");
+   ConsoleValue ret;
+   if (pair.start)
+       ret.concatStringU(pair.start, pair.length);
+   return ret;
 }
 
 ConsoleFunction(getFields, const char *, 3, 4, "getFields(text, index [,endIndex])")
@@ -494,33 +542,41 @@ ConsoleFunction(getFields, const char *, 3, 4, "getFields(text, index [,endIndex
    if(argc==3)
       endIndex = 1000000;
    else
-      endIndex = dAtoi(argv[3]);
-   return getUnits(argv[1], dAtoi(argv[2]), endIndex, "\t\n");
+      endIndex = argv[3].getInt();
+   auto pair = getUnits(argv[1].toString(), argv[2].getInt(), endIndex, "\t\n");
+   ConsoleValue ret;
+   if (pair.start)
+       ret.concatStringU(pair.start, pair.length);
+   return ret;
 }
 
 ConsoleFunction(setField, const char *, 4, 4, "newText = setField(text, index, replace)")
 {
    argc;
-   return setUnit(argv[1], dAtoi(argv[2]), argv[3], "\t\n");
+   return setUnit(argv[1].toString(), argv[2].getInt(), argv[3].toString(), "\t\n");
 }
 
 ConsoleFunction(removeField, const char *, 3, 3, "newText = removeField(text, index)" )
 {
    argc;
-   return removeUnit(argv[1], dAtoi(argv[2]), "\t\n");
+   return removeUnit(argv[1].toString(), argv[2].getInt(), "\t\n");
 }
 
 ConsoleFunction(getFieldCount, S32, 2, 2, "getFieldCount(text)")
 {
    argc;
-   return getUnitCount(argv[1], "\t\n");
+   return (S64) getUnitCount(argv[1].toString(), "\t\n");
 }
 
 //--------------------------------------
 ConsoleFunction(getRecord, const char *, 3, 3, "getRecord(text, index)")
 {
    argc;
-   return getUnit(argv[1], dAtoi(argv[2]), "\n");
+   auto pair = getUnit(argv[1].toString(), argv[2].getInt(), "\n");
+   ConsoleValue ret;
+   if (pair.start)
+       ret.concatStringU(pair.start, pair.length);
+   return ret;
 }
 
 ConsoleFunction(getRecords, const char *, 3, 4, "getRecords(text, index [,endIndex])")
@@ -529,52 +585,69 @@ ConsoleFunction(getRecords, const char *, 3, 4, "getRecords(text, index [,endInd
    if(argc==3)
       endIndex = 1000000;
    else
-      endIndex = dAtoi(argv[3]);
-   return getUnits(argv[1], dAtoi(argv[2]), endIndex, "\n");
+      endIndex = argv[3].getInt();
+   auto pair = getUnits(argv[1].toString(), argv[2].getInt(), endIndex, "\n");
+   ConsoleValue ret;
+   if (pair.start)
+       ret.concatStringU(pair.start, pair.length);
+   return ret;
 }
 
 ConsoleFunction(setRecord, const char *, 4, 4, "newText = setRecord(text, index, replace)")
 {
    argc;
-   return setUnit(argv[1], dAtoi(argv[2]), argv[3], "\n");
+   return setUnit(argv[1].toString(), argv[2].getInt(), argv[3].toString(), "\n");
 }
 
 ConsoleFunction(removeRecord, const char *, 3, 3, "newText = removeRecord(text, index)" )
 {
    argc;
-   return removeUnit(argv[1], dAtoi(argv[2]), "\n");
+   return removeUnit(argv[1].toString(), argv[2].getInt(), "\n");
 }
 
 ConsoleFunction(getRecordCount, S32, 2, 2, "getRecordCount(text)")
 {
    argc;
-   return getUnitCount(argv[1], "\n");
-}
-//--------------------------------------
-ConsoleFunction(firstWord, const char *, 2, 2, "firstWord(text)")
-{
-   argc;
-   const char *word = dStrchr(argv[1], ' ');
-   U32 len;
-   if(word == NULL)
-      len = dStrlen(argv[1]);
-   else
-      len = word - argv[1];
-   char *ret = Con::getReturnBuffer(len + 1);
-   dStrncpy(ret, argv[1], len);
-   ret[len] = 0;
-   return ret;
+   return (S64) getUnitCount(argv[1].toString(), "\n");
 }
 
-ConsoleFunction(restWords, const char *, 2, 2, "restWords(text)")
+//--------------------------------------
+ConsoleFunction(firstWord, const char *, 2, 2, "firstWord(text|list)")
 {
    argc;
-   const char *word = dStrchr(argv[1], ' ');
-   if(word == NULL)
-      return "";
-   char *ret = Con::getReturnBuffer(dStrlen(word + 1) + 1);
-   dStrcpy(ret, word + 1);
-   return ret;
+   if (argv[1].isList()) {
+       return argv[1].getListSizeU() >= 1 ? argv[1].getListValueU(0) : "";
+   }
+   else {
+       const char* string = argv[1].toString();
+       const char* word = dStrchr(string, ' ');
+       U32 len;
+       if(word == NULL)
+          len = argv[1].getStrlen();
+       else
+          len = word - string;
+       ConsoleValue ret;
+       ret.concatStringU(string, len);
+       return ret;
+   }
+}
+
+ConsoleFunction(restWords, const char *, 2, 2, "restWords(text|list) - Returns a new list.")
+{
+   argc;
+   auto& val = argv[1];
+   if (val.isList()) {
+       auto* list = new ConsoleValueList;
+       for (S32 i = 1; i < val.getListSizeU(); ++i)
+           list->push_back(val.getListValueU(i));
+       return list;
+   }
+   else {
+       const char *word = dStrchr(argv[1].toString(), ' ');
+       if(word == NULL)
+          return "";
+       return word + 1;
+   }
 }
 
 static bool isInSet(char c, const char *set)
@@ -590,10 +663,12 @@ static bool isInSet(char c, const char *set)
 ConsoleFunction(NextToken,const char *,4,4,"nextToken(str,token,delim)")
 {
    argc;
+   if (!argv[1].castTo(ConsoleValue::TypeString))
+       return "";
 
-   char *str = (char *) argv[1];
-   const char *token = argv[2];
-   const char *delim = argv[3];
+   char *str = const_cast<char*>(argv[1].getStringU());
+   const char *token = argv[2].toString();
+   const char *delim = argv[3].toString();
 
    if (str)
    {
@@ -635,14 +710,12 @@ ConsoleFunctionGroupBegin( TaggedStrings, "Functions dealing with tagging/detagg
 ConsoleFunction(detag, const char *, 2, 2, "detag(textTagString)")
 {
    argc;
-   if(argv[1][0] == StringTagPrefixByte)
+   if(argv[1].castTo(ConsoleValue::TypeString) && (argv[1].getStringU()[0] == StringTagPrefixByte))
    {
-      const char *word = dStrchr(argv[1], ' ');
+      const char *word = dStrchr(argv[1].getStringU(), ' ');
       if(word == NULL)
          return "";
-      char *ret = Con::getReturnBuffer(dStrlen(word + 1) + 1);
-      dStrcpy(ret, word + 1);
-      return ret;
+      return word + 1;
    }
    else
       return argv[1];
@@ -651,21 +724,20 @@ ConsoleFunction(detag, const char *, 2, 2, "detag(textTagString)")
 ConsoleFunction(getTag, const char *, 2, 2, "getTag(textTagString)")
 {
    argc;
-   if(argv[1][0] == StringTagPrefixByte)
+   if(argv[1].castTo(ConsoleValue::TypeString) && (argv[1].getStringU()[0] == StringTagPrefixByte))
    {
-      const char * space = dStrchr(argv[1], ' ');
+      const char * string = argv[1].getStringU();
+      const char * space = dStrchr(string, ' ');
 
       U32 len;
       if(space)
-         len = space - argv[1];
+         len = space - string;
       else
-         len = dStrlen(argv[1]) + 1;
+         len = dStrlen(string) + 1;
 
-      char * ret = Con::getReturnBuffer(len);
-      dStrncpy(ret, argv[1] + 1, len - 1);
-      ret[len - 1] = 0;
-
-      return(ret);
+      ConsoleValue ret;
+      ret.concatStringU(string + 1, len - 1);
+      return ret;
    }
    else
       return(argv[1]);
@@ -675,83 +747,74 @@ ConsoleFunctionGroupEnd( TaggedStrings );
 
 //----------------------------------------------------------------
 
+ConsoleFunctionGroupBegin(Lists, "Functions dealing with the console list type.");
+
+ConsoleFunction(isList, bool, 2, 2, "isList(value)")
+{
+    argc;
+    return argv[1].isList();
+}
+
+ConsoleFunctionGroupEnd(Lists);
+
+//----------------------------------------------------------------
+
 ConsoleFunctionGroupBegin( Output, "Functions to output to the console." );
 
 ConsoleFunction(echo, void, 2, 0, "echo(text [, ... ])")
 {
-   U32 len = 0;
-   S32 i;
-   for(i = 1; i < argc; i++)
-      len += dStrlen(argv[i]);
+   ConsoleValue ret;
+   for (S64 i = 1; i < argc; i++)
+       ret.concatU(argv[i]);
 
-   char *ret = Con::getReturnBuffer(len + 1);
-   ret[0] = 0;
-   for(i = 1; i < argc; i++)
-      dStrcat(ret, argv[i]);
-
-   Con::printf("%s", ret);
-   ret[0] = 0;
+   Con::printf("%s", ret.getStringU());
 }
 
 ConsoleFunction(warn, void, 2, 0, "warn(text [, ... ])")
 {
-   U32 len = 0;
-   S32 i;
-   for(i = 1; i < argc; i++)
-      len += dStrlen(argv[i]);
+   ConsoleValue ret;
+   for (S64 i = 1; i < argc; i++)
+       ret.concatU(argv[i]);
 
-   char *ret = Con::getReturnBuffer(len + 1);
-   ret[0] = 0;
-   for(i = 1; i < argc; i++)
-      dStrcat(ret, argv[i]);
-
-   Con::warnf(ConsoleLogEntry::General, "%s", ret);
-   ret[0] = 0;
+   Con::warnf(ConsoleLogEntry::General, "%s", ret.getStringU());
 }
 
 ConsoleFunction(error, void, 2, 0, "error(text [, ... ])")
 {
-   U32 len = 0;
-   S32 i;
-   for(i = 1; i < argc; i++)
-      len += dStrlen(argv[i]);
+   ConsoleValue ret;
+   for (S64 i = 1; i < argc; i++)
+       ret.concatU(argv[i]);
 
-   char *ret = Con::getReturnBuffer(len + 1);
-   ret[0] = 0;
-   for(i = 1; i < argc; i++)
-      dStrcat(ret, argv[i]);
-
-   Con::errorf(ConsoleLogEntry::General, "%s", ret);
-   ret[0] = 0;
+   Con::errorf(ConsoleLogEntry::General, "%s", ret.getStringU());
 }
 
 ConsoleFunction(expandEscape, const char *, 2, 2, "expandEscape(text)")
 {
    argc;
-   char *ret = Con::getReturnBuffer(dStrlen(argv[1])*2 + 1);  // worst case situation
-   expandEscape(ret, argv[1]);
+   ReturnBuffer ret((argv[1].getStrlen() * 2) + 1);  // worst case situation
+   expandEscape( *ret, argv[1].toString() );
    return ret;
 }
 
 ConsoleFunction(collapseEscape, const char *, 2, 2, "collapseEscape(text)")
 {
    argc;
-   char *ret = Con::getReturnBuffer(dStrlen(argv[1]) + 1);  // worst case situation
-   dStrcpy( ret, argv[1] );
-   collapseEscape( ret );
+   ReturnBuffer ret((argv[1].getStrlen()) + 1);  // worst case situation
+   dStrcpy( *ret, argv[1].toString() );
+   collapseEscape( *ret );
    return ret;
 }
 
 ConsoleFunction(setLogMode, void, 2, 2, "setLogMode(mode);")
 {
    argc;
-   Con::setLogMode(dAtoi(argv[1]));
+   Con::setLogMode(argv[1].getInt());
 }
 
 ConsoleFunction(setEchoFileLoads, void, 2, 2, "setEchoFileLoads(bool);")
 {
    argc;
-   ResourceManager->setFileNameEcho(dAtob(argv[1]));
+   ResourceManager->setFileNameEcho(argv[1].getInt());
 }
 
 ConsoleFunctionGroupEnd( Output );
@@ -768,7 +831,7 @@ ConsoleFunction(quitWithErrorMessage, void, 2, 2, "quitWithErrorMessage(msg)"
                 " - Quit, showing the provided error message. This is equivalent"
                 " to an AssertISV.")
 {
-   AssertISV(false, argv[1]);
+   AssertISV(false, argv[1].toString());
 }
 
 //----------------------------------------------------------------
@@ -776,7 +839,7 @@ ConsoleFunction(quitWithErrorMessage, void, 2, 2, "quitWithErrorMessage(msg)"
 ConsoleFunction( gotoWebPage, void, 2, 2, "( address ) - Open a web page in the user's favorite web browser." )
 {
    argc;
-   Platform::openWebBrowser( argv[1] );
+   Platform::openWebBrowser( argv[1].toString() );
 }
 
 //----------------------------------------------------------------
@@ -786,13 +849,14 @@ ConsoleFunctionGroupBegin(MetaScripting, "Functions that let you manipulate the 
 ConsoleFunction(isFunction, bool, 2, 3, "isFunction([namespace,] funcName)")
 {
     if (argc == 2)
-        return Con::isFunction( argv[1] );
+        return Con::isFunction( argv[1].toString() );
     else
     {
-        Namespace* ns = Con::lookupNamespace( argv[1][0]? argv[1] : NULL );
+        char const* nsStr = argv[1].toString();
+        Namespace* ns = Con::lookupNamespace( nsStr[0]? nsStr : NULL );
         if (ns)
         {
-            StringTableEntry ste = StringTable->lookup(argv[2]);
+            StringTableEntry ste = StringTable->lookup( argv[2].toString() );
             return ste ? static_cast<bool>(ns->lookup(ste)) : false;
         }
         return false;
@@ -802,6 +866,13 @@ ConsoleFunction(isFunction, bool, 2, 3, "isFunction([namespace,] funcName)")
 ConsoleFunction(call, const char *, 2, 0, "call(funcName [,args ...])")
 {
    return Con::execute(argc - 1, argv + 1);
+}
+
+ConsoleFunction(callDeferred, S32, 2, 0, "taskid = callDeferred(funcName [,args ...])")
+{
+   SimConsoleThreadExecCallback cb;
+   SimConsoleThreadExecEvent* evt = new SimConsoleThreadExecEvent(argc-1, argv+1, false, &cb);
+   return (S64) Sim::postEvent(Sim::getRootGroup(), evt, Sim::getCurrentTime());
 }
 
 static U32 execDepth = 0;
@@ -817,7 +888,7 @@ ConsoleFunction(compile, bool, 2, 2, "compile(fileName)")
    Stream *compiledStream = NULL;
    FileTime comModifyTime, scrModifyTime;
 
-   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]);
+   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString());
 
    dSprintf(nameBuffer, sizeof(nameBuffer), "%s.dso", scriptFilenameBuffer);
    ResourceObject *rScr = ResourceManager->find(scriptFilenameBuffer);
@@ -868,17 +939,17 @@ ConsoleFunction(exec, bool, 2, 4, "exec(fileName [, nocalls [,journalScript]])")
    bool noCalls = false;
    bool ret = false;
 
-   if(argc >= 3 && dAtoi(argv[2]))
+   if(argc >= 3 && argv[2].getInt())
       noCalls = true;
 
-   if(argc >= 4 && dAtoi(argv[3]) && !journal)
+   if(argc >= 4 && argv[3].getInt() && !journal)
    {
       journal = true;
       journalDepth = execDepth;
    }
 
    // Determine the filename we actually want...
-   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]);
+   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString());
 
    const char *ext = dStrrchr(scriptFilenameBuffer, '.');
 
@@ -1077,7 +1148,7 @@ ConsoleFunction(exec, bool, 2, 4, "exec(fileName [, nocalls [,journalScript]])")
 ConsoleFunction(eval, const char *, 2, 2, "eval(consoleString)")
 {
    argc;
-   return Con::evaluate(argv[1], false, NULL);
+   return Con::evaluate(argv[1].toString(), false, NULL);
 }
 
 //----------------------------------------------------------------
@@ -1085,22 +1156,22 @@ ConsoleFunction(eval, const char *, 2, 2, "eval(consoleString)")
 ConsoleFunction(export, void, 2, 4, "export(searchString [, fileName [,append]])")
 {
    const char *filename = NULL;
-   bool append = (argc == 4) ? dAtob(argv[3]) : false;
+   bool append = (argc == 4) ? argv[3].getInt() : false;
 
    if (argc >= 3)
-      if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2]))
+      if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2].toString()))
          filename = scriptFilenameBuffer;
 
-   gEvalState.globalVars.exportVariables(argv[1], filename, append);
+   gEvalState.globalVars.exportVariables(argv[1].toString(), filename, append);
 }
 
 ConsoleFunction(exportList, void, 3, 4, "exportList(searchString, fileName [,append]) - formatted *.list export")
 {
     // A more sane and approachable format for named value lists than a literal executable script file.
     char filename[1024] = {};
-    bool append = (argc == 4) ? dAtob(argv[3]) : false;
+    bool append = (argc == 4) ? argv[3].getInt() : false;
 
-    if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2]))
+    if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2].toString()))
         dStrncpy(filename, scriptFilenameBuffer, 1023);
     else
     {
@@ -1108,13 +1179,13 @@ ConsoleFunction(exportList, void, 3, 4, "exportList(searchString, fileName [,app
         return;
     }
 
-    gEvalState.globalVars.exportVariables(argv[1], filename, append, false);
+    gEvalState.globalVars.exportVariables(argv[1].toString(), filename, append, false);
 }
 
 ConsoleFunction(importList, void, 2, 2, "importList(fileName) - formatted *.list import")
 {
     const char* filename = NULL;
-    if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]))
+    if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString()))
         filename = scriptFilenameBuffer;
     else
     {
@@ -1134,7 +1205,7 @@ ConsoleFunction(importList, void, 2, 2, "importList(fileName) - formatted *.list
             char valbuf[256]{};
             if (dSscanf(linebuf, " %126s %255[^\n]\n", &varbuf[1], valbuf) >= 1)
                 // Technically, this can add variables that are unreachable from TS, but that's interesting.
-                gEvalState.globalVars.setVariable(StringTable->insert(varbuf), StringTable->insert(valbuf));
+                gEvalState.globalVars.setVariable(StringTable->insert(varbuf), ConsoleValue(valbuf));
             else
             {
                 Con::warnf("importList: Read %u lines in file %s", line, filename);
@@ -1154,7 +1225,7 @@ ConsoleFunction(importList, void, 2, 2, "importList(fileName) - formatted *.list
 ConsoleFunction(deleteVariables, void, 2, 2, "deleteVariables(wildCard)")
 {
    argc;
-   gEvalState.globalVars.deleteVariables(argv[1]);
+   gEvalState.globalVars.deleteVariables(argv[1].toString());
 }
 
 //----------------------------------------------------------------
@@ -1162,7 +1233,7 @@ ConsoleFunction(deleteVariables, void, 2, 2, "deleteVariables(wildCard)")
 ConsoleFunction(trace, void, 2, 2, "trace(bool)")
 {
    argc;
-   gEvalState.traceOn = dAtob(argv[1]);
+   gEvalState.traceOn = argv[1].getInt();
    Con::printf("Console trace is %s", gEvalState.traceOn ? "on." : "off.");
 }
 
@@ -1210,7 +1281,7 @@ ConsoleFunction(findFirstFile, const char *, 2, 2, "(string pattern) Returns the
    argc;
    const char *fn;
    firstMatch = NULL;
-   if(Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]))
+   if(Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString()))
       firstMatch = ResourceManager->findMatch(scriptFilenameBuffer, &fn, NULL);
    if(firstMatch)
       return fn;
@@ -1222,7 +1293,7 @@ ConsoleFunction(findNextFile, const char *, 2, 2, "(string pattern) Returns the 
 {
    argc;
    const char *fn;
-   if(Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]))
+   if(Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString()))
       firstMatch = ResourceManager->findMatch(scriptFilenameBuffer, &fn, firstMatch);
    else
       firstMatch = NULL;
@@ -1237,13 +1308,13 @@ ConsoleFunction(getFileCount, S32, 2, 2, "(string pattern)returns the number of 
    argc;
    const char* fn;
    U32 count = 0;
-   firstMatch = ResourceManager->findMatch(argv[1], &fn, NULL);
+   firstMatch = ResourceManager->findMatch(argv[1].toString(), &fn, NULL);
    if ( firstMatch )
    {
       count++;
       while ( 1 )
       {
-         firstMatch = ResourceManager->findMatch(argv[1], &fn, firstMatch);
+         firstMatch = ResourceManager->findMatch(argv[1].toString(), &fn, firstMatch);
          if ( firstMatch )
             count++;
          else
@@ -1251,14 +1322,14 @@ ConsoleFunction(getFileCount, S32, 2, 2, "(string pattern)returns the number of 
       }
    }
 
-   return( count );
+   return S64( count );
 }
 
 ConsoleFunction(getFileCRC, S32, 2, 2, "getFileCRC(filename)")
 {
    argc;
    U32 crcVal;
-   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]);
+   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString());
 
    if(!ResourceManager->getCrc(scriptFilenameBuffer, crcVal))
       return(-1);
@@ -1268,7 +1339,7 @@ ConsoleFunction(getFileCRC, S32, 2, 2, "getFileCRC(filename)")
 ConsoleFunction(isFile, bool, 2, 2, "isFile(fileName)")
 {
    argc;
-   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]);
+   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString());
    return bool(ResourceManager->find(scriptFilenameBuffer));
 }
 
@@ -1276,7 +1347,7 @@ ConsoleFunction(isWriteableFileName, bool, 2, 2, "isWriteableFileName(fileName)"
 {
    argc;
    // in a writeable directory?
-   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1]);
+   Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[1].toString());
    if(!ResourceManager->isValidWriteFileName(scriptFilenameBuffer))
       return(false);
 
@@ -1298,7 +1369,7 @@ ConsoleFunction(isWriteableFileName, bool, 2, 2, "isWriteableFileName(fileName)"
 ConsoleFunction(fileExt, const char*, 2, 2, "fileExt(fileName) - Returns file extension with the dot.")
 {
     argc;
-    const char* ret = dStrrchr(argv[1], '.');
+    const char* ret = dStrrchr(argv[1].toString(), '.');
     if (ret) {
         // dont't catch a weird dotted base path when there's no ext...
         if (dStrchr(ret + 1, '/'))
@@ -1311,42 +1382,40 @@ ConsoleFunction(fileExt, const char*, 2, 2, "fileExt(fileName) - Returns file ex
 ConsoleFunction(fileBase, const char *, 2, 2, "fileBase(fileName)")
 {
    argc;
-   const char *path = dStrrchr(argv[1], '/');
+   const char *path = dStrrchr(argv[1].toString(), '/');
    if(!path)
-      path = argv[1];
+      path = argv[1].toString();
    else
       path++;
-   char *ret = Con::getReturnBuffer(dStrlen(path) + 1);
-   dStrcpy(ret, path);
-   char *ext = dStrrchr(ret, '.');
-   if(ext)
-      *ext = 0;
+   char const* ext = dStrrchr(path, '.');
+   ConsoleValue ret;
+   ret.concatStringU(path, ext? ext - path : dStrlen(path));
    return ret;
 }
 
 ConsoleFunction(fileName, const char *, 2, 2, "fileName(filePathName)")
 {
    argc;
-   const char *name = dStrrchr(argv[1], '/');
+   const char *name = dStrrchr(argv[1].toString(), '/');
    if(!name)
-      name = argv[1];
+      name = argv[1].toString();
    else
       name++;
-   char *ret = Con::getReturnBuffer(dStrlen(name));
-   dStrcpy(ret, name);
+   ConsoleValue ret;
+   ret.concatStringU(name, dStrlen(name));
    return ret;
 }
 
 ConsoleFunction(filePath, const char *, 2, 2, "filePath(fileName)")
 {
    argc;
-   const char *path = dStrrchr(argv[1], '/');
+   const char *arg = argv[1].toString();
+   const char *path = dStrrchr(arg, '/');
    if(!path)
       return "";
-   U32 len = path - argv[1];
-   char *ret = Con::getReturnBuffer(len + 1);
-   dStrncpy(ret, argv[1], len);
-   ret[len] = 0;
+   U32 len = path - arg;
+   ConsoleValue ret;
+   ret.concatStringU(arg, len);
    return ret;
 }
 
@@ -1356,17 +1425,17 @@ ConsoleFunctionGroupBegin( Utility, "Utility global functions.");
 
 ConsoleFunction( max, F32, 2, 0, "max(...) - Get max argument")
 {
-    F32 curMax = dAtof(argv[1]);
+    F64 curMax = argv[1].getNumber();
     for (S32 i = 2; i < argc; ++i)
-        curMax = getMax(dAtof(argv[i]), curMax);
+        curMax = getMax(argv[i].getNumber(), curMax);
     return curMax;
 }
 
 ConsoleFunction( min, F32, 2, 0, "min(...) - Get min argument")
 {
-    F32 curMin = dAtof(argv[1]);
+    F64 curMin = argv[1].getNumber();
     for (S32 i = 2; i < argc; ++i)
-        curMin = getMin(dAtof(argv[i]), curMin);
+        curMin = getMin(argv[i].getNumber(), curMin);
     return curMin;
 }
 

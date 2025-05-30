@@ -363,7 +363,7 @@ ConsoleMethod(NetConnection,getAddress,const char *,2,2,"Returns the address we'
    argc; argv;
    if(object->isLocalConnection())
       return "local";
-   char *buffer = Con::getReturnBuffer(256);
+   char buffer[256];
    Net::addressToString(object->getNetAddress(), buffer);
    return buffer;
 }
@@ -371,7 +371,7 @@ ConsoleMethod(NetConnection,getAddress,const char *,2,2,"Returns the address we'
 ConsoleMethod(NetConnection,setSimulatedNetParams,void,4, 4,"(float packetLoss, int delay)")
 {
    argc;
-   object->setSimulatedNetParams(dAtof(argv[2]), dAtoi(argv[3]));
+   object->setSimulatedNetParams(argv[2].getNumber(), argv[3].getInt());
 }
 
 ConsoleMethod( NetConnection, getPing, S32, 2, 2, "conn.getPing()" )
@@ -1089,7 +1089,7 @@ bool NetConnection::readConnectAccept(BitStream *stream, const char **errorStrin
 
 ConsoleMethod(NetConnection, resolveGhostID, S32, 3, 3, "( S32 ghostID ) Convert a ghost id from this connection to a real id.")
 {
-   S32 gID = dAtoi(argv[2]);
+   S32 gID = argv[2].getInt();
 
    // Safety check
    if(gID < 0 || gID > NetConnection::MaxGhostCount) return 0;
@@ -1097,14 +1097,14 @@ ConsoleMethod(NetConnection, resolveGhostID, S32, 3, 3, "( S32 ghostID ) Convert
    NetObject *foo = object->resolveGhost(gID);
 
    if(foo)
-      return foo->getId();
+      return (S64) foo->getId();
    else
       return 0;
 }
 
 ConsoleMethod(NetConnection, resolveObjectFromGhostIndex, S32, 3, 3, "( S32 ghostIdx) Convert a ghost index from this connection to a real id.")
 {
-   S32 gID = dAtoi(argv[2]);
+   S32 gID = argv[2].getInt();
 
    // Safety check
    if(gID < 0 || gID > NetConnection::MaxGhostCount) return 0;
@@ -1112,7 +1112,7 @@ ConsoleMethod(NetConnection, resolveObjectFromGhostIndex, S32, 3, 3, "( S32 ghos
    NetObject *foo = object->resolveObjectFromGhostIndex(gID);
 
    if(foo)
-      return foo->getId();
+      return (S64) foo->getId();
    else
       return 0;
 }
@@ -1121,6 +1121,7 @@ ConsoleMethod(NetConnection, getGhostID, S32, 3, 3, "( S32 realID ) Convert a re
 {
    NetObject * foo;
 
+   // FIXME: Actually I think toString is not a danger for StringTable->lookupn.
    if(Sim::findObject(argv[2], foo))
    {
       return object->getGhostIndex(foo);
@@ -1135,7 +1136,7 @@ ConsoleMethod(NetConnection, getGhostID, S32, 3, 3, "( S32 realID ) Convert a re
 ConsoleMethod(NetConnection, connect, void, 3, 3, "(string remoteAddress) Connects this NC object to the remote address.")
 {
    NetAddress addr;
-   if(!Net::stringToAddress(argv[2], &addr))
+   if(!Net::stringToAddress(argv[2].toString(), &addr))
    {
       Con::errorf("NetConnection::connect: invalid address - %s", argv[2]);
       return;

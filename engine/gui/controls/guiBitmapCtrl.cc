@@ -33,13 +33,13 @@ void GuiBitmapCtrl::initPersistFields()
 ConsoleMethod( GuiBitmapCtrl, setValue, void, 4, 4, "(int xAxis, int yAxis)"
               "Set the offset of the bitmap.")
 {
-   object->setValue(dAtoi(argv[2]), dAtoi(argv[3]));
+   object->setValue(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod( GuiBitmapCtrl, setBitmap, void, 3, 3, "(string filename)"
               "Set the bitmap displayed in the control. Note that it is limited in size, to 256x256.")
 {
-   object->setBitmap(argv[2]);
+   object->setBitmap(argv[2].toString());
 }
 
 bool GuiBitmapCtrl::onWake()

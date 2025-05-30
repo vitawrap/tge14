@@ -342,7 +342,7 @@ bool GuiTextEditCtrl::onKeyDown(const GuiEvent &event)
             case KEY_TAB:
                if ( mTabComplete )
                {
-                  Con::executef( this, 2, "onTabComplete", "1" );
+                  Con::executef( this, 2, "onTabComplete", 1 );
                   return( true );
                }
 
@@ -521,8 +521,9 @@ bool GuiTextEditCtrl::onKeyDown(const GuiEvent &event)
             UTF8 buf[GuiTextCtrl::MAX_STRING_LENGTH + 1];
 
             //first, make sure there's something in the clipboard to copy...
-            const char *temp = (const char*)Platform::getClipboard();
-            UTF8 *clipBuf = (UTF8*)GuiMLTextCtrl::stripControlChars(temp);
+            ConsoleValue temp = Platform::getClipboard();
+            ConsoleValue strip = GuiMLTextCtrl::stripControlChars(temp.toString());
+            UTF8 *clipBuf = (UTF8*)strip.getStringU();
             if (dStrlen(clipBuf) <= 0)
                return true;
 
@@ -780,7 +781,7 @@ dealWithBackspace:
       case KEY_TAB:
          if ( mTabComplete )
          {
-            Con::executef( this, 2, "onTabComplete", "0" );
+            Con::executef( this, 2, "onTabComplete", 0 );
             return( true );
          }
       case KEY_UP:
@@ -1201,16 +1202,17 @@ void GuiTextEditCtrl::getCursor(GuiCursor *&cursor, bool &showCursor, const GuiE
    }
 }
 
-const char *GuiTextEditCtrl::getScriptValue()
+ConsoleValue GuiTextEditCtrl::getScriptValue()
 {
    FrameTemp<UTF8> temp(mTextBuffer.length() * 3 + 1);
    mTextBuffer.get(temp, mTextBuffer.length() * 3 + 1);
-   return StringTable->insert((const char*)(UTF8*)temp, true);
+   //return StringTable->insert((const char*)(UTF8*)temp, true);
+   return (const char*)(UTF8*)temp;
 }
 
-void GuiTextEditCtrl::setScriptValue(const char *value)
+void GuiTextEditCtrl::setScriptValue(ConsoleValue& value)
 {
-   mTextBuffer.set(value);
+   mTextBuffer.set(value.toString());
    mCursorPos = mTextBuffer.length() - 1;
 }
 
@@ -1220,9 +1222,8 @@ ConsoleMethod( GuiTextEditCtrl, getText, const char*, 2, 2, "textEditCtrl.getTex
    if( !object->hasText() )
       return StringTable->insert("");
 
-   char *retBuffer = Con::getReturnBuffer( GuiTextEditCtrl::MAX_STRING_LENGTH );
+   char retBuffer[GuiTextEditCtrl::MAX_STRING_LENGTH];
    object->getText( retBuffer );
-
    return retBuffer;
 }
 
@@ -1236,5 +1237,5 @@ ConsoleMethod( GuiTextEditCtrl, getCursorPos, S32, 2, 2, "textEditCtrl.getCursor
 ConsoleMethod( GuiTextEditCtrl, setCursorPos, void, 3, 3, "textEditCtrl.setCursorPos( newPos )" )
 {
    argc;
-   object->reallySetCursorPos( dAtoi( argv[2] ) );
+   object->reallySetCursorPos( argv[2].getInt() );
 }

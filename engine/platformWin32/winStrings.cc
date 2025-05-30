@@ -235,6 +235,10 @@ char* dStrtok(char *str, const char *sep)
    return strtok(str, sep);
 }
 
+F64 dStrtod(const char* str, char** endptr)
+{
+   return strtod(str, endptr);
+}
 
 S32 dAtoi(const char *str)
 {

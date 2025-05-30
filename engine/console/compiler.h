@@ -46,6 +46,7 @@ namespace Compiler
       OP_JMPIF_NP,
       OP_JMP,
       OP_RETURN,
+      OP_RETURN_NONE,
       OP_CMPEQ,
       OP_CMPGR,
       OP_CMPGE,
@@ -57,7 +58,6 @@ namespace Compiler
       OP_BITAND,
       OP_BITOR,
       OP_NOT,
-      OP_NOTF,
       OP_ONESCOMPLEMENT,
 
       OP_SHR,
@@ -83,13 +83,8 @@ namespace Compiler
       OP_SETCURLOCAL_ARRAY,
       OP_SETCURLOCAL_ARRAY_CREATE,
 
-      OP_LOADVAR_UINT,
-      OP_LOADVAR_FLT,
-      OP_LOADVAR_STR,
-
-      OP_SAVEVAR_UINT,
-      OP_SAVEVAR_FLT,
-      OP_SAVEVAR_STR,
+      OP_LOADVAR,
+      OP_SAVEVAR,
 
       OP_SETCUROBJECT,
       OP_SETCUROBJECT_NEW,
@@ -97,44 +92,26 @@ namespace Compiler
       OP_SETCURFIELD,
       OP_SETCURFIELD_ARRAY,
 
-      OP_LOADFIELD_UINT,
-      OP_LOADFIELD_FLT,
-      OP_LOADFIELD_STR,
+      OP_LOADFIELD,
+      OP_SAVEFIELD,
 
-      OP_SAVEFIELD_UINT,
-      OP_SAVEFIELD_FLT,
-      OP_SAVEFIELD_STR,
-
-      OP_STRNOTNULL_TO_UINT,
-      OP_STR_TO_UINT,
-      OP_STR_TO_FLT,
-      OP_STR_TO_NONE,
-      OP_FLT_TO_UINT,
-      OP_FLT_TO_STR,
-      OP_FLT_TO_NONE,
-      OP_UINT_TO_FLT,
-      OP_UINT_TO_STR,
-      OP_UINT_TO_NONE,
+      OP_STRNOTNULL,
+      OP_VAL_TO_NONE,
 
       OP_LOADIMMED_UINT,
       OP_LOADIMMED_FLT,
       OP_TAG_TO_STR,
       OP_LOADIMMED_STR,
       OP_LOADIMMED_IDENT,
+      OP_LOADIMMED_LIST,
 
       OP_CALLFUNC_RESOLVE,
       OP_CALLFUNC,
 
-      OP_ADVANCE_STR,
-      OP_ADVANCE_STR_APPENDCHAR,
-      OP_ADVANCE_STR_COMMA,
-      OP_ADVANCE_STR_NUL,
-      OP_REWIND_STR,
-      OP_TERMINATE_REWIND_STR,
+      OP_CONCAT_STR,
+      OP_CONCAT_CHAR,
+      OP_CONCAT_STR_COMMA,
       OP_COMPARE_STR,
-
-      OP_PUSH,
-      OP_PUSH_FRAME,
 
       OP_BREAK,
 
@@ -143,6 +120,8 @@ namespace Compiler
 
    //------------------------------------------------------------
 
+   bool consoleStringIsNumber(const char* str);
+   bool consoleStringMatchesConstant(const char* str);
    F64 consoleStringToNumber(const char *str, StringTableEntry file = 0, U32 line = 0);
    U32 precompileBlock(StmtNode *block, U32 loopCount);
    U64 compileBlock(StmtNode *block, U64 *codeStream, U64 ip, U32 continuePoint, U32 breakPoint);

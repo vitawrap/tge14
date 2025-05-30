@@ -505,7 +505,7 @@ ConsoleFunction( setModPaths, void, 2, 2, "(string paths)"
                 "Set the mod paths the resource manager is using. These are semicolon delimited.")
 {
    char buf[512];
-   dStrncpy(buf, argv[1], sizeof(buf) - 1);
+   dStrncpy(buf, argv[1].toString(), sizeof(buf) - 1);
    buf[511] = '\0';
 
    Vector<char*> paths;

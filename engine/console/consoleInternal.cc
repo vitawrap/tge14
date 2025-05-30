@@ -130,7 +130,6 @@ void Dictionary::exportVariables(const char *varString, const char *fileName, bo
    dQsort((void *) &sortList[0], sortList.size(), sizeof(Entry *), varCompare);
 
    Vector<Entry *>::iterator s;
-   char expandBuffer[1024];
    FileStream strm;
 
    if(fileName)
@@ -144,29 +143,17 @@ void Dictionary::exportVariables(const char *varString, const char *fileName, bo
          strm.setPosition(strm.getStreamSize());
    }
 
+   char serialBuffer[1024];
    char buffer[1024];
    const char *cat = fileName ? "\r\n" : "";
 
-   const char* intFormat = runnable ? "%s = %d;%s" : "%s %d%s";
-   const char* fltFormat = runnable ? "%s = %g;%s" : "%s %g%s";
-   const char* strFormat = runnable ? "%s = \"%s\";%s" : "%s %s%s";
+   const char* exportFormat = runnable ? "%s = %s;%s" : "%s %s%s";
    for(s = sortList.begin(); s != sortList.end(); s++)
    {
       StringTableEntry name = runnable ? (*s)->name : ++(*s)->name;    // Omit dollar in simple list mode
 
-      switch((*s)->type)
-      {
-         case Entry::TypeInternalInt:
-            dSprintf(buffer, sizeof(buffer), intFormat, name, (*s)->ival, cat);
-            break;
-         case Entry::TypeInternalFloat:
-            dSprintf(buffer, sizeof(buffer), fltFormat, name, (*s)->fval, cat);
-            break;
-         default:
-            expandEscape(expandBuffer, (*s)->getStringValue());
-            dSprintf(buffer, sizeof(buffer), strFormat, name, expandBuffer, cat);
-            break;
-      }
+      (*s)->getValue().serialize(serialBuffer, 1024);
+      dSprintf(buffer, sizeof(buffer), exportFormat, name, serialBuffer, cat);
       if(fileName)
          strm.write(dStrlen(buffer), buffer);
       else
@@ -370,29 +357,21 @@ const char *Dictionary::tabComplete(const char *prevText, S32 baseLen, bool fFor
 char *typeValueEmpty = "";
 
 Dictionary::Entry::Entry(StringTableEntry in_name)
+    : value("")
 {
    dataPtr = NULL;
    name = in_name;
-   type = -1;
-   ival = 0;
-   fval = 0;
-   sval = typeValueEmpty;
+   type = TypeInternalValue;
 }
 
-Dictionary::Entry::~Entry()
-{
-   if(sval != typeValueEmpty)
-      dFree(sval);
-}
-
-const char *Dictionary::getVariable(StringTableEntry name, bool *entValid)
+ConsoleValue Dictionary::getVariable(StringTableEntry name, bool *entValid)
 {
    Entry *ent = lookup(name);
    if(ent)
    {
       if(entValid)
          *entValid = true;
-      return ent->getStringValue();
+      return ent->getValue();
    }
    if(entValid)
       *entValid = false;
@@ -404,63 +383,10 @@ const char *Dictionary::getVariable(StringTableEntry name, bool *entValid)
    return "";
 }
 
-void Dictionary::Entry::setStringValue(const char * value)
-{
-   if(type <= TypeInternalString)
-   {
-      // Let's not remove empty-string-valued global vars from the dict.
-      // If we remove them, then they won't be exported, and sometimes
-      // it could be necessary to export such a global.  There are very
-      // few empty-string global vars so there's no performance-related
-      // need to remove them from the dict.
-/*
-      if(!value[0] && name[0] == '$')
-      {
-         gEvalState.globalVars.remove(this);
-         return;
-      }
-*/
-
-      U32 stringLen = dStrlen(value);
-
-      // If it's longer than 256 bytes, it's certainly not a number.
-      //
-      // (This decision may come back to haunt you. Shame on you if it
-      // does.)
-      if(stringLen < 256)
-      {
-         fval = dAtof(value);
-         ival = dAtoi(value);
-      }
-      else
-      {
-         fval = 0.f;
-         ival = 0;
-      }
-
-      type = TypeInternalString;
-
-      // may as well pad to the next cache line
-      U32 newLen = ((stringLen + 1) + 15) & ~15;
-      
-      if(sval == typeValueEmpty)
-         sval = (char *) dMalloc(newLen);
-      else if(newLen > bufferLen)
-         sval = (char *) dRealloc(sval, newLen);
-
-      bufferLen = newLen;
-      dStrcpy(sval, value);
-   }
-   else
-      Con::setData(type, dataPtr, 0, 1, &value);
-}
-
-void Dictionary::setVariable(StringTableEntry name, const char *value)
+void Dictionary::setVariable(StringTableEntry name, ConsoleValue& cval)
 {
    Entry *ent = add(name);
-   if(!value)
-      value = "";
-   ent->setStringValue(value);
+   ent->setValue(cval);
 }
 
 void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
@@ -473,11 +399,7 @@ void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
    }
    Entry *ent = add(StringTable->insert(name));
    ent->type = type;
-   if(ent->sval != typeValueEmpty)
-   {
-      dFree(ent->sval);
-      ent->sval = typeValueEmpty;
-   }
+   ent->value = 0LL;
    ent->dataPtr = dataPtr;
 }
 
@@ -556,20 +478,20 @@ ConsoleFunction(backtrace, void, 1, 1, "Print the call stack.")
          totalSize += dStrlen(gEvalState.stack[i].scopeNamespace->mName) + 2;
    }
 
-   char *buf = Con::getReturnBuffer(totalSize + 1);
-   buf[0] = 0;
-   buf[totalSize] = 0;
+   ReturnBuffer buf(totalSize + 1);
+   (*buf)[0] = 0;
+   (*buf)[totalSize] = 0;
    for(U32 i = 0; i < gEvalState.stack.size(); i++)
    {
-      dStrcat(buf, "->");
+      dStrcat(*buf, "->");
       if(gEvalState.stack[i].scopeNamespace && gEvalState.stack[i].scopeNamespace->mName)
       {
-         dStrcat(buf, gEvalState.stack[i].scopeNamespace->mName);
-         dStrcat(buf, "::");
+         dStrcat(*buf, gEvalState.stack[i].scopeNamespace->mName);
+         dStrcat(*buf, "::");
       }
-      dStrcat(buf, (name = gEvalState.stack[i].scopeName)? name : noScope);
+      dStrcat(*buf, (name = gEvalState.stack[i].scopeName)? name : noScope);
    }
-   Con::printf("BackTrace: %s", buf);
+   Con::printf("BackTrace: %s", *buf);
 
 }
 
@@ -818,7 +740,7 @@ void Namespace::addFunction(StringTableEntry name, CodeBlock* cb, U32 functionOf
    ent->mType = Entry::ScriptFunctionType;
 }
 
-void Namespace::addCommand(StringTableEntry name,StringCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
+void Namespace::addCommand(StringTableEntry name,ValueCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
 {
    Entry *ent = createLocalEntry(name);
    trashCache();
@@ -827,21 +749,8 @@ void Namespace::addCommand(StringTableEntry name,StringCallback cb, const char *
    ent->mMinArgs = minArgs;
    ent->mMaxArgs = maxArgs;
 
-   ent->mType = Entry::StringCallbackType;
+   ent->mType = Entry::ValueCallbackType;
    ent->cb.mStringCallbackFunc = cb;
-}
-
-void Namespace::addCommand(StringTableEntry name,IntCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Entry *ent = createLocalEntry(name);
-   trashCache();
-
-   ent->mUsage = usage;
-   ent->mMinArgs = minArgs;
-   ent->mMaxArgs = maxArgs;
-
-   ent->mType = Entry::IntCallbackType;
-   ent->cb.mIntCallbackFunc = cb;
 }
 
 void Namespace::addCommand(StringTableEntry name,VoidCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
@@ -855,32 +764,6 @@ void Namespace::addCommand(StringTableEntry name,VoidCallback cb, const char *us
 
    ent->mType = Entry::VoidCallbackType;
    ent->cb.mVoidCallbackFunc = cb;
-}
-
-void Namespace::addCommand(StringTableEntry name,FloatCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Entry *ent = createLocalEntry(name);
-   trashCache();
-
-   ent->mUsage = usage;
-   ent->mMinArgs = minArgs;
-   ent->mMaxArgs = maxArgs;
-
-   ent->mType = Entry::FloatCallbackType;
-   ent->cb.mFloatCallbackFunc = cb;
-}
-
-void Namespace::addCommand(StringTableEntry name,BoolCallback cb, const char *usage, S32 minArgs, S32 maxArgs)
-{
-   Entry *ent = createLocalEntry(name);
-   trashCache();
-
-   ent->mUsage = usage;
-   ent->mMinArgs = minArgs;
-   ent->mMaxArgs = maxArgs;
-
-   ent->mType = Entry::BoolCallbackType;
-   ent->cb.mBoolCallbackFunc = cb;
 }
 
 void Namespace::addOverload(const char * name, const char *altUsage)
@@ -929,12 +812,12 @@ void Namespace::markGroup(const char* name, const char* usage)
 
 extern S32 executeBlock(StmtNode *block, ExprEvalState *state);
 
-const char *Namespace::Entry::execute(S32 argc, const char **argv, ExprEvalState *state)
+ConsoleValue Namespace::Entry::execute(S32 argc, ConsoleValue* argv, ExprEvalState *state)
 {
    if(mType == ScriptFunctionType)
    {
       if(mFunctionOffset)
-         return mCode->exec(mFunctionOffset, argv[0], mNamespace, argc, argv, false, mPackage, -1);
+         return mCode->exec(mFunctionOffset, argv[0].toString(), mNamespace, argc, argv, false, mPackage, -1);
       else
          return "";
    }
@@ -945,28 +828,11 @@ const char *Namespace::Entry::execute(S32 argc, const char **argv, ExprEvalState
       Con::warnf(ConsoleLogEntry::Script, "usage: %s", mUsage);
       return "";
    }
-
-   static char returnBuffer[32];
-   switch(mType)
-   {
-      case StringCallbackType:
-         return cb.mStringCallbackFunc(state->thisObject, argc, argv);
-      case IntCallbackType:
-         dSprintf(returnBuffer, sizeof(returnBuffer), "%d",
-            cb.mIntCallbackFunc(state->thisObject, argc, argv));
-         return returnBuffer;
-      case FloatCallbackType:
-         dSprintf(returnBuffer, sizeof(returnBuffer), "%g",
-            cb.mFloatCallbackFunc(state->thisObject, argc, argv));
-         return returnBuffer;
-      case VoidCallbackType:
-         cb.mVoidCallbackFunc(state->thisObject, argc, argv);
-         return "";
-      case BoolCallbackType:
-         dSprintf(returnBuffer, sizeof(returnBuffer), "%d",
-            (U32)cb.mBoolCallbackFunc(state->thisObject, argc, argv));
-         return returnBuffer;
-   }
+   if (mType == VoidCallbackType) {
+       cb.mVoidCallbackFunc(state->thisObject, argc, argv);
+       return "";
+   } else
+       return cb.mStringCallbackFunc(state->thisObject, argc, argv);
 
    return "";
 }
@@ -1108,35 +974,35 @@ ConsoleFunctionGroupBegin( Packages, "Functions relating to the control of packa
 ConsoleFunction(isPackage,bool,2,2,"isPackage(packageName)")
 {
    argc;
-   StringTableEntry packageName = StringTable->insert(argv[1]);
+   StringTableEntry packageName = argv[1].toSTString();
    return Namespace::isPackage(packageName);
 }
 
 ConsoleFunction(isPackageActive, bool, 2, 2, "isPackageActive(packageName)")
 {
     argc;
-    StringTableEntry packageName = StringTable->insert(argv[1]);
+    StringTableEntry packageName = argv[1].toSTString();
     return Namespace::isPackageActive(packageName);
 }
 
 ConsoleFunction(activatePackage, void,2,2,"activatePackage(packageName)")
 {
    argc;
-   StringTableEntry packageName = StringTable->insert(argv[1]);
+   StringTableEntry packageName = argv[1].toSTString();
    Namespace::activatePackage(packageName);
 }
 
 ConsoleFunction(deactivatePackage, void,2,2,"deactivatePackage(packageName)")
 {
    argc;
-   StringTableEntry packageName = StringTable->insert(argv[1]);
+   StringTableEntry packageName = argv[1].toSTString();
    Namespace::deactivatePackage(packageName);
 }
 
 ConsoleFunction(deactivatePackageStack, void, 2, 2, "deactivatePackageStack(packageName)")
 {
     argc;
-    StringTableEntry packageName = StringTable->insert(argv[1]);
+    StringTableEntry packageName = argv[1].toSTString();
     Namespace::deactivatePackageStack(packageName);
 }
 

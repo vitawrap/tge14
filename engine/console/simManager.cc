@@ -320,6 +320,13 @@ SimObject* findObject(SimObjectId id)
 	return gIdDictionary->find(id);
 }
 
+SimObject* findObject(ConsoleValue& cval)
+{
+    if (cval.getType() == ConsoleValue::TypeInt)
+        return findObject(static_cast<SimObjectId>(cval.getIntU()));
+    return findObject(cval.toString());
+}
+
 SimGroup *getRootGroup()
 {
    return gRootGroup;

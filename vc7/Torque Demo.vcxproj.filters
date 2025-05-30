@@ -1268,6 +1268,9 @@
     <ClCompile Include="..\engine\audio\audioBlender.cc">
       <Filter>Source Files\audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\console\consoleValue.cc">
+      <Filter>Source Files\console</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">
@@ -2263,6 +2266,9 @@
     <ClInclude Include="..\engine\audio\audioBlender.h">
       <Filter>Source Files\audio</Filter>
     </ClInclude>
+    <ClInclude Include="..\engine\console\consoleValue.h">
+      <Filter>Source Files\console</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\engine\console\CMDgram.y">
@@ -2276,5 +2282,8 @@
     <ResourceCompile Include="..\vc6\TorqueDemo.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

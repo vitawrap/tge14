@@ -19,7 +19,7 @@ class Filter: public Vector<F32>
 public:
    Filter() : Vector<F32>(__FILE__, __LINE__) { }
 
-   void set(S32 argc, const char *argv[]);
+   void set(S32 argc, ConsoleValue argv[]);
    F32  getValue(F32 t) const;
 };
 

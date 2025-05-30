@@ -1004,7 +1004,7 @@ bool Terraformer::erodeHydraulic(U32 r_src, U32 r_dst, U32 iterations, const Fil
    getMinMax(r_src, &fmin, &fmax);
 
 
-// currently using SCRATCH_3 for debugging -- Rick
+   // currently using SCRATCH_3 for debugging -- Rick
    U32 *o = (U32*)getScratch(0)->data;
    Heightfield *a = getScratch(1);
    Heightfield *b = getScratch(2);
@@ -1081,13 +1081,13 @@ bool Terraformer::erodeHydraulic(U32 r_src, U32 r_dst, U32 iterations, const Fil
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, setTerrainInfo, void, 7, 7, "(int blockSize, int tileSize, float minHeight, float heightRange, float waterPercent)")
 {
-   object->setTerrainInfo( dAtoi(argv[2]), dAtof(argv[3]), dAtof(argv[4]), dAtof(argv[5]), dAtof(argv[6]));
+   object->setTerrainInfo( argv[2].getInt(), argv[3].getNumber(), argv[4].getNumber(), argv[5].getNumber(), argv[6].getNumber() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, setShift, void, 4, 4, "(int x, int y)")
 {
-   Point2F shift( dAtof(argv[2]), dAtof(argv[3]) );
+   Point2F shift( argv[2].getNumber(), argv[3].getNumber() );
    object->setShift( shift );
 }
 
@@ -1095,9 +1095,9 @@ ConsoleMethod( Terraformer, setShift, void, 4, 4, "(int x, int y)")
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, generateSeed, S32, 2, 2, "")
 {
-    S32 n = Platform::getVirtualMilliseconds() * 57;
-    n = (n<<13) ^ n;
-    n = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
+   S32 n = Platform::getVirtualMilliseconds() * 57;
+   n = (n<<13) ^ n;
+   n = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
    return n;
 }
 
@@ -1107,16 +1107,16 @@ ConsoleMethod( Terraformer, generateSeed, S32, 2, 2, "")
 ConsoleMethod( Terraformer, saveGreyscale, bool, 4, 4, "(int register, string filename)")
 {
    char filename[1024];
-   Con::expandScriptFilename(filename, sizeof(filename), argv[3]);
-   return object->saveGreyscale( dAtoi(argv[2]), filename );
+   Con::expandScriptFilename(filename, sizeof(filename), argv[3].toString());
+   return object->saveGreyscale(argv[2].getInt(), filename);
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, loadGreyscale, bool, 4, 4, "(int register, string filename)")
 {
    char filename[1024];
-   Con::expandScriptFilename(filename, sizeof(filename), argv[3]);
-   return object->loadGreyscale( dAtoi(argv[2]), filename );
+   Con::expandScriptFilename(filename, sizeof(filename), argv[3].toString());
+   return object->loadGreyscale(argv[2].getInt(), filename);
 }
 
 //------------------------------------------------------------------------------
@@ -1124,23 +1124,21 @@ ConsoleMethod( Terraformer, loadGreyscale, bool, 4, 4, "(int register, string fi
 ConsoleMethod( Terraformer, saveHeightField, bool, 4, 4, "(int register, string filename)")
 {
    char filename[1024];
-   Con::expandScriptFilename(filename, sizeof(filename), argv[3]);
-   return object->saveHeightField(dAtoi(argv[2]), filename);
+   Con::expandScriptFilename(filename, sizeof(filename), argv[3].toString());
+   return object->saveHeightField(argv[2].getInt(), filename);
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, setTerrain, bool, 3, 3,"(int register)")
 {
-   return object->setTerrain(dAtoi(argv[2]));
+   return object->setTerrain(argv[2].getInt());
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, getCameraPosition, const char*, 2, 2, "Get the position of the camera.")
 {  argv;
-   static char buffer[64];
    Point3F position = object->getCameraPosition();
-   dSprintf(buffer, sizeof(buffer), "%g %g %g", position.x, position.y, position.z);
-   return buffer;
+   return ConsoleValueList::from(position.x, position.y, position.z);
 }
 
 //------------------------------------------------------------------------------
@@ -1148,51 +1146,51 @@ ConsoleMethod( Terraformer, setCameraPosition, void, 4, 5, "(float x, float y, f
 {
    F32 z = 0.0f;
    if (argc == 5)
-      z = dAtof(argv[4]);
-   Point3F pos( dAtof(argv[2]), dAtof(argv[3]), z );
+      z = argv[4].getNumber();
+   Point3F pos( argv[2].getNumber(), argv[3].getNumber(), z);
    object->setCameraPosition( pos );
 }
 
 
 ConsoleMethod( Terraformer, terrainData, bool, 3, 3, "(int register)")
 {
-   return object->terrainData(dAtoi(argv[2]));
+   return object->terrainData(argv[2].getInt());
 }
 
 ConsoleMethod( Terraformer, terrainFile, bool, 4, 4, "(int register, string filename)")
 {
-   return object->terrainFile(dAtoi(argv[2]), argv[3]);
+   return object->terrainFile(argv[2].getInt(), argv[3].toString());
 }
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, scale, bool, 6, 6, "(int src_register, int dst_register, float min, float max)")
 {
-   return object->scale( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtof(argv[5]) );
+   return object->scale( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getNumber() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, smooth, bool, 6, 6, "(int src_register, int dst_register, float factor, int iterations)")
 {
-   return object->smooth( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtoi(argv[5]) );
+   return object->smooth( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getInt() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, smoothWater, bool, 6, 6, "(int src_register, int dst_register, float factor, int iterations)")
 {
-   return object->smoothWater( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtoi(argv[5]) );
+   return object->smoothWater( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getInt() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, smoothRidges, bool, 6, 6, "(int src_register, int dst_register, float factor, int iterations)")
 {
-   return object->smoothRidges( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtoi(argv[5]), 0.01f );
+   return object->smoothRidges( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getInt(), 0.01f);
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, filter, bool, 5, 5, "(int src_register, int dst_register, Filter arr)")
 {
    Filter filter;
-   filter.set(argc-4, &argv[4]);
-   return object->filter( dAtoi(argv[2]), dAtoi(argv[3]), filter );
+   filter.set(argc-4, argv+4);
+   return object->filter( argv[2].getInt(), argv[3].getInt(), filter );
 }
 
 
@@ -1205,20 +1203,21 @@ ConsoleMethod( Terraformer, blend, bool, 7, 7, "(int srcA, int srcB, int dest_re
               "@param   factor         Blending factor, from 0-1.\n"
               "@param   operation      One of: add, subtract, max, min, multiply. Default is add.")
 {
+   char const* opStr = argv[6].toString();
    Terraformer::BlendOperation op = Terraformer::OperationAdd;
-   if (dStricmp(argv[6],"add") == 0) op = Terraformer::OperationAdd;
-   if (dStricmp(argv[6],"subtract") == 0) op = Terraformer::OperationSubtract;
-   if (dStricmp(argv[6],"max") == 0) op = Terraformer::OperationMax;
-   if (dStricmp(argv[6],"min") == 0) op = Terraformer::OperationMin;
-   if (dStricmp(argv[6],"multiply") == 0) op = Terraformer::OperationMultiply;
-   return object->blend( dAtoi(argv[2]), dAtoi(argv[3]), dAtoi(argv[4]), dAtof(argv[5]), op);
+   if (dStricmp(opStr,"add") == 0) op = Terraformer::OperationAdd;
+   if (dStricmp(opStr,"subtract") == 0) op = Terraformer::OperationSubtract;
+   if (dStricmp(opStr,"max") == 0) op = Terraformer::OperationMax;
+   if (dStricmp(opStr,"min") == 0) op = Terraformer::OperationMin;
+   if (dStricmp(opStr,"multiply") == 0) op = Terraformer::OperationMultiply;
+   return object->blend( argv[2].getInt(), argv[3].getInt(), argv[4].getInt(), argv[5].getNumber(), op);
 }
 
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, turbulence, bool, 6, 6, "(int src_register, int dst_register, float factor, float radius)")
 {
-   return object->turbulence( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtof(argv[5]) );
+   return object->turbulence( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getNumber() );
 }
 
 
@@ -1228,7 +1227,7 @@ ConsoleMethod( Terraformer, maskFBm, void, 9, 9, "(int dest_register, int freque
 {
    Filter filter;
    filter.set(1, &argv[6]);
-   object->maskFBm( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtoi(argv[5]), filter, dAtob(argv[7]), dAtoi(argv[8]) );
+   object->maskFBm( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getInt(), filter, argv[7].getInt(), argv[8].getInt() );
 }
 
 //------------------------------------------------------------------------------
@@ -1236,7 +1235,7 @@ ConsoleMethod( Terraformer, maskHeight, bool, 7, 7, "(int src_register, int dst_
 {
    Filter filter;
    filter.set(1, &argv[4]);
-   return object->maskHeight( dAtoi(argv[2]), dAtoi(argv[3]), filter, dAtob(argv[5]), dAtoi(argv[6]) );
+   return object->maskHeight( argv[2].getInt(), argv[3].getInt(), filter, argv[5].getInt(), argv[6].getInt() );
 }
 
 //------------------------------------------------------------------------------
@@ -1244,25 +1243,25 @@ ConsoleMethod( Terraformer, maskSlope, bool, 7, 7, "(int src_register, int dst_r
 {
    Filter filter;
    filter.set(1, &argv[4]);
-   return object->maskSlope( dAtoi(argv[2]), dAtoi(argv[3]), filter, dAtob(argv[5]), dAtoi(argv[6]) );
+   return object->maskSlope( argv[2].getInt(), argv[3].getInt(), filter, argv[5].getInt(), argv[6].getInt() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, maskWater, bool, 6, 6, "(int src_register, int dst_register, bool distort_factor, int distort_reg)")
 {
-   return object->maskWater( dAtoi(argv[2]), dAtoi(argv[3]), dAtob(argv[4]), dAtoi(argv[5]) );
+   return object->maskWater( argv[2].getInt(), argv[3].getInt(), argv[4].getInt(), argv[5].getInt() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, mergeMasks, bool, 4, 4, "( src_array, int dst_register)")
 {
-   return object->mergeMasks( argv[2], dAtoi(argv[3]) );
+   return object->mergeMasks( argv[2].toString(), argv[3].getInt());
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, setMaterials, bool, 4, 4, "( src_array, material_array )")
 {
-   return object->setMaterials( argv[2], argv[3] );
+   return object->setMaterials( argv[2].toString(), argv[3].toString() );
 }
 
 
@@ -1271,20 +1270,20 @@ ConsoleMethod( Terraformer, erodeHydraulic, bool, 6, 6, "(int src_register, int 
 {
    Filter filter;
    filter.set(argc-5, &argv[5]);
-   return object->erodeHydraulic( dAtoi(argv[2]), dAtoi(argv[3]), dAtoi(argv[4]), filter );
+   return object->erodeHydraulic( argv[2].getInt(), argv[3].getInt(), argv[4].getInt(), filter );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, erodeThermal, bool, 7, 7,  "(int src_register, int dst_register, float slope, float materialLoss, int iterations )")
 {
-   return object->erodeThermal( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtof(argv[5]), dAtoi(argv[6]) );
+   return object->erodeThermal( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getNumber(), argv[6].getInt() );
 }
 
 
 //--------------------------------------------------------------------------
 ConsoleMethod( Terraformer, canyon, bool, 6, 6, "(int dest_register, int frequency, float turbulence, int seed)")
 {
-   return object->canyonFractal( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), dAtoi(argv[5]) );
+   return object->canyonFractal( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), argv[5].getInt() );
 }
 
 //------------------------------------------------------------------------------
@@ -1293,7 +1292,7 @@ ConsoleMethod( Terraformer, previewScaled, void, 4, 4, "(GuiTerrPreviewCtrl dest
    GuiTerrPreviewCtrl *dcc;
    Sim::findObject(argv[2], dcc);
 
-   const GBitmap* bmp = object->getScaledGreyscale(dAtoi(argv[3]));
+   const GBitmap* bmp = object->getScaledGreyscale(argv[3].getInt());
 
    dcc->setBitmap(TextureHandle("tfImage", bmp, true));
 }
@@ -1304,7 +1303,7 @@ ConsoleMethod( Terraformer, preview, void, 4, 4, "(GuiTerrPreviewCtrl destinatio
    GuiTerrPreviewCtrl *bmc;
    Sim::findObject(argv[2], bmc);
 
-   const GBitmap* bmp = object->getGreyscale( dAtoi(argv[3]) );
+   const GBitmap* bmp = object->getGreyscale( argv[3].getInt() );
 
    bmc->setBitmap(TextureHandle("tfImage", bmp, true));
 }
@@ -1312,7 +1311,7 @@ ConsoleMethod( Terraformer, preview, void, 4, 4, "(GuiTerrPreviewCtrl destinatio
 //------------------------------------------------------------------------------
 ConsoleMethod( Terraformer, clearRegister, void, 3, 3, "(int r)")
 {
-   object->clearRegister(dAtoi(argv[2]));
+   object->clearRegister(argv[2].getInt());
 }
 
 //------------------------------------------------------------------------------
@@ -1321,13 +1320,14 @@ ConsoleMethod( Terraformer, fBm, void, 7, 7, "(int r, int freq, float roughness,
               "@param   roughness   From 0.0-1.0\n"
               "@param   detail      One of 'Very Low', 'Low', 'Normal', 'High', or 'Very High'")
 {
+   char const* octStr = argv[5].toString();
    F32 octave = 3.0f;
-   if (!dStricmp(argv[5],"Very Low")) octave = 1.0f;
-   else if (!dStricmp(argv[5],"Low")) octave = 2.0f;
-   else if (!dStricmp(argv[5],"Normal")) octave = 3.0f;
-   else if (!dStricmp(argv[5],"High")) octave = 4.0f;
-   else if (!dStricmp(argv[5],"Very High")) octave = 5.0f;
-   object->fBm( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), octave, dAtoi(argv[6]) );
+   if (!dStricmp(octStr,"Very Low")) octave = 1.0f;
+   else if (!dStricmp(octStr,"Low")) octave = 2.0f;
+   else if (!dStricmp(octStr,"Normal")) octave = 3.0f;
+   else if (!dStricmp(octStr,"High")) octave = 4.0f;
+   else if (!dStricmp(octStr,"Very High")) octave = 5.0f;
+   object->fBm( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), octave, argv[6].getInt() );
 }
 
 //------------------------------------------------------------------------------
@@ -1335,7 +1335,7 @@ ConsoleMethod( Terraformer, sinus, void, 5, 5, "(int r, Filter a, int seed)")
 {
    Filter filter;
    filter.set(1, &argv[3]);
-   object->sinus( dAtoi(argv[2]), filter, dAtoi(argv[4]) );
+   object->sinus( argv[2].getInt(), filter, argv[4].getInt() );
 }
 
 //------------------------------------------------------------------------------
@@ -1344,12 +1344,13 @@ ConsoleMethod( Terraformer, rigidMultiFractal, void, 7, 7, "(int r, int freq, fl
               "@param   roughness   From 0.0-1.0\n"
               "@param   detail      One of 'Very Low', 'Low', 'Normal', 'High', or 'Very High'")
 {
+   char const* octStr = argv[5].toString();
    F32 octave = 3.0f;
-   if (!dStricmp(argv[5],"Very Low")) octave = 1.0f;
-   else if (!dStricmp(argv[5],"Low")) octave = 2.0f;
-   else if (!dStricmp(argv[5],"Normal")) octave = 3.0f;
-   else if (!dStricmp(argv[5],"High")) octave = 4.0f;
-   else if (!dStricmp(argv[5],"Very High")) octave = 5.0f;
-   object->rigidMultiFractal( dAtoi(argv[2]), dAtoi(argv[3]), dAtof(argv[4]), octave, dAtoi(argv[6]) );
+   if (!dStricmp(octStr,"Very Low")) octave = 1.0f;
+   else if (!dStricmp(octStr,"Low")) octave = 2.0f;
+   else if (!dStricmp(octStr,"Normal")) octave = 3.0f;
+   else if (!dStricmp(octStr,"High")) octave = 4.0f;
+   else if (!dStricmp(octStr,"Very High")) octave = 5.0f;
+   object->rigidMultiFractal( argv[2].getInt(), argv[3].getInt(), argv[4].getNumber(), octave, argv[6].getInt() );
 }
 

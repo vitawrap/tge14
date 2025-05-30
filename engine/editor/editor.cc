@@ -85,7 +85,7 @@ static GameBase * getControlObj()
 
 ConsoleMethod( EditManager, setBookmark, void, 3, 3, "(int slot)")
 {
-   S32 val = dAtoi(argv[2]);
+   S32 val = argv[2].getInt();
    if(val < 0 || val > 9)
       return;
 
@@ -96,7 +96,7 @@ ConsoleMethod( EditManager, setBookmark, void, 3, 3, "(int slot)")
 
 ConsoleMethod( EditManager, gotoBookmark, void, 3, 3, "(int slot)")
 {
-   S32 val = dAtoi(argv[2]);
+   S32 val = argv[2].getInt();
    if(val < 0 || val > 9)
       return;
 

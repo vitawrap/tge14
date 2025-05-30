@@ -41,7 +41,7 @@ ConsoleFunctionGroupBegin(Interiors, "");
 #if defined(TORQUE_DEBUG) || defined (INTERNAL_RELEASE)
 ConsoleFunction( setInteriorRenderMode, void, 2, 2, "(int modeNum)")
 {
-   S32 mode = dAtoi(argv[1]);
+   S32 mode = argv[1].getInt();
    if (mode < 0 || mode > Interior::ShowDetailLevel)
       mode = 0;
 
@@ -50,7 +50,7 @@ ConsoleFunction( setInteriorRenderMode, void, 2, 2, "(int modeNum)")
 
 ConsoleFunction( setInteriorFocusedDebug, void, 2, 2, "(bool enable)")
 {
-   if (dAtob(argv[1])) {
+   if (argv[1].getInt()) {
       Interior::smFocusedDebug = true;
    } else {
       Interior::smFocusedDebug = false;
@@ -72,12 +72,12 @@ ConsoleFunction( isPointInside, bool, 2, 4, "(Point3F pos) or (float x, float y,
    Point3F pos;
    if (argc == 2)
        //dSscanf(argv[1], "%g %g %g", &pos.x, &pos.y, &pos.z);
-       pos = argv[1];
+       pos = argv[1].getPoint3F();
    else
    {
-      pos.x = dAtof(argv[1]);
-      pos.y = dAtof(argv[2]);
-      pos.z = dAtof(argv[3]);
+      pos.x = argv[1].getNumber();
+      pos.y = argv[2].getNumber();
+      pos.z = argv[3].getNumber();
    }
 
    RayInfo collision;
@@ -104,7 +104,7 @@ ConsoleFunctionGroupEnd(Interiors);
 ConsoleMethod( InteriorInstance, setAlarmMode, void, 3, 3, "(string mode) Mode is 'On' or 'Off'")
 {
    bool alarm;
-   if (dStricmp(argv[2], "On") == 0)
+   if (dStricmp(argv[2].toString(), "On") == 0)
       alarm = true;
    else
       alarm = false;
@@ -124,7 +124,7 @@ ConsoleMethod( InteriorInstance, activateLight, void, 3, 3, "(string lightName)"
       return;
    }
 
-   const char* pLightName = argv[2];
+   const char* pLightName = argv[2].toString();
    object->activateLight(pLightName);
 }
 
@@ -135,7 +135,7 @@ ConsoleMethod( InteriorInstance, deactivateLight, void, 3, 3, "(string lightName
       return;
    }
 
-   const char* pLightName = argv[2];
+   const char* pLightName = argv[2].toString();
    object->deactivateLight(pLightName);
 }
 
@@ -166,12 +166,12 @@ ConsoleMethod( InteriorInstance, setSkinBase, void, 3, 3, "(string basename)")
       return;
    }
 
-   object->setSkinBase(argv[2]);
+   object->setSkinBase(argv[2].toString());
 }
 
 ConsoleMethod( InteriorInstance, getNumDetailLevels, S32, 2, 2, "")
 {
-   return(object->getNumDetailLevels());
+   return (S64) object->getNumDetailLevels();
 }
 
 ConsoleMethod( InteriorInstance, setDetailLevel, void, 3, 3, "(int level)")
@@ -189,10 +189,10 @@ ConsoleMethod( InteriorInstance, setDetailLevel, void, 3, 3, "(int level)")
 
       InteriorInstance * clientInstance = dynamic_cast<InteriorInstance*>(toServer->resolveGhost(index));
       if(clientInstance)
-         clientInstance->setDetailLevel(dAtoi(argv[2]));
+         clientInstance->setDetailLevel(argv[2].getInt());
    }
    else
-      object->setDetailLevel(dAtoi(argv[2]));
+      object->setDetailLevel(argv[2].getInt());
 }
 
 //--------------------------------------------------------------------------
@@ -1924,7 +1924,7 @@ void InteriorInstance::addChildren()
       gb->setField("dataBlock", ent->mDataBlock);
       gb->setModStaticFields(true);
       for(U32 j = 0; j < ent->mDictionary.size(); j++)
-         gb->setDataField(StringTable->insert(ent->mDictionary[j].name), NULL, ent->mDictionary[j].value);
+         gb->setDataField(StringTable->insert(ent->mDictionary[j].name), NULL, ConsoleValue(ent->mDictionary[j].value));
       gb->setModStaticFields(false);
       Point3F origin = ent->mPos;
       origin.convolve(mObjScale);
@@ -1956,7 +1956,7 @@ void InteriorInstance::addChildren()
       child->setField("dataBlock", pSource->mDataBlock);
 
       for(U32 i = 0; i < pSource->mDictionary.size(); i++)
-         child->setDataField(pSource->mDictionary[i].name, NULL, pSource->mDictionary[i].value);
+         child->setDataField(pSource->mDictionary[i].name, NULL, ConsoleValue(pSource->mDictionary[i].value));
 
       // Create a group for the door
       SimGroup* doorGroup = new SimGroup;
@@ -1998,7 +1998,7 @@ void InteriorInstance::addChildren()
          Trigger* pTrigger = new Trigger;
          pTrigger->setField("dataBlock", pITrigger->mDataBlock);
          for(U32 i = 0; i < pITrigger->mDictionary.size(); i++)
-            pTrigger->setDataField(StringTable->insert(pITrigger->mDictionary[i].name), NULL, pITrigger->mDictionary[i].value);
+            pTrigger->setDataField(StringTable->insert(pITrigger->mDictionary[i].name), NULL, ConsoleValue(pITrigger->mDictionary[i].value));
 
          MatrixF newXForm;
          createTriggerTransform(pITrigger, &newXForm);

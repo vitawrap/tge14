@@ -704,7 +704,7 @@ ConsoleMethod(RotatingDoor, canCollideWith, bool, 3, 3, "(SceneObject)")
 
 ConsoleMethod(RotatingDoor, setLock, void, 3, 3, "(bool) set door lock state")
 {
-	return object->setLock(dAtob(argv[2]));
+	return object->setLock(argv[2].getInt());
 }
 
 ConsoleMethod(RotatingDoor, isLocked, bool, 2, 2, "returns true if locked, false otherwise")

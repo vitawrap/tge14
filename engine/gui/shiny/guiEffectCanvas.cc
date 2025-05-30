@@ -44,7 +44,7 @@ ConsoleFunction( createEffectCanvas, bool, 2, 2, "(string windowTitle)"
       return false;
 #endif
 #endif
-   Platform::initWindow(Point2I(800, 600), argv[1]);
+   Platform::initWindow(Point2I(800, 600), argv[1].toString());
 
    // create the canvas, and add it to the manager
    Canvas = new GuiEffectCanvas();

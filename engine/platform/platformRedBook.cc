@@ -196,7 +196,7 @@ ConsoleFunction(redbookOpen, bool, 1, 2, "(string device=NULL)")
    if(argc == 1)
       return(RedBook::open(RedBook::getDeviceName(0)));
    else
-      return(RedBook::open(argv[1]));
+      return(RedBook::open(argv[1].toString()));
 }
 
 ConsoleFunction(redbookClose, bool, 1, 1, "Close the current Redbook device.")
@@ -206,7 +206,7 @@ ConsoleFunction(redbookClose, bool, 1, 1, "Close the current Redbook device.")
 
 ConsoleFunction( redbookPlay, bool, 2, 2, "(int track) Play the selected track.")
 {
-   return(RedBook::play(dAtoi(argv[1])));
+   return(RedBook::play(argv[1].getInt()));
 }
 
 ConsoleFunction( redbookStop, bool, 1, 1, "Stop playing.")
@@ -218,7 +218,7 @@ ConsoleFunction(redbookGetTrackCount, S32, 1, 1, "Return the number of tracks.")
    U32 trackCount;
    if(!RedBook::getTrackCount(&trackCount))
       return(0);
-   return(trackCount);
+   return (S64) trackCount;
 }
 
 ConsoleFunction(redbookGetVolume, F32, 1, 1, "Get the volume.")
@@ -232,17 +232,17 @@ ConsoleFunction(redbookGetVolume, F32, 1, 1, "Get the volume.")
 
 ConsoleFunction(redbookSetVolume, bool, 2, 2, "(float volume) Set playback volume.")
 {
-   return(RedBook::setVolume(dAtof(argv[1])));
+   return(RedBook::setVolume(argv[1].getNumber()));
 }
 
 ConsoleFunction( redbookGetDeviceCount, S32, 1, 1, "get the number of redbook devices.")
 {
-   return(RedBook::getDeviceCount());
+   return(S64) RedBook::getDeviceCount();
 }
 
 ConsoleFunction( redbookGetDeviceName, const char *, 2, 2, "(int index) Get name of specified Redbook device.")
 {
-   return(RedBook::getDeviceName(dAtoi(argv[1])));
+   return(RedBook::getDeviceName(argv[1].getInt()));
 }
 
 ConsoleFunction( redbookGetLastError, const char*, 1, 1, "Get a string explaining the last redbook error.")

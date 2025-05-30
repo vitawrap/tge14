@@ -550,33 +550,30 @@ bool ActionMap::processUnbind(const char *device, const char *action)
 // It will only check against the console function (since all remappable commands are
 // bound using bind and not bindCmd).
 //
-const char* ActionMap::getBinding( const char* command )
+ConsoleValue ActionMap::getBinding( const char* command )
 {
    U32 devMapIndex, nodeIndex;
    if ( findBoundNode( command, devMapIndex, nodeIndex ) )
    {
-	   char buffer[256];
-
+      char buffer[256];
+      
       const DeviceMap* deviceMap = mDeviceMaps[devMapIndex];
       char deviceBuffer[32];
-		if ( !getDeviceName( deviceMap->deviceType, deviceMap->deviceInst, deviceBuffer ) )
-         return( "" );
-
+      if ( !getDeviceName( deviceMap->deviceType, deviceMap->deviceInst, deviceBuffer ) )
+          return( "" );
+      
       const Node* node = &deviceMap->nodeMap[nodeIndex];
       const char* modifierString = getModifierString( node->modifiers );
-
+      
       char keyBuffer[64];
       if ( !getKeyString( node->action, keyBuffer ) )
-         return( "" );
-
+          return( "" );
+      
       dSprintf( buffer, sizeof( buffer ), "%s\t%s%s", deviceBuffer, modifierString, keyBuffer );
-
-	   // Copy the buffer and return it:
-	   char* returnString = Con::getReturnBuffer( dStrlen( buffer ) + 1 );
-	   dStrcpy( returnString, buffer );
-	   return( returnString );				
+      
+      // Return the buffer as a console value:
+      return( buffer );
    }
-
    return( "" );
 }
 
@@ -586,7 +583,7 @@ const char* ActionMap::getBinding( const char* command )
 // bound in this action map.  If so, this function returns the command it is bound to.
 // If not, it returns NULL.
 //
-const char* ActionMap::getCommand( const char* device, const char* action )
+ConsoleValue ActionMap::getCommand( const char* device, const char* action )
 {
 	U32 deviceType;
 	U32 deviceInst;
@@ -600,12 +597,13 @@ const char* ActionMap::getCommand( const char* device, const char* action )
 			{
 				if ( mapNode->flags & Node::BindCmd )
 				{
-					S32 bufferLen = dStrlen( mapNode->makeConsoleCommand ) + dStrlen( mapNode->breakConsoleCommand ) + 2;
-					char* returnString = Con::getReturnBuffer( bufferLen );
-					dSprintf( returnString, bufferLen, "%s\t%s",
-							( mapNode->makeConsoleCommand ? mapNode->makeConsoleCommand : "" ),
-							( mapNode->breakConsoleCommand ? mapNode->breakConsoleCommand : "" ) );					
-					return( returnString );
+                    ConsoleValue ret;
+                    char const* makeCmd = mapNode->makeConsoleCommand ? mapNode->makeConsoleCommand : "";
+                    char const* breakCmd = mapNode->breakConsoleCommand ? mapNode->breakConsoleCommand : "";
+                    ret.concatStringU(makeCmd, dStrlen(makeCmd));
+                    ret.concatStringU("\t", 1);
+                    ret.concatStringU(breakCmd, dStrlen(breakCmd));
+					return( ret );
 				}					
 				else
 					return( mapNode->consoleFunction );					
@@ -664,7 +662,7 @@ F32 ActionMap::getScale( const char* device, const char* action )
 }
 
 //------------------------------------------------------------------------------
-const char* ActionMap::getDeadZone( const char* device, const char* action )
+ConsoleValue ActionMap::getDeadZone( const char* device, const char* action )
 {
 	U32 deviceType;
 	U32 deviceInst;
@@ -677,13 +675,11 @@ const char* ActionMap::getDeadZone( const char* device, const char* action )
 			if ( mapNode )
 			{
 			   if ( mapNode->flags & Node::HasDeadZone )
-            {
+               {
 				   char buf[64];
 				   dSprintf( buf, sizeof( buf ), "%g %g", mapNode->deadZoneBegin, mapNode->deadZoneEnd );
-				   char* returnString = Con::getReturnBuffer( dStrlen( buf ) + 1 );
-				   dStrcpy( returnString, buf );
-				   return( returnString );
-				}
+				   return( buf );
+			   }
 				else
 				   return( "0 0" );				   		
 			}
@@ -695,7 +691,7 @@ const char* ActionMap::getDeadZone( const char* device, const char* action )
 }
 
 //------------------------------------------------------------------------------
-const char* ActionMap::buildActionString( const InputEvent* event )
+ConsoleValue ActionMap::buildActionString( const InputEvent* event )
 {
 	const char* modifierString = getModifierString( event->modifier );
 
@@ -703,10 +699,10 @@ const char* ActionMap::buildActionString( const InputEvent* event )
 	if ( !getKeyString( event->objInst, objectBuffer ) )
 		return( "" );
 
-	U32 returnLen = dStrlen( modifierString ) + dStrlen( objectBuffer ) + 2;	
-	char* returnString = Con::getReturnBuffer( returnLen );
-	dSprintf( returnString, returnLen - 1, "%s%s", modifierString, objectBuffer );
-	return( returnString );
+    ConsoleValue ret;
+    ret.concatStringU(modifierString, dStrlen(modifierString));
+    ret.concatStringU(objectBuffer, dStrlen(objectBuffer));
+    return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -930,20 +926,20 @@ bool ActionMap::processBindCmd(const char *device, const char *action, const cha
 }
 
 //------------------------------------------------------------------------------
-bool ActionMap::processBind(const U32 argc, const char** argv)
+bool ActionMap::processBind(const U32 argc, ConsoleValue* argv)
 {
    // Ok, the bind will come in the following format:
    //  [device] [key or button] <[param spec] [param] ...> [fnName]
    //
-   const char* pDeviceName = argv[0];
-   const char* pEvent      = argv[1];
-   const char* pFnName     = argv[argc - 1];
+   const char* pDeviceName = argv[0].toString();
+   const char* pEvent      = argv[1].toString();
+   const char* pFnName     = argv[argc - 1].toString();
 
    // Determine the device
    U32 deviceType;
    U32 deviceInst;
 
-   if(!getDeviceTypeAndInstance(argv[0], deviceType, deviceInst))
+   if(!getDeviceTypeAndInstance(pDeviceName, deviceType, deviceInst))
    {
       Con::printf("processBind: unknown device: %s", pDeviceName);
       return false;
@@ -971,7 +967,7 @@ bool ActionMap::processBind(const U32 argc, const char** argv)
    if (argc != 3) {
       // We have the following: "[DSIR]" [deadZone] [scale]
       //
-      const char* pSpec = argv[2];
+      const char* pSpec = argv[2].toString();
 
       for (U32 i = 0; pSpec[i] != '\0'; i++) {
          switch (pSpec[i]) {
@@ -998,17 +994,17 @@ bool ActionMap::processBind(const U32 argc, const char** argv)
       //
       U32 curArg = 3;
       if (assignedFlags & Node::HasDeadZone) {
-         dSscanf(argv[curArg], "%g %g", &deadZoneBegin, &deadZoneEnd);
+         dSscanf(argv[curArg].toString(), "%g %g", &deadZoneBegin, &deadZoneEnd);
          curArg++;
       }
       if (assignedFlags & Node::HasScale) {
-         scaleFactor = dAtof(argv[curArg]);
+         scaleFactor = argv[curArg].getNumber();
          curArg++;
       }
 
       if (curArg != (argc - 1)) {
          AssertFatal(curArg == (argc - 1), "error in bind spec somewhere...");
-         Con::printf("Improperly specified bind for key: %s", argv[2]);
+         Con::printf("Improperly specified bind for key: %s", pSpec);
          return false;
       }
    }
@@ -1049,7 +1045,6 @@ bool ActionMap::processBind(const U32 argc, const char** argv)
 //------------------------------------------------------------------------------
 bool ActionMap::processAction(const InputEvent* pEvent)
 {
-   static const char *argv[2];
    if (pEvent->action == SI_MAKE) {
       const Node* pNode = findNode(pEvent->deviceType, pEvent->deviceInst,
                                    pEvent->modifier,   pEvent->objInst);
@@ -1094,9 +1089,7 @@ bool ActionMap::processAction(const InputEvent* pEvent)
       }
       else if ( pNode->consoleFunction[0] )
       {
-         argv[0] = pNode->consoleFunction;
-         argv[1] = Con::getFloatArg(value);
-         Con::execute(2, argv);
+         Con::executef(2, pNode->consoleFunction, value);
       }
       //
       // And enter the break into the table if this is a make event...
@@ -1133,9 +1126,7 @@ bool ActionMap::processAction(const InputEvent* pEvent)
             value *= pNode->scaleFactor;
 
          // Ok, we're all set up, call the function.
-         argv[0] = pNode->consoleFunction;
-         argv[1] = Con::getFloatArg(value);
-         Con::execute(2, argv);
+         Con::executef(2, pNode->consoleFunction, value);
 
          return true;
       } else
@@ -1176,9 +1167,7 @@ bool ActionMap::processAction(const InputEvent* pEvent)
                value = 0.0f;
 
          // Ok, we're all set up, call the function.
-         argv[0] = pNode->consoleFunction;
-         argv[1] = Con::getFloatArg( value );
-         Con::execute( 2, argv );
+         Con::executef( 2, pNode->consoleFunction, value );
 
          return true;
       }
@@ -1263,10 +1252,7 @@ bool ActionMap::checkBreakTable(const InputEvent* pEvent)
          {
             if ( smBreakTable[i].consoleFunction[0] )
             {
-               static const char *argv[2];
-               argv[0] = smBreakTable[i].consoleFunction;
-               argv[1] = Con::getFloatArg(value);
-               Con::execute(2,argv);
+               Con::executef(2, smBreakTable[i].consoleFunction, value);
             }
          }
          else if(smBreakTable[i].breakConsoleCommand)
@@ -1328,21 +1314,21 @@ ConsoleMethod( ActionMap, bind, void, 5, 10, "actionMap.bind( device, action, [m
 ConsoleMethod( ActionMap, bindCmd, void, 6, 6, "actionMap.bindCmd( device, action, makeCmd, breakCmd )" )
 {
    argc;
-   object->processBindCmd( argv[2], argv[3], argv[4], argv[5] );
+   object->processBindCmd( argv[2].toString(), argv[3].toString(), argv[4].toString(), argv[5].toString());
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( ActionMap, unbind, void, 4, 4, "actionMap.unbind( device, action )" )
 {
    argc;
-   object->processUnbind( argv[2], argv[3] );
+   object->processUnbind( argv[2].toString(), argv[3].toString() );
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( ActionMap, save, void, 2, 4, "actionMap.save( [fileName], [append] )" )
 {
-   const char* fileName = argc > 2 ? argv[2]        : NULL;
-   bool append          = argc > 3 ? dAtob(argv[3]) : false;
+   const char* fileName = argc > 2 ? argv[2].toString() : NULL;
+   bool append          = argc > 3 ? argv[3].getInt()   : false;
 
    char buffer[1024];
 
@@ -1375,35 +1361,35 @@ ConsoleMethod( ActionMap, pop, void, 2, 2, "actionMap.pop()" )
 ConsoleMethod( ActionMap, getBinding, const char*, 3, 3, "actionMap.getBinding( command )" )
 {
    argc;
-	return( object->getBinding( argv[2] ) );	
+	return( object->getBinding( argv[2].toString() ) );	
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( ActionMap, getCommand, const char*, 4, 4, "actionMap.getCommand( device, action )" )
 {
    argc;
-	return( object->getCommand( argv[2], argv[3] ) );	
+	return( object->getCommand( argv[2].toString(), argv[3].toString() ));
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( ActionMap, isInverted, bool, 4, 4, "actionMap.isInverted( device, action )" )
 {
    argc;
-	return( object->isInverted( argv[2], argv[3] ) );
+	return( object->isInverted( argv[2].toString(), argv[3].toString() ));
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( ActionMap, getScale, F32, 4, 4, "actionMap.getScale( device, action )" )
 {
    argc;
-	return( object->getScale( argv[2], argv[3] ) );
+	return( object->getScale( argv[2].toString(), argv[3].toString() ));
 }
 
 //------------------------------------------------------------------------------
 ConsoleMethod( ActionMap, getDeadZone, const char*, 4, 4, "actionMap.getDeadZone( device, action )" )
 {
    argc;
-	return( object->getDeadZone( argv[2], argv[3] ) );
+	return( object->getDeadZone( argv[2].toString(), argv[3].toString()));
 }
 
 

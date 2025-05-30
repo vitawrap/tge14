@@ -211,7 +211,7 @@ inline S32 convertLEndianToHost(S32 i) { return S32(convertLEndianToHost(U32(i))
 // Input structures and functions - all input is pushed into the input event queue
 template <class T> class Vector;
 class Point2I;
-
+struct ConsoleValue;
 
 // Theese emuns must be globally scoped so that they work
 // with the inline assembly
@@ -254,6 +254,8 @@ enum DriveType
    DRIVETYPE_RAMDISK = 4,
    DRIVETYPE_UNKNOWN = 5
 };
+
+struct ConsoleValue;
 
 struct Platform
 {
@@ -361,10 +363,10 @@ public:
    // Web page launch function:
    static bool openWebBrowser( const char* webAddress );
 
-   static const char* getLoginPassword();
+   static ConsoleValue getLoginPassword();
    static bool setLoginPassword( const char* password );
 
-   static const char* getClipboard();
+   static ConsoleValue getClipboard();
    static bool setClipboard(const char *text);
 
    static bool stringToFileTime(const char * string, FileTime * time);
@@ -434,6 +436,7 @@ extern char*       dStrstr(const char *str1, const char *str2);
 
 extern char*       dStrtok(char *str, const char *sep);
 
+extern double      dStrtod(const char* str, char** endptr);
 extern int         dAtoi(const char *str);
 extern float       dAtof(const char *str);
 extern bool        dAtob(const char *str);
@@ -628,6 +631,16 @@ struct Math
    static void init(U32 properties = 0);   // 0 == detect available hardware
 };
 
+
+//------------------------------------------------------------------------------
+// std mirrorring
+template <class T> struct dRemoveReference { typedef T Type; };
+template <class T> struct dRemoveReference<T&> { typedef T Type; };
+template <class T> struct dRemoveReference<T&&> { typedef T Type; };
+template <class T>
+constexpr typename dRemoveReference<T>::Type&& dMove(T&& t) {
+    return static_cast<typename dRemoveReference<T>::Type&&>(t);
+}
 
 //------------------------------------------------------------------------------
 // Networking

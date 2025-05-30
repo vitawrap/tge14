@@ -207,7 +207,7 @@ void GuiPaneControl::onRender(Point2I offset, const RectI &updateRect)
 
 ConsoleMethod(GuiPaneControl, setCollapsed, void, 3, 3, "(bool)")
 {
-   object->setCollapsed(dAtob(argv[2]));
+   object->setCollapsed(argv[2].getInt());
 }
 
 void GuiPaneControl::setCollapsed(bool isCollapsed)

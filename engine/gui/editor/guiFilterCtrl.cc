@@ -54,7 +54,7 @@ ConsoleMethod( GuiFilterCtrl, setValue, void, 3, 20, "(f1, f2, ...)"
    argv += 2;
 
    filter.set(argc, argv);
-	object->set(filter);
+   object->set(filter);
 }
 
 ConsoleMethod( GuiFilterCtrl, identity, void, 2, 2, "Reset the filtering.")
@@ -182,24 +182,30 @@ void GuiFilterCtrl::onRender(Point2I offset, const RectI &updateRect)
 
 
 //--------------------------------------
-void Filter::set(S32 argc, const char *argv[])
+void Filter::set(S32 argc, ConsoleValue argv[])
 {
    setSize(0);
    if (argc == 1)
-   {  // in the form of one string "1.0 1.0 1.0"
-      char list[1024];
-      dStrcpy(list, *argv);    // strtok modifies the string so we need to copy it
-      char *value = dStrtok(list, " ");
-      while (value)
-      {
-         push_back(dAtof(value));
-         value = dStrtok(NULL, " ");
+   {  // in the form of one string "1.0 1.0 1.0" or a list {1.0, 1.0, 1.0}
+      if (argv->isList()) {
+          for (S32 i = 0; i < argv->getListSizeU(); ++i)
+              push_back(argv->getListValueU(i).getNumber());
+      }
+      else {
+          char list[1024];
+          dStrcpy(list, argv->toString());    // strtok modifies the string so we need to copy it
+          char* value = dStrtok(list, " ");
+          while (value)
+          {
+              push_back(dAtof(value));
+              value = dStrtok(NULL, " ");
+          }
       }
    }
    else
    {  // in the form of seperate strings "1.0" "1.0" "1.0"
       for (; argc ; argc--, argv++)
-         push_back(dAtof(*argv));
+         push_back((*argv).getNumber());
    }
 }
 

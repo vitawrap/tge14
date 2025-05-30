@@ -166,7 +166,7 @@ void SimDataBlockEvent::process(NetConnection *cptr)
    if(mProcess)
    {
       //call the console function to set the number of blocks to be sent
-      Con::executef(3, "onDataBlockObjectReceived", Con::getIntArg(mIndex), Con::getIntArg(mTotal));
+      Con::executef(3, "onDataBlockObjectReceived", mIndex, mTotal);
 
       SimDataBlock* obj = NULL;
       char *errorBuffer = NetConnection::getErrorBuffer();

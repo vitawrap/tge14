@@ -432,7 +432,7 @@ public:
    virtual AbstractClassRep* getClassRep() const;
 
    /// Set the value of a field.
-   bool setField(const char *fieldName, const char *value);
+   bool setField(const char *fieldName, ConsoleValue value);
    virtual ~ConsoleObject();
 
 public:
@@ -601,10 +601,10 @@ inline const AbstractClassRep::Field * ConsoleObject::findField(StringTableEntry
    return getClassRep()->findField(name);
 }
 
-inline bool ConsoleObject::setField(const char *fieldName, const char *value)
+inline bool ConsoleObject::setField(const char *fieldName, ConsoleValue value)
 {
    //sanity check
-   if ((! fieldName) || (! fieldName[0]) || (! value))
+   if ((! fieldName) || (! fieldName[0]) /* || (!value) */)
       return false;
 
    if (! getClassRep())
@@ -619,8 +619,7 @@ inline bool ConsoleObject::setField(const char *fieldName, const char *value)
       myField->type,
       (void *) (((const char *)(this)) + myField->offset),
       0,
-      1,
-      &value,
+      value,
       myField->table);
 
    return true;

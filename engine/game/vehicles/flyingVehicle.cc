@@ -726,7 +726,7 @@ void FlyingVehicle::initPersistFields()
 ConsoleMethod( FlyingVehicle, useCreateHeight, void, 3, 3, "(bool enabled)"
               "Should the vehicle temporarily use the create height specified in the datablock? This can help avoid problems with spawning.")
 {
-   object->useCreateHeight(dAtob(argv[2]));
+   object->useCreateHeight(argv[2].getInt());
 }
 
 void FlyingVehicle::useCreateHeight(bool val)

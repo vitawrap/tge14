@@ -102,7 +102,7 @@ IMPLEMENT_CO_NETEVENT_V1(GhostAlwaysObjectEvent);
 ConsoleMethod( NetConnection, getGhostsActive, S32, 2, 2, "()"
 			  "Returns number of ghosts active.")
 {
-	return object->getGhostsActive();
+	return (S64) object->getGhostsActive();
 }
 
 void NetConnection::setGhostTo(bool ghostTo)
@@ -775,7 +775,7 @@ void NetConnection::handleConnectionMessage(U32 message, U32 sequence, U32 ghost
          }
          break;
       case GhostAlwaysStarting:
-         Con::executef(2, "onGhostAlwaysStarted", Con::getIntArg(ghostCount));
+         Con::executef(2, "onGhostAlwaysStarted", ghostCount);
          break;
       case SendNextDownloadRequest:
          sendNextFileDownloadRequest();

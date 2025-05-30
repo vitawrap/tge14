@@ -133,12 +133,12 @@ CreatorTree::~CreatorTree()
 
 //------------------------------------------------------------------------------
 
-CreatorTree::Node * CreatorTree::createNode(const char * name, const char * value, bool group, Node * parent)
+CreatorTree::Node * CreatorTree::createNode(const char * name, ConsoleValue const& value, bool group, Node * parent)
 {
    Node * node = new Node();
    node->mId = mCurId++;
    node->mName = name ? StringTable->insert(name) : 0;
-   node->mValue = value ? StringTable->insert(value) : 0;
+   node->mValue = value;
    node->mFlags.set(Node::Group, group);
 
    // add to the parent group
@@ -161,7 +161,7 @@ void CreatorTree::clear()
 {
    delete mRoot;
    mCurId = 0;
-   mRoot = createNode(0, 0, true);
+   mRoot = createNode(0, 0LL, true);
    mRoot->mFlags.set(Node::Root | Node::Expanded);
    mSize = Point2I(1,0);
 }
@@ -195,29 +195,30 @@ void CreatorTree::sort()
 //------------------------------------------------------------------------------
 ConsoleMethod( CreatorTree, addGroup, S32, 4, 4, "(string group, string name, string value)")
 {
-   CreatorTree::Node * grp = object->findNode(dAtoi(argv[2]));
+   CreatorTree::Node * grp = object->findNode(argv[2].getInt());
+   const char* nodeName = argv[3].toString();
 
    if(!grp || !grp->isGroup())
       return(-1);
 
    // return same named group if found...
    for(U32 i = 0; i < grp->mChildren.size(); i++)
-      if(!dStricmp(argv[3], grp->mChildren[i]->mName))
+      if(!dStricmp(nodeName, grp->mChildren[i]->mName))
          return(grp->mChildren[i]->mId);
 
-   CreatorTree::Node * node = object->createNode(argv[3], 0, true, grp);
+   CreatorTree::Node * node = object->createNode(nodeName, 0LL, true, grp);
    object->build();
    return(node ? node->getId() : -1);
 }
 
 ConsoleMethod( CreatorTree, addItem, S32, 5, 5, "(Node group, string name, string value)")
 {
-   CreatorTree::Node * grp = object->findNode(dAtoi(argv[2]));
+   CreatorTree::Node * grp = object->findNode(argv[2].getInt());
 
    if(!grp || !grp->isGroup())
       return -1;
 
-   CreatorTree::Node * node = object->createNode(argv[3], argv[4], false, grp);
+   CreatorTree::Node * node = object->createNode(argv[3].toString(), argv[4], false, grp);
    object->build();
    return(node ? node->getId() : -1);
 }
@@ -231,15 +232,15 @@ ConsoleMethod( CreatorTree, fileNameMatch, bool, 5, 5, "(string world, string ty
    // interior filenames
    // 0     - world short ('b', 'x', ...)
    // 1->   - type short ('towr', 'bunk', ...)
-   U32 typeLen = dStrlen(argv[3]);
-   if(dStrlen(argv[4]) < (typeLen + 1))
+   U32 typeLen = argv[3].getStrlen();
+   if(argv[4].getStrlen() < (typeLen + 1))
       return(false);
 
    // world
-   if(dToupper(argv[4][0]) != dToupper(argv[2][0]))
+   if(dToupper(argv[4].toString()[0]) != dToupper(argv[2].toString()[0]))
       return(false);
 
-   return(!dStrnicmp(argv[4]+1, argv[3], typeLen));
+   return(!dStrnicmp(argv[4].toString() + 1, argv[3].toString(), typeLen));
 }
 
 ConsoleMethod( CreatorTree, getSelected, S32, 2, 2, "Return a handle to the currently selected item.")
@@ -249,7 +250,7 @@ ConsoleMethod( CreatorTree, getSelected, S32, 2, 2, "Return a handle to the curr
 
 ConsoleMethod( CreatorTree, isGroup, bool, 3, 3, "(Group g)")
 {
-   CreatorTree::Node * node = object->findNode(dAtoi(argv[2]));
+   CreatorTree::Node * node = object->findNode(argv[2].getInt());
    if(node && node->isGroup())
       return(true);
    return(false);
@@ -257,13 +258,13 @@ ConsoleMethod( CreatorTree, isGroup, bool, 3, 3, "(Group g)")
 
 ConsoleMethod( CreatorTree, getName, const char*, 3, 3, "(Node item)")
 {
-   CreatorTree::Node * node = object->findNode(dAtoi(argv[2]));
+   CreatorTree::Node * node = object->findNode(argv[2].getInt());
    return(node ? node->mName : 0);
 }
 
 ConsoleMethod( CreatorTree, getValue, const char*, 3, 3, "(Node n)")
 {
-   CreatorTree::Node * node = object->findNode(dAtoi(argv[2]));
+   CreatorTree::Node * node = object->findNode(argv[2].getInt());
    return(node ? node->mValue : 0);
 }
 
@@ -274,7 +275,7 @@ ConsoleMethod( CreatorTree, clear, void, 2, 2, "Clear the tree.")
 
 ConsoleMethod( CreatorTree, getParent, S32, 3, 3, "(Node n)")
 {
-   CreatorTree::Node * node = object->findNode(dAtoi(argv[2]));
+   CreatorTree::Node * node = object->findNode(argv[2].getInt());
    if(node && node->mParent)
       return(node->mParent->getId());
    else

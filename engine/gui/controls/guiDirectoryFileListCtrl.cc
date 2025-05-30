@@ -98,7 +98,7 @@ StringTableEntry GuiDirectoryFileListCtrl::getSelectedFileName()
 
 ConsoleMethod( GuiDirectoryFileListCtrl, setPath, bool, 3, 4, "setPath(path,filter) - directory to enumerate files from (without trailing slash)" )
 {
-   return object->setCurrentPath( argv[2], argv[3] );
+   return object->setCurrentPath( argv[2].toSTString(), argv[3].toSTString() );
 }
 
 ConsoleMethod( GuiDirectoryFileListCtrl, getSelectedFile, const char*, 2, 2, "getSelectedFile () - returns the currently selected file name" )

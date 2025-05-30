@@ -143,8 +143,8 @@ class SimEvent
 class SimConsoleEvent : public SimEvent
 {
 protected:
+   ConsoleValue *mArgv;
    S32 mArgc;
-   char **mArgv;
    bool mOnObject;
   public:
 
@@ -161,7 +161,7 @@ protected:
    ///
    /// @see Con::execute(S32 argc, const char *argv[])
    /// @see Con::execute(SimObject *object, S32 argc, const char *argv[])
-   SimConsoleEvent(S32 argc, const char **argv, bool onObject);
+   SimConsoleEvent(S32 argc, ConsoleValue *argv, bool onObject);
 
    ~SimConsoleEvent();
    virtual void process(SimObject *object);
@@ -171,13 +171,13 @@ protected:
 struct SimConsoleThreadExecCallback
 {
    void *sem;
-   const char *retVal;
+   ConsoleValue retVal;
 
    SimConsoleThreadExecCallback();
    ~SimConsoleThreadExecCallback();
 
-   void handleCallback(const char *ret);
-   const char *waitForResult();
+   void handleCallback(ConsoleValue ret);
+   ConsoleValue waitForResult();
 };
 
 class SimConsoleThreadExecEvent : public SimConsoleEvent
@@ -185,7 +185,7 @@ class SimConsoleThreadExecEvent : public SimConsoleEvent
    SimConsoleThreadExecCallback *cb;
 
 public:
-   SimConsoleThreadExecEvent(S32 argc, const char **argv, bool onObject, SimConsoleThreadExecCallback *callback);
+   SimConsoleThreadExecEvent(S32 argc, ConsoleValue *argv, bool onObject, SimConsoleThreadExecCallback *callback);
 
    virtual void process(SimObject *object);
 };
@@ -201,7 +201,7 @@ class SimFieldDictionary
    struct Entry
    {
       StringTableEntry slotName;
-      char *value;
+      ConsoleValue value;
       Entry *next;
    };
   private:
@@ -225,8 +225,8 @@ public:
 
    SimFieldDictionary();
    ~SimFieldDictionary();
-   void setFieldValue(StringTableEntry slotName, const char *value);
-   const char *getFieldValue(StringTableEntry slotName);
+   void setFieldValue(StringTableEntry slotName, ConsoleValue& value);
+   ConsoleValue getFieldValue(StringTableEntry slotName);
    void writeFields(SimObject *obj, Stream &strem, U32 tabStop);
    void printFields(SimObject *obj);
    void assignFrom(SimFieldDictionary *dict);
@@ -521,7 +521,7 @@ class SimObject: public ConsoleObject
    /// @param   slotName    Field to access.
    /// @param   array       String containing index into array
    ///                      (if field is an array); if NULL, it is ignored.
-   const char *getDataField(StringTableEntry slotName, const char *array);
+   ConsoleValue getDataField(StringTableEntry slotName, const char *array);
 
    /// Set the value of a field on the object.
    ///
@@ -531,14 +531,14 @@ class SimObject: public ConsoleObject
    /// @param   slotName    Field to access.
    /// @param   array       String containing index into array; if NULL, it is ignored.
    /// @param   value       Value to store.
-   void setDataField(StringTableEntry slotName, const char *array, const char *value);
+   void setDataField(StringTableEntry slotName, const char *array, ConsoleValue& value);
 
    /// Shortcut to strictly set a static field, also avoiding a call to findField.
    ///
    /// @param   field       Field from own AbstractClassRep.
    /// @param   array       String containing index into array; if NULL, it is ignored.
    /// @param   value       Value to store.
-   void setStaticField(AbstractClassRep::Field const* field, const char* array, const char* value);
+   void setStaticField(AbstractClassRep::Field const* field, const char* array, ConsoleValue& value);
 
    /// Get reference to the dictionary containing dynamic fields.
    ///
@@ -557,7 +557,10 @@ class SimObject: public ConsoleObject
    SimObject();
    virtual ~SimObject();
 
-   virtual bool processArguments(S32 argc, const char **argv);  ///< Process constructor options. (ie, new SimObject(1,2,3))
+   /// Process constructor options. (ie, new SimObject(1,2,3))
+   ///
+   /// Parameter stack is mutable as it is popped shortly after the call.
+   virtual bool processArguments(S32 argc, ConsoleValue *argv);
 
    /// @}
 
@@ -710,7 +713,7 @@ class SimObject: public ConsoleObject
    U32         getType() const  { return mTypeMask; }
    const char* getName() const { return objectName; };
 
-   const char* scriptThis() const;    ///< Returns a value representing this object which can be passed to script functions.
+   ConsoleValue scriptThis() const;    ///< Returns a value representing this object which can be passed to script functions.
 
    void setId(SimObjectId id);
    void assignName(const char* name);
@@ -1249,7 +1252,7 @@ class SimGroup: public SimSet
    /// Find an object in the group.
    virtual SimObject* findObject(const char* name);
 
-   bool processArguments(S32 argc, const char **argv);
+   bool processArguments(S32 argc, ConsoleValue *argv) override;
 
    DECLARE_CONOBJECT(SimGroup);
 };
@@ -1323,6 +1326,7 @@ namespace Sim
 
    SimObject* findObject(SimObjectId);
    SimObject* findObject(const char* name);
+   SimObject* findObject(ConsoleValue& cval);
    template<class T> inline bool findObject(SimObjectId id,T*&t)
    {
       t = dynamic_cast<T*>(findObject(id));
@@ -1332,6 +1336,11 @@ namespace Sim
    {
       t = dynamic_cast<T*>(findObject(objectName));
       return t != NULL;
+   }
+   template<class T> inline bool findObject(ConsoleValue& objectVal, T*& t)
+   {
+       t = dynamic_cast<T*>(findObject(objectVal));
+       return t != NULL;
    }
 
    void advanceToTime(SimTime time);
@@ -1382,13 +1391,13 @@ namespace Sim
    {                                                                                                 \
       volatile SimDataBlock* pConstraint = static_cast<SimDataBlock*>((T*)NULL);                     \
                                                                                                      \
-      if (argc == 1) {                                                                               \
+      if (!val.isList()) {                                                                           \
          *reinterpret_cast<T**>(dptr) = NULL;                                                        \
-         if (argv[0] && argv[0][0] && !Sim::findObject(argv[0],*reinterpret_cast<T**>(dptr)))        \
-            Con::printf("Object '%s' is not a member of the '%s' data block class", argv[0], #T);    \
+         if (!val.isNull() && !Sim::findObject(val, *reinterpret_cast<T**>(dptr)))                   \
+            Con::printf("Object '%s' is not a member of the '%s' data block class", val.toString(), #T);    \
       }                                                                                              \
       else                                                                                           \
-         Con::printf("Cannot set multiple args to a single pointer.");                               \
+         Con::printf("Cannot set list to a single pointer.");                                        \
    }
 
 #define IMPLEMENT_GETDATATYPE(T) \

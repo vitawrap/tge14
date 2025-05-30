@@ -97,23 +97,23 @@ ConsoleFunction( addCardProfile, void, 15, 15, "(string vendor, string renderer,
 {
    CardProfile profile;
 
-   profile.vendor = dStrdup(argv[1]);
-   profile.renderer = dStrdup(argv[2]);
+   profile.vendor = dStrdup(argv[1].toString());
+   profile.renderer = dStrdup(argv[2].toString());
 
-   profile.safeMode = dAtob(argv[3]);
-   profile.lockArray = dAtob(argv[4]);
-   profile.subImage = dAtob(argv[5]);
-   profile.fogTexture = dAtob(argv[6]);
-   profile.noEnvColor = dAtob(argv[7]);
-   profile.clipHigh = dAtob(argv[8]);
-	profile.deleteContext = dAtob(argv[9]);
-	profile.texCompress = dAtob(argv[10]);
-	profile.interiorLock = dAtob(argv[11]);
-	profile.only16 = dAtob(argv[12]);
-	profile.noArraysAlpha = dAtob(argv[13]);
+   profile.safeMode = argv[3].getInt();
+   profile.lockArray = argv[4].getInt();
+   profile.subImage = argv[5].getInt();
+   profile.fogTexture = argv[6].getInt();
+   profile.noEnvColor = argv[7].getInt();
+   profile.clipHigh = argv[8].getInt();
+	profile.deleteContext = argv[9].getInt();
+	profile.texCompress = argv[10].getInt();
+	profile.interiorLock = argv[11].getInt();
+	profile.only16 = argv[12].getInt();
+	profile.noArraysAlpha = argv[13].getInt();
 
-	if (strcmp(argv[14],""))
-		profile.proFile = dStrdup(argv[14]);
+	if (strcmp(argv[14].toString(), ""))
+		profile.proFile = dStrdup(argv[14].toString());
 	else
 		profile.proFile = NULL;
 
@@ -127,12 +127,12 @@ ConsoleFunction( addOSCardProfile, void, 6,6, "(string vendor, string renderer, 
 {
    OSCardProfile profile;
 
-   profile.vendor = dStrdup(argv[1]);
-   profile.renderer = dStrdup(argv[2]);
+   profile.vendor = dStrdup(argv[1].toString());
+   profile.renderer = dStrdup(argv[2].toString());
 
-   profile.allowOpenGL = dAtob(argv[3]);
-	profile.allowD3D = dAtob(argv[4]);
-	profile.preferOpenGL = dAtob(argv[5]);
+   profile.allowOpenGL = argv[3].getInt();
+	profile.allowD3D = argv[4].getInt();
+	profile.preferOpenGL = argv[5].getInt();
 
    sOSCardProfiles.push_back(profile);
 }
@@ -299,11 +299,11 @@ static void profileSystem(const char *vendor, const char *renderer)
    }
 
 	Con::setVariable("$pref::Video::profiledVendor", vendor);
-   Con::setVariable("$pref::Video::profiledRenderer", renderer);
+    Con::setVariable("$pref::Video::profiledRenderer", renderer);
 
 	if (!Con::getBoolVariable("$DisableSystemProfiling") &&
-		 ( dStrcmp(vendor, Con::getVariable("$pref::Video::defaultsVendor")) ||
-       	dStrcmp(renderer, Con::getVariable("$pref::Video::defaultsRenderer")) ))
+		 ( dStrcmp(vendor, Con::getVariable("$pref::Video::defaultsVendor").toString()) ||
+       	dStrcmp(renderer, Con::getVariable("$pref::Video::defaultsRenderer").toString()) ))
 	{
 		if (proFile)
 		{
@@ -499,8 +499,8 @@ bool OpenGLDevice::activate( U32 width, U32 height, U32 bpp, bool fullScreen )
 
 				// only do this for the first session
 				if (!Con::getBoolVariable("$DisableSystemProfiling") &&
-					 ( dStrcmp(vendorString, Con::getVariable("$pref::Video::profiledVendor")) ||
-       				dStrcmp(rendererString, Con::getVariable("$pref::Video::profiledRenderer")) ))
+					 ( dStrcmp(vendorString, Con::getVariable("$pref::Video::profiledVendor").toString()) ||
+       				dStrcmp(rendererString, Con::getVariable("$pref::Video::profiledRenderer").toString()) ))
 				{
        			profileSystem(vendorString, rendererString);
 					profiled = true;
@@ -542,8 +542,8 @@ bool OpenGLDevice::activate( U32 width, U32 height, U32 bpp, bool fullScreen )
    // only do this for the first session
    if (!profiled &&
    	 !Con::getBoolVariable("$DisableSystemProfiling") &&
-   	 (	dStrcmp(vendorString, Con::getVariable("$pref::Video::profiledVendor")) ||
-       	dStrcmp(rendererString, Con::getVariable("$pref::Video::profiledRenderer")) ))
+   	 (	dStrcmp(vendorString, Con::getVariable("$pref::Video::profiledVendor").toString()) ||
+       	dStrcmp(rendererString, Con::getVariable("$pref::Video::profiledRenderer").toString()) ))
    {
       profileSystem(vendorString, rendererString);
 		profiled = true;
@@ -563,7 +563,7 @@ bool OpenGLDevice::activate( U32 width, U32 height, U32 bpp, bool fullScreen )
 				if (mResolutionList[i].bpp == 32)
 					mResolutionList.erase(i);
 
-      dSscanf(Con::getVariable("$pref::Video::resolution"), "%d %d %d", &width, &height, &bpp);
+      dSscanf(Con::getVariable("$pref::Video::resolution").toString(), "%d %d %d", &width, &height, &bpp);
       setScreenMode(width, height, bpp,
                     Con::getBoolVariable("$pref::Video::fullScreen", true), false, false);
    }
@@ -971,7 +971,7 @@ void OpenGLDevice::swapBuffers()
 
 
 //------------------------------------------------------------------------------
-const char* OpenGLDevice::getDriverInfo()
+ConsoleValue OpenGLDevice::getDriverInfo()
 {
    // Output some driver info to the console:
    const char* vendorString   = (const char*) glGetString( GL_VENDOR );
@@ -985,8 +985,8 @@ const char* OpenGLDevice::getDriverInfo()
                  + ( extensionsString ? dStrlen( extensionsString ) : 0 )
                  + 4;
 
-   char* returnString = Con::getReturnBuffer( bufferLen );
-   dSprintf( returnString, bufferLen, "%s\t%s\t%s\t%s",
+   ReturnBuffer returnString(bufferLen);
+   dSprintf( *returnString, bufferLen, "%s\t%s\t%s\t%s",
          ( vendorString ? vendorString : "" ),
          ( rendererString ? rendererString : "" ),
          ( versionString ? versionString : "" ),

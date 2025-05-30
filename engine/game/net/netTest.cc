@@ -72,7 +72,7 @@ IMPLEMENT_CO_NETOBJECT_V1(SimpleNetObject);
 
 ConsoleMethod( SimpleNetObject, setMessage, void, 3, 3, "(string msg)")
 {
-   object->setMessage(argv[2]);
+   object->setMessage(argv[2].toString());
 }
 
 ConsoleFunction( msg, void, 3, 3, "(NetConnection id, string message)"
@@ -80,5 +80,5 @@ ConsoleFunction( msg, void, 3, 3, "(NetConnection id, string message)"
 {
    NetConnection *con = (NetConnection *) Sim::findObject(argv[1]);
    if(con)
-      con->postNetEvent(new SimpleMessageEvent(argv[2]));
+      con->postNetEvent(new SimpleMessageEvent(argv[2].toString()));
 }

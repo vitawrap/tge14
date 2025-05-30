@@ -46,11 +46,8 @@ public:
             OverloadMarker               = -2,
             InvalidFunctionType          = -1,
             ScriptFunctionType,
-            StringCallbackType,
-            IntCallbackType,
-            FloatCallbackType,
+            ValueCallbackType,
             VoidCallbackType,
-            BoolCallbackType
         };
 
         Namespace *mNamespace;
@@ -65,17 +62,14 @@ public:
         CodeBlock *mCode;
         U32 mFunctionOffset;
         union {
-            StringCallback mStringCallbackFunc;
-            IntCallback mIntCallbackFunc;
+            ValueCallback mStringCallbackFunc;
             VoidCallback mVoidCallbackFunc;
-            FloatCallback mFloatCallbackFunc;
-            BoolCallback mBoolCallbackFunc;
             const char* mGroupName;
         } cb;
         Entry();
         void clear();
 
-        const char *execute(S32 argc, const char **argv, ExprEvalState *state);
+        ConsoleValue execute(S32 argc, ConsoleValue* argv, ExprEvalState *state);
 
     };
     Entry *mEntryList;
@@ -87,11 +81,8 @@ public:
 
     Namespace();
     void addFunction(StringTableEntry name, CodeBlock *cb, U32 functionOffset);
-    void addCommand(StringTableEntry name,StringCallback, const char *usage, S32 minArgs, S32 maxArgs);
-    void addCommand(StringTableEntry name,IntCallback, const char *usage, S32 minArgs, S32 maxArgs);
-    void addCommand(StringTableEntry name,FloatCallback, const char *usage, S32 minArgs, S32 maxArgs);
+    void addCommand(StringTableEntry name,ValueCallback, const char *usage, S32 minArgs, S32 maxArgs);
     void addCommand(StringTableEntry name,VoidCallback, const char *usage, S32 minArgs, S32 maxArgs);
-    void addCommand(StringTableEntry name,BoolCallback, const char *usage, S32 minArgs, S32 maxArgs);
 
     void addOverload(const char *name, const char* altUsage);
 
@@ -142,91 +133,36 @@ class Dictionary
 public:
     struct Entry
     {
+        // Positive type values are reserved for Type### constants set by ConsoleType(...)
         enum
         {
-            TypeInternalInt = -3,
-            TypeInternalFloat = -2,
-            TypeInternalString = -1,
+            TypeInternalValue = -1,
         };
 
         StringTableEntry name;
         Entry *nextEntry;
-        S32 type;
-        char *sval;
-        U32 ival;  // doubles as strlen when type = -1
-        F32 fval;
-        U32 bufferLen;
+
+        S32 type;   // either our internal types or a public console type
+        ConsoleValue value;
         void *dataPtr;
 
         Entry(StringTableEntry name);
-        ~Entry();
 
-        U32 getIntValue()
+        ConsoleValue getValue()
         {
-            if(type <= TypeInternalString)
-                return ival;
-            else
-                return dAtoi(Con::getData(type, dataPtr, 0));
-        }
-        F32 getFloatValue()
-        {
-            if(type <= TypeInternalString)
-                return fval;
-            else
-                return dAtof(Con::getData(type, dataPtr, 0));
-        }
-        const char *getStringValue()
-        {
-            if(type == TypeInternalString)
-                return sval;
-            if(type == TypeInternalFloat)
-                return Con::getData(TypeF32, &fval, 0);
-            else if(type == TypeInternalInt)
-                return Con::getData(TypeS32, &ival, 0);
+            if(type == TypeInternalValue)
+                return value;
             else
                 return Con::getData(type, dataPtr, 0);
         }
-        void setIntValue(U32 val)
+
+        void setValue(ConsoleValue& src)
         {
-            if(type <= TypeInternalString)
-            {
-                fval = (F32)val;
-                ival = val;
-                if(sval != typeValueEmpty)
-                {
-                    dFree(sval);
-                    sval = typeValueEmpty;
-                }
-                type = TypeInternalInt;
-                return;
-            }
+            if(type == TypeInternalValue)
+                value = src;
             else
-            {
-                const char *dptr = Con::getData(TypeS32, &val, 0);
-                Con::setData(type, dataPtr, 0, 1, &dptr);
-            }
+                Con::setData(type, dataPtr, 0, src);
         }
-        void setFloatValue(F32 val)
-        {
-            if(type <= TypeInternalString)
-            {
-                fval = val;
-                ival = static_cast<U32>(val);
-                if(sval != typeValueEmpty)
-                {
-                    dFree(sval);
-                    sval = typeValueEmpty;
-                }
-                type = TypeInternalFloat;
-                return;
-            }
-            else
-            {
-                const char *dptr = Con::getData(TypeF32, &val, 0);
-                Con::setData(type, dataPtr, 0, 1, &dptr);
-            }
-        }
-        void setStringValue(const char *value);
     };
 
 private:
@@ -265,8 +201,8 @@ public:
     void exportVariables(const char *varString, const char *fileName, bool append, bool runnable = true);
     void deleteVariables(const char *varString);
 
-    void setVariable(StringTableEntry name, const char *value);
-    const char *getVariable(StringTableEntry name, bool *valid = NULL);
+    void setVariable(StringTableEntry name, ConsoleValue& cv);
+    ConsoleValue getVariable(StringTableEntry name, bool *valid = NULL);
 
     void addVariable(const char *name, S32 type, void *dataPtr);
     bool removeVariable(StringTableEntry name);
@@ -302,12 +238,8 @@ public:
     void setCurVarNameCreate(StringTableEntry name);
     void setCurLocalName(StringTableEntry name);
     void setCurLocalNameCreate(StringTableEntry name);
-    S32 getIntVariable();
-    F64 getFloatVariable();
-    const char *getStringVariable();
-    void setIntVariable(S32 val);
-    void setFloatVariable(F64 val);
-    void setStringVariable(const char *str);
+    ConsoleValue getVariable() const;
+    void setVariable(ConsoleValue& value);
 
     void pushFrame(StringTableEntry frameName, Namespace *ns);
     void popFrame();

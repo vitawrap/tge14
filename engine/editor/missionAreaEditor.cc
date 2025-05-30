@@ -1029,9 +1029,7 @@ ConsoleMethod( MissionAreaEditor, centerWorld, void, 2, 2, "Realign the world so
       }
    }
 
-   char buf[64];
-   dSprintf(buf, sizeof(buf), "%g %g %g", -offset3F.x, -offset3F.y, -offset3F.z);
-   Con::executef(object, 2, "onWorldOffset", buf);
+   Con::executef(object, 2, "onWorldOffset", ConsoleValueList::from(-offset3F.x, -offset3F.y, -offset3F.z));
 
    // move the mission area
    area.point.x -= offset.x;
@@ -1052,10 +1050,7 @@ ConsoleMethod(MissionAreaEditor, getArea, const char *, 2, 2, "Return a 4-tuple:
 
    //
    RectI area = object->getArea();
-   char * ret = Con::getReturnBuffer(64);
-   dSprintf(ret, 64, "%d %d %d %d", area.point.x, area.point.y, area.extent.x, area.extent.y);
-
-   return(ret);
+   return ConsoleValueList::from(area.point.x, area.point.y, area.extent.x, area.extent.y);
 }
 
 ConsoleMethod( MissionAreaEditor, setArea, void, 3, 6, "(int x, int y, int w, int h)"
@@ -1071,13 +1066,14 @@ ConsoleMethod( MissionAreaEditor, setArea, void, 3, 6, "(int x, int y, int w, in
 
    //
    if(argc == 3)
-      dSscanf(argv[2], "%d %d %d %d", &area.point.x, &area.point.y, &area.extent.x, &area.extent.y);
+      area = argv[2].getPoint4F();
+      //dSscanf(argv[2], "%d %d %d %d", &area.point.x, &area.point.y, &area.extent.x, &area.extent.y);
    else if(argc == 6)
    {
-      area.point.x = dAtoi(argv[2]);
-      area.point.y = dAtoi(argv[3]);
-      area.extent.x = dAtoi(argv[4]);
-      area.extent.y = dAtoi(argv[5]);
+      area.point.x =  argv[2].getInt();
+      area.point.y =  argv[3].getInt();
+      area.extent.x = argv[4].getInt();
+      area.extent.y = argv[5].getInt();
    }
    else
       Con::errorf(ConsoleLogEntry::General, "MissionAreaEditor::cSetArea: invalid number of arguments!");

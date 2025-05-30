@@ -20,19 +20,12 @@ ConsoleType( Point2I, TypePoint2I, sizeof(Point2I) )
 ConsoleGetType( TypePoint2I )
 {
    Point2I *pt = (Point2I *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%d %d", pt->x, pt->y);
-   return returnBuffer;
+   return ConsoleValueList::from(pt->x, pt->y);
 }
 
 ConsoleSetType( TypePoint2I )
 {
-   if(argc == 1)
-      dSscanf(argv[0], "%d %d", &((Point2I *) dptr)->x, &((Point2I *) dptr)->y);
-   else if(argc == 2)
-      *((Point2I *) dptr) = Point2I(dAtoi(argv[0]), dAtoi(argv[1]));
-   else
-      Con::printf("Point2I must be set as { x, y } or \"x y\"");
+   *((Point2I *) dptr) = val.getPoint2I();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,19 +36,12 @@ ConsoleType( Point2F, TypePoint2F, sizeof(Point2F) )
 ConsoleGetType( TypePoint2F )
 {
    Point2F *pt = (Point2F *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g %g", pt->x, pt->y);
-   return returnBuffer;
+   return ConsoleValueList::from(pt->x, pt->y);
 }
 
 ConsoleSetType( TypePoint2F )
 {
-   if(argc == 1)
-      dSscanf(argv[0], "%g %g", &((Point2F *) dptr)->x, &((Point2F *) dptr)->y);
-   else if(argc == 2)
-      *((Point2F *) dptr) = Point2F(dAtof(argv[0]), dAtof(argv[1]));
-   else
-      Con::printf("Point2F must be set as { x, y } or \"x y\"");
+   *((Point2F*)dptr) = val.getPoint2F();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,22 +52,12 @@ ConsoleType( Point3F, TypePoint3F, sizeof(Point3F) )
 ConsoleGetType( TypePoint3F )
 {
    Point3F *pt = (Point3F *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g %g %g", pt->x, pt->y, pt->z);
-   return returnBuffer;
+   return ConsoleValueList::from(pt->x, pt->y, pt->z);
 }
 
 ConsoleSetType( TypePoint3F )
 {
-   if (argc == 1)
-   {
-      //dSscanf(argv[0], "%g %g %g", &((Point3F *) dptr)->x, &((Point3F *) dptr)->y, &((Point3F *) dptr)->z);
-      (*(Point3F*)dptr) = argv[0];  // Use copy + string constructor
-   }
-   else if(argc == 3)
-      *((Point3F *) dptr) = Point3F(dAtof(argv[0]), dAtof(argv[1]), dAtof(argv[2]));
-   else
-      Con::printf("Point3F must be set as { x, y, z } or \"x y z\"");
+   *((Point3F *) dptr) = val.getPoint3F();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,19 +68,12 @@ ConsoleType( Point4F, TypePoint4F, sizeof(Point4F) )
 ConsoleGetType( TypePoint4F )
 {
    Point4F *pt = (Point4F *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g %g %g %g", pt->x, pt->y, pt->z, pt->w);
-   return returnBuffer;
+   return ConsoleValueList::from(pt->x, pt->y, pt->z, pt->w);
 }
 
 ConsoleSetType( TypePoint4F )
 {
-   if(argc == 1)
-      dSscanf(argv[0], "%g %g %g %g", &((Point4F *) dptr)->x, &((Point4F *) dptr)->y, &((Point4F *) dptr)->z, &((Point4F *) dptr)->w);
-   else if(argc == 4)
-      *((Point4F *) dptr) = Point4F(dAtof(argv[0]), dAtof(argv[1]), dAtof(argv[2]), dAtof(argv[3]));
-   else
-      Con::printf("Point4F must be set as { x, y, z, w } or \"x y z w\"");
+   *((Point4F *) dptr) = val.getPoint4F();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,21 +84,12 @@ ConsoleType( RectI, TypeRectI, sizeof(RectI) )
 ConsoleGetType( TypeRectI )
 {
    RectI *rect = (RectI *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%d %d %d %d", rect->point.x, rect->point.y,
-            rect->extent.x, rect->extent.y);
-   return returnBuffer;
+   return ConsoleValueList::from(rect->point.x, rect->point.y, rect->extent.x, rect->extent.y);
 }
 
 ConsoleSetType( TypeRectI )
 {
-   if(argc == 1)
-      dSscanf(argv[0], "%d %d %d %d", &((RectI *) dptr)->point.x, &((RectI *) dptr)->point.y,
-              &((RectI *) dptr)->extent.x, &((RectI *) dptr)->extent.y);
-   else if(argc == 4)
-      *((RectI *) dptr) = RectI(dAtoi(argv[0]), dAtoi(argv[1]), dAtoi(argv[2]), dAtoi(argv[3]));
-   else
-      Con::printf("RectI must be set as { x, y, w, h } or \"x y w h\"");
+   *((RectI*) dptr) = val.getPoint4F();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,21 +100,12 @@ ConsoleType( RectF, TypeRectF, sizeof(RectF) )
 ConsoleGetType( TypeRectF )
 {
    RectF *rect = (RectF *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g %g %g %g", rect->point.x, rect->point.y,
-            rect->extent.x, rect->extent.y);
-   return returnBuffer;
+   return ConsoleValueList::from(rect->point.x, rect->point.y, rect->extent.x, rect->extent.y);
 }
 
 ConsoleSetType( TypeRectF )
 {
-   if(argc == 1)
-      dSscanf(argv[0], "%g %g %g %g", &((RectF *) dptr)->point.x, &((RectF *) dptr)->point.y,
-              &((RectF *) dptr)->extent.x, &((RectF *) dptr)->extent.y);
-   else if(argc == 4)
-      *((RectF *) dptr) = RectF(dAtof(argv[0]), dAtof(argv[1]), dAtof(argv[2]), dAtof(argv[3]));
-   else
-      Con::printf("RectF must be set as { x, y, w, h } or \"x y w h\"");
+   *((RectF*)dptr) = val.getPoint4F();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -165,30 +116,24 @@ ConsoleType( MatrixPosition, TypeMatrixPosition, sizeof(4*sizeof(F32)) )
 ConsoleGetType( TypeMatrixPosition )
 {
    F32 *col = (F32 *) dptr + 3;
-   char* returnBuffer = Con::getReturnBuffer(256);
    if(col[12] == 1.f)
-      dSprintf(returnBuffer, 256, "%g %g %g", col[0], col[4], col[8]);
+      return ConsoleValueList::from(col[0], col[4], col[8]);
    else
-      dSprintf(returnBuffer, 256, "%g %g %g %g", col[0], col[4], col[8], col[12]);
-   return returnBuffer;
+      return ConsoleValueList::from(col[0], col[4], col[8], col[12]);
 }
 
 ConsoleSetType( TypeMatrixPosition )
 {
    F32 *col = ((F32 *) dptr) + 3;
-   if (argc == 1)
-   {
-      col[0] = col[4] = col[8] = 0.f;
-      col[12] = 1.f;
-      dSscanf(argv[0], "%g %g %g %g", &col[0], &col[4], &col[8], &col[12]);
-   }
-   else if (argc <= 4) 
-   {
-         for (S32 i = 0; i < argc; i++)
-            col[i << 2] = dAtoi(argv[i]);
-   }
+   col[0] = col[4] = col[8] = 0.f; col[12] = 1.f;
+   if (!val.isList()) 
+      dSscanf(val.toString(), "%g %g %g %g", &col[0], &col[4], &col[8], &col[12]);
    else
-      Con::printf("Matrix position must be set as { x, y, z, w } or \"x y z w\"");
+   {
+      for (S32 i = 0; i < val.getListSizeU(); i++)
+         col[i << 2] = val.getListValueDefU(i, i < 4? col[i<<2] : 0.f).getNumber();
+   }
+   // Con::printf("Matrix position must be set as { x, y, z, w } or \"x y z w\"");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -200,9 +145,7 @@ ConsoleGetType( TypeMatrixRotation )
 {
    AngAxisF aa(*(MatrixF *) dptr);
    aa.axis.normalize();
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g %g",aa.axis.x,aa.axis.y,aa.axis.z,mRadToDeg(aa.angle));
-   return returnBuffer;
+   return ConsoleValueList::from(aa.axis.x,aa.axis.y,aa.axis.z,mRadToDeg(aa.angle));
 }
 
 ConsoleSetType( TypeMatrixRotation )
@@ -210,19 +153,19 @@ ConsoleSetType( TypeMatrixRotation )
    // DMM: Note that this will ONLY SET the ULeft 3x3 submatrix.
    //
    AngAxisF aa(Point3F(0,0,0),0);
-   if (argc == 1)
+
+   if (val.isList()) 
    {
-      dSscanf(argv[0], "%g %g %g %g", &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
-      aa.angle = mDegToRad(aa.angle);
-   }
-   else if (argc == 4) 
-   {
-         for (S32 i = 0; i < argc; i++)
-            ((F32*)&aa)[i] = dAtof(argv[i]);
-         aa.angle = mDegToRad(aa.angle);
+       for (S32 i = 0; i < val.getListSizeU(); i++)
+           ((F32*)&aa)[i] = val.getListValueDefU(i, 0.0).getNumber();
+       aa.angle = mDegToRad(aa.angle);
    }
    else
-      Con::printf("Matrix rotation must be set as { x, y, z, angle } or \"x y z angle\"");
+   {
+       dSscanf(val.toString(), "%g %g %g %g", &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+       aa.angle = mDegToRad(aa.angle);
+   }
+   // Con::printf("Matrix rotation must be set as { x, y, z, angle } or \"x y z angle\"");
 
    //
    MatrixF temp;
@@ -245,29 +188,29 @@ ConsoleType( Box3F, TypeBox3F, sizeof(Box3F) )
 ConsoleGetType( TypeBox3F )
 {
    const Box3F* pBox = (const Box3F*)dptr;
-
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g %g %g %g %g %g",
+   return ConsoleValueList::from(
             pBox->min.x, pBox->min.y, pBox->min.z,
             pBox->max.x, pBox->max.y, pBox->max.z);
-
-   return returnBuffer;
 }
 
 ConsoleSetType( TypeBox3F )
 {
    Box3F* pDst = (Box3F*)dptr;
-
-   if (argc == 1) 
+   if (val.isList()) 
    {
-      U32 args = dSscanf(argv[0], "%g %g %g %g %g %g",
-                         &pDst->min.x, &pDst->min.y, &pDst->min.z,
-                         &pDst->max.x, &pDst->max.y, &pDst->max.z);
-      AssertWarn(args == 6, "Warning, box probably not read properly");
+      pDst->min.x = val.getListValueDefU(0, 0.0).getNumber();
+      pDst->min.y = val.getListValueDefU(1, 0.0).getNumber();
+      pDst->min.z = val.getListValueDefU(2, 0.0).getNumber();
+      pDst->max.x = val.getListValueDefU(3, 0.0).getNumber();
+      pDst->max.y = val.getListValueDefU(4, 0.0).getNumber();
+      pDst->max.z = val.getListValueDefU(5, 0.0).getNumber();
    } 
    else 
    {
-      Con::printf("Box3F must be set as \"xMin yMin zMin xMax yMax zMax\"");
+      U32 args = dSscanf(val.toString(), "%g %g %g %g %g %g",
+                         &pDst->min.x, &pDst->min.y, &pDst->min.z,
+                         &pDst->max.x, &pDst->max.y, &pDst->max.z);
+      AssertWarn(args == 6, "Warning, box probably not read properly");
    }
 }
 
@@ -278,99 +221,67 @@ ConsoleFunctionGroupBegin( VectorMath, "Vector manipulation functions.");
 
 ConsoleFunction( VectorAdd, const char*, 3, 3, "(Vector3F a, Vector3F b) Returns a+b.")
 {
-   VectorF v1(argv[1]), v2(argv[2]);
-   //dSscanf(argv[1],"%g %g %g",&v1.x,&v1.y,&v1.z);
-   //dSscanf(argv[2],"%g %g %g",&v2.x,&v2.y,&v2.z);
-   VectorF v;
-   v = v1 + v2;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g",v.x,v.y,v.z);
-   return returnBuffer;
+   VectorF v1 = argv[1].getPoint3F();
+   VectorF v2 = argv[2].getPoint3F();
+   return ConsoleValueList::from(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
 }
 
 ConsoleFunction( VectorSub, const char*, 3, 3, "(Vector3F a, Vector3F b) Returns a-b.")
 {
-   VectorF v1(argv[1]), v2(argv[2]);
-   //dSscanf(argv[1],"%g %g %g",&v1.x,&v1.y,&v1.z);
-   //dSscanf(argv[2],"%g %g %g",&v2.x,&v2.y,&v2.z);
-   VectorF v;
-   v = v1 - v2;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g",v.x,v.y,v.z);
-   return returnBuffer;
+   VectorF v1 = argv[1].getPoint3F();
+   VectorF v2 = argv[2].getPoint3F();
+   return ConsoleValueList::from(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z);
 }
 
 ConsoleFunction( VectorScale, const char*, 3, 3, "(Vector3F a, float scalar) Returns a scaled by scalar (ie, a*scalar).")
 {
-   VectorF v(argv[1]);
-   //dSscanf(argv[1],"%g %g %g",&v.x,&v.y,&v.z);
-   v *= dAtof(argv[2]);
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g",v.x,v.y,v.z);
-   return returnBuffer;
+   VectorF v = argv[1].getPoint3F();
+   F32 scalar = argv[2].getNumber();
+   return ConsoleValueList::from(v.x*scalar,v.y*scalar,v.z*scalar);
 }
 
 ConsoleFunction( VectorNormalize, const char*, 2, 2, "(Vector3F a) Returns a scaled such that length(a) = 1.")
 {
-   VectorF v(argv[1]);
-   //dSscanf(argv[1],"%g %g %g",&v.x,&v.y,&v.z);
+   VectorF v = argv[1].getPoint3F();
    if (v.len() != 0)
       v.normalize();
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g",v.x,v.y,v.z);
-   return returnBuffer;
+   return ConsoleValueList::from(v.x,v.y,v.z);
 }
 
 ConsoleFunction( VectorDot, F32, 3, 3, "(Vector3F a, Vector3F b) Calculate the dot product of a and b.")
 {
-   VectorF v1(argv[1]), v2(argv[2]);
-   //dSscanf(argv[1],"%g %g %g",&v1.x,&v1.y,&v1.z);
-   //dSscanf(argv[2],"%g %g %g",&v2.x,&v2.y,&v2.z);
-   return mDot(v1,v2);
+   return mDot(argv[1].getPoint3F(), argv[2].getPoint3F());
 }
 
 ConsoleFunction(VectorCross, const char*, 3, 3, "(Vector3F a, Vector3F b) Calculate the cross product of a and b.")
 {
-   VectorF v1(argv[1]), v2(argv[2]);
-   //dSscanf(argv[1],"%g %g %g",&v1.x,&v1.y,&v1.z);
-   //dSscanf(argv[2],"%g %g %g",&v2.x,&v2.y,&v2.z);
    VectorF v;
-   mCross(v1,v2,&v);
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g",v.x,v.y,v.z);
-   return returnBuffer;
+   mCross(argv[1].getPoint3F(), argv[2].getPoint3F(), &v);
+   return ConsoleValueList::from(v.x,v.y,v.z);
 }
 
 ConsoleFunction(VectorDist, F32, 3, 3, "(Vector3F a, Vector3F b) Calculate the distance between a and b.")
 {
-   VectorF v1(argv[1]), v2(argv[2]);
-   //dSscanf(argv[1],"%g %g %g",&v1.x,&v1.y,&v1.z);
-   //dSscanf(argv[2],"%g %g %g",&v2.x,&v2.y,&v2.z);
-   VectorF v = v2 - v1;
+   VectorF v = argv[2].getPoint3F() - argv[1].getPoint3F();
    return mSqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
 }
 
 ConsoleFunction(VectorLen, F32, 2, 2, "(Vector3F v) Calculate the length of a vector.")
 {
-   VectorF v(argv[1]);
-   //dSscanf(argv[1],"%g %g %g",&v.x,&v.y,&v.z);
-   return mSqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
+   VectorF v = argv[1].getPoint3F();
+   return v.len();
 }
 
 ConsoleFunction( VectorOrthoBasis, const char*, 2, 2, "(AngAxisF aaf) Create an orthogonal basis from the given vector. Return a matrix.")
 {
-   AngAxisF aa;
-   dSscanf(argv[1],"%g %g %g %g", &aa.axis.x,&aa.axis.y,&aa.axis.z,&aa.angle);
+   AngAxisF aa = argv[1].getPoint4F();
    MatrixF mat;
    aa.setMatrix(&mat);
    Point3F col0, col1, col2;
    mat.getColumn(0, &col0);
    mat.getColumn(1, &col1);
    mat.getColumn(2, &col2);
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g %g %g %g %g %g %g",
-            col0.x, col0.y, col0.z, col1.x, col1.y, col1.z, col2.x, col2.y, col2.z);
-   return returnBuffer;
+   return ConsoleValueList::from(col0.x, col0.y, col0.z, col1.x, col1.y, col1.z, col2.x, col2.y, col2.z);
 }
 
 ConsoleFunctionGroupEnd(VectorMath);
@@ -379,33 +290,21 @@ ConsoleFunctionGroupBegin(MatrixMath, "Matrix manipulation functions.");
 
 ConsoleFunction( MatrixCreate, const char*, 3, 3, "(Vector3F pos, Vector3F rot) Create a matrix representing the given translation and rotation.")
 {
-   Point3F pos(argv[1]);
-   //dSscanf(argv[1], "%g %g %g", &pos.x, &pos.y, &pos.z);
-
-   AngAxisF aa(Point3F(0,0,0),0);
-   dSscanf(argv[2], "%g %g %g %g", &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+   Point3F pos = argv[1].getPoint3F();
+   AngAxisF aa = argv[2].getPoint4F();
    aa.angle = mDegToRad(aa.angle);
 
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 255, "%g %g %g %g %g %g %g",
-            pos.x, pos.y, pos.z,
-            aa.axis.x, aa.axis.y, aa.axis.z,
-            aa.angle);
-   return returnBuffer;
+   return ConsoleValueList::from(pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
 }
 
 ConsoleFunction( MatrixCreateFromEuler, const char*, 2, 2, "(Vector3F e) Create a matrix from the given rotations.")
 {
-   EulerF rot(argv[1]);
-   //dSscanf(argv[1], "%g %g %g", &rot.x, &rot.y, &rot.z);
-
+   EulerF rot = argv[1].getPoint3F();
    QuatF rotQ(rot);
    AngAxisF aa;
    aa.set(rotQ);
 
-   char* ret = Con::getReturnBuffer(256);
-   dSprintf(ret, 255, "0 0 0 %g %g %g %g",aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
-   return ret;
+   return ConsoleValueList::from(aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
 }
 
 
@@ -413,7 +312,13 @@ ConsoleFunction( MatrixMultiply, const char*, 3, 3, "(Matrix4F left, Matrix4F ri
 {
    Point3F pos1;
    AngAxisF aa1(Point3F(0,0,0),0);
-   dSscanf(argv[1], "%g %g %g %g %g %g %g", &pos1.x, &pos1.y, &pos1.z, &aa1.axis.x, &aa1.axis.y, &aa1.axis.z, &aa1.angle);
+   if (argv[1].isList()) {
+      pos1 = argv[1].getPoint3F();
+      aa1 = argv[1].getPoint4F(3);
+   }
+   else {
+      dSscanf(argv[1].toString(), "%g %g %g %g %g %g %g", &pos1.x, &pos1.y, &pos1.z, &aa1.axis.x, &aa1.axis.y, &aa1.axis.z, &aa1.angle);
+   }
 
    MatrixF temp1(true);
    aa1.setMatrix(&temp1);
@@ -421,27 +326,25 @@ ConsoleFunction( MatrixMultiply, const char*, 3, 3, "(Matrix4F left, Matrix4F ri
 
    Point3F pos2;
    AngAxisF aa2(Point3F(0,0,0),0);
-   dSscanf(argv[2], "%g %g %g %g %g %g %g", &pos2.x, &pos2.y, &pos2.z, &aa2.axis.x, &aa2.axis.y, &aa2.axis.z, &aa2.angle);
+   if (argv[2].isList()) {
+      pos2 = argv[2].getPoint3F();
+      aa2 = argv[2].getPoint4F(3);
+   }
+   else {
+      dSscanf(argv[2].toString(), "%g %g %g %g %g %g %g", &pos2.x, &pos2.y, &pos2.z, &aa2.axis.x, &aa2.axis.y, &aa2.axis.z, &aa2.angle);
+   }
 
    MatrixF temp2(true);
    aa2.setMatrix(&temp2);
    temp2.setColumn(3, pos2);
 
    temp1.mul(temp2);
-
-
    Point3F pos;
    AngAxisF aa(temp1);
-
    aa.axis.normalize();
    temp1.getColumn(3, &pos);
 
-   char* ret = Con::getReturnBuffer(256);
-   dSprintf(ret, 255, "%g %g %g %g %g %g %g",
-            pos.x, pos.y, pos.z,
-            aa.axis.x, aa.axis.y, aa.axis.z,
-            aa.angle);
-   return ret;
+   return ConsoleValueList::from(pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
 }
 
 
@@ -449,42 +352,46 @@ ConsoleFunction( MatrixMulVector, const char*, 3, 3, "(MatrixF xfrm, Point3F vec
 {
    Point3F pos1;
    AngAxisF aa1(Point3F(0,0,0),0);
-   dSscanf(argv[1], "%g %g %g %g %g %g %g", &pos1.x, &pos1.y, &pos1.z, &aa1.axis.x, &aa1.axis.y, &aa1.axis.z, &aa1.angle);
+   if (argv[1].isList()) {
+       pos1 = argv[1].getPoint3F();
+       aa1 = argv[1].getPoint4F(3);
+   }
+   else {
+       dSscanf(argv[1].toString(), "%g %g %g %g %g %g %g", &pos1.x, &pos1.y, &pos1.z, &aa1.axis.x, &aa1.axis.y, &aa1.axis.z, &aa1.angle);
+   }
 
    MatrixF temp1(true);
    aa1.setMatrix(&temp1);
    temp1.setColumn(3, pos1);
 
-   Point3F vec1(argv[2]);
-   //dSscanf(argv[2], "%g %g %g", &vec1.x, &vec1.y, &vec1.z);
+   Point3F vec1 = argv[2].getPoint3F();
 
    Point3F result;
    temp1.mulV(vec1, &result);
-
-   char* ret = Con::getReturnBuffer(256);
-   dSprintf(ret, 255, "%g %g %g", result.x, result.y, result.z);
-   return ret;
+   return ConsoleValueList::from(result.x, result.y, result.z);
 }
 
 ConsoleFunction( MatrixMulPoint, const char*, 3, 3, "(MatrixF xfrm, Point3F pnt) Multiply pnt by xfrm.")
 {
    Point3F pos1;
    AngAxisF aa1(Point3F(0,0,0),0);
-   dSscanf(argv[1], "%g %g %g %g %g %g %g", &pos1.x, &pos1.y, &pos1.z, &aa1.axis.x, &aa1.axis.y, &aa1.axis.z, &aa1.angle);
+   if (argv[1].isList()) {
+       pos1 = argv[1].getPoint3F();
+       aa1 = argv[1].getPoint4F(3);
+   }
+   else {
+       dSscanf(argv[1].toString(), "%g %g %g %g %g %g %g", &pos1.x, &pos1.y, &pos1.z, &aa1.axis.x, &aa1.axis.y, &aa1.axis.z, &aa1.angle);
+   }
 
    MatrixF temp1(true);
    aa1.setMatrix(&temp1);
    temp1.setColumn(3, pos1);
 
-   Point3F vec1(argv[2]);
-   //dSscanf(argv[2], "%g %g %g", &vec1.x, &vec1.y, &vec1.z);
+   Point3F vec1 = argv[2].getPoint3F();
 
    Point3F result;
    temp1.mulP(vec1, &result);
-
-   char* ret = Con::getReturnBuffer(256);
-   dSprintf(ret, 255, "%g %g %g", result.x, result.y, result.z);
-   return ret;
+   return ConsoleValueList::from(result.x, result.y, result.z);
 }
 
 ConsoleFunctionGroupEnd(MatrixMath);
@@ -495,37 +402,31 @@ ConsoleFunctionGroupBegin(PlaneMath, "Plane manipulation functions.");
 
 ConsoleFunction(Plane, const char*, 2, 3, "(Point3F normal, Point3F pos=\"0 0 0\") -> PlaneF")
 {
-    Point3F n(argv[1]);
+    Point3F n = argv[1].getPoint3F();
     Point3F p;
     if (argc > 2)
-        p = Point3F(argv[2]);
+        p = argv[2].getPoint3F();
     else
         p.set(0.f, 0.f, 0.f);
 
     PlaneF plane(p, n);
-    char* ret = Con::getReturnBuffer(256);
-    dSprintf(ret, 255, "%g %g %g %g", plane.x, plane.y, plane.z, plane.d);
-    return ret;
+    return ConsoleValueList::from(plane.x, plane.y, plane.z, plane.d);
 }
 
 ConsoleFunction(PlaneDist, F32, 3, 3, "(PlaneF plane, Point3F pt) Get signed distance of pt from plane.")
 {
-    PlaneF pl;
-    dSscanf(argv[1], "%g %g %g %g", &pl.x, &pl.y, &pl.z, &pl.d);
-    Point3F pt(argv[2]);
+    PlaneF pl = argv[1].getPoint4F();
+    Point3F pt = argv[2].getPoint3F();
 
     return pl.distToPlane(pt);
 }
 
 ConsoleFunction(PlaneProject, const char*, 3, 3, "(PlaneF plane, Point3F pt) Project pt on plane.")
 {
-    PlaneF pl;
-    dSscanf(argv[1], "%g %g %g %g", &pl.x, &pl.y, &pl.z, &pl.d);
+    PlaneF pl = argv[1].getPoint4F();
 
-    Point3F pt = pl.project(Point3F(argv[2]));
-    char* ret = Con::getReturnBuffer(256);
-    dSprintf(ret, 255, "%g %g %g", pt.x, pt.y, pt.z);
-    return ret;
+    Point3F pt = pl.project(argv[2].getPoint3F());
+    return ConsoleValueList::from(pt.x, pt.y, pt.z);
 }
 
 ConsoleFunctionGroupEnd(PlaneMath);
@@ -535,16 +436,12 @@ ConsoleFunctionGroupEnd(PlaneMath);
 ConsoleFunction( getBoxCenter, const char*, 2, 2, "(Box b) Get the center point of a box.")
 {
    Box3F box;
-   box.min.set(0,0,0);
-   box.max.set(0,0,0);
-   dSscanf(argv[1],"%g %g %g %g %g %g",
-           &box.min.x,&box.min.y,&box.min.z,
-           &box.max.x,&box.max.y,&box.max.z);
+   box.min = argv[1].getPoint3F();
+   box.max = argv[1].getPoint3F(3);
+
    Point3F p;
    box.getCenter(&p);
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer,256,"%g %g %g",p.x,p.y,p.z);
-   return returnBuffer;
+   return ConsoleValueList::from(p.x,p.y,p.z);
 }
 
 
@@ -554,8 +451,8 @@ ConsoleFunctionGroupBegin(RandomNumbers, "Functions relating to the generation o
 ConsoleFunction(setRandomSeed, void, 1, 2, "(int seed=-1) Set the current random seed. If no seed is provided, then the current time in ms is used.")
 {
 	U32 seed = Platform::getRealMilliseconds();
-	if (argc == 2)
-		seed = dAtoi(argv[1]);
+    if (argc == 2)
+        seed = argv[1].getInt();
 	MRandomLCG::setGlobalRandSeed(seed);
 }
 
@@ -578,12 +475,12 @@ ConsoleFunction(getRandom, F32, 1, 3, "(int a=1, int b=0)"
                 "Get a random number between a and b.")
 {
    if (argc == 2)
-      return F32(gRandGen.randI(0,dAtoi(argv[1])));
+      return F32(gRandGen.randI(0,argv[1].getInt()));
    else
    {
       if (argc == 3) {
-         S32 min = dAtoi(argv[1]);
-         S32 max = dAtoi(argv[2]);
+         S32 min = argv[1].getInt();
+         S32 max = argv[2].getInt();
          if (min > max) {
             S32 t = min;
             min = max;

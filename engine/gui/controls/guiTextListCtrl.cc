@@ -74,13 +74,13 @@ void GuiTextListCtrl::initPersistFields()
 
 ConsoleMethod(GuiTextListCtrl, getSelectedId, S32, 2, 2, "Get the ID of the currently selected item.")
 {
-   return object->getSelectedId();
+   return (S64) object->getSelectedId();
 }
 
 ConsoleMethod( GuiTextListCtrl, setSelectedById, void, 3, 3, "(int id)"
               "Finds the specified entry by id, then marks its row as selected.")
 {
-   S32 index = object->findEntryById(dAtoi(argv[2]));
+   S32 index = object->findEntryById(argv[2].getInt());
    if(index < 0)
       return ;
 
@@ -90,7 +90,7 @@ ConsoleMethod( GuiTextListCtrl, setSelectedById, void, 3, 3, "(int id)"
 ConsoleMethod( GuiTextListCtrl, setSelectedRow, void, 3, 3, "(int rowNum)"
               "Selects the specified row.")
 {
-   object->setSelectedCell( Point2I( 0, dAtoi( argv[2] ) ) );
+   object->setSelectedCell( Point2I( 0, argv[2].getInt() ) );
 }
 
 ConsoleMethod( GuiTextListCtrl, clearSelection, void, 2, 2, "Set the selection to nothing.")
@@ -103,34 +103,34 @@ ConsoleMethod(GuiTextListCtrl, addRow, S32, 4, 5, "(int id, string text, int ind
 {
    S32 ret = object->mList.size();
    if(argc < 5)
-      object->addEntry(dAtoi(argv[2]), argv[3]);
+      object->addEntry(argv[2].getInt(), argv[3].toString());
    else
-      object->insertEntry(dAtoi(argv[2]), argv[3], dAtoi(argv[4]));
+      object->insertEntry(argv[2].getInt(), argv[3].toString(), argv[4].getInt());
 
    return ret;
 }
 
 ConsoleMethod( GuiTextListCtrl, setRowById, void, 4, 4, "(int id, string text)")
 {
-   object->setEntry(dAtoi(argv[2]), argv[3]);
+   object->setEntry(argv[2].getInt(), argv[3].toString());
 }
 
 ConsoleMethod( GuiTextListCtrl, sort, void, 3, 4, "(int columnID, bool increasing=false)"
               "Performs a standard (alphabetical) sort on the values in the specified column.")
 {
    if ( argc == 3 )
-      object->sort(dAtoi(argv[2]));
+      object->sort(argv[2].getInt());
    else
-      object->sort( dAtoi( argv[2] ), dAtob( argv[3] ) );
+      object->sort( argv[2].getInt(), argv[3].getInt() );
 }
 
 ConsoleMethod(GuiTextListCtrl, sortNumerical, void, 3, 4, "(int columnID, bool increasing=false)"
               "Perform a numerical sort on the values in the specified column.")
 {
    if ( argc == 3 )
-      object->sortNumerical( dAtoi( argv[2] ) );
+      object->sortNumerical( argv[2].getInt() );
    else
-      object->sortNumerical( dAtoi( argv[2] ), dAtob( argv[3] ) );
+      object->sortNumerical( argv[2].getInt(), argv[3].getInt() );
 }
 
 ConsoleMethod( GuiTextListCtrl, clear, void, 2, 2, "Clear the list.")
@@ -140,23 +140,23 @@ ConsoleMethod( GuiTextListCtrl, clear, void, 2, 2, "Clear the list.")
 
 ConsoleMethod( GuiTextListCtrl, rowCount, S32, 2, 2, "Get the number of rows.")
 {
-   return object->getNumEntries();
+   return (S64) object->getNumEntries();
 }
 
 ConsoleMethod( GuiTextListCtrl, getRowId, S32, 3, 3, "(int index)"
               "Get the row ID for an index.")
 {
-   U32 index = dAtoi(argv[2]);
+   U32 index = argv[2].getInt();
    if(index >= object->getNumEntries())
-      return -1;
+      return -1LL;
 
-   return object->mList[index].id;
+   return (S64) object->mList[index].id;
 }
 
 ConsoleMethod( GuiTextListCtrl, getRowTextById, const char*, 3, 3, "(int id)"
               "Get the text of a row with the specified id.")
 {
-   S32 index = object->findEntryById(dAtoi(argv[2]));
+   S32 index = object->findEntryById(argv[2].getInt());
    if(index < 0)
       return "";
    return object->mList[index].text;
@@ -165,7 +165,7 @@ ConsoleMethod( GuiTextListCtrl, getRowTextById, const char*, 3, 3, "(int id)"
 ConsoleMethod( GuiTextListCtrl, getRowNumById, S32, 3, 3, "(int id)"
               "Get the row number for a specified id.")
 {
-   S32 index = object->findEntryById(dAtoi(argv[2]));
+   S32 index = object->findEntryById(argv[2].getInt());
    if(index < 0)
       return -1;
    return index;
@@ -174,7 +174,7 @@ ConsoleMethod( GuiTextListCtrl, getRowNumById, S32, 3, 3, "(int id)"
 ConsoleMethod( GuiTextListCtrl, getRowText, const char*, 3, 3, "(int index)"
               "Get the text of the row with the specified index.")
 {
-   U32 index = dAtoi(argv[2]);
+   U32 index = argv[2].getInt();
    if(index < 0 || index >= object->mList.size())
       return "";
    return object->mList[index].text;
@@ -183,38 +183,38 @@ ConsoleMethod( GuiTextListCtrl, getRowText, const char*, 3, 3, "(int index)"
 ConsoleMethod( GuiTextListCtrl, removeRowById, void, 3, 3,"(int id)"
               "Remove row with the specified id.")
 {
-   object->removeEntry(dAtoi(argv[2]));
+   object->removeEntry(argv[2].getInt());
 }
 
 ConsoleMethod( GuiTextListCtrl, removeRow, void, 3, 3, "(int index)"
               "Remove a row from the table, based on its index.")
 {
-   U32 index = dAtoi(argv[2]);
+   U32 index = argv[2].getInt();
    object->removeEntryByIndex(index);
 }
 
 ConsoleMethod( GuiTextListCtrl, scrollVisible, void, 3, 3, "(int rowNum)"
               "Scroll so the specified row is visible.")
 {
-   object->scrollCellVisible(Point2I(0, dAtoi(argv[2])));
+   object->scrollCellVisible(Point2I(0, argv[2].getInt()));
 }
 
 ConsoleMethod( GuiTextListCtrl, findTextIndex, S32, 3, 3, "(string needle)"
               "Find needle in the list, and return the row number it was found in.")
 {
-   return( object->findEntryByText( argv[2] ) );
+   return( object->findEntryByText( argv[2].toString() ) );
 }
 
 ConsoleMethod( GuiTextListCtrl, setRowActive, void, 4, 4, "(int rowNum, bool active)"
               "Mark a specified row as active/not.")
 {
-   object->setEntryActive( U32( dAtoi( argv[2] ) ), dAtob( argv[3] ) );
+   object->setEntryActive( U32( argv[2].getInt() ), argv[3].getInt() );
 }
 
 ConsoleMethod( GuiTextListCtrl, isRowActive, bool, 3, 3, "(int rowNum)"
               "Is the specified row currently active?")
 {
-   return( object->isEntryActive( U32( dAtoi( argv[2] ) ) ) );
+   return( object->isEntryActive( U32( argv[2].getInt() ) ) );
 }
 
 bool GuiTextListCtrl::onWake()
@@ -236,7 +236,7 @@ U32 GuiTextListCtrl::getSelectedId()
 
 void GuiTextListCtrl::onCellSelected(Point2I cell)
 {
-   Con::executef(this, 3, "onSelect", Con::getIntArg(mList[cell.y].id), mList[cell.y].text);
+   Con::executef(this, 3, "onSelect", mList[cell.y].id, mList[cell.y].text);
 
    if (mConsoleCommand[0])
       Con::evaluate(mConsoleCommand, false);
@@ -502,14 +502,14 @@ const char *GuiTextListCtrl::getSelectedText()
    return mList[mSelectedCell.y].text;
 }
 
-const char *GuiTextListCtrl::getScriptValue()
+ConsoleValue GuiTextListCtrl::getScriptValue()
 {
    return getSelectedText();
 }
 
-void GuiTextListCtrl::setScriptValue(const char *val)
+void GuiTextListCtrl::setScriptValue(ConsoleValue& val)
 {
-   S32 e = findEntryByText(val);
+   S32 e = findEntryByText(val.toString());
    if(e == -1)
       setSelectedCell(Point2I(-1, -1));
    else
@@ -561,7 +561,7 @@ bool GuiTextListCtrl::onKeyDown( const GuiEvent &event )
       break;
    case KEY_DELETE:
       if ( mSelectedCell.y >= 0 && mSelectedCell.y < mList.size() )
-      Con::executef( this, 2, "onDeleteKey", Con::getIntArg( mList[mSelectedCell.y].id ) );
+      Con::executef( this, 2, "onDeleteKey", mList[mSelectedCell.y].id );
       break;
    default:
    return( Parent::onKeyDown( event ) );

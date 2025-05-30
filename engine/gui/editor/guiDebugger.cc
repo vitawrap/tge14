@@ -50,7 +50,7 @@ DbgFileView::DbgFileView()
 ConsoleMethod(DbgFileView, setCurrentLine, void, 4, 4, "(int line, bool selected)"
               "Set the current highlighted line.")
 {
-   object->setCurrentLine(dAtoi(argv[2]), dAtob(argv[3]));
+   object->setCurrentLine(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod(DbgFileView, getCurrentLine, const char *, 2, 2, "()"
@@ -59,8 +59,8 @@ ConsoleMethod(DbgFileView, getCurrentLine, const char *, 2, 2, "()"
               " Use getField() with this.")
 {
 	S32 lineNum;
-   const char *file = object->getCurrentLine(lineNum);
-   char* ret = Con::getReturnBuffer(256);
+    const char *file = object->getCurrentLine(lineNum);
+    char ret[256];
 	dSprintf(ret, sizeof(ret), "%s\t%d", file, lineNum);
 	return ret;
 }
@@ -69,7 +69,7 @@ ConsoleMethod(DbgFileView, open, bool, 3, 3, "(string filename)"
               "Open a file for viewing.\n\n"
               "@note This loads the file from the local system.")
 {
-   return object->openFile(argv[2]);
+   return object->openFile(argv[2].toString());
 }
 
 ConsoleMethod(DbgFileView, clearBreakPositions, void, 2, 2, "()"
@@ -81,26 +81,26 @@ ConsoleMethod(DbgFileView, clearBreakPositions, void, 2, 2, "()"
 ConsoleMethod(DbgFileView, setBreakPosition, void, 3, 3, "(int line)"
               "Set a breakpoint at the specified line.")
 {
-   object->setBreakPosition(dAtoi(argv[2]));
+   object->setBreakPosition(argv[2].getInt());
 }
 
 ConsoleMethod(DbgFileView, setBreak, void, 3, 3, "(int line)"
               "Set a breakpoint at the specified line.")
 {
-   object->setBreakPointStatus(dAtoi(argv[2]), true);
+   object->setBreakPointStatus(argv[2].getInt(), true);
 }
 
 ConsoleMethod(DbgFileView, removeBreak, void, 3, 3, "(int line)"
               "Remove a breakpoint from the specified line.")
 {
-   object->setBreakPointStatus(dAtoi(argv[2]), false);
+   object->setBreakPointStatus(argv[2].getInt(), false);
 }
 
 ConsoleMethod(DbgFileView, findString, bool, 3, 3, "(string findThis)"
               "Find the specified string in the currently viewed file and "
               "scroll it into view.")
 {
-   return object->findString(argv[2]);
+   return object->findString(argv[2].toString());
 }
 
 //this value is the offset used in the ::onRender() method...

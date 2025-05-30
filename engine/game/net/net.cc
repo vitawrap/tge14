@@ -31,28 +31,29 @@ public:
 
 private:
    S32 mArgc;
-   char *mArgv[MaxRemoteCommandArgs + 1];
-   StringHandle mTagv[MaxRemoteCommandArgs + 1];
-   static char mBuf[1024];
+   ConsoleValue mArgv[MaxRemoteCommandArgs + 1];
+   StringHandle mTagv[MaxRemoteCommandArgs + 1]; // is this even used beyond the constructor?????
+   static char mBuf[1024]; // work buffer for string ops
 public:
-   RemoteCommandEvent(S32 argc=0, const char **argv=NULL, NetConnection *conn = NULL)
+   RemoteCommandEvent(S32 argc=0, ConsoleValue *argv=NULL, NetConnection *conn = NULL)
    {
       mArgc = argc;
       for(S32 i = 0; i < argc; i++)
       {
-         if(argv[i][0] == StringTagPrefixByte)
+         if(argv[i].isTagString())
          {
             char buffer[256];
-            mTagv[i+1] = StringHandle(dAtoi(argv[i]+1));
+            mTagv[i+1] = StringHandle(dAtoi(argv[i].getStringU()+1));
             if(conn)
 			{
+               // Turn tagged string argument into "\x01<id>"
                dSprintf(buffer + 1, sizeof(buffer) - 1, "%d", conn->getNetSendId(mTagv[i+1]));
                buffer[0] = StringTagPrefixByte;
-               mArgv[i+1] = dStrdup(buffer);
+               mArgv[i+1] = buffer;
 			}
          }
          else
-            mArgv[i+1] = dStrdup(argv[i]);
+            mArgv[i+1] = argv[i];
       }
    }
 
@@ -67,8 +68,6 @@ public:
 
    ~RemoteCommandEvent()
    {
-      for(S32 i = 0; i < mArgc; i++)
-         dFree(mArgv[i+1]);
    }
 
    virtual void pack(NetConnection* conn, BitStream *bstream)
@@ -78,8 +77,10 @@ public:
       // automatic string substitution with later arguments -
       // handled automatically by the system.
 
-      for(S32 i = 0; i < mArgc; i++)
-         conn->packString(bstream, mArgv[i+1]);
+      for (S32 i = 0; i < mArgc; i++) {
+          mArgv[i + 1].pack(1024, mBuf);
+          conn->packString(bstream, mBuf);
+      }
    }
 
    virtual void write(NetConnection* conn, BitStream *bstream)
@@ -89,62 +90,55 @@ public:
 
    virtual void unpack(NetConnection* conn, BitStream *bstream)
    {
-
       mArgc = bstream->readInt(CommandArgsBits);
       // read it out backwards
       for(S32 i = 0; i < mArgc; i++)
       {
          conn->unpackString(bstream, mBuf);
-         mArgv[i+1] = dStrdup(mBuf);
+         mArgv[i+1].unpack(1024, mBuf);
       }
    }
 
    virtual void process(NetConnection *conn)
    {
-      static char idBuf[10];
-
       // de-tag the command name
 
       for(S32 i = mArgc - 1; i >= 0; i--)
       {
-         char *arg = mArgv[i+1];
-         if(*arg == StringTagPrefixByte)
+         ConsoleValue arg = mArgv[i+1];
+         if(arg.isTagString())
          {
             // it's a tag:
-            U32 localTag = dAtoi(arg + 1);
+            U32 localTag = dAtoi(arg.getStringU() + 1);
             StringHandle tag = conn->translateRemoteStringId(localTag);
             NetStringTable::expandString( tag,
                                           mBuf,
                                           sizeof(mBuf),
                                           (mArgc - 1) - i,
                                           (const char**)(mArgv + i + 2) );
-            dFree(mArgv[i+1]);
-            mArgv[i+1] = dStrdup(mBuf);
+            mArgv[i+1] = mBuf;
          }
       }
-      const char *rmtCommandName = dStrchr(mArgv[1], ' ') + 1;
+      const char *rmtCommandName = dStrchr(mArgv[1].toString(), ' ') + 1;
       if(conn->isConnectionToServer())
       {
-         dStrcpy(mBuf, "clientCmd");
-         dStrcat(mBuf, rmtCommandName);
+         dSprintf(mBuf, 1024, "clientCmd%s", rmtCommandName);
 
-         char *temp = mArgv[1];
+         ConsoleValue temp = mArgv[1];
          mArgv[1] = mBuf;
 
-         Con::execute(mArgc, (const char **) mArgv+1);
+         Con::execute(mArgc, mArgv+1);
          mArgv[1] = temp;
       }
       else
       {
-         dStrcpy(mBuf, "serverCmd");
-         dStrcat(mBuf, rmtCommandName);
-         char *temp = mArgv[1];
+         dSprintf(mBuf, 1024, "serverCmd%s", rmtCommandName);
+         ConsoleValue temp = mArgv[1];
 
-         dSprintf(idBuf, sizeof(idBuf), "%d", conn->getId());
          mArgv[0] = mBuf;
-         mArgv[1] = idBuf;
+         mArgv[1] = (S64) conn->getId();
 
-         Con::execute(mArgc+1, (const char **) mArgv);
+         Con::execute(mArgc+1, mArgv);
          mArgv[1] = temp;
       }
    }
@@ -155,9 +149,9 @@ char RemoteCommandEvent::mBuf[1024];
 
 IMPLEMENT_CO_NETEVENT_V1(RemoteCommandEvent);
 
-static void sendRemoteCommand(NetConnection *conn, S32 argc, const char **argv)
+static void sendRemoteCommand(NetConnection *conn, S32 argc, ConsoleValue *argv)
 {
-   if(U8(argv[0][0]) != StringTagPrefixByte)
+   if(!argv[0].isTagString())
    {
       Con::errorf(ConsoleLogEntry::Script, "Remote Command Error - command must be a tag.");
       return;
@@ -165,12 +159,13 @@ static void sendRemoteCommand(NetConnection *conn, S32 argc, const char **argv)
    S32 i;
    for(i = argc - 1; i >= 0; i--)
    {
-      if(argv[i][0] != 0)
+      // if(argv[i][0] != 0)
+      if(!argv[i].isNullString()) // translated to !argv[i].isNullString() since that would be the default empty value.
          break;
       argc = i;
    }
    for(i = 0; i < argc; i++)
-      conn->validateSendString(argv[i]);
+      conn->validateSendString(argv[i].toString()); // this only validates tagged strings, don't care about other value types.
    RemoteCommandEvent *cevt = new RemoteCommandEvent(argc, argv, conn);
    conn->postNetEvent(cevt);
 }
@@ -196,23 +191,26 @@ ConsoleFunction( commandToClient, void, 3, RemoteCommandEvent::MaxRemoteCommandA
 
 ConsoleFunction(removeTaggedString, void, 2, 2, "(int tag)")
 {
-   gNetStringTable->removeString(dAtoi(argv[1]+1), true);
+   if (argv[1].getType() == ConsoleValue::TypeInt)
+      gNetStringTable->removeString(argv[1].getIntU(), true);
+   else if (argv[1].getStrlen() > 0)
+      gNetStringTable->removeString(dAtoi(argv[1].toString() + 1), true);
 }
 
 ConsoleFunction( addTaggedString, const char*, 2, 2, "(string str)")
 {
-   StringHandle s(argv[1]);
+   StringHandle s(argv[1].toString());
    gNetStringTable->incStringRefScript(s.getIndex());
 
-   char *ret = Con::getReturnBuffer(10);
+   char ret[16];
    ret[0] = StringTagPrefixByte;
-   dSprintf(ret + 1, 9, "%d", s.getIndex());
+   dSprintf(ret + 1, 15, "%d", s.getIndex());
    return ret;
 }
 
 ConsoleFunction( getTaggedString, const char*, 2, 2, "(int tag)")
 {
-   const char *indexPtr = argv[1];
+   const char *indexPtr = argv[1].toString();
    if (*indexPtr == StringTagPrefixByte)
       indexPtr++;
    return gNetStringTable->lookupString(dAtoi(indexPtr));
@@ -220,11 +218,11 @@ ConsoleFunction( getTaggedString, const char*, 2, 2, "(int tag)")
 
 ConsoleFunction( buildTaggedString, const char*, 2, 11, "(string format, ...)")
 {
-   const char *indexPtr = argv[1];
+   const char *indexPtr = argv[1].toString();
    if (*indexPtr == StringTagPrefixByte)
       indexPtr++;
    const char *fmtString = gNetStringTable->lookupString(dAtoi(indexPtr));
-   char *strBuffer = Con::getReturnBuffer(512);
+   char strBuffer[512];
    const char *fmtStrPtr = fmtString;
    char *strBufPtr = strBuffer;
    S32 strMaxLength = 511;
@@ -242,7 +240,7 @@ ConsoleFunction( buildTaggedString, const char*, 2, 11, "(string format, ...)")
             S32 argIndex = S32(fmtStrPtr[1] - '0') + 1;
             if (argIndex >= argc)
                goto done;
-            const char *argStr = argv[argIndex];
+            const char *argStr = argv[argIndex].toString();
             if (!argStr)
                goto done;
             S32 strLength = dStrlen(argStr);

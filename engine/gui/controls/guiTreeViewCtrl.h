@@ -60,7 +60,7 @@ class GuiTreeViewCtrl : public GuiArrayCtrl
             S8                      mNormalImage;
             S8                      mExpandedImage;
             char*                   mText;
-            char*                   mValue;
+            ConsoleValue            mValue;
          } mScriptInfo;
          struct InspectorTag
          {
@@ -74,7 +74,7 @@ class GuiTreeViewCtrl : public GuiArrayCtrl
          const S8 getNormalImage() const;
          const S8 getExpandedImage() const;
          char *getText();
-         char *getValue();
+         ConsoleValue getValue();
          inline const S16 getID() const { return mId; };
          SimObject *getObject();
          const U32 getDisplayTextLength();
@@ -97,7 +97,9 @@ class GuiTreeViewCtrl : public GuiArrayCtrl
          /// Set the items displayable text (caption)
          void setText(char *txt);
          /// Set the items script value (data)
-         void setValue(const char *val);
+         void setValue(ConsoleValue& val);
+         /// Clear script value
+         void clearValue();
          /// Set the items virtual parent flag
          void setVirtualParent( bool value );
          /// @}
@@ -315,19 +317,20 @@ protected:
       /// Sets the flag of the item with the matching itemId.
       bool setItemSelected(S32 itemId, bool select);
       bool setItemExpanded(S32 itemId, bool expand);
-      bool setItemValue(S32 itemId, StringTableEntry Value);
+      bool setItemValue(S32 itemId, ConsoleValue& Value);
 
       const char * getItemText(S32 itemId);
-      const char * getItemValue(S32 itemId);
+      ConsoleValue getItemValue(S32 itemId);
       StringTableEntry getTextToRoot(S32 itemId, const char *delimiter = "");
 
       Item * getItem(S32 itemId);
       Item * createItem(S32 icon);
-      bool editItem( S32 itemId, const char* newText, const char* newValue );
+      bool editItem( S32 itemId, const char* newText, ConsoleValue& newValue );
 
       // insertion/removal
       void unlinkItem(Item * item);
-      S32 insertItem(S32 parentId, const char * text, const char * value = "", const char * iconString = "", S16 normalImage = 0, S16 expandedImage = 1);
+      S32 insertItem(S32 parentId, const char * text, ConsoleValue& value = ConsoleValue(""),
+          const char * iconString = "", S16 normalImage = 0, S16 expandedImage = 1);
       bool removeItem(S32 itemId);
 
       bool buildIconTable(const char * icons);

@@ -618,7 +618,7 @@ ConsoleFunctionGroupBegin(NetInterface, "Global control functions for the netInt
 ConsoleFunction(allowConnections,void,2,2,"allowConnections(bool);")
 {
     argc;
-    GNet->setAllowsConnections(dAtob(argv[1]));
+    GNet->setAllowsConnections(argv[1].getInt());
 }
 
 ConsoleFunction(md5, char const*, 2, 2, "md5(anything) - Compute 128bit MD5 digest of input")
@@ -627,11 +627,11 @@ ConsoleFunction(md5, char const*, 2, 2, "md5(anything) - Compute 128bit MD5 dige
     U32 digest[4]{ 0x67452301L, 0xefcdab89L, 0x98badcfeL, 0x10325476L };
 
     // Append a block if it's already bigger than 64-1-8 bytes
-    S32 realLen = dStrlen(argv[1]);
+    S32 realLen = argv[1].getStrlen();
     S32 inLen = ((realLen + 9) + 63) & ~63;
 
     char* message = (char*) dMalloc(inLen);
-    dMemcpy(message, argv[1], realLen);
+    dMemcpy(message, argv[1].toString(), realLen);
 
     // add padding info
     dMemset(message + realLen, 0, inLen - realLen);
@@ -643,7 +643,7 @@ ConsoleFunction(md5, char const*, 2, 2, "md5(anything) - Compute 128bit MD5 dige
 
     dFree(message);
 
-    char* result = Con::getReturnBuffer(33);
+    char result[33];
     dSprintf(result, 33, "%08x%08x%08x%08x", 
         endianSwap(digest[0]), endianSwap(digest[1]), endianSwap(digest[2]), endianSwap(digest[3]));
     return result;

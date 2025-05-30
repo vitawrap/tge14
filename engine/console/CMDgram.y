@@ -44,7 +44,7 @@ void cmderror(char *, ...);
 
    /* Reserved Word Definitions */
 
-%token <i> rwDEFINE rwDECLARE
+%token <i> rwDEFINE rwDECLARE rwCVLSTART
 %token <i> rwBREAK rwELSE rwCONTINUE
 %token <i> rwIF rwRETURN rwWHILE rwDO
 %token <i> rwDEFAULT rwNAMESPACE
@@ -55,7 +55,6 @@ void cmderror(char *, ...);
    /* Constants and Identifier Definitions */
 
 %token <i>   INTCONST
-%token <s>   TTAG
 %token <s>   VAR
 %token <s>   IDENT
 %token <str> STRATOM
@@ -70,7 +69,7 @@ void cmderror(char *, ...);
 %token <i> opSHL opSHR opPLASN opMIASN opMLASN opDVASN opMODASN opANDASN
 %token <i> opXORASN opORASN opSLASN opSRASN
 %token <i> opEQ opNE opGE opLE opAND opOR opSTREQ
-%token <i> opCOLONCOLON
+%token <i> opRANGE opCOLONCOLON
 
 %union {
    char              c;
@@ -141,6 +140,7 @@ void cmderror(char *, ...);
 %left '*' '/' '%'
 %right '!' '~' opPLUSPLUS opMINUSMINUS UNARY
 %left '.'
+%left opIDXSTART
 
 %%
 
@@ -200,10 +200,6 @@ stmt
       { $$ = ReturnStmtNode::alloc($2); }
    | expression_stmt ';'
       { $$ = $1; }
-   | TTAG '=' expr ';'
-      { $$ = TTagSetStmtNode::alloc($1, $3, NULL); }
-   | TTAG '=' expr ',' expr ';'
-      { $$ = TTagSetStmtNode::alloc($1, $3, $5); }
    ;
 
 fn_decl_stmt
@@ -353,6 +349,8 @@ expr
       { $$ = $1; }
    | '(' expr ')'
       { $$ = $2; }
+   | rwCVLSTART expr_list_decl '}'
+      { $$ = ValueListExprNode::alloc($2); }
    | expr '^' expr
       { $$ = IntBinaryExprNode::alloc($2, $1, $3); }
    | expr '%' expr
@@ -371,10 +369,6 @@ expr
       { $$ = FloatBinaryExprNode::alloc($2, $1, $3); }
    | '-' expr  %prec UNARY
       { $$ = FloatUnaryExprNode::alloc($1, $2); }
-   | '*' expr %prec UNARY
-      { $$ = TTagDerefNode::alloc($2); }
-   | TTAG
-      { $$ = TTagExprNode::alloc($1); }
    | expr '?' expr ':' expr
       { $$ = ConditionalExprNode::alloc($1, $3, $5); }
    | expr '<' expr
@@ -407,6 +401,10 @@ expr
       { $$ = StrcatExprNode::alloc($1, $3, $2); }
    | expr opINSTANCE expr
       { $$ = InstanceOfExprNode::alloc($1, $3); }
+   | expr opIDXSTART expr ']'
+      { $1->append($3); $$ = FuncCallExprNode::alloc(StringTable->insert("getWord"), NULL, $1, false); }
+   | expr opIDXSTART expr opRANGE expr ']'
+      { $3->append($5); $1->append($3); $$ = FuncCallExprNode::alloc(StringTable->insert("getWords"), NULL, $1, false); }
    | '!' expr
       { $$ = IntUnaryExprNode::alloc($1, $2); }
    | '~' expr
@@ -489,8 +487,6 @@ stmt_expr
       { $$ = SlotAssignOpNode::alloc($1.object, $1.slotName, $1.array, $2.token, $2.expr); }
    | slot_acc '=' expr
       { $$ = SlotAssignNode::alloc($1.object, $1.array, $1.slotName, $3); }
-   | slot_acc '=' '{' expr_list '}'
-      { $$ = SlotAssignNode::alloc($1.object, $1.array, $1.slotName, $4); }
    ;
 
 funcall_expr

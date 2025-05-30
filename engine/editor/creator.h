@@ -37,7 +37,7 @@ class CreatorTree : public GuiArrayCtrl
             Node *               mParent;
             Vector<Node*>        mChildren;
             StringTableEntry     mName;
-            StringTableEntry     mValue;
+            ConsoleValue         mValue;
 
             void expand(bool exp);
             void select(bool sel){mFlags.set(Selected, sel);}
@@ -45,11 +45,11 @@ class CreatorTree : public GuiArrayCtrl
             Node * find(S32 id);
 
             //
-            bool isGroup(){return(mFlags.test(Group));}
-            bool isExpanded(){return(mFlags.test(Expanded));}
-            bool isSelected(){return(mFlags.test(Selected));}
-            bool isRoot(){return(mFlags.test(Root));}
-            S32 getId(){return(mId);}
+            bool isGroup() const {return(mFlags.test(Group));}
+            bool isExpanded() const {return(mFlags.test(Expanded));}
+            bool isSelected() const {return(mFlags.test(Selected));}
+            bool isRoot() const {return(mFlags.test(Root));}
+            S32 getId() const {return(mId);}
             bool hasChildItem();
             S32 getSelected();
 
@@ -72,7 +72,7 @@ class CreatorTree : public GuiArrayCtrl
 
       //
       bool addNode(Node * parent, Node * node);
-      Node * createNode(const char * name, const char * value, bool group = false, Node * parent = 0);
+      Node * createNode(const char * name, ConsoleValue const& value, bool group = false, Node * parent = 0);
       Node * findNode(S32 id);
       S32 getSelected(){return(mRoot->getSelected());}
 

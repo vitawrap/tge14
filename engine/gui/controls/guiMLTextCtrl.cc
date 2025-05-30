@@ -18,7 +18,7 @@ const U32 GuiMLTextCtrl::csmTextBufferGrowthSize = 1024;
 ConsoleMethod( GuiMLTextCtrl, setText, void, 3, 3,  "(string text)"
               "Set the text contained in the control.")
 {
-   object->setText(argv[2], dStrlen(argv[2]));
+   object->setText(argv[2].toString(), argv[2].getStrlen());
 }
 
 ConsoleMethod( GuiMLTextCtrl, getText, const char*, 2, 2, "Returns the text from the control, including ML.")
@@ -28,19 +28,19 @@ ConsoleMethod( GuiMLTextCtrl, getText, const char*, 2, 2, "Returns the text from
 
 ConsoleMethod( GuiMLTextCtrl, addText, void, 4, 4, "(string text, bool reformat)")
 {
-   object->addText(argv[2], dStrlen(argv[2]), dAtob(argv[3]));
+   object->addText(argv[2].toString(), argv[2].getStrlen(), argv[3].getInt());
 }
 
 ConsoleMethod( GuiMLTextCtrl, setCursorPosition, bool, 3, 3, "(int newPos)"
               "Offset in characters to set cursor's position to.")
 {
-   return object->setCursorPosition(dAtoi(argv[2]));
+   return object->setCursorPosition( argv[2].getInt() );
 }
 
 ConsoleMethod( GuiMLTextCtrl, scrollToTag, void, 3, 3, "(int tagID)"
               "Scroll down to a specified tag.")
 {
-   object->scrollToTag( dAtoi( argv[2] ) );
+   object->scrollToTag( argv[2].getInt() );
 }
 
 ConsoleMethod( GuiMLTextCtrl, scrollToTop, void, 2, 2, "Scroll to the top of the text.")
@@ -56,7 +56,7 @@ ConsoleMethod( GuiMLTextCtrl, scrollToBottom, void, 2, 2, "Scroll to the top of 
 ConsoleFunction( StripMLControlChars, const char*, 2, 2, "(string val)"
                 "Strip TorqueML control characters from the specified string, returning a 'clean' version.")
 {
-   return GuiMLTextCtrl::stripControlChars(argv[1]);
+   return GuiMLTextCtrl::stripControlChars(argv[1].toString());
 }
 
 ConsoleMethod(GuiMLTextCtrl,forceReflow,void,2,2,"forces the text control to reflow the text after new text is added, possibly resizing the control.")
@@ -118,9 +118,9 @@ void GuiMLTextCtrl::initPersistFields()
    addField("text",              TypeCaseString,  Offset( mInitialText, GuiMLTextCtrl ) );
 }
 
-ConsoleMethod(GuiMLTextCtrl, setAlpha, void, 3, 3, "")
+ConsoleMethod(GuiMLTextCtrl, setAlpha, void, 3, 3, "(F32 alpha) - 0..1")
 {
-   object->setAlpha(dAtof(argv[2]));
+   object->setAlpha(argv[2].getNumber());
 }
 
 //--------------------------------------------------------------------------
@@ -369,28 +369,27 @@ U32 GuiMLTextCtrl::getText(char* pBuffer, const U32 bufferSize) const
 }
 
 //--------------------------------------------------------------------------
-const char* GuiMLTextCtrl::getTextContent()
+ConsoleValue GuiMLTextCtrl::getTextContent()
 {
    if ( mTextBuffer.length() > 0 )
    {
-      char* returnString = Con::getReturnBuffer( mTextBuffer.length() + 1 );
-      mTextBuffer.get(returnString, mTextBuffer.length() );
+      ReturnBuffer returnString( mTextBuffer.length() + 1 );
+      mTextBuffer.get(*returnString, mTextBuffer.length() );
       return returnString;
    }
-
    return( "" );
 }
 
 //--------------------------------------------------------------------------
-const char *GuiMLTextCtrl::getScriptValue()
+ConsoleValue GuiMLTextCtrl::getScriptValue()
 {
    return getTextContent();
 }
 
 //--------------------------------------------------------------------------
-void GuiMLTextCtrl::setScriptValue(const char *newText)
+void GuiMLTextCtrl::setScriptValue(ConsoleValue& newText)
 {
-   setText(newText, dStrlen(newText));
+   setText(newText.toString(), newText.getStrlen());
 }
 
 //--------------------------------------------------------------------------
@@ -657,10 +656,8 @@ void GuiMLTextCtrl::onMouseUp(const GuiEvent& event)
       StringBuffer tmpBuff = mTextBuffer.substring(mHitURL->textStart, mHitURL->len);
       tmpBuff.get(tmp, (mHitURL->len) * 3 + 1 );
 
-      char *url = Con::getArgBuffer(mHitURL->len + 1);
-      dStrncpy(url, tmp, mHitURL->len);
-      url[mHitURL->len] = 0;
-
+      ConsoleValue url;
+      url.concatStringU(tmp, mHitURL->len);
       Con::executef(this, 2, "onURL", url);
       mHitURL = NULL;
 
@@ -1922,19 +1919,19 @@ textemit:
    processEmitAtoms();
    emitNewLine(mScanPos);
    resize(mBounds.point, Point2I(mBounds.extent.x, mMaxY));
-   Con::executef( this, 3, "onResize", Con::getIntArg( mBounds.extent.x ), Con::getIntArg( mMaxY ) );
+   Con::executef( this, 3, "onResize", mBounds.extent.x, mMaxY );
 
    //make sure the cursor is still visible - this handles if we're a child of a scroll ctrl...
    ensureCursorOnScreen();
 }
 
 //-----------------------------------------------------------------------------
-char* GuiMLTextCtrl::stripControlChars(const char *inString)
+ConsoleValue GuiMLTextCtrl::stripControlChars(const char *inString)
 {
    if (! bool(inString))
       return NULL;
-   U32 maxBufLength = 64;
-   char *strippedBuffer = Con::getReturnBuffer(maxBufLength);
+   const U32 maxBufLength = 64;
+   char strippedBuffer[maxBufLength];
    char *stripBufPtr = &strippedBuffer[0];
    const char *bufPtr = (char *) inString;
    U32 idx, sizidx;

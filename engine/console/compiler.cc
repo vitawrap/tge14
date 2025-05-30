@@ -30,12 +30,23 @@ namespace Compiler
          return 1;
       else if(!dStricmp(str, "false"))
          return 0;
-      else if(file)
-      {
-         Con::warnf(ConsoleLogEntry::General, "%s (%d): string always evaluates to 0.", file, line);
-         return 0;
-      }
+      //else if(file)
+      //{
+      //   Con::warnf(ConsoleLogEntry::General, "%s (%d): string always evaluates to 0.", file, line);
+      //   return 0;
+      //}
       return 0;
+   }
+
+   bool consoleStringIsNumber(const char* str) {
+       if (!str || !str[0] || str[dStrspn(str, " \t")] == 0) return false;
+       char* pEnd;
+       (void) dStrtod(str, &pEnd);
+       return (*pEnd == 0) || (pEnd[dStrspn(pEnd, " \t")] == 0);
+   }
+
+   bool consoleStringMatchesConstant(const char* str) {
+       return !dStricmp(str, "true") || !dStricmp(str, "false");
    }
 
    //------------------------------------------------------------

@@ -379,10 +379,10 @@ void ShapeBaseData::initPersistFields()
 
 }
 
-ConsoleMethod(ShapeBaseData, getDeployTransform, const char *, 4, 4, "(Point3F pos, Point3F normal)")
+ConsoleMethod(ShapeBaseData, getDeployTransform, const char *, 4, 4, "(Point3F pos, Point3F normal) - Returns a P3FAA matrix.")
 {
-   Point3F position(argv[2]);
-   Point3F normal(argv[3]);
+   Point3F position = argv[2].getPoint3F();
+   Point3F normal = argv[3].getPoint3F();
    //dSscanf(argv[2], "%g %g %g", &position.x, &position.y, &position.z);
    //dSscanf(argv[3], "%g %g %g", &normal.x, &normal.y, &normal.z);
    normal.normalize();
@@ -402,13 +402,10 @@ ConsoleMethod(ShapeBaseData, getDeployTransform, const char *, 4, 4, "(Point3F p
    testMat.setColumn( 2, normal );
    testMat.setPosition( position );
 
-   char *returnBuffer = Con::getReturnBuffer(256);
    Point3F pos;
    testMat.getColumn(3,&pos);
    AngAxisF aa(testMat);
-   dSprintf(returnBuffer,256,"%g %g %g %g %g %g %g",
-            pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
-   return returnBuffer;
+   return ConsoleValueList::from(pos.x, pos.y, pos.z, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
 }
 
 void ShapeBaseData::packData(BitStream* stream)
@@ -853,24 +850,16 @@ void ShapeBase::onDeleteNotify(SimObject* obj)
 void ShapeBase::onImpact(SceneObject* obj, VectorF vec)
 {
    if (!isGhost()) {
-      char buff1[256];
-      char buff2[32];
-
-      dSprintf(buff1,sizeof(buff1),"%g %g %g",vec.x, vec.y, vec.z);
-      dSprintf(buff2,sizeof(buff2),"%g",vec.len());
-      Con::executef(mDataBlock,5,"onImpact",scriptThis(), obj->getIdString(), buff1, buff2);
+      auto* lVec = ConsoleValueList::from(vec.x, vec.y, vec.z);
+      Con::executef(mDataBlock, 5, "onImpact", getId(), obj->getId(), lVec, vec.len());
    }
 }
 
 void ShapeBase::onImpact(VectorF vec)
 {
    if (!isGhost()) {
-      char buff1[256];
-      char buff2[32];
-
-      dSprintf(buff1,sizeof(buff1),"%g %g %g",vec.x, vec.y, vec.z);
-      dSprintf(buff2,sizeof(buff2),"%g",vec.len());
-      Con::executef(mDataBlock,5,"onImpact",scriptThis(), "0", buff1, buff2);
+      auto* lVec = ConsoleValueList::from(vec.x, vec.y, vec.z);
+      Con::executef(mDataBlock, 5, "onImpact", getId(), 0.0, lVec, vec.len());
    }
 }
 
@@ -915,10 +904,8 @@ void ShapeBase::processTick(const Move* move)
       {
          updateDamageLevel();
          if (isServerObject()) {
-            char delta[100];
-            dSprintf(delta,sizeof(delta),"%g",mDamage - store);
             setMaskBits(DamageMask);
-            Con::executef(mDataBlock,3,"onDamage",scriptThis(),delta);
+            Con::executef(mDataBlock,3,"onDamage", getId(), mDamage - store);
          }
       }
    }
@@ -960,10 +947,7 @@ void ShapeBase::processTick(const Move* move)
       for (S32 i = 0; i < MaxTriggerKeys; i++) {
          if (move->trigger[i] != mTrigger[i]) {
             mTrigger[i] = move->trigger[i];
-            char buf1[20],buf2[20];
-            dSprintf(buf1,sizeof(buf1),"%d",i);
-            dSprintf(buf2,sizeof(buf2),"%d",(move->trigger[i]?1:0));
-            Con::executef(mDataBlock,4,"onTrigger",scriptThis(),buf1,buf2);
+            Con::executef(mDataBlock,4,"onTrigger", getId(), i, (move->trigger[i]?1:0));
          }
       }
    }
@@ -1231,9 +1215,7 @@ void ShapeBase::setDamageLevel(F32 damage)
          updateDamageLevel();
          if (isServerObject()) {
             setMaskBits(DamageMask);
-            char delta[100];
-            dSprintf(delta,sizeof(delta),"%g",mDamage - store);
-            Con::executef(mDataBlock,3,"onDamage",scriptThis(),delta);
+            Con::executef(mDataBlock, 3, "onDamage", getId(), mDamage - store);
          }
       }
    }
@@ -1397,7 +1379,7 @@ void ShapeBase::setDamageState(DamageState state)
    if (script) {
       // Like to call the scripts after the state has been intialize.
       // This should only end up being called on the server.
-      Con::executef(mDataBlock,3,script,scriptThis(),lastState);
+      Con::executef(mDataBlock,3,script,getId(),lastState);
    }
    updateDamageState();
    updateDamageLevel();
@@ -1601,18 +1583,14 @@ void ShapeBase::unmount()
 void ShapeBase::onMount(ShapeBase* obj,S32 node)
 {
    if (!isGhost()) {
-      char buff1[32];
-      dSprintf(buff1,sizeof(buff1),"%d",node);
-      Con::executef(mDataBlock,4,"onMount",scriptThis(),obj->scriptThis(),buff1);
+      Con::executef(mDataBlock,4,"onMount",getId(),obj->getId(),node);
    }
 }
 
 void ShapeBase::onUnmount(ShapeBase* obj,S32 node)
 {
    if (!isGhost()) {
-      char buff1[32];
-      dSprintf(buff1,sizeof(buff1),"%d",node);
-      Con::executef(mDataBlock,4,"onUnmount",scriptThis(),obj->scriptThis(),buff1);
+      Con::executef(mDataBlock,4,"onUnmount",getId(),obj->getId(),node);
    }
 }
 
@@ -2173,9 +2151,7 @@ void ShapeBase::advanceThreads(F32 dt)
             st.atEnd = true;
             updateThread(st);
             if (!isGhost()) {
-               char slot[16];
-               dSprintf(slot,sizeof(slot),"%d",i);
-               Con::executef(mDataBlock,3,"onEndSequence",scriptThis(),slot);
+               Con::executef(mDataBlock,3,"onEndSequence",getId(),i);
             }
          }
          mShapeInstance->advanceTime(dt,st.thread);
@@ -2879,12 +2855,8 @@ void ShapeBase::notifyCollision()
 void ShapeBase::onCollision(ShapeBase* object,VectorF vec)
 {
    if (!isGhost())  {
-      char buff1[256];
-      char buff2[32];
-
-      dSprintf(buff1,sizeof(buff1),"%g %g %g",vec.x, vec.y, vec.z);
-      dSprintf(buff2,sizeof(buff2),"%g",vec.len());
-      Con::executef(mDataBlock,5,"onCollision",scriptThis(),object->scriptThis(), buff1, buff2);
+      auto* lVec = ConsoleValueList::from(vec.x, vec.y, vec.z);
+      Con::executef(mDataBlock,5,"onCollision", getId(), object->getId(), lVec, vec.len());
    }
 }
 
@@ -3298,7 +3270,7 @@ void ShapeBase::forceUncloak(const char * reason)
    if(!mCloaked)
       return;
 
-   Con::executef(mDataBlock, 3, "onForceUncloak", scriptThis(), reason ? reason : "");
+   Con::executef(mDataBlock, 3, "onForceUncloak", getId(), reason ? reason : "");
 }
 
 void ShapeBase::setCloakedState(bool cloaked)
@@ -3580,7 +3552,7 @@ void ShapeBase::setColor(S32 meshIndex, const U8 palEntry)
 //----------------------------------------------------------------------------
 ConsoleMethod( ShapeBase, setHidden, void, 3, 3, "(bool show)")
 {
-   object->setHidden(dAtob(argv[2]));
+   object->setHidden(argv[2].getInt());
 }
 
 ConsoleMethod( ShapeBase, isHidden, bool, 2, 2, "")
@@ -3591,10 +3563,10 @@ ConsoleMethod( ShapeBase, isHidden, bool, 2, 2, "")
 //----------------------------------------------------------------------------
 ConsoleMethod( ShapeBase, playAudio, bool, 4, 4, "(int slot, AudioProfile ap)")
 {
-   U32 slot = dAtoi(argv[2]);
+   U32 slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
       AudioProfile* profile;
-      if (Sim::findObject(argv[3],profile)) {
+      if (Sim::findObject(argv[3], profile)) {
          object->playAudio(slot,profile);
          return true;
       }
@@ -3604,7 +3576,7 @@ ConsoleMethod( ShapeBase, playAudio, bool, 4, 4, "(int slot, AudioProfile ap)")
 
 ConsoleMethod( ShapeBase, stopAudio, bool, 3, 3, "(int slot)")
 {
-   U32 slot = dAtoi(argv[2]);
+   U32 slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
       object->stopAudio(slot);
       return true;
@@ -3616,11 +3588,11 @@ ConsoleMethod( ShapeBase, stopAudio, bool, 3, 3, "(int slot)")
 //----------------------------------------------------------------------------
 ConsoleMethod( ShapeBase, playThread, bool, 3, 4, "(int slot, string sequenceName)")
 {
-   U32 slot = dAtoi(argv[2]);
+   U32 slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
       if (argc == 4) {
          if (object->getShape()) {
-            S32 seq = object->getShape()->findSequence(argv[3]);
+            S32 seq = object->getShape()->findSequence(argv[3].toString());
             if (seq != -1 && object->setThreadSequence(slot,seq))
                return true;
          }
@@ -3634,9 +3606,9 @@ ConsoleMethod( ShapeBase, playThread, bool, 3, 4, "(int slot, string sequenceNam
 
 ConsoleMethod( ShapeBase, setThreadDir, bool, 4, 4, "(int slot, bool isForward)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
-      if (object->setThreadDir(slot,dAtob(argv[3])))
+      if (object->setThreadDir(slot,argv[3].getInt()))
          return true;
    }
    return false;
@@ -3644,7 +3616,7 @@ ConsoleMethod( ShapeBase, setThreadDir, bool, 4, 4, "(int slot, bool isForward)"
 
 ConsoleMethod( ShapeBase, stopThread, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
       if (object->stopThread(slot))
          return true;
@@ -3654,7 +3626,7 @@ ConsoleMethod( ShapeBase, stopThread, bool, 3, 3, "(int slot)")
 
 ConsoleMethod( ShapeBase, pauseThread, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
       if (object->pauseThread(slot))
          return true;
@@ -3668,9 +3640,8 @@ ConsoleMethod( ShapeBase, mountObject, bool, 4, 4, "( ShapeBase object, int slot
               "Mount ourselves on an object in the specified slot.")
 {
    ShapeBase *target;
-   if (Sim::findObject(argv[2],target)) {
-      S32 node = -1;
-      dSscanf(argv[3],"%d",&node);
+   if (Sim::findObject(argv[2], target)) {
+      S32 node = argv[3].getInt();
       if (node >= 0 && node < ShapeBaseData::NumMountPoints)
          object->mountObject(target,node);
       return true;
@@ -3682,7 +3653,7 @@ ConsoleMethod( ShapeBase, unmountObject, bool, 3, 3, "(ShapeBase obj)"
               "Unmount an object from ourselves.")
 {
    ShapeBase *target;
-   if (Sim::findObject(argv[2],target)) {
+   if (Sim::findObject(argv[2], target)) {
       object->unmountObject(target);
       return true;
    }
@@ -3701,7 +3672,7 @@ ConsoleMethod( ShapeBase, isMounted, bool, 2, 2, "Are we mounted?")
 
 ConsoleMethod( ShapeBase, getObjectMount, S32, 2, 2, "Returns the ShapeBase we're mounted on.")
 {
-   return object->isMounted()? object->getObjectMount()->getId(): 0;
+   return S64( object->isMounted()? object->getObjectMount()->getId(): 0 );
 }
 
 ConsoleMethod( ShapeBase, getMountedObjectCount, S32, 2, 2, "")
@@ -3711,19 +3682,19 @@ ConsoleMethod( ShapeBase, getMountedObjectCount, S32, 2, 2, "")
 
 ConsoleMethod( ShapeBase, getMountedObject, S32, 3, 3, "(int slot)")
 {
-   ShapeBase* mobj = object->getMountedObject(dAtoi(argv[2]));
-   return mobj? mobj->getId(): 0;
+   ShapeBase* mobj = object->getMountedObject(argv[2].getInt());
+   return S64( mobj? mobj->getId(): 0 );
 }
 
 ConsoleMethod( ShapeBase, getMountedObjectNode, S32, 3, 3, "(int node)")
 {
-   return object->getMountedObjectNode(dAtoi(argv[2]));
+   return object->getMountedObjectNode(argv[2].getInt());
 }
 
 ConsoleMethod( ShapeBase, getMountNodeObject, S32, 3, 3, "(int node)")
 {
-   ShapeBase* mobj = object->getMountNodeObject(dAtoi(argv[2]));
-   return mobj? mobj->getId(): 0;
+   ShapeBase* mobj = object->getMountNodeObject(argv[2].getInt());
+   return S64( mobj? mobj->getId(): 0 );
 }
 
 
@@ -3731,15 +3702,14 @@ ConsoleMethod( ShapeBase, getMountNodeObject, S32, 3, 3, "(int node)")
 ConsoleMethod( ShapeBase, mountImage, bool, 4, 6, "(ShapeBaseImageData image, int slot, bool loaded=true, string skinTag=NULL)")
 {
    ShapeBaseImageData* imageData;
-   if (Sim::findObject(argv[2],imageData)) {
-      U32 slot = dAtoi(argv[3]);
-      bool loaded = (argc >= 5)? dAtob(argv[4]): true;
+   if (Sim::findObject(argv[2], imageData)) {
+      U32 slot = argv[3].getInt();
+      bool loaded = (argc >= 5)? argv[4].getInt() : true;
       StringHandle team;
       if(argc == 6)
-      {
-         if(argv[5][0] == StringTagPrefixByte)
-            team = StringHandle(U32(dAtoi(argv[5]+1)));
-      }
+         if(argv[5].getType() == ConsoleValue::TypeString && argv[5].getStringU()[0] == StringTagPrefixByte)
+            team = StringHandle(U32(dAtoi(argv[5].getStringU() + 1)));
+
       if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
          object->mountImage(imageData,slot,loaded,team);
    }
@@ -3748,7 +3718,7 @@ ConsoleMethod( ShapeBase, mountImage, bool, 4, 6, "(ShapeBaseImageData image, in
 
 ConsoleMethod( ShapeBase, unmountImage, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       return object->unmountImage(slot);
    return false;
@@ -3756,25 +3726,25 @@ ConsoleMethod( ShapeBase, unmountImage, bool, 3, 3, "(int slot)")
 
 ConsoleMethod( ShapeBase, getMountedImage, S32, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       if (ShapeBaseImageData* data = object->getMountedImage(slot))
-         return data->getId();
-   return 0;
+         return (S64) data->getId();
+   return 0LL;
 }
 
 ConsoleMethod( ShapeBase, getPendingImage, S32, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       if (ShapeBaseImageData* data = object->getPendingImage(slot))
-         return data->getId();
-   return 0;
+         return (S64) data->getId();
+   return 0LL;
 }
 
 ConsoleMethod( ShapeBase, isImageFiring, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       return object->isImageFiring(slot);
    return false;
@@ -3783,7 +3753,7 @@ ConsoleMethod( ShapeBase, isImageFiring, bool, 3, 3, "(int slot)")
 ConsoleMethod( ShapeBase, isImageMounted, bool, 3, 3, "(ShapeBaseImageData db)")
 {
    ShapeBaseImageData* imageData;
-   if (Sim::findObject(argv[2],imageData))
+   if (Sim::findObject(argv[2], imageData))
       return object->isImageMounted(imageData);
    return false;
 }
@@ -3791,22 +3761,22 @@ ConsoleMethod( ShapeBase, isImageMounted, bool, 3, 3, "(ShapeBaseImageData db)")
 ConsoleMethod( ShapeBase, getMountSlot, S32, 3, 3, "(ShapeBaseImageData db)")
 {
    ShapeBaseImageData* imageData;
-   if (Sim::findObject(argv[2],imageData))
+   if (Sim::findObject(argv[2], imageData))
       return object->getMountSlot(imageData);
-   return -1;
+   return -1LL;
 }
 
 ConsoleMethod( ShapeBase, getImageSkinTag, S32, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
-      return object->getImageSkinTag(slot).getIndex();
-   return -1;
+      return (S64) object->getImageSkinTag(slot).getIndex();
+   return -1LL;
 }
 
 ConsoleMethod( ShapeBase, getImageState, const char*, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       return object->getImageState(slot);
    return "Error";
@@ -3814,7 +3784,7 @@ ConsoleMethod( ShapeBase, getImageState, const char*, 3, 3, "(int slot)")
 
 ConsoleMethod( ShapeBase, getImageTrigger, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       return object->getImageTriggerState(slot);
    return false;
@@ -3822,9 +3792,9 @@ ConsoleMethod( ShapeBase, getImageTrigger, bool, 3, 3, "(int slot)")
 
 ConsoleMethod( ShapeBase, setImageTrigger, bool, 4, 4, "(int slot, bool isTriggered)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages) {
-      object->setImageTriggerState(slot,dAtob(argv[3]));
+      object->setImageTriggerState(slot, argv[3].getInt());
       return object->getImageTriggerState(slot);
    }
    return false;
@@ -3832,7 +3802,7 @@ ConsoleMethod( ShapeBase, setImageTrigger, bool, 4, 4, "(int slot, bool isTrigge
 
 ConsoleMethod( ShapeBase, getImageAmmo, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       return object->getImageAmmoState(slot);
    return false;
@@ -3840,10 +3810,10 @@ ConsoleMethod( ShapeBase, getImageAmmo, bool, 3, 3, "(int slot)")
 
 ConsoleMethod( ShapeBase, setImageAmmo, bool, 4, 4, "(int slot, bool hasAmmo)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages) {
-      bool ammo = dAtob(argv[3]);
-      object->setImageAmmoState(slot,dAtob(argv[3]));
+      bool ammo = argv[3].getInt();
+      object->setImageAmmoState(slot, argv[3].getInt());
       return ammo;
    }
    return false;
@@ -3851,7 +3821,7 @@ ConsoleMethod( ShapeBase, setImageAmmo, bool, 4, 4, "(int slot, bool hasAmmo)")
 
 ConsoleMethod( ShapeBase, getImageLoaded, bool, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       return object->getImageLoadedState(slot);
    return false;
@@ -3859,10 +3829,10 @@ ConsoleMethod( ShapeBase, getImageLoaded, bool, 3, 3, "(int slot)")
 
 ConsoleMethod( ShapeBase, setImageLoaded, bool, 4, 4, "(int slot, bool loaded)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages) {
-      bool loaded = dAtob(argv[3]);
-      object->setImageLoadedState(slot, dAtob(argv[3]));
+      bool loaded = argv[3].getInt();
+      object->setImageLoadedState(slot, argv[3].getInt());
       return loaded;
    }
    return false;
@@ -3870,33 +3840,29 @@ ConsoleMethod( ShapeBase, setImageLoaded, bool, 4, 4, "(int slot, bool loaded)")
 
 ConsoleMethod( ShapeBase, getMuzzleVector, const char*, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages) {
       VectorF v;
       object->getMuzzleVector(slot,&v);
-      char* buff = Con::getReturnBuffer(100);
-      dSprintf(buff,100,"%g %g %g",v.x,v.y,v.z);
-      return buff;
+      return ConsoleValueList::from(v.x,v.y,v.z);
    }
-   return "0 1 0";
+   return ConsoleValueList::from(0.0, 1.0, 0.0);
 }
 
 ConsoleMethod( ShapeBase, getMuzzlePoint, const char*, 3, 3, "(int slot)")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages) {
       Point3F p;
       object->getMuzzlePoint(slot,&p);
-      char* buff = Con::getReturnBuffer(100);
-      dSprintf(buff,100,"%g %g %g",p.x,p.y,p.z);
-      return buff;
+      return ConsoleValueList::from(p.x, p.y, p.z);
    }
-   return "0 0 0";
+   return ConsoleValueList::from(0.0, 0.0, 0.0);
 }
 
-ConsoleMethod( ShapeBase, getSlotTransform, const char*, 3, 3, "(int slot)")
+ConsoleMethod( ShapeBase, getSlotTransform, const char*, 3, 3, "(int slot) - Returns a P3FAA matrix.")
 {
-   int slot = dAtoi(argv[2]);
+   int slot = argv[2].getInt();
    MatrixF xf(true);
    if (slot >= 0 && slot < ShapeBase::MaxMountedImages)
       object->getMountTransform(slot,&xf);
@@ -3904,69 +3870,56 @@ ConsoleMethod( ShapeBase, getSlotTransform, const char*, 3, 3, "(int slot)")
    Point3F pos;
    xf.getColumn(3,&pos);
    AngAxisF aa(xf);
-   char* buff = Con::getReturnBuffer(200);
-   dSprintf(buff,200,"%g %g %g %g %g %g %g",
-            pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
-   return buff;
+   return ConsoleValueList::from(pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
 }
 
 ConsoleMethod( ShapeBase, getAIRepairPoint, const char*, 2, 2, "Get the position at which the AI should stand to repair things.")
 {
-    Point3F pos = object->getAIRepairPoint();
-   char* buff = Con::getReturnBuffer(200);
-   dSprintf(buff,200,"%g %g %g", pos.x,pos.y,pos.z);
-   return buff;
+   Point3F pos = object->getAIRepairPoint();
+   return ConsoleValueList::from(pos.x,pos.y,pos.z);
 }
 
 ConsoleMethod( ShapeBase, getVelocity, const char *, 2, 2, "")
 {
    const VectorF& vel = object->getVelocity();
-   char* buff = Con::getReturnBuffer(100);
-   dSprintf(buff,100,"%g %g %g",vel.x,vel.y,vel.z);
-   return buff;
+   return ConsoleValueList::from(vel.x,vel.y,vel.z);
 }
 
 ConsoleMethod( ShapeBase, setVelocity, bool, 3, 3, "(Vector3F vel)")
 {
    //VectorF vel(argv[2]);
    //dSscanf(argv[2],"%g %g %g",&vel.x,&vel.y,&vel.z);
-   object->setVelocity(argv[2]);
+   object->setVelocity(argv[2].getPoint3F());
    return true;
 }
 
 ConsoleMethod( ShapeBase, applyImpulse, bool, 4, 4, "(Point3F Pos, VectorF vel)")
 {
-   Point3F pos(argv[2]);
-   VectorF vel(argv[3]);
    //dSscanf(argv[2],"%g %g %g",&pos.x,&pos.y,&pos.z);
    //dSscanf(argv[3],"%g %g %g",&vel.x,&vel.y,&vel.z);
-   object->applyImpulse(pos,vel);
+   object->applyImpulse(argv[2].getPoint3F(), argv[3].getPoint3F());
    return true;
 }
 
-ConsoleMethod( ShapeBase, getEyeVector, const char*, 2, 2, "")
+ConsoleMethod( ShapeBase, getEyeVector, const char*, 2, 2, "Returns a Point3F")
 {
    MatrixF mat;
    object->getEyeTransform(&mat);
    VectorF v2;
    mat.getColumn(1,&v2);
-   char* buff = Con::getReturnBuffer(100);
-   dSprintf(buff, 100,"%g %g %g",v2.x,v2.y,v2.z);
-   return buff;
+   return ConsoleValueList::from(v2.x,v2.y,v2.z);
 }
 
-ConsoleMethod( ShapeBase, getEyePoint, const char*, 2, 2, "")
+ConsoleMethod( ShapeBase, getEyePoint, const char*, 2, 2, "Returns a Point3F")
 {
    MatrixF mat;
    object->getEyeTransform(&mat);
    Point3F ep;
    mat.getColumn(3,&ep);
-   char* buff = Con::getReturnBuffer(100);
-   dSprintf(buff, 100,"%g %g %g",ep.x,ep.y,ep.z);
-   return buff;
+   return ConsoleValueList::from(ep.x,ep.y,ep.z);
 }
 
-ConsoleMethod( ShapeBase, getEyeTransform, const char*, 2, 2, "")
+ConsoleMethod( ShapeBase, getEyeTransform, const char*, 2, 2, "Returns a P3FAA matrix.")
 {
    MatrixF mat;
    object->getEyeTransform(&mat);
@@ -3974,15 +3927,12 @@ ConsoleMethod( ShapeBase, getEyeTransform, const char*, 2, 2, "")
    Point3F pos;
    mat.getColumn(3,&pos);
    AngAxisF aa(mat);
-   char* buff = Con::getReturnBuffer(100);
-   dSprintf(buff,100,"%g %g %g %g %g %g %g",
-            pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
-   return buff;
+   return ConsoleValueList::from(pos.x,pos.y,pos.z,aa.axis.x,aa.axis.y,aa.axis.z,aa.angle);
 }
 
 ConsoleMethod( ShapeBase, setEnergyLevel, void, 3, 3, "(float level)")
 {
-   object->setEnergyLevel(dAtof(argv[2]));
+   object->setEnergyLevel(argv[2].getNumber());
 }
 
 ConsoleMethod( ShapeBase, getEnergyLevel, F32, 2, 2, "")
@@ -3997,7 +3947,7 @@ ConsoleMethod( ShapeBase, getEnergyPercent, F32, 2, 2, "")
 
 ConsoleMethod( ShapeBase, setDamageLevel, void, 3, 3, "(float level)")
 {
-   object->setDamageLevel(dAtof(argv[2]));
+   object->setDamageLevel(argv[2].getNumber());
 }
 
 ConsoleMethod( ShapeBase, getDamageLevel, F32, 2, 2, "")
@@ -4005,14 +3955,14 @@ ConsoleMethod( ShapeBase, getDamageLevel, F32, 2, 2, "")
    return object->getDamageLevel();
 }
 
-ConsoleMethod( ShapeBase, getDamagePercent, F32, 2, 2, "")
+ConsoleMethod( ShapeBase, getDamagePercent, F32, 2, 2, "Damage value in 0-1")
 {
    return object->getDamageValue();
 }
 
 ConsoleMethod( ShapeBase, setDamageState, bool, 3, 3, "(string state)")
 {
-   return object->setDamageState(argv[2]);
+   return object->setDamageState(argv[2].toString());
 }
 
 ConsoleMethod( ShapeBase, getDamageState, const char*, 2, 2, "")
@@ -4037,17 +3987,17 @@ ConsoleMethod( ShapeBase, isEnabled, bool, 2, 2, "")
 
 ConsoleMethod( ShapeBase, applyDamage, void, 3, 3, "(float amt)")
 {
-   object->applyDamage(dAtof(argv[2]));
+   object->applyDamage(argv[2].getNumber());
 }
 
 ConsoleMethod( ShapeBase, applyRepair, void, 3, 3, "(float amt)")
 {
-   object->applyRepair(dAtof(argv[2]));
+   object->applyRepair(argv[2].getNumber());
 }
 
 ConsoleMethod( ShapeBase, setRepairRate, void, 3, 3, "(float amt)")
 {
-   F32 rate = dAtof(argv[2]);
+   F32 rate = argv[2].getNumber();
    if(rate < 0)
       rate = 0;
    object->setRepairRate(rate);
@@ -4060,7 +4010,7 @@ ConsoleMethod( ShapeBase, getRepairRate, F32, 2, 2, "")
 
 ConsoleMethod( ShapeBase, setRechargeRate, void, 3, 3, "(float rate)")
 {
-   object->setRechargeRate(dAtof(argv[2]));
+   object->setRechargeRate(argv[2].getNumber());
 }
 
 ConsoleMethod( ShapeBase, getRechargeRate, F32, 2, 2, "")
@@ -4071,15 +4021,15 @@ ConsoleMethod( ShapeBase, getRechargeRate, F32, 2, 2, "")
 ConsoleMethod( ShapeBase, getControllingClient, S32, 2, 2, "Returns a GameConnection.")
 {
    if (GameConnection* con = object->getControllingClient())
-      return con->getId();
-   return 0;
+      return (S64) con->getId();
+   return 0LL;
 }
 
-ConsoleMethod( ShapeBase, getControllingObject, S32, 2, 2, "")
+ConsoleMethod( ShapeBase, getControllingObject, S32, 2, 2, "Returns a ShapeBase (or subclass.)")
 {
    if (ShapeBase* con = object->getControllingObject())
-      return con->getId();
-   return 0;
+      return (S64) con->getId();
+   return 0LL;
 }
 
 // return true if can cloak, otherwise the reason why object cannot cloak
@@ -4090,7 +4040,7 @@ ConsoleMethod( ShapeBase, canCloak, bool, 2, 2, "")
 
 ConsoleMethod( ShapeBase, setCloaked, void, 3, 3, "(bool isCloaked)")
 {
-   bool cloaked = dAtob(argv[2]);
+   bool cloaked = argv[2].getInt();
    if (object->isServerObject())
       object->setCloakedState(cloaked);
 }
@@ -4102,7 +4052,7 @@ ConsoleMethod( ShapeBase, isCloaked, bool, 2, 2, "")
 
 ConsoleMethod( ShapeBase, setDamageFlash, void, 3, 3, "(float lvl)")
 {
-   F32 flash = dAtof(argv[2]);
+   F32 flash = argv[2].getNumber();
    if (object->isServerObject())
       object->setDamageFlash(flash);
 }
@@ -4114,7 +4064,7 @@ ConsoleMethod( ShapeBase, getDamageFlash, F32, 2, 2, "")
 
 ConsoleMethod( ShapeBase, setWhiteOut, void, 3, 3, "(float flashLevel)")
 {
-   F32 flash = dAtof(argv[2]);
+   F32 flash = argv[2].getNumber();
    if (object->isServerObject())
       object->setWhiteOut(flash);
 }
@@ -4134,18 +4084,18 @@ ConsoleMethod( ShapeBase, getCameraFov, F32, 2, 2, "")
 ConsoleMethod( ShapeBase, setCameraFov, void, 3, 3, "(float fov)")
 {
    if (object->isServerObject())
-      object->setCameraFov(dAtof(argv[2]));
+      object->setCameraFov(argv[2].getNumber());
 }
 
 ConsoleMethod( ShapeBase, setInvincibleMode, void, 4, 4, "(float time, float speed)")
 {
-   object->setupInvincibleEffect(dAtof(argv[2]), dAtof(argv[3]));
+   object->setupInvincibleEffect(argv[2].getNumber(), argv[3].getNumber());
 }
 
 ConsoleFunction(setShadowDetailLevel, void , 2, 2, "setShadowDetailLevel(val 0...1);")
 {
    argc;
-   F32 val = dAtof(argv[1]);
+   F32 val = argv[1].getNumber();
    if (val < 0.0f)
       val = 0.0f;
    else if (val > 1.0f)
@@ -4165,34 +4115,30 @@ ConsoleFunction(setShadowDetailLevel, void , 2, 2, "setShadowDetailLevel(val 0..
 
 ConsoleMethod( ShapeBase, startFade, void, 5, 5, "( int fadeTimeMS, int fadeDelayMS, bool fadeOut )")
 {
-   U32   fadeTime;
-   U32   fadeDelay;
-   bool  fadeOut;
-
-   dSscanf(argv[2], "%d", &fadeTime );
-   dSscanf(argv[3], "%d", &fadeDelay );
-   fadeOut = dAtob(argv[4]);
+   U32   fadeTime = argv[2].getInt();
+   U32   fadeDelay = argv[3].getInt();
+   bool  fadeOut = argv[4].getInt();
 
    object->startFade( fadeTime / 1000.0, fadeDelay / 1000.0, fadeOut );
 }
 
 ConsoleMethod( ShapeBase, setDamageVector, void, 3, 3, "(Vector3F origin)")
 {
-   VectorF normal(argv[2]);
+   VectorF normal = argv[2].getPoint3F();
    //dSscanf(argv[2], "%g %g %g", &normal.x, &normal.y, &normal.z);
    normal.normalize();
-   object->setDamageDir(VectorF(normal.x, normal.y, normal.z));
+   object->setDamageDir(normal);
 }
 
 ConsoleMethod( ShapeBase, setShapeName, void, 3, 3, "(string tag)")
 {
-   object->setShapeName(argv[2]);
+   object->setShapeName(argv[2].toString());
 }
 
 
 ConsoleMethod( ShapeBase, setSkinName, void, 3, 3, "(string tag)")
 {
-   object->setSkinName(argv[2]);
+   object->setSkinName(argv[2].toString());
 }
 
 ConsoleMethod( ShapeBase, getShapeName, const char*, 2, 2, "")
@@ -4207,24 +4153,24 @@ ConsoleMethod( ShapeBase, getSkinName, const char*, 2, 2, "")
 
 ConsoleMethod(ShapeBase, setColor, void, 4, 4, "(string nodeName, int paletteEntry)")
 {
-    object->setColor(argv[2], dAtoi(argv[3]));
+    object->setColor(argv[2].toString(), argv[3].getInt());
 }
 
 ConsoleMethod(ShapeBase, setColorAt, void, 4, 4, "(int meshIndex, int paletteEntry)")
 {
-    object->setColor(dAtoi(argv[2]), dAtoi(argv[3]));
+    object->setColor(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod(ShapeBase, setImageColor, void, 4, 4, "(int imageSlot, int paletteEntry)")
 {
     // Mod the argument as a quick measure to prevent setMaskBits(ImageMaskN << arbitraryShift)
-    object->setImageColor(dAtoi(argv[2]) & (ShapeBase::MaxMountedImages-1), dAtoi(argv[3]));
+    object->setImageColor(argv[2].getInt() & (ShapeBase::MaxMountedImages - 1), argv[3].getInt());
 }
 
 ConsoleMethod(ShapeBase, getImageColor, S32, 3, 3, "(int imageSlot) - returns palette entry!")
 {
     // Mod the argument as a quick measure to prevent setMaskBits(ImageMaskN << arbitraryShift)
-    return object->getImageColor(dAtoi(argv[2]) & (ShapeBase::MaxMountedImages-1));
+    return object->getImageColor(argv[2].getInt() & (ShapeBase::MaxMountedImages - 1));
 }
 
 ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
@@ -4232,7 +4178,7 @@ ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
     TSShapeInstance* inst = object->getShapeInstance();
     TSShape const* shape = object->getShape();
     S32 mat;
-    if ((mat = shape->findIflMaterial(argv[2])) != -1)
+    if ((mat = shape->findIflMaterial(argv[2].toString())) != -1)
         return inst->mIflMaterialInstances[mat].frame;
     return 0;   // Pretend it's the first frame otherwise
 }
@@ -4247,7 +4193,10 @@ ConsoleMethod(ShapeBase, checkDeployPos, bool, 3, 5, "(U32 mask, bool ignoreSelf
     {
         Point3F pos(0, 0, 0);
         AngAxisF aa(Point3F(0, 0, 1), 0);
-        dSscanf(argv[4], "%g %g %g %g %g %g %g",
+        if (argv[4].isList()) {
+            pos = argv[4].getPoint3F();
+            aa = argv[4].getPoint4F(3);
+        } else dSscanf(argv[4].toString(), "%g %g %g %g %g %g %g",
             &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
         aa.setMatrix(&mat);
         mat.setColumn(3, pos);
@@ -4272,9 +4221,9 @@ ConsoleMethod(ShapeBase, checkDeployPos, bool, 3, 5, "(U32 mask, bool ignoreSelf
         polyList.mPlaneList[i] = temp;
     }
 
-    bool ignoreSelf = argc > 3 ? dAtob(argv[3]) : false;
+    bool ignoreSelf = argc > 3 ? argv[3].getInt() : false;
     if (ignoreSelf) object->disableCollision();        //originally: InteriorObjectType | StaticShapeObjectType
-    bool result = !gServerContainer.buildPolyList(wBox, dAtoi(argv[2]), &polyList);
+    bool result = !gServerContainer.buildPolyList(wBox, argv[2].getInt(), &polyList);
     if (ignoreSelf) object->enableCollision();
     return result;
 }

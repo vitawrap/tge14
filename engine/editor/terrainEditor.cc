@@ -229,7 +229,7 @@ void BoxBrush::rebuild()
 {
    reset();
    Filter filter;
-   filter.set(1, &mTerrainEditor->mSoftSelectFilter);
+   filter.set(1, &ConsoleValue(mTerrainEditor->mSoftSelectFilter));
    //
    // mSize should always be odd.
 
@@ -265,7 +265,7 @@ void EllipseBrush::rebuild()
    reset();
    Point3F center(F32(mSize.x - 1) / 2, F32(mSize.y - 1) / 2, 0);
    Filter filter;
-   filter.set(1, &mTerrainEditor->mSoftSelectFilter);
+   filter.set(1, &ConsoleValue(mTerrainEditor->mSoftSelectFilter));
 
    // a point is in a circle if:
    // x^2 + y^2 <= r^2
@@ -1169,14 +1169,12 @@ void TerrainEditor::setBrushSize(S32 w, S32 h)
 	mMouseBrush->setSize(mBrushSize);	
 }
 
-const char* TerrainEditor::getBrushPos()
+ConsoleValue TerrainEditor::getBrushPos()
 {
    AssertFatal(mMouseBrush!=NULL, "TerrainEditor::getBrushPos: no mouse brush!");
 
    Point2I pos = mMouseBrush->getPosition();
-   char * ret = Con::getReturnBuffer(32);
-   dSprintf(ret, sizeof(ret), "%d %d", pos.x, pos.y);
-   return(ret);	
+   return ConsoleValueList::from(pos.x, pos.y);
 }
 
 void TerrainEditor::setBrushPos(Point2I pos)
@@ -1658,13 +1656,13 @@ ConsoleMethod( TerrainEditor, attachTerrain, void, 2, 3, "(TerrainBlock terrain)
 ConsoleMethod( TerrainEditor, setBrushType, void, 3, 3, "(string type)"
               "One of box, ellipse, selection.")
 {
-	object->setBrushType(argv[2]);
+	object->setBrushType(argv[2].toString());
 }
 
 ConsoleMethod( TerrainEditor, setBrushSize, void, 4, 4, "(int w, int h)")
 {
-   S32 w = dAtoi(argv[2]);
-   S32 h = dAtoi(argv[3]);
+   S32 w = argv[2].getInt();
+   S32 h = argv[3].getInt();
 
    //
    if(w < 1 || w > Brush::MaxBrushDim || h < 1 || h > Brush::MaxBrushDim)
@@ -1686,11 +1684,11 @@ ConsoleMethod( TerrainEditor, setBrushPos, void, 3, 4, "(int x, int y)")
    //
    Point2I pos;
    if(argc == 3)
-      dSscanf(argv[2], "%d %d", &pos.x, &pos.y);
+      pos = argv[2].getPoint2I();
    else
    {
-      pos.x = dAtoi(argv[2]);
-      pos.y = dAtoi(argv[3]);
+      pos.x = argv[2].getInt();
+      pos.y = argv[3].getInt();
    }
 
    object->setBrushPos(pos);
@@ -1698,12 +1696,12 @@ ConsoleMethod( TerrainEditor, setBrushPos, void, 3, 4, "(int x, int y)")
 
 ConsoleMethod( TerrainEditor, setAction, void, 3, 3, "(string action_name)")
 {
-	object->setAction(argv[2]);
+	object->setAction(argv[2].toString());
 }
 
 ConsoleMethod( TerrainEditor, getActionName, const char*, 3, 3, "(int num)")
 {
-	return (object->getActionName(dAtoi(argv[2])));
+	return object->getActionName( argv[2].getInt() );
 }
 
 ConsoleMethod( TerrainEditor, getNumActions, S32, 2, 2, "")
@@ -1718,7 +1716,7 @@ ConsoleMethod( TerrainEditor, getCurrentAction, const char*, 2, 2, "")
 
 ConsoleMethod( TerrainEditor, resetSelWeights, void, 3, 3, "(bool clear)")
 {
-	object->resetSelWeights(dAtob(argv[2]));
+	object->resetSelWeights(argv[2].getInt());
 }
 
 ConsoleMethod( TerrainEditor, undo, void, 2, 2, "")
@@ -1739,7 +1737,7 @@ ConsoleMethod( TerrainEditor, clearSelection, void, 2, 2, "")
 ConsoleMethod( TerrainEditor, processAction, void, 2, 3, "(string action=NULL)")
 {
 	if(argc == 3)
-		object->processAction(argv[2]);
+		object->processAction(argv[2].toString());
 	else object->processAction("");
 }
 
@@ -1755,7 +1753,7 @@ ConsoleMethod( TerrainEditor, getNumTextures, S32, 2, 2, "")
 
 ConsoleMethod( TerrainEditor, getTextureName, const char*, 3, 3, "(int index)")
 {
-	return object->getTextureName(dAtoi(argv[2]));	
+	return object->getTextureName(argv[2].getInt());	
 }
 
 ConsoleMethod( TerrainEditor, markEmptySquares, void, 2, 2, "")
@@ -1770,7 +1768,7 @@ ConsoleMethod( TerrainEditor, clearModifiedFlags, void, 2, 2, "")
 
 ConsoleMethod( TerrainEditor, mirrorTerrain, void, 3, 3, "")
 {
-	object->mirrorTerrain(dAtoi(argv[2]));
+	object->mirrorTerrain(argv[2].getInt());
 }
 
 ConsoleMethod(TerrainEditor, pushBaseMaterialInfo, void, 2, 2, "")
@@ -1785,7 +1783,7 @@ ConsoleMethod( TerrainEditor, popBaseMaterialInfo, void, 2, 2, "")
 
 ConsoleMethod( TerrainEditor, setLoneBaseMaterial, void, 3, 3, "(string materialListBaseName)")
 {
-	object->setLoneBaseMaterial(argv[2]);
+	object->setLoneBaseMaterial(argv[2].toString());
 }
 
 ConsoleMethod(TerrainEditor, setTerraformOverlay, void, 3, 3, "(bool overlayEnable) - sets the terraformer current heightmap to draw as an overlay over the current terrain.")
@@ -1800,7 +1798,7 @@ ConsoleMethod(TerrainEditor, setTerrainMaterials, void, 3, 3, "(string matList) 
    if(!terr)
       return;
    Resource<TerrainFile> file = terr->getFile();
-   const char *fileList = argv[2];
+   const char *fileList = argv[2].toString();
    for(U32 i = 0; i < TerrainBlock::MaterialGroups; i++)
    {
       U32 len;
@@ -1823,7 +1821,7 @@ ConsoleMethod(TerrainEditor, setTerrainMaterials, void, 3, 3, "(string matList) 
 
 ConsoleMethod(TerrainEditor, getTerrainMaterials, const char *, 2, 2, "() gets the list of current terrain materials.")
 {
-   char *ret = Con::getReturnBuffer(4096);
+   char ret[4096];
    TerrainEditor *tEditor = (TerrainEditor *) object;
    TerrainBlock *terr = tEditor->getTerrainBlock();
    if(!terr)

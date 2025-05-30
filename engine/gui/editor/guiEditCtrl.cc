@@ -51,12 +51,12 @@ ConsoleMethod( GuiEditCtrl, addNewCtrl, void, 3, 3, "(GuiControl ctrl)")
 }
 ConsoleMethod( GuiEditCtrl, addSelection, void, 3, 3, "selects a control.")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    object->addSelection(id);
 }
 ConsoleMethod( GuiEditCtrl, removeSelection, void, 3, 3, "deselects a control.")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    object->removeSelection(id);
 }
 
@@ -80,7 +80,7 @@ ConsoleMethod( GuiEditCtrl, setCurrentAddSet, void, 3, 3, "(GuiControl ctrl)")
 
    if (!Sim::findObject(argv[2], addSet))
    {
-      Con::printf("%s(): Invalid control: %s", argv[0], argv[2]);
+      Con::printf("setCurrentAddSet(): Invalid control: %s", argv[2].toString());
       return;
    }
    object->setCurrentAddSet(addSet);
@@ -93,7 +93,7 @@ ConsoleMethod( GuiEditCtrl, toggle, void, 2, 2, "Toggle activation.")
 
 ConsoleMethod( GuiEditCtrl, justify, void, 3, 3, "(int mode)" )
 {
-   object->justifySelection((GuiEditCtrl::Justification)dAtoi(argv[2]));
+   object->justifySelection((GuiEditCtrl::Justification) argv[2].getInt());
 }
 
 ConsoleMethod( GuiEditCtrl, bringToFront, void, 2, 2, "")
@@ -113,17 +113,17 @@ ConsoleMethod( GuiEditCtrl, deleteSelection, void, 2, 2, "Delete the selected te
 
 ConsoleMethod( GuiEditCtrl, moveSelection, void, 4, 4, "(int deltax, int deltay)")
 {
-   object->moveSelection(Point2I(dAtoi(argv[2]), dAtoi(argv[3])));
+   object->moveSelection(Point2I(argv[2].getInt(), argv[3].getInt()));
 }
 
 ConsoleMethod( GuiEditCtrl, saveSelection, void, 3, 3, "(string fileName)")
 {
-   object->saveSelection(argv[2]);
+   object->saveSelection(argv[2].toString());
 }
 
 ConsoleMethod( GuiEditCtrl, loadSelection, void, 3, 3, "(string fileName)")
 {
-   object->loadSelection(argv[2]);
+   object->loadSelection(argv[2].toString());
 }
 
 ConsoleMethod( GuiEditCtrl, selectAll, void, 2, 2, "()")
@@ -134,18 +134,13 @@ ConsoleMethod( GuiEditCtrl, selectAll, void, 2, 2, "()")
 
 ConsoleMethod( GuiEditCtrl, getSelected, const char *, 2, 2, "() - Gets the GUI control(s) the editor is currently selecting" )
 {
-   char *returnText = Con::getReturnBuffer(128);
-   dStrcpy( returnText, "" );
+   auto* list = new ConsoleValueList;
    const Vector<GuiControl *> *selected = object->getSelected();
 
    for( Vector<GuiControl *>::const_iterator i = selected->begin(); i != selected->end(); i++ )
-   {
-      char temp[8];
-      dSprintf( temp, 8, "%d ", (*i)->getId() );
-      dStrcat( returnText, temp );
-   }
-
-   return returnText;
+      list->push_back((S64) (*i)->getId());
+   
+   return list;
 }
 
 bool GuiEditCtrl::onWake()
@@ -274,7 +269,7 @@ void GuiEditCtrl::addNewControl(GuiControl *ctrl)
    mSelectedControls.clear();
    if (!(ctrl->isLocked())) {
       mSelectedControls.push_back(ctrl);
-      Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+      Con::executef(this, 2, "onAddSelected", ctrl->getId());
    }
 }
 
@@ -466,7 +461,7 @@ void GuiEditCtrl::select(GuiControl *ctrl)
    if(ctrl != mContentControl) {
       if (!(ctrl->isLocked())) {
          mSelectedControls.push_back(ctrl);
-         Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+         Con::executef(this, 2, "onAddSelected", ctrl->getId());
       }
    }else
       mCurrentAddSet = mContentControl;
@@ -578,7 +573,7 @@ void GuiEditCtrl::onMouseDown(const GuiEvent &event)
          {
             if (*i == ctrl)
             {
-               Con::executef(this, 2, "onRemoveSelected", avar("%d", ctrl->getId()));
+               Con::executef(this, 2, "onRemoveSelected", ctrl->getId());
                mSelectedControls.erase(i);
                break;
             }
@@ -630,7 +625,7 @@ void GuiEditCtrl::onMouseDown(const GuiEvent &event)
          {            	
             if (!(ctrl->isLocked())) {
                mSelectedControls.push_back(ctrl);
-               Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+               Con::executef(this, 2, "onAddSelected", ctrl->getId());
             }
             mMouseDownMode = Selecting;
          }
@@ -644,7 +639,7 @@ void GuiEditCtrl::onMouseDown(const GuiEvent &event)
             mSelectedControls.clear();
             if (!(ctrl->isLocked())) {
                mSelectedControls.push_back(ctrl);
-               Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+               Con::executef(this, 2, "onAddSelected", ctrl->getId());
             }
             mMouseDownMode = Selecting;
          }
@@ -711,13 +706,13 @@ void GuiEditCtrl::onMouseUp(const GuiEvent &event)
          if (b.pointInRect(upperL) && b.pointInRect(lowerR) && !selectionContains(ctrl)) {
             if (!(ctrl->isLocked())) {
                mSelectedControls.push_back(ctrl);
-               Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+               Con::executef(this, 2, "onAddSelected", ctrl->getId());
             }
          }
       }
    }
    if (mSelectedControls.size() == 1)
-      Con::executef(this, 2, "onSelect", avar("%d", mSelectedControls[0]->getId()));
+      Con::executef(this, 2, "onSelect", mSelectedControls[0]->getId());
 
    setFirstResponder();
    //reset the mouse mode
@@ -786,7 +781,7 @@ void GuiEditCtrl::onMouseDragged(const GuiEvent &event)
 
       ctrl->resize(newPosition, newExtent);
       mCurrentAddSet->childResized(ctrl);
-      Con::executef(this, 2, "onSelect", avar("%d", mSelectedControls[0]->getId()));
+      Con::executef(this, 2, "onSelect", mSelectedControls[0]->getId());
    }
    else if (mMouseDownMode == MovingSelection && mSelectedControls.size())
    {
@@ -855,7 +850,7 @@ void GuiEditCtrl::moveSelection(const Point2I &delta)
    for(i = mSelectedControls.begin(); i != mSelectedControls.end(); i++)
       (*i)->resize((*i)->mBounds.point + delta, (*i)->mBounds.extent);
    if (mSelectedControls.size() == 1)
-      Con::executef(this, 2, "onSelect", avar("%d", mSelectedControls[0]->getId()));
+      Con::executef(this, 2, "onSelect", mSelectedControls[0]->getId());
 }
 
 void GuiEditCtrl::justifySelection(Justification j)
@@ -989,7 +984,7 @@ void GuiEditCtrl::loadSelection(const char* filename)
          {
             mCurrentAddSet->addObject(ctrl);
             mSelectedControls.push_back(ctrl);
-            Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+            Con::executef(this, 2, "onAddSelected", ctrl->getId());
          }
       }
    }
@@ -1029,7 +1024,7 @@ void GuiEditCtrl::selectAll()
       GuiControl *ctrl = dynamic_cast<GuiControl *>(*i);
       if (!(ctrl->isLocked())) {
          mSelectedControls.push_back(ctrl);
-         Con::executef(this, 2, "onAddSelected", avar("%d", ctrl->getId()));
+         Con::executef(this, 2, "onAddSelected", ctrl->getId());
       }
    }
 }

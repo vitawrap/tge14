@@ -22,10 +22,10 @@ ConsoleGetType( TypeString )
 
 ConsoleSetType( TypeString )
 {
-   if(argc == 1)
-      *((const char **) dptr) = StringTable->insert(argv[0]);
+   if(val.isList())
+      Con::printf("(TypeString) Cannot save list to a single string.");
    else
-      Con::printf("(TypeString) Cannot set multiple args to a single string.");
+      *((const char **) dptr) = StringTable->insert(val.toString());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -35,10 +35,10 @@ ConsoleType( caseString, TypeCaseString, sizeof(const char*) )
 
 ConsoleSetType( TypeCaseString )
 {
-   if(argc == 1)
-      *((const char **) dptr) = StringTable->insert(argv[0], true);
-   else
+   if(val.isList())
       Con::printf("(TypeCaseString) Cannot set multiple args to a single string.");
+   else
+      *((const char **) dptr) = StringTable->insert(val.toString(), true);
 }
 
 ConsoleGetType( TypeCaseString )
@@ -53,13 +53,13 @@ ConsoleType( filename, TypeFilename, sizeof( const char* ) )
 
 ConsoleSetType( TypeFilename )
 {
-   if(argc == 1)
+   if(!val.isList())
    {
       char buffer[1024];
-      if (Con::expandScriptFilename(buffer, 1024, argv[0]))
+      if (Con::expandScriptFilename(buffer, 1024, val.toString()))
          *((const char **) dptr) = StringTable->insert(buffer);
       else
-         Con::warnf("(TypeFilename) illegal filename detected: %s", argv[0]);
+         Con::warnf("(TypeFilename) illegal filename detected: %s", val.getStringU());
    }
    else
       Con::printf("(TypeFilename) Cannot set multiple args to a single filename.");
@@ -77,14 +77,14 @@ ConsoleType( bitmapFilename, TypeBitmapFilename, sizeof(TextureHandle) )
 
 ConsoleSetType( TypeBitmapFilename )
 {
-    if (argc == 1)
+    if (!val.isList())
     {
         char buffer[1024];
-        if (Con::expandScriptFilename(buffer, 1024, argv[0])) {
+        if (Con::expandScriptFilename(buffer, 1024, val.toString())) {
             *((TextureHandle*)dptr) = TextureHandle(buffer, BitmapTexture);
         }
         else
-            Con::warnf("(TypeFilename) illegal texture filename detected: %s", argv[0]);
+            Con::warnf("(TypeFilename) illegal texture filename detected: %s", val.getStringU());
     }
     else
         Con::printf("(TypeFilename) Cannot set multiple args to a texture filename.");
@@ -103,14 +103,14 @@ ConsoleType( textureFilename, TypeTextureFilename, sizeof(TextureHandle) )
 
 ConsoleSetType( TypeTextureFilename )
 {
-    if (argc == 1)
+    if (!val.isList())
     {
         char buffer[1024];
-        if (Con::expandScriptFilename(buffer, 1024, argv[0])) {
+        if (Con::expandScriptFilename(buffer, 1024, val.toString())) {
             *((TextureHandle*)dptr) = TextureHandle(buffer, MeshTexture);
         }
         else
-            Con::warnf("(TypeFilename) illegal texture filename detected: %s", argv[0]);
+            Con::warnf("(TypeFilename) illegal texture filename detected: %s", val.getStringU());
     }
     else
         Con::printf("(TypeFilename) Cannot set multiple args to a texture filename.");
@@ -129,17 +129,16 @@ ConsoleType( char, TypeS8, sizeof(U8) )
 
 ConsoleGetType( TypeS8 )
 {
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%d", *((U8 *) dptr) );
-   return returnBuffer;
+   S64 value = *((U8*)dptr);
+   return value;
 }
 
 ConsoleSetType( TypeS8 )
 {
-   if(argc == 1)
-      *((U8 *) dptr) = dAtoi(argv[0]);
+   if(val.isList())
+      Con::printf("(TypeU8) Cannot set list to a single S32.");
    else
-      Con::printf("(TypeU8) Cannot set multiple args to a single S32.");
+      *((U8 *) dptr) = val.getInt();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,17 +148,13 @@ ConsoleType( int, TypeS32, sizeof(S32) )
 
 ConsoleGetType( TypeS32 )
 {
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%d", *((S32 *) dptr) );
-   return returnBuffer;
+   S64 value = *((S32*)dptr);
+   return value;
 }
 
 ConsoleSetType( TypeS32 )
 {
-   if(argc == 1)
-      *((S32 *) dptr) = dAtoi(argv[0]);
-   else
-      Con::printf("(TypeS32) Cannot set multiple args to a single S32.");
+   *((S32 *) dptr) = val.getInt();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -170,21 +165,10 @@ ConsoleType( intList, TypeS32Vector, sizeof(Vector<S32>) )
 ConsoleGetType( TypeS32Vector )
 {
    Vector<S32> *vec = (Vector<S32> *)dptr;
-   char* returnBuffer = Con::getReturnBuffer(1024);
-   S32 maxReturn = 1024;
-   returnBuffer[0] = '\0';
-   S32 returnLeng = 0;
+   auto* vl = new ConsoleValueList;
    for (Vector<S32>::iterator itr = vec->begin(); itr != vec->end(); itr++)
-   {
-      // concatenate the next value onto the return string
-      dSprintf(returnBuffer + returnLeng, maxReturn - returnLeng, "%d ", *itr);
-      // update the length of the return string (so far)
-      returnLeng = dStrlen(returnBuffer);
-   }
-   // trim off that last extra space
-   if (returnLeng > 0 && returnBuffer[returnLeng - 1] == ' ')
-      returnBuffer[returnLeng - 1] = '\0';
-   return returnBuffer;
+       vl->push_back((S64)*itr);
+   return vl;
 }
 
 ConsoleSetType( TypeS32Vector )
@@ -192,9 +176,9 @@ ConsoleSetType( TypeS32Vector )
    Vector<S32> *vec = (Vector<S32> *)dptr;
    // we assume the vector should be cleared first (not just appending)
    vec->clear();
-   if(argc == 1)
+   if(!val.isList()) // slower compatibility behavior
    {
-      const char *values = argv[0];
+      const char *values = val.toString();
       const char *endValues = values + dStrlen(values);
       S32 value;
       // advance through the string, pulling off S32's and advancing the pointer
@@ -208,13 +192,11 @@ ConsoleSetType( TypeS32Vector )
             break;
       }
    }
-   else if (argc > 1)
-   {
-      for (S32 i = 0; i < argc; i++)
-         vec->push_back(dAtoi(argv[i]));
+   else {
+      for (S32 i = 0; i < val.getListSizeU(); i++)
+         vec->push_back(val.getListValueU(i).getInt());
    }
-   else
-      Con::printf("Vector<S32> must be set as { a, b, c, ... } or \"a b c ...\"");
+   // Con::printf("Vector<S32> must be set as { a, b, c, ... } or \"a b c ...\"");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -224,16 +206,12 @@ ConsoleType( float, TypeF32, sizeof(F32) )
 
 ConsoleGetType( TypeF32 )
 {
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g", *((F32 *) dptr) );
-   return returnBuffer;
+   F64 value = *((F32*)dptr);
+   return value;
 }
 ConsoleSetType( TypeF32 )
 {
-   if(argc == 1)
-      *((F32 *) dptr) = dAtof(argv[0]);
-   else
-      Con::printf("(TypeF32) Cannot set multiple args to a single F32.");
+   *((F32 *) dptr) = val.getNumber();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,21 +222,10 @@ ConsoleType( floatList, TypeF32Vector, sizeof(Vector<F32>) )
 ConsoleGetType( TypeF32Vector )
 {
    Vector<F32> *vec = (Vector<F32> *)dptr;
-   char* returnBuffer = Con::getReturnBuffer(1024);
-   S32 maxReturn = 1024;
-   returnBuffer[0] = '\0';
-   S32 returnLeng = 0;
+   auto* vl = new ConsoleValueList;
    for (Vector<F32>::iterator itr = vec->begin(); itr != vec->end(); itr++)
-   {
-      // concatenate the next value onto the return string
-      dSprintf(returnBuffer + returnLeng, maxReturn - returnLeng, "%g ", *itr);
-      // update the length of the return string (so far)
-      returnLeng = dStrlen(returnBuffer);
-   }
-   // trim off that last extra space
-   if (returnLeng > 0 && returnBuffer[returnLeng - 1] == ' ')
-      returnBuffer[returnLeng - 1] = '\0';
-   return returnBuffer;
+      vl->push_back((F64)*itr);
+   return vl;
 }
 
 ConsoleSetType( TypeF32Vector )
@@ -266,9 +233,9 @@ ConsoleSetType( TypeF32Vector )
    Vector<F32> *vec = (Vector<F32> *)dptr;
    // we assume the vector should be cleared first (not just appending)
    vec->clear();
-   if(argc == 1)
+   if(!val.isList()) // slower compatibility behavior
    {
-      const char *values = argv[0];
+      const char *values = val.toString();
       const char *endValues = values + dStrlen(values);
       F32 value;
       // advance through the string, pulling off F32's and advancing the pointer
@@ -282,13 +249,11 @@ ConsoleSetType( TypeF32Vector )
             break;
       }
    }
-   else if (argc > 1)
-   {
-      for (S32 i = 0; i < argc; i++)
-         vec->push_back(dAtof(argv[i]));
+   else {
+      for (S32 i = 0; i < val.getListSizeU(); i++)
+         vec->push_back(val.getListValueU(i).getNumber());
    }
-   else
-      Con::printf("Vector<F32> must be set as { a, b, c, ... } or \"a b c ...\"");
+   // Con::printf("Vector<F32> must be set as { a, b, c, ... } or \"a b c ...\"");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -298,15 +263,15 @@ ConsoleType( bool, TypeBool, sizeof(bool) )
 
 ConsoleGetType( TypeBool )
 {
-   return *((bool *) dptr) ? "1" : "0";
+   return *((bool *) dptr) ? 1LL : 0LL;
 }
 
 ConsoleSetType( TypeBool )
 {
-   if(argc == 1)
-      *((bool *) dptr) = dAtob(argv[0]);
+   if(val.isList())
+      Con::printf("(TypeBool) Cannot set list to a single bool.");
    else
-      Con::printf("(TypeBool) Cannot set multiple args to a single bool.");
+      *((bool *) dptr) = val.getInt();
 }
 
 
@@ -318,20 +283,10 @@ ConsoleType( boolList, TypeBoolVector, sizeof(Vector<bool>) )
 ConsoleGetType( TypeBoolVector )
 {
    Vector<bool> *vec = (Vector<bool>*)dptr;
-   char* returnBuffer = Con::getReturnBuffer(1024);
-   S32 maxReturn = 1024;
-   returnBuffer[0] = '\0';
-   S32 returnLeng = 0;
+   auto* vl = new ConsoleValueList;
    for (Vector<bool>::iterator itr = vec->begin(); itr < vec->end(); itr++)
-   {
-      // concatenate the next value onto the return string
-      dSprintf(returnBuffer + returnLeng, maxReturn - returnLeng, "%d ", (*itr == true ? 1 : 0));
-      returnLeng = dStrlen(returnBuffer);
-   }
-   // trim off that last extra space
-   if (returnLeng > 0 && returnBuffer[returnLeng - 1] == ' ')
-      returnBuffer[returnLeng - 1] = '\0';
-   return(returnBuffer);
+       vl->push_back((S64)*itr);
+   return(vl);
 }
 
 ConsoleSetType( TypeBoolVector )
@@ -339,9 +294,9 @@ ConsoleSetType( TypeBoolVector )
    Vector<bool> *vec = (Vector<bool>*)dptr;
    // we assume the vector should be cleared first (not just appending)
    vec->clear();
-   if (argc == 1)
+   if (!val.isList()) // slower compatibility behavior
    {
-      const char *values = argv[0];
+      const char *values = val.toString();
       const char *endValues = values + dStrlen(values);
       S32 value;
       // advance through the string, pulling off bool's and advancing the pointer
@@ -355,13 +310,11 @@ ConsoleSetType( TypeBoolVector )
             break;
       }
    }
-   else if (argc > 1)
-   {
-      for (S32 i = 0; i < argc; i++)
-         vec->push_back(dAtob(argv[i]));
+   else {
+      for (S32 i = 0; i < val.getListSizeU(); i++)
+         vec->push_back(val.getListValueU(i).getInt());
    }
-   else
-      Con::printf("Vector<bool> must be set as { a, b, c, ... } or \"a b c ...\"");
+   // Con::printf("Vector<bool> must be set as { a, b, c, ... } or \"a b c ...\"");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -374,32 +327,36 @@ ConsoleGetType( TypeEnum )
    AssertFatal(tbl, "Null enum table passed to getDataTypeEnum()");
    S32 dptrVal = *(S32*)dptr;
    for (S32 i = 0; i < tbl->size; i++)
-   {
       if (dptrVal == tbl->table[i].index)
-      {
          return tbl->table[i].label;
-      }
-   }
 
-   //not found
+   //not found (return convalue null string)
    return "";
 }
 
 ConsoleSetType( TypeEnum )
 {
    AssertFatal(tbl, "Null enum table passed to setDataTypeEnum()");
-   if (argc != 1) return;
+   if (val.isList()) return;
 
-   S32 val = 0;
-   for (S32 i = 0; i < tbl->size; i++)
-   {
-      if (! dStricmp(argv[0], tbl->table[i].label))
-      {
-         val = tbl->table[i].index;
-         break;
-      }
+   if (val.getType() == ConsoleValue::TypeInt) {
+       for (S32 i = 0; i < tbl->size; i++)
+           if (tbl->table[i].index == val.getIntU())
+               *((S32*)dptr) = val.getIntU();
    }
-   *((S32 *) dptr) = val;
+   else {
+       char const* str = val.toString();
+       S32 val = 0;
+       for (S32 i = 0; i < tbl->size; i++)
+       {
+          if (! dStricmp(str, tbl->table[i].label))
+          {
+             val = tbl->table[i].index;
+             break;
+          }
+       }
+       *((S32 *) dptr) = val;
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -410,41 +367,44 @@ ConsoleType( ColorF, TypeColorF, sizeof(ColorF) )
 ConsoleGetType( TypeColorF )
 {
    ColorF * color = (ColorF*)dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%g %g %g %g", color->red, color->green, color->blue, color->alpha);
-   return(returnBuffer);
+   auto* vl = new ConsoleValueList;
+   vl->push_back((F64)color->red);
+   vl->push_back((F64)color->green);
+   vl->push_back((F64)color->blue);
+   vl->push_back((F64)color->alpha);
+   return vl;
 }
 
 ConsoleSetType( TypeColorF )
 {
    ColorF *tmpColor = (ColorF *) dptr;
-   if(argc == 1)
+   if(!val.isList()) // compatibility behavior
    {
       tmpColor->set(0, 0, 0, 1);
       F32 r,g,b,a;
-      S32 args = dSscanf(argv[0], "%g %g %g %g", &r, &g, &b, &a);
+      S32 args = dSscanf(val.toString(), "%g %g %g %g", &r, &g, &b, &a);
       tmpColor->red = r;
       tmpColor->green = g;
       tmpColor->blue = b;
       if (args == 4)
          tmpColor->alpha = a;
    }
-   else if(argc == 3)
+   else if(val.getListSizeU() == 3)
    {
-      tmpColor->red    = dAtof(argv[0]);
-      tmpColor->green  = dAtof(argv[1]);
-      tmpColor->blue   = dAtof(argv[2]);
+      tmpColor->red    = val.getListValueU(0).getNumber();
+      tmpColor->green  = val.getListValueU(1).getNumber();
+      tmpColor->blue   = val.getListValueU(2).getNumber();
       tmpColor->alpha  = 1.f;
    }
-   else if(argc == 4)
+   else if(val.getListSizeU() == 4)
    {
-      tmpColor->red    = dAtof(argv[0]);
-      tmpColor->green  = dAtof(argv[1]);
-      tmpColor->blue   = dAtof(argv[2]);
-      tmpColor->alpha  = dAtof(argv[3]);
+      tmpColor->red    = val.getListValueU(0).getNumber();
+      tmpColor->green  = val.getListValueU(1).getNumber();
+      tmpColor->blue   = val.getListValueU(2).getNumber();
+      tmpColor->alpha  = val.getListValueU(3).getNumber();
    }
    else
-      Con::printf("Color must be set as { r, g, b [,a] }");
+      Con::printf("ColorF must be set as { r, g, b [,a] }");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -454,42 +414,40 @@ ConsoleType( ColorI, TypeColorI, sizeof(ColorI) )
 
 ConsoleGetType( TypeColorI )
 {
-   ColorI *color = (ColorI *) dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%d %d %d %d", color->red, color->green, color->blue, color->alpha);
-   return returnBuffer;
+   ColorI* color = (ColorI*)dptr;   // TODO: Use ConsoleValueList::from(...)
+   return ConsoleValueList::from(color->red, color->green, color->blue, color->alpha);
 }
 
 ConsoleSetType( TypeColorI )
 {
    ColorI *tmpColor = (ColorI *) dptr;
-   if(argc == 1)
+   if(!val.isList()) // compatibility behavior
    {
       tmpColor->set(0, 0, 0, 255);
       S32 r,g,b,a;
-      S32 args = dSscanf(argv[0], "%d %d %d %d", &r, &g, &b, &a);
+      S32 args = dSscanf(val.toString(), "%d %d %d %d", &r, &g, &b, &a);
       tmpColor->red = r;
       tmpColor->green = g;
       tmpColor->blue = b;
       if (args == 4)
          tmpColor->alpha = a;
    }
-   else if(argc == 3)
+   else if(val.getListSizeU() == 3)
    {
-      tmpColor->red    = dAtoi(argv[0]);
-      tmpColor->green  = dAtoi(argv[1]);
-      tmpColor->blue   = dAtoi(argv[2]);
+      tmpColor->red    = val.getListValueU(0).getInt();
+      tmpColor->green  = val.getListValueU(1).getInt();
+      tmpColor->blue   = val.getListValueU(2).getInt();
       tmpColor->alpha  = 255;
    }
-   else if(argc == 4)
+   else if(val.getListSizeU() == 4)
    {
-      tmpColor->red    = dAtoi(argv[0]);
-      tmpColor->green  = dAtoi(argv[1]);
-      tmpColor->blue   = dAtoi(argv[2]);
-      tmpColor->alpha  = dAtoi(argv[3]);
+      tmpColor->red    = val.getListValueU(0).getInt();
+      tmpColor->green  = val.getListValueU(1).getInt();
+      tmpColor->blue   = val.getListValueU(2).getInt();
+      tmpColor->alpha  = val.getListValueU(3).getInt();
    }
    else
-      Con::printf("Color must be set as { r, g, b [,a] }");
+      Con::printf("ColorI must be set as { r, g, b [,a] }");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -499,19 +457,17 @@ ConsoleType( SimObjectPtr, TypeSimObjectPtr, sizeof(SimObject*) )
 
 ConsoleSetType( TypeSimObjectPtr )
 {
-   if(argc == 1)
+   if(!val.isList())
    {
       SimObject **obj = (SimObject **)dptr;
-      *obj = Sim::findObject(argv[0]);
+      *obj = Sim::findObject(val);
    }
    else
-      Con::printf("(TypeSimObjectPtr) Cannot set multiple args to a single S32.");
+      Con::printf("(TypeSimObjectPtr) Cannot set list to a single object id.");
 }
 
 ConsoleGetType( TypeSimObjectPtr )
 {
    SimObject **obj = (SimObject**)dptr;
-   char* returnBuffer = Con::getReturnBuffer(256);
-   dSprintf(returnBuffer, 256, "%s", *obj ? (*obj)->getName() : "");
-   return returnBuffer;
+   return *obj ? (*obj)->getName() : "";
 }

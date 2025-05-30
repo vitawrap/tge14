@@ -34,6 +34,7 @@ class AngAxisF
 
    AngAxisF();
    AngAxisF( const Point3F & _axis, F32 _angle );
+   AngAxisF( const Point4F & _aap4 );
    explicit AngAxisF( const MatrixF &m );
    explicit AngAxisF( const QuatF &q );
 
@@ -104,6 +105,12 @@ inline AngAxisF::AngAxisF()
 inline AngAxisF::AngAxisF( const Point3F & _axis, F32 _angle )
 {
    set(_axis,_angle);
+}
+
+inline AngAxisF::AngAxisF( const Point4F& _aaxis )
+{
+   axis = Point3F(_aaxis.x, _aaxis.y, _aaxis.z);
+   angle = _aaxis.w;
 }
 
 inline AngAxisF::AngAxisF( const MatrixF & mat )

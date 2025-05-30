@@ -22,7 +22,7 @@ GuiButtonBaseCtrl::GuiButtonBaseCtrl()
    mButtonText = StringTable->insert("Button");
    mButtonTextID = StringTable->insert("");
    mStateOn = false;
-	mRadioGroup = -1;
+   mRadioGroup = -1;
    mButtonType = ButtonTypePush;
 }
 
@@ -49,13 +49,13 @@ ConsoleMethod( GuiButtonBaseCtrl, performClick, void, 2, 2, "() - simulates a bu
 ConsoleMethod( GuiButtonBaseCtrl, setText, void, 3, 3, "(string text) - sets the text of the button to the string." )
 {
    argc;
-   object->setText( argv[2] );
+   object->setText( argv[2].toString() );
 }
 
 ConsoleMethod( GuiButtonBaseCtrl, setTextID, void, 3, 3, "(string id) - sets the text of the button to the localized string." )
 {
 	argc;
-	object->setTextID(argv[2]);
+	object->setTextID( argv[2].toString() );
 }
 ConsoleMethod( GuiButtonBaseCtrl, getText, const char *, 2, 2, "() - returns the text of the button." )
 {
@@ -254,21 +254,21 @@ bool GuiButtonBaseCtrl::onKeyUp(const GuiEvent &event)
 }
 
 //---------------------------------------------------------------------------
-void GuiButtonBaseCtrl::setScriptValue(const char *value)
+void GuiButtonBaseCtrl::setScriptValue(ConsoleValue& value)
 {
-	mStateOn = dAtob(value);
+	mStateOn = value.getInt();
 
 	// Update the console variable:
 	if ( mConsoleVariable[0] )
-		Con::setBoolVariable( mConsoleVariable, mStateOn );
+		Con::setVariable( mConsoleVariable, value );
 
    setUpdate();
 }
 
 //---------------------------------------------------------------------------
-const char *GuiButtonBaseCtrl::getScriptValue()
+ConsoleValue GuiButtonBaseCtrl::getScriptValue()
 {
-	return mStateOn ? "1" : "0";
+	return mStateOn ? 1LL : 0LL;
 }
 
 //---------------------------------------------------------------------------

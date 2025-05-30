@@ -94,8 +94,8 @@ public:
    S32   getCursorPos()   { return( mCursorPos ); }
    void  reallySetCursorPos( const S32 newPos );
    
-   const char *getScriptValue();
-   void setScriptValue(const char *value);
+   ConsoleValue getScriptValue() override;
+   void setScriptValue(ConsoleValue& value) override;
 
    bool onKeyDown(const GuiEvent &event);
    void onMouseDown(const GuiEvent &event);

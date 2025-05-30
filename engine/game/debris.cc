@@ -347,14 +347,7 @@ IMPLEMENT_CO_NETOBJECT_V1(Debris);
 ConsoleMethod( Debris, init, bool, 4, 4, "(Point3F position, Point3F velocity)"
               "Set this piece of debris at the given position with the given velocity.")
 {
-   Point3F pos(argv[2]);
-   //dSscanf( argv[2], "%g %g %g", &pos.x, &pos.y, &pos.z );
-
-   Point3F vel(argv[3]);
-   //dSscanf( argv[3], "%g %g %g", &vel.x, &vel.y, &vel.z );
-
-   object->init( pos, vel );
-
+   object->init(argv[2].getPoint3F(), argv[3].getPoint3F());
    return true;
 }
 

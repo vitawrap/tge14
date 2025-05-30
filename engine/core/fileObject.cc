@@ -115,17 +115,17 @@ void FileObject::writeLine(const U8 *line)
 
 ConsoleMethod( FileObject, openForRead, bool, 3, 3, "(string filename)")
 {
-   return object->readMemory(argv[2]);
+   return object->readMemory(argv[2].toString());
 }
 
 ConsoleMethod( FileObject, openForWrite, bool, 3, 3, "(string filename)")
 {
-   return object->openForWrite(argv[2]);
+   return object->openForWrite(argv[2].toString());
 }
 
 ConsoleMethod( FileObject, openForAppend, bool, 3, 3, "(string filename)")
 {
-   return object->openForWrite(argv[2], true);
+   return object->openForWrite(argv[2].toString(), true);
 }
 
 ConsoleMethod( FileObject, isEOF, bool, 2, 2, "Are we at the end of the file?")
@@ -141,7 +141,7 @@ ConsoleMethod( FileObject, readLine, const char*, 2, 2, "Read a line from the fi
 ConsoleMethod( FileObject, writeLine, void, 3, 3, "(string text)"
               "Write a line to the file, if it was opened for writing.")
 {
-   object->writeLine((const U8 *) argv[2]);
+   object->writeLine((const U8 *) argv[2].toString());
 }
 
 ConsoleMethod( FileObject, close, void, 2, 2, "Close the file.")

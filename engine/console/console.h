@@ -12,6 +12,9 @@
 #ifndef _BITSET_H_
 #include "core/bitSet.h"
 #endif
+#ifndef _CONSOLEVALUE_H_
+#include "console/consoleValue.h"
+#endif
 #include <stdarg.h>
 
 class SimObject;
@@ -130,11 +133,8 @@ typedef const char *StringTableEntry;
 /// @{
 
 ///
-typedef const char * (*StringCallback)(SimObject *obj, S32 argc, const char *argv[]);
-typedef S32             (*IntCallback)(SimObject *obj, S32 argc, const char *argv[]);
-typedef F32           (*FloatCallback)(SimObject *obj, S32 argc, const char *argv[]);
-typedef void           (*VoidCallback)(SimObject *obj, S32 argc, const char *argv[]); // We have it return a value so things don't break..
-typedef bool           (*BoolCallback)(SimObject *obj, S32 argc, const char *argv[]);
+typedef ConsoleValue (*ValueCallback)(SimObject *obj, S32 argc, ConsoleValue argv[]);
+typedef void           (*VoidCallback)(SimObject *obj, S32 argc, ConsoleValue argv[]); // We have it return a value so things don't break..
 
 typedef void (*ConsumerCallback)(ConsoleLogEntry::Level level, const char *consoleLine);
 /// @}
@@ -143,8 +143,8 @@ typedef void (*ConsumerCallback)(ConsoleLogEntry::Level level, const char *conso
 ///
 /// @see Con::registerType
 /// @{
-typedef const char* (*GetDataFunction)(void *dptr, EnumTable *tbl, BitSet32 flag);
-typedef void        (*SetDataFunction)(void *dptr, S32 argc, const char **argv, EnumTable *tbl, BitSet32 flag);
+typedef ConsoleValue (*GetDataFunction)(void *dptr, EnumTable *tbl, BitSet32 flag);
+typedef void        (*SetDataFunction)(void *dptr, ConsoleValue& val, EnumTable *tbl, BitSet32 flag);
 /// @}
 
 /// This namespace contains the core of the console functionality.
@@ -177,7 +177,8 @@ namespace Con
       /// 03/30/24 - viw - 38->39 Float table elimination.
       /// 03/25/25 - viw - 39->40 Fix instanceof.
       /// 05/03/25 - viw - 40->41 Add null forgiving operator.
-      DSOVersion = 41,
+      /// 05/17/25 - viw - 41->42 Rewrite for console values.
+      DSOVersion = 42,
 
       MaxLineLength = 512,  ///< Maximum length of a line of console input.
       MaxDataTypes = 256    ///< Maximum number of registered data types.
@@ -332,7 +333,7 @@ namespace Con
    ///
    /// @param name   Local console variable name to set
    /// @param value  String value to assign to name
-   void setLocalVariable(const char *name, const char *value);
+   void setLocalVariable(const char *name, ConsoleValue value);
 
    /// Retrieve the string value to a locally scoped console variable
    ///
@@ -340,7 +341,7 @@ namespace Con
    ///       by the currently executing code.
    ///
    /// @param name   Local console variable name to get
-   const char* getLocalVariable(const char* name);
+   ConsoleValue getLocalVariable(const char* name);
 
    /// @}
 
@@ -349,12 +350,12 @@ namespace Con
    /// Assign a string value to a global console variable
    /// @param name   Global console variable name to set
    /// @param value  String value to assign to this variable.
-   void setVariable(const char *name, const char *value);
+   void setVariable(const char *name, ConsoleValue value);
 
    /// Retrieve the string value of a global console variable
    /// @param name   Global Console variable name to query
    /// @return       The string value of the variable or "" if the variable does not exist.
-   const char* getVariable(const char* name);
+   ConsoleValue getVariable(const char* name);
 
    /// Same as setVariable(), but for bools.
    void setBoolVariable (const char* name,bool var);
@@ -395,12 +396,8 @@ namespace Con
    /// @param usage     Documentation for this function. @ref console_autodoc
    /// @param minArgs   Minimum number of arguments this function accepts
    /// @param maxArgs   Maximum number of arguments this function accepts
-   void addCommand(const char *name, StringCallback cb, const char *usage, S32 minArgs, S32 maxArgs);
-
-   void addCommand(const char *name, IntCallback    cb,    const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char *, StringCallback, const char *, S32, S32)
-   void addCommand(const char *name, FloatCallback  cb,  const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char *, StringCallback, const char *, S32, S32)
+   void addCommand(const char *name, ValueCallback cb, const char *usage, S32 minArgs, S32 maxArgs);
    void addCommand(const char *name, VoidCallback   cb,   const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char *, StringCallback, const char *, S32, S32)
-   void addCommand(const char *name, BoolCallback   cb,   const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char *, StringCallback, const char *, S32, S32)
    /// @}
 
    /// @name Namespace Function Registration
@@ -415,11 +412,8 @@ namespace Con
    /// @param usage     Documentation for this function. @ref console_autodoc
    /// @param minArgs   Minimum number of arguments this function accepts
    /// @param maxArgs   Maximum number of arguments this function accepts
-   void addCommand(const char *nameSpace, const char *name,StringCallback cb, const char *usage, S32 minArgs, S32 maxArgs);
-   void addCommand(const char *nameSpace, const char *name,IntCallback cb,    const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char*, const char *, StringCallback, const char *, S32, S32)
-   void addCommand(const char *nameSpace, const char *name,FloatCallback cb,  const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char*, const char *, StringCallback, const char *, S32, S32)
+   void addCommand(const char *nameSpace, const char *name, ValueCallback cb, const char *usage, S32 minArgs, S32 maxArgs);
    void addCommand(const char *nameSpace, const char *name,VoidCallback cb,   const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char*, const char *, StringCallback, const char *, S32, S32)
-   void addCommand(const char *nameSpace, const char *name,BoolCallback cb,   const char *usage, S32 minArgs, S32 maxArgs); ///< @copydoc addCommand(const char*, const char *, StringCallback, const char *, S32, S32)
    /// @}
 
    /// @name Special Purpose Registration
@@ -489,6 +483,14 @@ namespace Con
    ///
    /// @{
 
+   template<typename T> struct CVCast { typedef T Type; };
+   template<> struct CVCast<U32> { typedef S64 Type; };
+   template<> struct CVCast<dsize_t> { typedef S64 Type; };
+   template<> struct CVCast<char[]> { typedef char const* Type; };
+   template<typename T> constexpr typename CVCast<T>::Type Cast(T in) {
+       return static_cast<typename CVCast<T>::Type>(in);
+   }
+
    /// Call a script function from C/C++ code.
    ///
    /// @param argc      Number of elements in the argv parameter
@@ -499,10 +501,14 @@ namespace Con
    /// char* argv[] = {"abs", "-9"};
    /// char* result = execute(2, argv);
    /// @endcode
-   const char *execute(S32 argc, const char* argv[]);
+   ConsoleValue execute(S32 argc, ConsoleValue argv[]);
 
    /// @see execute(S32 argc, const char* argv[])
-   const char *executef(S32 argc, ...);
+   template <typename ...CVArgs>
+   ConsoleValue executef(S32 argc, CVArgs const&... args) {
+       ConsoleValue argv[sizeof...(args)] = { ConsoleValue(Cast(args))... };
+       return execute(argc, argv);
+   }
 
    /// Call a Torque Script member function of a SimObject from C/C++ code.
    /// @param object    Object on which to execute the method call.
@@ -516,22 +522,27 @@ namespace Con
    /// char* argv[] = {"setMode", "", "2"};
    /// char* result = execute(mysimobject, 3, argv);
    /// @endcode
-   const char *execute(SimObject *object, S32 argc, const char *argv[]);
+   ConsoleValue execute(SimObject *object, S32 argc, ConsoleValue argv[]);
 
-   /// @see execute(SimObject *, S32 argc, const char *argv[])
-   const char *executef(SimObject *, S32 argc, ...);
+   /// @see execute(SimObject *, S32 argc, ConsoleValue argv[])
+   template <typename ...CVArgs>
+   ConsoleValue executef(SimObject* object, S32 argc, CVArgs const&... args) {
+       ConsoleValue argv[sizeof...(args)+1] = { "", ConsoleValue(Cast(args))...};
+       if (sizeof...(args)) argv[0] = dMove(argv[1]);
+       return execute(object, ++argc, argv);
+   }
 
    /// Evaluate an arbitrary chunk of code.
    ///
    /// @param  string   Buffer containing code to execute.
    /// @param  echo     Should we echo the string to the console?
    /// @param  fileName Indicate what file this code is coming from; used in error reporting and such.
-   const char *evaluate(const char* string, bool echo = false, const char *fileName = NULL);
+   ConsoleValue evaluate(const char* string, bool echo = false, const char *fileName = NULL);
 
    /// Evaluate an arbitrary line of script.
    ///
    /// This wraps dVsprintf(), so you can substitute parameters into the code being executed.
-   const char *evaluatef(const char* string, ...);
+   ConsoleValue evaluatef(const char* string, ...);
 
    /// @}
 
@@ -545,11 +556,11 @@ namespace Con
    /// @{
 
    ///
-   char *getReturnBuffer(U32 bufferSize);
+   // char *getReturnBuffer(U32 bufferSize);
 
-   char *getArgBuffer(U32 bufferSize);
-   char *getFloatArg(F64 arg);
-   char *getIntArg  (S32 arg);
+   // char *getArgBuffer(U32 bufferSize);
+   // char *getFloatArg(F64 arg);
+   // char *getIntArg  (S32 arg);
    /// @}
 
    /// @name Namespaces
@@ -583,8 +594,8 @@ namespace Con
    const char *getTypeName(S32 type);
    bool isDatablockType( S32 type ); */
 
-   void setData(S32 type, void *dptr, S32 index, S32 argc, const char **argv, EnumTable *tbl = NULL);
-   const char *getData(S32 type, void *dptr, S32 index, EnumTable *tbl = NULL);
+   ConsoleValue getData(S32 type, void *dptr, S32 index, EnumTable *tbl = NULL);
+   void setData(S32 type, void *dptr, S32 index, ConsoleValue& val, EnumTable *tbl = NULL);
    /// @}
 };
 
@@ -608,11 +619,8 @@ public:
    ///
    /// @ref console_autodoc
    /// @{
-   StringCallback sc;   ///< A function/method that returns a string.
-   IntCallback ic;      ///< A function/method that returns an int.
-   FloatCallback fc;    ///< A function/method that returns a float.
+   ValueCallback rc;    ///< A function/method that returns a value.
    VoidCallback vc;     ///< A function/method that returns nothing.
-   BoolCallback bc;     ///< A function/method that returns a bool.
    bool group;          ///< Indicates that this is a group marker.
    bool overload;       ///< Indicates that this is an overload marker.
                         ///  @deprecated Unused.
@@ -694,11 +702,8 @@ public:
    /// @name Basic Console Constructors
    /// @{
 
-   ConsoleConstructor(const char *className, const char *funcName, StringCallback sfunc, const char* usage,  S32 minArgs, S32 maxArgs);
-   ConsoleConstructor(const char *className, const char *funcName, IntCallback    ifunc, const char* usage,  S32 minArgs, S32 maxArgs);
-   ConsoleConstructor(const char *className, const char *funcName, FloatCallback  ffunc, const char* usage,  S32 minArgs, S32 maxArgs);
-   ConsoleConstructor(const char *className, const char *funcName, VoidCallback   vfunc, const char* usage,  S32 minArgs, S32 maxArgs);
-   ConsoleConstructor(const char *className, const char *funcName, BoolCallback   bfunc, const char* usage,  S32 minArgs, S32 maxArgs);
+   ConsoleConstructor(const char *className, const char *funcName, ValueCallback sfunc, const char* usage,  S32 minArgs, S32 maxArgs);
+   ConsoleConstructor(const char *className, const char *funcName, VoidCallback  vfunc, const char* usage,  S32 minArgs, S32 maxArgs);
    /// @}
 
    /// @name Magic Console Constructors
@@ -725,13 +730,25 @@ public:
 /// @ref console_autodoc
 /// @{
 
-// O hackery of hackeries
-#define conmethod_return_const              return (const
-#define conmethod_return_S32                return (S32
-#define conmethod_return_F32                return (F32
-#define conmethod_nullify(val)
-#define conmethod_return_void               conmethod_nullify(void
-#define conmethod_return_bool               return (bool
+// hackery for ConsoleValues...
+#define confunc_ret_finalize(t)             t
+#define confunc_ret_coerce(...)             ConsoleValue
+#define confunc_ret_S32                     confunc_ret_finalize(ConsoleValue
+#define confunc_ret_F32                     confunc_ret_finalize(ConsoleValue
+#define confunc_ret_bool                    confunc_ret_finalize(ConsoleValue
+#define confunc_ret_void                    confunc_ret_finalize(void
+#define confunc_ret_const                   confunc_ret_coerce( /* It's a const char* ret type... */
+#define confunc_ret_char                    confunc_ret_coerce( /* It's a char const* ret type... */
+
+#define conmethod_ret_nullify(t)
+#define conmethod_ret_finalize(t)           t
+#define conmethod_ret_coerce(...)           return
+#define conmethod_ret_S32                   conmethod_ret_finalize(return
+#define conmethod_ret_F32                   conmethod_ret_finalize(return
+#define conmethod_ret_bool                  conmethod_ret_finalize(return
+#define conmethod_ret_void                  conmethod_ret_nullify(void
+#define conmethod_ret_const                 conmethod_ret_coerce( /* It's a const char* ret type... */
+#define conmethod_ret_char                  conmethod_ret_coerce( /* It's a char const* ret type... */
 
 #if !defined(TORQUE_SHIPPING)
 
@@ -740,9 +757,9 @@ public:
       static ConsoleConstructor gConsoleFunctionGroup##groupName##__GroupBegin(NULL,#groupName,usage);
 
 #  define ConsoleFunction(name,returnType,minArgs,maxArgs,usage1)                         \
-      static returnType c##name(SimObject *, S32, const char **argv);                     \
+      static confunc_ret_##returnType ) c##name(SimObject *, S32, ConsoleValue *argv);    \
       static ConsoleConstructor g##name##obj(NULL,#name,c##name,usage1,minArgs,maxArgs);  \
-      static returnType c##name(SimObject *, S32 argc, const char **argv)
+      static confunc_ret_##returnType ) c##name(SimObject *, S32 argc, ConsoleValue *argv)
 
 #  define ConsoleFunctionGroupEnd(groupName) \
       static ConsoleConstructor gConsoleFunctionGroup##groupName##__GroupEnd(NULL,#groupName,NULL);
@@ -752,22 +769,22 @@ public:
       static ConsoleConstructor className##groupName##__GroupBegin(#className,#groupName,usage);
 
 #  define ConsoleMethod(className,name,returnType,minArgs,maxArgs,usage1)                             \
-      static inline returnType c##className##name(className *, S32, const char **argv);               \
-      static returnType c##className##name##caster(SimObject *object, S32 argc, const char **argv) {  \
+      static inline confunc_ret_##returnType ) c##className##name(className *, S32, ConsoleValue *argv); \
+      static confunc_ret_##returnType ) c##className##name##caster(SimObject *object, S32 argc, ConsoleValue *argv) {  \
          AssertFatal( dynamic_cast<className*>( object ), "Object passed to " #name " is not a " #className "!" ); \
-         conmethod_return_##returnType ) c##className##name(static_cast<className*>(object),argc,argv);              \
+         conmethod_ret_##returnType ) c##className##name(static_cast<className*>(object),argc,argv);              \
       };                                                                                              \
       static ConsoleConstructor className##name##obj(#className,#name,c##className##name##caster,usage1,minArgs,maxArgs); \
-      static inline returnType c##className##name(className *object, S32 argc, const char **argv)
+      static inline confunc_ret_##returnType ) c##className##name(className *object, S32 argc, ConsoleValue *argv)
 
-#  define ConsoleStaticMethod(className,name,returnType,minArgs,maxArgs,usage1)                       \
-      static inline returnType c##className##name(S32, const char **);                                \
-      static returnType c##className##name##caster(SimObject *object, S32 argc, const char **argv) {  \
-         conmethod_return_##returnType ) c##className##name(argc,argv);                                \
+#  define ConsoleStaticMethod(className,name,returnType,minArgs,maxArgs,usage1)                                        \
+      static inline confunc_ret_##returnType ) c##className##name(S32, ConsoleValue *);                                \
+      static confunc_ret_##returnType ) c##className##name##caster(SimObject *object, S32 argc, ConsoleValue *argv) {  \
+         conmethod_ret_##returnType ) c##className##name(argc,argv);                                  \
       };                                                                                              \
       static ConsoleConstructor                                                                       \
          className##name##obj(#className,#name,c##className##name##caster,usage1,minArgs,maxArgs);    \
-      static inline returnType c##className##name(S32 argc, const char **argv)
+      static inline confunc_ret_##returnType ) c##className##name(S32 argc, ConsoleValue *argv)
 
 #  define ConsoleMethodGroupEnd(className, groupName) \
       static ConsoleConstructor className##groupName##__GroupEnd(#className,#groupName,NULL);

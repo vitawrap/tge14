@@ -33,11 +33,12 @@ static MRandomLCG sgRandom(0xdeadbeef);
 
 ConsoleFunction( calcExplosionCoverage, F32, 4, 4, "(Point3F source, SceneObject originator, bitset coverageMask)")
 {
-   Point3F pos(argv[1]), center;
+   Point3F pos = argv[1].getPoint3F();
+   Point3F center;
 
    //dSscanf(argv[1], "%g %g %g", &pos.x, &pos.y, &pos.z);
-   S32 id      = dAtoi(argv[2]);
-   U32 covMask = (U32)dAtoi(argv[3]);
+   S32 id      = argv[2].getInt();
+   U32 covMask = argv[3].getInt();
 
    SceneObject* sceneObject = NULL;
    if (Sim::findObject(id, sceneObject) == false)

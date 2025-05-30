@@ -56,7 +56,7 @@ void GuiChunkedBitmapCtrl::initPersistFields()
 ConsoleMethod( GuiChunkedBitmapCtrl, setBitmap, void, 3, 3, "(string filename)"
               "Set the bitmap contained in this control.")
 {
-   object->setBitmap( argv[2] );
+   object->setBitmap( argv[2].toString() );
 }
 
 GuiChunkedBitmapCtrl::GuiChunkedBitmapCtrl()
@@ -84,7 +84,7 @@ bool GuiChunkedBitmapCtrl::onWake()
    if(!Parent::onWake())
       return false;
    if ( mUseVariable )
-      mTexHandle = ChunkedTextureHandle( getVariable() );
+      mTexHandle = ChunkedTextureHandle( getVariable().toString() );
    else
       mTexHandle = ChunkedTextureHandle( mBitmapName );
    return true;

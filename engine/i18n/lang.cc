@@ -288,8 +288,8 @@ ConsoleMethod(LangTable, addLanguage, S32, 3, 4, "(string filename, [string lang
 {
 	UTF8 scriptFilenameBuffer[1024];
 	
-	Con::expandScriptFilename((char*)scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2]);
-	return object->addLanguage(scriptFilenameBuffer, argc == 4 ? (const UTF8*)argv[3] : NULL);
+	Con::expandScriptFilename((char*)scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2].toString());
+	return object->addLanguage(scriptFilenameBuffer, argc == 4 ? (const UTF8*)argv[3].toString() : NULL);
 }
 
 ConsoleMethod(LangTable, getString, const char *, 3, 3, "(string filename)")
@@ -297,24 +297,21 @@ ConsoleMethod(LangTable, getString, const char *, 3, 3, "(string filename)")
 	char *ret;
 	const char *str;
 	
-	if(str = (const char*)object->getString(dAtoi(argv[2])))
+	if(str = (const char*)object->getString(argv[2].getInt()))
 	{
-		ret = Con::getReturnBuffer(dStrlen(str) + 1);
-		dStrcpy(ret, str);
-		return ret;
+		return str;
 	}
-	
 	return "";
 }
 
 ConsoleMethod(LangTable, setDefaultLanguage, void, 3, 3, "(int language)")
 {
-	object->setDefaultLanguage(dAtoi(argv[2]));
+	object->setDefaultLanguage(argv[2].getInt());
 }
 
 ConsoleMethod(LangTable, setCurrentLanguage, void, 3, 3, "(int language)")
 {
-	object->setCurrentLanguage(dAtoi(argv[2]));
+	object->setCurrentLanguage(argv[2].getInt());
 }
 
 ConsoleMethod(LangTable, getCurrentLanguage, S32, 2, 2, "()")
@@ -327,13 +324,10 @@ ConsoleMethod(LangTable, getLangName, const char *, 3, 3, "(int language)")
 	char *ret;
 	const char *str;
 	
-	if(str = (const char*)object->getLangName(dAtoi(argv[2])))
+	if(str = (const char*)object->getLangName(argv[2].getInt()))
 	{
-		ret = Con::getReturnBuffer(dStrlen(str) + 1);
-		dStrcpy(ret, str);
-		return ret;
+		return str;
 	}
-	
 	return "";
 }
 

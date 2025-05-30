@@ -146,8 +146,8 @@ protected:
     S32 mHorizSizing;      ///< Set from horizSizingOptions.
     S32 mVertSizing;       ///< Set from vertSizingOptions.
 
-    StringTableEntry mConsoleVariable;
-    StringTableEntry mConsoleCommand;
+    StringTableEntry mConsoleVariable;  ///< Name of the console variable this control is bound to.
+    StringTableEntry mConsoleCommand;   ///< Name of the console command this control is bound to.
     StringTableEntry mAltConsoleCommand;
 
     StringTableEntry mAcceleratorKey;
@@ -166,7 +166,7 @@ protected:
 
     /// Sets the value of the console variable bound to this control
     /// @param   value   String value to assign to control's console variable
-    void setVariable(const char *value);
+    void setVariable(ConsoleValue const& value);
 
     /// Sets the value of the console variable bound to this control
     /// @param   value   Integer value to assign to control's console variable
@@ -176,7 +176,7 @@ protected:
     /// @param   value   Float value to assign to control's console variable
     void setFloatVariable(F32 value);
 
-    const char* getVariable(); ///< Returns value of control's bound variable as a string
+    ConsoleValue getVariable();///< Returns value of control's bound variable
     S32 getIntVariable();      ///< Returns value of control's bound variable as a integer
     F32 getFloatVariable();    ///< Returns value of control's bound variable as a float
 
@@ -390,10 +390,10 @@ public:
     /// @{
 
     /// Returns the value of the variable bound to this object
-    virtual const char *getScriptValue();
+    virtual ConsoleValue getScriptValue();
 
     /// Sets the value of the variable bound to this object
-    virtual void setScriptValue(const char *value);
+    virtual void setScriptValue(ConsoleValue& value);
     /// @}
 
     /// @name Input (Keyboard/Mouse)

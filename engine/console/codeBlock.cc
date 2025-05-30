@@ -430,10 +430,12 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    else
       lastIp = 0;
 
-   if(lastIp != codeSize - 1)
+   if (lastIp != codeSize - 1) {
       Con::errorf(ConsoleLogEntry::General, "CodeBlock::compile - precompile size mismatch, a precompile/compile function pair is probably mismatched.");
+      AssertISV(false, "PRECOMPILE SIZE MISMATCH FOR NEW TS VM!!!!!");
+   }
 
-   code[lastIp++] = OP_RETURN;
+   code[lastIp++] = OP_RETURN_NONE;
    U32 totSize = codeSize + smBreakLineCount * 2;
    st.write(codeSize);
    st.write(lineBreakPairCount);
@@ -463,7 +465,7 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    return true;
 }
 
-const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string, bool noCalls, int setFrame)
+ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *string, bool noCalls, int setFrame)
 {
    STEtoU64 = evalSTEtoU64;
    consoleAllocReset();
@@ -507,16 +509,20 @@ const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string
    lineBreakPairs = code + codeSize;
 
    smBreakLineCount = 0;
+   // ConsoleValues mean the eval statement needs an explicit return
+   // if it has to output a value...
    U64 lastIp = compileBlock(statementList, code, 0, 0, 0);
-   code[lastIp++] = OP_RETURN;
+   code[lastIp++] = OP_RETURN_NONE;
    
    consoleAllocReset();
 
    if(lineBreakPairCount && fileName)
       calcBreakList();
 
-   if(lastIp != codeSize)
+   if (lastIp != codeSize) {
       Con::warnf(ConsoleLogEntry::General, "precompile size mismatch");
+      AssertISV(false, "Precompile size fail for new TS VM!!!!!");
+   }
 
    return exec(0, fileName, NULL, 0, 0, noCalls, NULL, setFrame);
 }

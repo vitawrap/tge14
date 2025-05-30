@@ -517,13 +517,13 @@ void fxBeam::setDirection(Point3F norm)
 
 ConsoleMethod(fxBeam, setDirection, void, 3, 3, "(normal) - set direction for beam (auto normalized)")
 {
-    object->setDirection(Point3F(argv[2]));
+    object->setDirection(argv[2].getPoint3F());
 }
 
 ConsoleMethod(fxBeam, attachToObject, void, 3, 4, "(shapeBaseIdOrName [, mountSlot]) - aim beam at object")
 {
-    U32 slot = (argc > 3) ? dAtoi(argv[3]) : 0;
-    object->attachToObject(argv[2], slot);
+    U32 slot = (argc > 3) ? argv[3].getInt() : 0;
+    object->attachToObject(argv[2].toString(), slot);
 }
 
 ConsoleMethod(fxBeam, detachFromObject, void, 2, 2, "() - remove from attached object")

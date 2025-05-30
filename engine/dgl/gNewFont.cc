@@ -25,38 +25,39 @@ const U32 GFont::csm_fileVersion = 3;
 ConsoleFunction(populateFontCacheString, void, 4, 4, "(faceName, size, string) - "
                 "Populate the font cache for the specified font with characters from the specified string.")
 {
-   Resource<GFont> f = GFont::create(argv[1], dAtoi(argv[2]), Con::getVariable("$GUI::fontCacheDirectory"));
+   Resource<GFont> f = GFont::create(argv[1].toString(), argv[2].getInt(), Con::getVariable("$GUI::fontCacheDirectory").toString());
 
    if(f.isNull())
    {
-      Con::errorf("populateFontCacheString - could not load font '%s %d'!", argv[1], dAtoi(argv[2]));
+      Con::errorf("populateFontCacheString - could not load font '%s %d'!", argv[1].toString(), argv[2].getInt());
       return;
    }
 
    if(!f->hasPlatformFont())
    {
-      Con::errorf("populateFontCacheString - font '%s %d' has no platform font! Cannot generate more characters.", argv[1], dAtoi(argv[2]));
+      Con::errorf("populateFontCacheString - font '%s %d' has no platform font! Cannot generate more characters.",
+          argv[1].toString(), argv[2].getInt());
       return;
    }
 
    // This has the side effect of generating character info, including the bitmaps.
-   f->getStrWidthPrecise(argv[3]);
+   f->getStrWidthPrecise(argv[3].toString());
 }
 
 ConsoleFunction(populateFontCacheRange, void, 5, 5, "(faceName, size, rangeStart, rangeEnd) - "
                 "Populate the font cache for the specified font with Unicode code points in the specified range. "
                 "Note we only support BMP-0, so code points range from 0 to 65535.")
 {
-   Resource<GFont> f = GFont::create(argv[1], dAtoi(argv[2]), Con::getVariable("$GUI::fontCacheDirectory"));
+   Resource<GFont> f = GFont::create(argv[1].toString(), argv[2].getInt(), Con::getVariable("$GUI::fontCacheDirectory").toString());
 
    if(f.isNull())
    {
-      Con::errorf("populateFontCacheRange - could not load font '%s %d'!", argv[1], dAtoi(argv[2]));
+      Con::errorf("populateFontCacheRange - could not load font '%s %d'!", argv[1], argv[2].getInt());
       return;
    }
 
-   U32 rangeStart = dAtoi(argv[3]);
-   U32 rangeEnd   = dAtoi(argv[4]);
+   U32 rangeStart = argv[3].getInt();
+   U32 rangeEnd   = argv[4].getInt();
 
    if(rangeStart > rangeEnd)
    {
@@ -66,7 +67,8 @@ ConsoleFunction(populateFontCacheRange, void, 5, 5, "(faceName, size, rangeStart
 
    if(!f->hasPlatformFont())
    {
-      Con::errorf("populateFontCacheRange - font '%s %d' has no platform font! Cannot generate more characters.", argv[1], dAtoi(argv[2]));
+      Con::errorf("populateFontCacheRange - font '%s %d' has no platform font! Cannot generate more characters.",
+          argv[1].toString(), argv[2].getInt());
       return;
    }
 
@@ -150,7 +152,7 @@ ConsoleFunction(populateAllFontCacheString, void, 2, 2, "(string) - "
    FindMatch match("*.uft", 4096);
    ResourceManager->findMatches(&match);
 
-   Con::printf("Populating font cache with string '%s' (%d fonts found)", argv[1], match.numMatches());
+   Con::printf("Populating font cache with string '%s' (%d fonts found)", argv[1].toString(), match.numMatches());
 
    for (U32 i = 0; i < match.numMatches(); i++)
    {
@@ -171,7 +173,7 @@ ConsoleFunction(populateAllFontCacheString, void, 2, 2, "(string) - "
       }
 
       // This has the side effect of generating character info, including the bitmaps.
-      font->getStrWidthPrecise(argv[1]);
+      font->getStrWidthPrecise(argv[1].toString());
    }
 }
 
@@ -179,8 +181,8 @@ ConsoleFunction(populateAllFontCacheRange, void, 3, 3, "(rangeStart, rangeEnd) -
                 "Populate the font cache for all fonts with Unicode code points in the specified range. "
                 "Note we only support BMP-0, so code points range from 0 to 65535.")
 {
-   U32 rangeStart = dAtoi(argv[1]);
-   U32 rangeEnd   = dAtoi(argv[2]);
+   U32 rangeStart = argv[1].getInt();
+   U32 rangeEnd   = argv[2].getInt();
 
    if(rangeStart > rangeEnd)
    {
@@ -231,14 +233,14 @@ ConsoleFunction(exportCachedFont, void, 6, 6, "(fontName, size, fileName, paddin
                 "exported as one long strip.")
 {
    // Read in some params.
-   const char *fontName = argv[1];
-   S32 fontSize   = dAtoi(argv[2]);
-   const char *fileName = argv[3];
-   S32 padding    = dAtoi(argv[4]);
-   S32 kerning    = dAtoi(argv[5]);
+   const char *fontName = argv[1].toString();
+   S32 fontSize   = argv[2].getInt();
+   const char *fileName = argv[3].toString();
+   S32 padding    = argv[4].getInt();
+   S32 kerning    = argv[5].getInt();
 
    // Tell the font to export itself.
-   Resource<GFont> f = GFont::create(argv[1], dAtoi(argv[2]), Con::getVariable("$GUI::fontCacheDirectory"));
+   Resource<GFont> f = GFont::create(fontName, fontSize, Con::getVariable("$GUI::fontCacheDirectory").toString());
 
    // Fun thing: at this point the font potentially doesn't have any or all of its char info filled.
    // We force loading of at least the CP1252 range here...
@@ -247,7 +249,8 @@ ConsoleFunction(exportCachedFont, void, 6, 6, "(fontName, size, fileName, paddin
 
    if(f.isNull())
    {
-      Con::errorf("populateFontCacheString - could not load font '%s %d'!", argv[1], dAtoi(argv[2]));
+      Con::errorf("populateFontCacheString - could not load font '%s %d'!",
+          fontName, fontSize);
       return;
    }
 
@@ -259,18 +262,18 @@ ConsoleFunction(importCachedFont, void, 6, 6, "(fontName, size, fileName, paddin
                 "same parameters you called exportCachedFont.")
 {
    // Read in some params.
-   const char *fontName = argv[1];
-   S32 fontSize   = dAtoi(argv[2]);
-   const char *fileName = argv[3];
-   S32 padding    = dAtoi(argv[4]);
-   S32 kerning    = dAtoi(argv[5]);
+   const char *fontName = argv[1].toString();
+   S32 fontSize   = argv[2].getInt();
+   const char *fileName = argv[3].toString();
+   S32 padding    = argv[4].getInt();
+   S32 kerning    = argv[5].getInt();
 
    // Tell the font to import itself.
-   Resource<GFont> f = GFont::create(argv[1], dAtoi(argv[2]), Con::getVariable("$GUI::fontCacheDirectory"));
+   Resource<GFont> f = GFont::create(fontName, fontSize, Con::getVariable("$GUI::fontCacheDirectory").toString());
 
    if(f.isNull())
    {
-      Con::errorf("populateFontCacheString - could not load font '%s %d'!", argv[1], dAtoi(argv[2]));
+      Con::errorf("populateFontCacheString - could not load font '%s %d'!", fontName, fontSize);
       return;
    }
 
@@ -284,10 +287,11 @@ ConsoleFunction(duplicateCachedFont, void, 4, 4, "(oldFontName, oldFontSize, new
                 "to via exportCachedFont.")
 {
    char newFontFile[256];
-   GFont::getFontCacheFilename(argv[3], dAtoi(argv[2]), 256, newFontFile);
+   GFont::getFontCacheFilename(argv[3].toString(), argv[2].getInt(), 256, newFontFile);
 
    // Load the original font.
-   Resource<GFont> font = GFont::create(argv[1], dAtoi(argv[2]), Con::getVariable("$GUI::fontCacheDirectory"));
+   Resource<GFont> font = GFont::create(argv[1].toString(), argv[2].getInt(),
+       Con::getVariable("$GUI::fontCacheDirectory").toString());
 
    // Deal with inexplicably missing or failed to load fonts.
    if (font.isNull())
@@ -313,7 +317,7 @@ ConsoleFunction(duplicateCachedFont, void, 4, 4, "(oldFontName, oldFontSize, new
 ConsoleFunction(registerFont, bool, 2, 2, "(string filename) - Add font file to local font registry")
 {
     char filename[1024]{};
-    if (!Con::expandScriptFilename(filename, 1023, argv[1]))
+    if (!Con::expandScriptFilename(filename, 1023, argv[1].toString()))
         Con::warnf("registerFont: Failed to expand filename, attempting loading anyway...");
     if (ResourceManager->findFile(filename))
         return registerFontFile(filename);
@@ -340,7 +344,8 @@ ResourceInstance* constructNewFont(Stream& stream)
 
 void GFont::getFontCacheFilename(const char *faceName, U32 size, U32 buffLen, char *outBuff)
 {
-   dSprintf(outBuff, buffLen, "%s/%s %d (%s).uft", Con::getVariable("$GUI::fontCacheDirectory"), faceName, size, getCharSetName(0));
+   dSprintf(outBuff, buffLen, "%s/%s %d (%s).uft", Con::getVariable("$GUI::fontCacheDirectory").toString(),
+       faceName, size, getCharSetName(0));
 }
 
 Resource<GFont> GFont::create(const char *faceName, U32 size, const char *cacheDirectory, U32 charset /* = TGE_ANSI_CHARSET */)

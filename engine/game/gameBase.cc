@@ -356,7 +356,7 @@ void GameBase::scriptOnNewDataBlock()
    // Script onNewDataBlock() must be called by the leaf class
    // after everything is loaded.
    if (!isGhost())
-      Con::executef(mDataBlock,2,"onNewDataBlock",scriptThis());
+      Con::executef(mDataBlock, 2, "onNewDataBlock", getId());
 }
 
 void GameBase::scriptOnRemove()
@@ -364,7 +364,7 @@ void GameBase::scriptOnRemove()
    // Script onRemove() must be called by leaf class while
    // the object state is still valid.
    if (!isGhost() && mDataBlock)
-      Con::executef(mDataBlock,2,"onRemove",scriptThis());
+      Con::executef(mDataBlock, 2, "onRemove", getId());
 }
 
 
@@ -489,7 +489,7 @@ void GameBase::unpackUpdate(NetConnection *con, BitStream *stream)
 ConsoleMethod( GameBase, getDataBlock, S32, 2, 2, "()"
               "Return the datablock this GameBase is using.")
 {
-   return object->getDataBlock()? object->getDataBlock()->getId(): 0;
+   return S64(object->getDataBlock()? object->getDataBlock()->getId(): 0LL);
 }
 
 //----------------------------------------------------------------------------
@@ -497,7 +497,7 @@ ConsoleMethod(GameBase, setDataBlock, bool, 3, 3, "(DataBlock db)"
               "Assign this GameBase to use the specified datablock.")
 {
    GameBaseData* data;
-   if (Sim::findObject(argv[2],data)) {
+   if (Sim::findObject(argv[2], data)) {
       return object->setDataBlock(data);
    }
    Con::errorf("Could not find data block \"%s\"",argv[2]);

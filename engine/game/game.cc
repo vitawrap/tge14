@@ -57,7 +57,7 @@ ConsoleFunction(screenShot, void, 3, 3, "(string file, string format)"
                 "@param format One of JPEG or PNG.")
 {
    FileStream fStream;
-   if(!fStream.open(argv[1], FileStream::Write))
+   if(!fStream.open(argv[1].toString(), FileStream::Write))
    {
       Con::printf("Failed to open file '%s'.", argv[1]);
       return;
@@ -76,9 +76,9 @@ ConsoleFunction(screenShot, void, 3, 3, "(string file, string format)"
    for(U32 y = 0; y < extent.y; y++)
       dMemcpy(bitmap->getAddress(0, extent.y - y - 1), pixels + y * extent.x * 3, U32(extent.x * 3));
 
-   if ( dStrcmp( argv[2], "JPEG" ) == 0 )
+   if ( dStrcmp( argv[2].toString(), "JPEG") == 0)
       bitmap->writeJPEG(fStream);
-   else if( dStrcmp( argv[2], "PNG" ) == 0)
+   else if( dStrcmp( argv[2].toString(), "PNG") == 0)
       bitmap->writePNG(fStream);
    else
       bitmap->writePNG(fStream);
@@ -95,7 +95,7 @@ ConsoleFunction( strToPlayerName, const char*, 2, 2, "strToPlayerName( string )"
 {
    argc;
 
-   const char* ptr = argv[1];
+   const char* ptr = argv[1].toString();
 
 	// Strip leading spaces and underscores:
    while ( *ptr == ' ' || *ptr == '_' )
@@ -104,7 +104,7 @@ ConsoleFunction( strToPlayerName, const char*, 2, 2, "strToPlayerName( string )"
    U32 len = dStrlen( ptr );
    if ( len )
    {
-      char* ret = Con::getReturnBuffer( MaxPlayerNameLength + 1 );
+      char ret[MaxPlayerNameLength + 1];
       char* rptr = ret;
       ret[MaxPlayerNameLength - 1] = '\0';
       ret[MaxPlayerNameLength] = '\0';
@@ -182,7 +182,7 @@ ConsoleFunctionGroupBegin( CameraFunctions, "Functions controlling the global ca
 ConsoleFunction(setDefaultFov, void, 2,2, "(defaultFov) - Set the default FOV for a camera.")
 {
    argc;
-   sDefaultFov = mClampF(dAtof(argv[1]), MinCameraFov, MaxCameraFov);
+   sDefaultFov = mClampF(argv[1].getNumber(), MinCameraFov, MaxCameraFov);
    if(sCameraFov == sTargetFov)
       sTargetFov = sDefaultFov;
 }
@@ -190,13 +190,13 @@ ConsoleFunction(setDefaultFov, void, 2,2, "(defaultFov) - Set the default FOV fo
 ConsoleFunction(setZoomSpeed, void, 2,2, "(speed) - Set the zoom speed of the camera, in ms per 90deg FOV change.")
 {
    argc;
-   sZoomSpeed = mClamp(dAtoi(argv[1]), 0, MaxZoomSpeed);
+   sZoomSpeed = mClamp(argv[1].getInt(), 0, MaxZoomSpeed);
 }
 
 ConsoleFunction(setFov, void, 2, 2, "(fov) - Set the FOV of the camera.")
 {
    argc;
-   sTargetFov = mClampF(dAtof(argv[1]), MinCameraFov, MaxCameraFov);
+   sTargetFov = mClampF(argv[1].getNumber(), MinCameraFov, MaxCameraFov);
 }
 
 ConsoleFunctionGroupEnd( CameraFunctions );
@@ -331,7 +331,7 @@ void GameUpdateCameraFov()
 // }
 #endif
 
-ConsoleFunction( getControlObjectAltitude, const char*, 1, 1, "Get distance from bottom of controlled object to terrain.")
+ConsoleFunction( getControlObjectAltitude, F32, 1, 1, "Get distance from bottom of controlled object to terrain.")
 {
    GameConnection* connection = GameConnection::getConnectionToServer();
    if (connection) {
@@ -394,16 +394,13 @@ ConsoleFunction( getControlObjectAltitude, const char*, 1, 1, "Get distance from
             }
          }
 
-         char* retBuf = Con::getReturnBuffer(128);
-         dSprintf(retBuf, 128, "%g", mFloor(getMax(pos.z, 0.f)));
-         return retBuf;
+         return mFloor(getMax(pos.z, 0.f));
       }
    }
-
-   return "0";
+   return 0.f;
 }
 
-ConsoleFunction( getControlObjectSpeed, const char*, 1, 1, "Get speed (but not velocity) of controlled object.")
+ConsoleFunction( getControlObjectSpeed, F32, 1, 1, "Get speed (but not velocity) of controlled object.")
 {
    GameConnection* connection = GameConnection::getConnectionToServer();
    if (connection)
@@ -419,13 +416,13 @@ ConsoleFunction( getControlObjectSpeed, const char*, 1, 1, "Get speed (but not v
          speed *= 10;
          speed  = mFloor(speed);
 
-         char* retBuf = Con::getReturnBuffer(128);
+         char retBuf[128];
          dSprintf(retBuf, 128, "%g.%g", intPart, speed);
-         return retBuf;
+         return dAtof(retBuf);
       }
    }
 
-   return "0";
+   return 0.f;
 }
 
 //--------------------------------------------------------------------------
@@ -435,7 +432,7 @@ ConsoleFunction( panoramaScreenShot, void, 3, 3, "(string file, string format)"
 {
    S32 numShots = 3;
    if (argc == 3)
-      numShots = dAtoi(argv[2]);
+      numShots = argv[2].getInt();
 
    CameraQuery query;
    if (!GameProcessCameraQuery( &query ))
@@ -480,9 +477,10 @@ ConsoleFunction( panoramaScreenShot, void, 3, 3, "(string file, string format)"
       for(U32 y = 0; y < extent.y; y++)
          dMemcpy(bitmap.getAddress(0, extent.y - y - 1), pixels + y * extent.x * 3, U32(extent.x * 3));
 
-	  if ( dStrcmp( argv[2], "JPEG" ) == 0 )
+      char const* format = argv[2].toString();
+	  if ( dStrcmp( format, "JPEG" ) == 0 )
 		  bitmap.writeJPEG(fStream);
-	  else if( dStrcmp( argv[2], "PNG" ) == 0)
+	  else if( dStrcmp( format, "PNG" ) == 0)
 		  bitmap.writePNG(fStream);
 	  else
 		  bitmap.writePNG(fStream);

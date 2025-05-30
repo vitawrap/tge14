@@ -758,7 +758,7 @@ ConsoleFunction(DumpUnflaggedAllocs, void, 2, 2, "DumpUnflaggedAllocs(filename);
 {
    argc;
    FileStream fws;
-   fws.open(argv[1], FileStream::Write);
+   fws.open(argv[1].toString(), FileStream::Write);
    char buffer[1024];
 
    PageRecord* walk;
@@ -1203,7 +1203,7 @@ ConsoleFunction(dumpMemSnapshot,void,2,2,"(string fileName) Dump a snapshot of c
 {
    argc;
    FileStream fws;
-   fws.open(argv[1], FileStream::Write);
+   fws.open(argv[1].toString(), FileStream::Write);
    char buffer[1024];
 
    PageRecord* walk;

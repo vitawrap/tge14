@@ -112,6 +112,8 @@ HEXDIGIT [a-fA-F0-9]
 "|="        return(cmdlval.i = opORASN);
 "<<="       return(cmdlval.i = opSLASN);
 ">>="       return(cmdlval.i = opSRASN);
+".."        return(cmdlval.i = opRANGE);
+"#["        return(cmdlval.i = opIDXSTART);
 "instanceof" return(cmdlval.i = opINSTANCE);
 "NL"        {cmdlval.i = '\n'; return '@'; }
 "TAB"       {cmdlval.i = '\t'; return '@'; }
@@ -155,8 +157,8 @@ HEXDIGIT [a-fA-F0-9]
 "!" |
 ":" | 
 ";" |
-"{" | 
-"}" | 
+"{" |
+"}" |
 "," |
 "&" |
 "%" |
@@ -183,6 +185,7 @@ HEXDIGIT [a-fA-F0-9]
 "namespace" { cmdlval.i = lineIndex; return(rwNAMESPACE); }
 "true"      { cmdlval.i = 1; return INTCONST; }
 "false"     { cmdlval.i = 0; return INTCONST; }
+"#{"        return(cmdlval.i = rwCVLSTART);
 {VAR}       return(Sc_ScanVar());
 {ID}        { CMDtext[CMDleng] = 0; cmdlval.s = StringTable->insert(CMDtext); return(IDENT); }
 0[xX]{HEXDIGIT}+ return(Sc_ScanHex());
@@ -209,9 +212,11 @@ int CMDGetCurrentLine()
 void cmderror(char *, ...)
 {
    gSyntaxError = true;
-   if(fileName)
+   if(fileName) {
       Con::errorf(ConsoleLogEntry::Script, "%s Line: %d - Syntax error.",
          fileName, lineIndex);
+      Con::executef(3, "onSyntaxError", fileName, lineIndex);
+   }
    else
       Con::errorf(ConsoleLogEntry::Script, "Syntax error in input.");
 }

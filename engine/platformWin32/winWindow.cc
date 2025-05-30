@@ -1151,7 +1151,8 @@ static void InitOpenGL()
    DisplayDevice::init();
 
    // Get the video settings from the prefs:
-   const char* resString = Con::getVariable( "$pref::Video::resolution" );
+   ConsoleValue res = Con::getVariable("$pref::Video::resolution");
+   const char* resString = res.toString();
    char* tempBuf = new char[dStrlen( resString ) + 1];
    dStrcpy( tempBuf, resString );
    char* temp = dStrtok( tempBuf, " x\0" );
@@ -1165,7 +1166,7 @@ static void InitOpenGL()
    bool fullScreen = Con::getBoolVariable( "$pref::Video::fullScreen" );
 
    // If no device is specified, see which ones we have...
-   if ( !Video::setDevice( Con::getVariable( "$pref::Video::displayDevice" ), width, height, bpp, fullScreen ) )
+   if ( !Video::setDevice( Con::getVariable( "$pref::Video::displayDevice" ).toString(), width, height, bpp, fullScreen))
    {
       // First, try the default OpenGL device:
       if ( !Video::setDevice( "OpenGL", width, height, bpp, fullScreen ) )
@@ -1188,11 +1189,7 @@ static void InitOpenGL()
 ConsoleFunction( getDesktopResolution, const char*, 1, 1, "getDesktopResolution()" )
 {
    argc; argv;
-   char buffer[256];
-   dSprintf( buffer, sizeof( buffer ), "%d %d %d", winState.desktopWidth, winState.desktopHeight, winState.desktopBitsPixel );
-   char* returnString = Con::getReturnBuffer( dStrlen( buffer ) + 1 );
-   dStrcpy( returnString, buffer );
-   return( returnString );
+   return ConsoleValueList::from( winState.desktopWidth, winState.desktopHeight, winState.desktopBitsPixel );
 }
 
 //--------------------------------------
@@ -1539,19 +1536,16 @@ static const UTF16* TorqueRegKey = (UTF16*)dT("SOFTWARE\\GarageGames\\Torque");
 static const char* TorqueRegKey = "SOFTWARE\\GarageGames\\Torque";
 #endif
 
-const char* Platform::getLoginPassword()
+ConsoleValue Platform::getLoginPassword()
 {
    HKEY regKey;
-   char* returnString = NULL;
+   char returnString[1024];
    if ( RegOpenKeyEx( HKEY_LOCAL_MACHINE, (LPCWSTR)TorqueRegKey, 0, KEY_QUERY_VALUE, &regKey ) == ERROR_SUCCESS )
    {
       U8 buf[32];
       DWORD size = sizeof( buf );
       if ( RegQueryValueEx( regKey, dT("LoginPassword"), NULL, NULL, buf, &size ) == ERROR_SUCCESS )
-      {
-         returnString = Con::getReturnBuffer( size + 1 );
-         dStrcpy( returnString, (const char*) buf );
-      }
+         dSprintf( returnString, getMin(size, 1024), "%s", (const char*)buf);
 
       RegCloseKey( regKey );
    }

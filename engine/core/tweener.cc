@@ -64,7 +64,7 @@ S32 TweenerBase::pushLiveTween(TweenerBase* tween) {
 	return tween->mId;
 }
 
-TweenerBase* TweenerBase::create(SimObject* pObject, char const* field, char const* targetScriptVal, S32 ms) {
+TweenerBase* TweenerBase::create(SimObject* pObject, char const* field, ConsoleValue& targetScriptVal, S32 ms) {
 	if (!pObject || !pObject->getClassRep() || !field || !field[0])
 		return NULL;
 
@@ -112,7 +112,8 @@ ConsoleFunctionGroupBegin(Tween, "Functions for (static) tweening based on Abstr
 ConsoleFunction(tween, S32, 5, 5, "(object, property, targetValue, timeMS) - linear")
 {
 	argc;
-	TweenerBase* tweener = tweener->create(Sim::findObject(argv[1]), argv[2], argv[3], dAtoi(argv[4]));
+	TweenerBase* tweener = tweener->create(
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) return TweenerBase::pushLiveTween(tweener);
 	return -1;
 }
@@ -120,7 +121,8 @@ ConsoleFunction(tween, S32, 5, 5, "(object, property, targetValue, timeMS) - lin
 ConsoleFunction(tweenIn, S32, 5, 5, "(object, property, targetValue, timeMS) - ease in")
 {
 	argc;
-	TweenerBase* tweener = tweener->create(Sim::findObject(argv[1]), argv[2], argv[3], dAtoi(argv[4]));
+	TweenerBase* tweener = tweener->create(
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) {
 		tweener->setFunction(tweenEaseIn);
 		return TweenerBase::pushLiveTween(tweener);
@@ -131,7 +133,8 @@ ConsoleFunction(tweenIn, S32, 5, 5, "(object, property, targetValue, timeMS) - e
 ConsoleFunction(tweenOut, S32, 5, 5, "(object, property, targetValue, timeMS) - ease out")
 {
 	argc;
-	TweenerBase* tweener = tweener->create(Sim::findObject(argv[1]), argv[2], argv[3], dAtoi(argv[4]));
+	TweenerBase* tweener = tweener->create(
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) {
 		tweener->setFunction(tweenEaseOut);
 		return TweenerBase::pushLiveTween(tweener);
@@ -142,7 +145,8 @@ ConsoleFunction(tweenOut, S32, 5, 5, "(object, property, targetValue, timeMS) - 
 ConsoleFunction(tweenInOut, S32, 5, 5, "(object, property, targetValue, timeMS) - ease in and out")
 {
 	argc;
-	TweenerBase* tweener = tweener->create(Sim::findObject(argv[1]), argv[2], argv[3], dAtoi(argv[4]));
+	TweenerBase* tweener = tweener->create(
+		Sim::findObject(argv[1]), argv[2].toString(), argv[3], argv[4].getInt());
 	if (tweener) {
 		tweener->setFunction(tweenEaseInOut);
 		return TweenerBase::pushLiveTween(tweener);
@@ -153,7 +157,7 @@ ConsoleFunction(tweenInOut, S32, 5, 5, "(object, property, targetValue, timeMS) 
 ConsoleFunction(tweenFinalize, bool, 2, 2, "(id) - instantly finalize tweener")
 {
 	argc;
-	TweenerBase* tb = TweenerBase::findTween(dAtoi(argv[1]));
+	TweenerBase* tb = TweenerBase::findTween(argv[1].getInt());
 	if (tb) {
 		tb->interpolateValue(1.f);
 		tb->apply();
@@ -167,7 +171,7 @@ ConsoleFunction(tweenFinalize, bool, 2, 2, "(id) - instantly finalize tweener")
 ConsoleFunction(tweenCancel, bool, 2, 2, "(id)")
 {
 	argc;
-	return TweenerBase::removeTween(dAtoi(argv[1]));
+	return TweenerBase::removeTween(argv[1].getInt());
 }
 
 ConsoleFunctionGroupEnd(Tween)

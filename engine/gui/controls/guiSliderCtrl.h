@@ -35,14 +35,14 @@ public:
    //Parental methods
    bool onWake();
 
-   void onStaticModified(char const* slot) override;
+   void onStaticModified(StringTableEntry slot) override;
 
    void onMouseDown(const GuiEvent &event);
    void onMouseDragged(const GuiEvent &event);
    void onMouseUp(const GuiEvent &);
 
    F32 getValue() { return mValue; }
-   void setScriptValue(const char *val);
+   void setScriptValue(ConsoleValue& val) override;
 
    void onRender(Point2I offset, const RectI &updateRect);
 };

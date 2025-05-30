@@ -27,7 +27,7 @@ ConsoleMethod( GuiCanvas, getContent, S32, 2, 2, "Get the GuiControl which is be
 {
    GuiControl *ctrl = object->getContentControl();
    if(ctrl)
-      return ctrl->getId();
+      return (S64) ctrl->getId();
    return -1;
 }
 
@@ -38,11 +38,11 @@ ConsoleMethod( GuiCanvas, setContent, void, 3, 3, "(GuiControl ctrl)"
    argc;
 
    GuiControl *gui = NULL;
-   if(argv[2][0])
+   if(argv[2].getStrlen())
    {
-      if (!Sim::findObject(argv[2], gui))
+      if (!Sim::findObject(argv[2].getStringU(), gui))
       {
-         Con::printf("%s(): Invalid control: %s", argv[0], argv[2]);
+         Con::printf("GuiCanvas::setContent(): Invalid control: %s", argv[2].getStringU());
          return;
       }
    }
@@ -57,16 +57,16 @@ ConsoleMethod( GuiCanvas, pushDialog, void, 3, 4, "(GuiControl ctrl, int layer)"
 
    GuiControl *gui;
 
-   if (!	Sim::findObject(argv[2], gui))
+   if (!Sim::findObject(argv[2], gui))
    {
-      Con::printf("%s(): Invalid control: %s", argv[0], argv[2]);
+      Con::printf("GuiCanvas::pushDialog(): Invalid control: %s", argv[2].toString());
       return;
    }
 
    //find the layer
    S32 layer = 0;
    if (argc == 4)
-      layer = dAtoi(argv[3]);
+      layer = argv[3].getInt();
 
    //set the new content control
    Canvas->pushDialogControl(gui, layer);
@@ -81,7 +81,7 @@ ConsoleMethod( GuiCanvas, popDialog, void, 2, 3, "(GuiControl ctrl=NULL)")
    {
       if (!Sim::findObject(argv[2], gui))
       {
-         Con::printf("%s(): Invalid control: %s", argv[0], argv[2]);
+         Con::printf("GuiCanvas::popDialog(): Invalid control: %s", argv[2].toString());
          return;
       }
    }
@@ -98,7 +98,7 @@ ConsoleMethod( GuiCanvas, popLayer, void, 2, 3, "(int layer)")
 
    S32 layer = 0;
    if (argc == 3)
-      layer = dAtoi(argv[2]);
+      layer = argv[2].getInt();
 
    Canvas->popDialogControl(layer);
 }
@@ -125,9 +125,9 @@ ConsoleMethod( GuiCanvas, setCursor, void, 3, 3, "(bool visible)")
    argc;
 
    GuiCursor *curs = NULL;
-   if(argv[2][0])
+   if(argv[2].getStrlen())
    {
-      if(!Sim::findObject(argv[2], curs))
+      if(!Sim::findObject(argv[2].getStringU(), curs))
       {
          Con::printf("%s is not a valid cursor.", argv[2]);
          return;
@@ -138,7 +138,7 @@ ConsoleMethod( GuiCanvas, setCursor, void, 3, 3, "(bool visible)")
 
 ConsoleMethod( GuiCanvas, renderFront, void, 3, 3, "(bool enable)")
 {
-   Canvas->setRenderFront(dAtob(argv[2]));
+   Canvas->setRenderFront(argv[2].getInt());
 }
 
 ConsoleMethod( GuiCanvas, showCursor, void, 2, 2, "")
@@ -169,9 +169,7 @@ ConsoleMethod( GuiCanvas, reset, void, 2, 2, "Reset the update regions for the c
 ConsoleMethod( GuiCanvas, getCursorPos, const char*, 2, 2, "Get the current position of the cursor.")
 {
    Point2I pos = Canvas->getCursorPos();
-   char * ret = Con::getReturnBuffer(32);
-   dSprintf(ret, 32, "%d %d", pos.x, pos.y);
-   return(ret);
+   return ConsoleValueList::from(pos.x, pos.y);
 }
 
 ConsoleMethod( GuiCanvas, setCursorPos, void, 3, 4, "(Point2I pos)")
@@ -179,16 +177,16 @@ ConsoleMethod( GuiCanvas, setCursorPos, void, 3, 4, "(Point2I pos)")
    Point2I pos(0,0);
 
    if(argc == 4)
-      pos.set(dAtoi(argv[2]), dAtoi(argv[3]));
+      pos.set(argv[2].getInt(), argv[3].getInt());
    else
-      dSscanf(argv[2], "%d %d", &pos.x, &pos.y);
+      pos = argv[2].getPoint2I();
 
    Canvas->setCursorPos(pos);
 }
 
 ConsoleMethod(GuiCanvas, setScalingFactor, void, 3, 3, "(F32 factor)")
 {
-    Canvas->setScalingFactor(dAtof(argv[2]));
+    Canvas->setScalingFactor(argv[2].getNumber());
 }
 
 ConsoleFunction( createCanvas, bool, 2, 2, "(string windowTitle)"
@@ -202,7 +200,7 @@ ConsoleFunction( createCanvas, bool, 2, 2, "(string windowTitle)"
       return false;
 #endif
 #endif
-   Platform::initWindow(Point2I(800, 600), argv[1]);
+   Platform::initWindow(Point2I(800, 600), argv[1].toString());
 
    // create the canvas, and add it to the manager
    Canvas = new GuiCanvas();

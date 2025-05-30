@@ -112,7 +112,7 @@ class GuiMLTextCtrl : public GuiControl
    U32 getNumChars() const;
    U32 getText(char* pBuffer, const U32 bufferSize) const;
    U32 getWrappedText(char* pBuffer, const U32 bufferSize) const;
-   const char* getTextContent();
+   ConsoleValue getTextContent();
    void insertChars(const char* inputChars,
                     const U32   numInputChars,
                     const U32   position);
@@ -136,10 +136,10 @@ class GuiMLTextCtrl : public GuiControl
    DECLARE_CONOBJECT(GuiMLTextCtrl);
    static void initPersistFields();
 
-   void setScriptValue(const char *value);
-   const char *getScriptValue();
+   void setScriptValue(ConsoleValue& value);
+   ConsoleValue getScriptValue();
 
-   static char *stripControlChars(const char *inString);
+   static ConsoleValue stripControlChars(const char *inString);
 
    //-------------------------------------- Protected Structures and constants
   protected:

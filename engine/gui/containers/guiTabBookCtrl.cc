@@ -539,10 +539,7 @@ void GuiTabBookCtrl::selectPage( GuiTabPageCtrl *page )
          tab->setVisible( true );
 
          // Notify User
-         char *retBuffer = Con::getReturnBuffer( 512 );
-         dStrcpy( retBuffer, tab->getText() );
-         Con::executef( this, 2, "onTabSelected",  retBuffer );
-
+         Con::executef( this, 2, "onTabSelected", tab->getText() );
       }
       else
          tab->setVisible( false );

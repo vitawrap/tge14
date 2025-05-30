@@ -79,7 +79,7 @@ ConsoleFunctionGroupBegin( OpenGLTex, "Functions controlling OpenGL parameters."
 ConsoleFunction(setOpenGLMipReduction, void, 2, 2, "( n ) Sets mipmap reduction level, n ranges from 0-5.")
 {
    argc;
-   S32 val = dAtoi(argv[1]);
+   S32 val = argv[1].getInt();
    if (val < 0)
       val = 0;
    else if (val > 5)
@@ -91,7 +91,7 @@ ConsoleFunction(setOpenGLMipReduction, void, 2, 2, "( n ) Sets mipmap reduction 
 ConsoleFunction(setOpenGLSkyMipReduction, void, 2, 2, "setOpenGLSkyMipReduction(0-5);")
 {
    argc;
-   S32 val = dAtoi(argv[1]);
+   S32 val = argv[1].getInt();
    if (val < 0)
       val = 0;
    else if (val > 5)
@@ -103,7 +103,7 @@ ConsoleFunction(setOpenGLSkyMipReduction, void, 2, 2, "setOpenGLSkyMipReduction(
 ConsoleFunction(setOpenGLInteriorMipReduction, void, 2, 2, "setOpenGLInteriorMipReduction(0-5);")
 {
    argc;
-   S32 val = dAtoi(argv[1]);
+   S32 val = argv[1].getInt();
    if (val < 0)
       val = 0;
    else if (val > 5)
@@ -115,16 +115,17 @@ ConsoleFunction(setOpenGLInteriorMipReduction, void, 2, 2, "setOpenGLInteriorMip
 ConsoleFunction(setOpenGLTextureCompressionHint, void, 2, 2, "setTextureCompressionHint(GL_DONT_CARE|GL_FASTEST|GL_NICEST);")
 {
    argc;
+   const char* hint = argv[1].toString();
 
    GLenum newHint        = GL_DONT_CARE;
    const char* newString = "GL_DONT_CARE";
 
-   if (!dStricmp(argv[1], "GL_FASTEST"))
+   if (!dStricmp(hint, "GL_FASTEST"))
    {
       newHint = GL_FASTEST;
       newString = "GL_FASTEST";
    }
-   else if (!dStricmp(argv[1], "GL_NICEST"))
+   else if (!dStricmp(hint, "GL_NICEST"))
    {
       newHint = GL_NICEST;
       newString = "GL_NICEST";
@@ -139,7 +140,7 @@ ConsoleFunction(setOpenGLTextureCompressionHint, void, 2, 2, "setTextureCompress
 ConsoleFunction(setOpenGLAnisotropy, void, 2, 2, "setOpenGLAnisotropy(0-1);")
 {
    argc;
-   F32 val = dAtof(argv[1]);
+   F32 val = argv[1].getNumber();
    if (val < 0.0)
       val = 0.0;
    if (val > dglGetMaxAnisotropy())

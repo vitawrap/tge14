@@ -19,35 +19,12 @@ DebugView::DebugView()
 }
 
 
-ConsoleMethod( DebugView, addLine, void, 5, 5, "( Point3F start, Point3F end, Color3F color)"
+ConsoleMethod( DebugView, addLine, void, 5, 5, "( Point3F start, Point3F end, Color3F color )"
                "Cause a line to be drawn persistently by the DebugView.")
 {
-   Point3F start(0, 0, 0);
-   Point3F end(0, 0, 0);
-   ColorF color(0, 0, 0, 1.0f);
-   int numArgsRead;
-
-   //read the args in
-   numArgsRead = dSscanf(argv[2], "%g %g %g", &start.x, &start.y, &start.z);
-   if (numArgsRead != 3)
-   {
-      Con::printf("%s() - invalid start point.", argv[0]);
-      return;
-   }
-
-   numArgsRead = dSscanf(argv[3], "%g %g %g", &end.x, &end.y, &end.z);
-   if (numArgsRead != 3)
-   {
-      Con::printf("%s() - invalid end point.", argv[0]);
-      return;
-   }
-
-   numArgsRead = dSscanf(argv[4], "%g %g %g", &color.red, &color.green, &color.blue);
-   if (numArgsRead != 3)
-   {
-      Con::printf("%s() - invalid color.", argv[0]);
-      return;
-   }
+   Point3F start = argv[2].getPoint3F();
+   Point3F end = argv[3].getPoint3F();
+   ColorF color = argv[4].getColorF();
 
    object->addLine(start, end, color);
 }
@@ -65,11 +42,10 @@ ConsoleMethod( DebugView, setText, void, 4, 5, "(int line, string text, Color3F 
 	bool setColor = false;
 	if (argc >= 5)
 	{
-	   int numArgsRead = dSscanf(argv[4], "%g %g %g", &color.red, &color.green, &color.blue);
-	   if (numArgsRead == 3)
-			setColor = true;
+       color = argv[4].getColorF();
+       setColor = true;
 	}
-   object->setTextLine(dAtoi(argv[2]), argv[3], setColor ? &color : NULL);
+    object->setTextLine(argv[2].getInt(), argv[3].toString(), setColor ? &color : NULL);
 }
 
 ConsoleMethod( DebugView, clearText, void, 2, 3, "(int line=-1)"
@@ -77,7 +53,7 @@ ConsoleMethod( DebugView, clearText, void, 2, 3, "(int line=-1)"
 {
    int lineNum = -1;
    if (argc == 3)
-      lineNum = dAtoi(argv[2]);
+      lineNum = argv[2].getInt();
    object->clearTextLine(lineNum);
 }
 
@@ -164,23 +140,24 @@ void DebugView::onRender(Point2I offset, const RectI &updateRect)
       Point3F textPos;
       if (tsCtrl->project(playerPos, &textPos))
       {
-         //const char *textStr = client->getDataField("objective", NULL);
-         const char *textStr = Con::executef(2, "aiGetTaskDesc", avar("%d", client->getId()));
-         if (!textStr || !textStr[0])
-            textStr = "Shoot Me!";
-			if ((textStr[0] == 'E' || textStr[0] == 'F') && textStr[1] == ':')
-			{
-				if (textStr[0] == 'E')
-		         dglSetBitmapModulation(ColorF(1.0, 0.0, 0.0, 1.0));
-				else
-		         dglSetBitmapModulation(ColorF(0.0, 1.0, 0.0, 1.0));
-	         dglDrawText(mFont, Point2I(textPos.x, textPos.y), &textStr[2]);
-			}
+        //const char *textStr = client->getDataField("objective", NULL);
+        ConsoleValue text = Con::executef(2, "aiGetTaskDesc", client->getId());
+        if (text.isNull())
+            text = "Shoot Me!";
+        char const* textStr = text.toString();
+		if ((textStr[0] == 'E' || textStr[0] == 'F') && textStr[1] == ':')
+		{
+			if (textStr[0] == 'E')
+		        dglSetBitmapModulation(ColorF(1.0, 0.0, 0.0, 1.0));
 			else
-			{
-	         dglSetBitmapModulation(mProfile->mFontColor);
-	         dglDrawText(mFont, Point2I(textPos.x, textPos.y), textStr);
-			}
+		        dglSetBitmapModulation(ColorF(0.0, 1.0, 0.0, 1.0));
+	        dglDrawText(mFont, Point2I(textPos.x, textPos.y), &textStr[2]);
+		}
+		else
+		{
+	        dglSetBitmapModulation(mProfile->mFontColor);
+	        dglDrawText(mFont, Point2I(textPos.x, textPos.y), textStr);
+		}
       }
    }
 

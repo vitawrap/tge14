@@ -60,13 +60,13 @@ TCPObject::~TCPObject()
    dFree(mBuffer);
 }
 
-bool TCPObject::processArguments(S32 argc, const char **argv)
+bool TCPObject::processArguments(S32 argc, ConsoleValue *argv)
 {
    if(argc == 0)
       return true;
    else if(argc == 1)
    {
-      addToTable(U32(dAtoi(argv[0])));
+      addToTable(argv[0].getInt());
       return true;
    }
    return false;
@@ -149,11 +149,9 @@ void TCPObject::parseLine(U8 *buffer, U32 *start, U32 bufferLen)
 
 void TCPObject::onConnectionRequest(const NetAddress *addr, U32 connectId)
 {
-   char idBuf[16];
    char addrBuf[256];
    Net::addressToString(addr, addrBuf);
-   dSprintf(idBuf, sizeof(idBuf), "%d", connectId);
-   Con::executef(this, 3, "onConnectRequest", addrBuf, idBuf);
+   Con::executef(this, 3, "onConnectRequest", addrBuf, connectId);
 }
 
 bool TCPObject::processLine(U8 *line)
@@ -235,19 +233,19 @@ ConsoleMethod( TCPObject, send, void, 3, 0, "(...)"
               "Parameters are transmitted as strings, one at a time.")
 {
    for(S32 i = 2; i < argc; i++)
-      object->send((const U8 *) argv[i], dStrlen(argv[i]));
+      object->send((const U8 *) argv[i].toString(), argv[i].getStrlen());
 }
 
 ConsoleMethod( TCPObject, listen, void, 3, 3, "(int port)"
               "Start listening on the specified ports for connections.")
 {
-   object->listen(U32(dAtoi(argv[2])));
+   object->listen(U32(argv[2].getInt()));
 }
 
 ConsoleMethod( TCPObject, connect, void, 3, 3, "(string addr)"
               "Connect to the given address.")
 {
-   object->connect(argv[2]);
+   object->connect(argv[2].toString());
 }
 
 ConsoleMethod( TCPObject, disconnect, void, 2, 2, "Disconnect from whatever we're connected to, if anything.")

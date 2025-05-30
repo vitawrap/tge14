@@ -521,7 +521,7 @@ void fxLight::detachFromObject(void)
 
 ConsoleMethod( fxLight, setEnable, void, 3, 3, "(bool enabled)")
 {
-	object->setEnable(dAtob(argv[2]));
+	object->setEnable(argv[2].getInt());
 }
 
 ConsoleMethod( fxLight, reset, void, 2, 2, "() Reset the light.")
@@ -531,7 +531,7 @@ ConsoleMethod( fxLight, reset, void, 2, 2, "() Reset the light.")
 
 ConsoleMethod( fxLight, attachToObject, void, 3, 3, "(SimObject obj) Attach to the SimObject obj.")
 {
-	object->attachToObject(argv[2]);
+	object->attachToObject(argv[2].toString());
 }
 
 ConsoleMethod( fxLight, detachFromObject, void, 2, 2, "() Detach from the object previously set by attachToObject.")

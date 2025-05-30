@@ -86,26 +86,27 @@ void MissionArea::initPersistFields()
 ConsoleMethod( MissionArea, getArea, const char *, 2, 2, "()"
               "Returns 4 fields: starting x, starting y, extents x, extents y")
 {
-   static char buf[48];
-
    RectI area = object->getArea();
-   dSprintf(buf, sizeof(buf), "%d %d %d %d", area.point.x, area.point.y, area.extent.x, area.extent.y);
-   return(buf);
+   return ConsoleValueList::from(area.point.x, area.point.y, area.extent.x, area.extent.y);
 }
 
-ConsoleMethod( MissionArea, setArea, void, 6, 6, "(int x, int y, int width, int height)")
+ConsoleMethod( MissionArea, setArea, void, 3, 6, "(int x, int y, int width, int height)")
 {
-   if(object->isClientObject())
-   {
+   if(object->isClientObject()) {
       Con::errorf(ConsoleLogEntry::General, "MissionArea::cSetArea - cannot alter client object!");
       return;
    }
 
    RectI rect;
-   rect.point.x = dAtoi(argv[2]);
-   rect.point.y = dAtoi(argv[3]);
-   rect.extent.x = dAtoi(argv[4]);
-   rect.extent.y = dAtoi(argv[5]);
+   if (argv[2].isList())
+       rect = argv[2].getPoint4F();
+   else if (argc == 6) {
+       rect.point.x =  argv[2].getInt();
+       rect.point.y =  argv[3].getInt();
+       rect.extent.x = argv[4].getInt();
+       rect.extent.y = argv[5].getInt();
+   } else
+       Con::errorf(ConsoleLogEntry::General, "MissionArea::cSetArea - either a list or 4 arguments must be provided!");
 
    object->setArea(rect);
 }

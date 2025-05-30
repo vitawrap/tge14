@@ -114,23 +114,23 @@ class ActionMap : public SimObject
 
    static bool createEventDescriptor(const char* pEventString, EventDescriptor* pDescriptor);
 
-   bool processBind(const U32 argc, const char** argv);
+   bool processBind(const U32 argc, ConsoleValue *argv);
    bool processBindCmd(const char *device, const char *action, const char *makeCmd, const char *breakCmd);
    bool processUnbind(const char *device, const char *action);
 
    /// @name Console Interface Functions
    /// @{
-   const char* getBinding( const char* command );                    ///< Find what the given command is bound to.
-   const char* getCommand( const char* device, const char* action ); ///< Find what command is bound to the given event descriptor .
+   ConsoleValue getBinding( const char* command );                    ///< Find what the given command is bound to.
+   ConsoleValue getCommand( const char* device, const char* action ); ///< Find what command is bound to the given event descriptor .
    bool    isInverted( const char* device, const char* action );
    F32   getScale( const char* device, const char* action );
-   const char* getDeadZone( const char* device, const char* action );
+   ConsoleValue getDeadZone( const char* device, const char* action );
    /// @}
 
 
    static bool        getKeyString(const U32 action, char* buffer);
    static bool        getDeviceName(const U32 deviceType, const U32 deviceInstance, char* buffer);
-   static const char* buildActionString( const InputEvent* event );
+   static ConsoleValue buildActionString( const InputEvent* event );
 
    bool processAction(const InputEvent*);
 

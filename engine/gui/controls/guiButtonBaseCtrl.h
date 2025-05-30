@@ -58,8 +58,8 @@ public:
    bool onKeyDown(const GuiEvent &event);
    bool onKeyUp(const GuiEvent &event);
 
-   void setScriptValue(const char *value);
-   const char *getScriptValue();
+   void setScriptValue(ConsoleValue& value) override;
+   ConsoleValue getScriptValue() override;
 
    void onMessage(GuiControl *,S32 msg);
    void onAction();

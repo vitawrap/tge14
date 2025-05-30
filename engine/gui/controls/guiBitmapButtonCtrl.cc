@@ -71,7 +71,7 @@ void GuiBitmapButtonCtrl::onSleep()
 
 ConsoleMethod( GuiBitmapButtonCtrl, setBitmap, void, 3, 3, "(filepath name)")
 {
-   object->setBitmap(argv[2]);
+   object->setBitmap(argv[2].toString());
 }
 
 //-------------------------------------

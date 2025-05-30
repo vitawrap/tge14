@@ -212,23 +212,23 @@ bool BadWordFilter::containsBadWords(const char *cstring)
 ConsoleFunction(addBadWord, bool, 2, 2, "addBadWord(someReallyNastyWord);")
 {
    argc;
-   return gBadWordFilter->addBadWord(argv[1]);
+   return gBadWordFilter->addBadWord(argv[1].toString());
 }
 
 ConsoleFunction(filterString, const char *, 2, 3, "filterString(baseString,replacementChars);")
 {
    const char *replaceStr = NULL;
    if(argc == 3)
-      replaceStr = argv[2];
+      replaceStr = argv[2].toString();
 
-   char *ret = Con::getReturnBuffer(dStrlen(argv[1]) + 1);
-   dStrcpy(ret, argv[1]);
-   gBadWordFilter->filterString(ret, replaceStr);
+   ReturnBuffer ret(argv[1].getStrlen() + 1);
+   dStrcpy(*ret, argv[1].toString());
+   gBadWordFilter->filterString(*ret, replaceStr);
    return ret;
 }
 
 ConsoleFunction(containsBadWords, bool, 2, 2, "containsBadWords(text);")
 {
    argc;
-   return gBadWordFilter->containsBadWords(argv[1]);
+   return gBadWordFilter->containsBadWords(argv[1].toString());
 }

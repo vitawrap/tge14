@@ -124,34 +124,23 @@ void GuiPopUpMenuCtrl::initPersistFields(void)
 ConsoleMethod( GuiPopUpMenuCtrl, add, void, 4, 5, "(string name, int idNum, int scheme=0)")
 {
    if ( argc > 4 )
-      object->addEntry(argv[2],dAtoi(argv[3]),dAtoi(argv[4]));
+      object->addEntry(argv[2].toString(), argv[3].getInt(), argv[4].getInt());
    else
-      object->addEntry(argv[2],dAtoi(argv[3]),0);
+      object->addEntry(argv[2].toString(), argv[3].getInt(), 0);
 }
 
 ConsoleMethod( GuiPopUpMenuCtrl, addScheme, void, 6, 6, "(int id, ColorI fontColor, ColorI fontColorHL, ColorI fontColorSEL)")
 {
-   ColorI fontColor, fontColorHL, fontColorSEL;
-   U32 r, g, b;
+   ColorI fontColor = argv[3].getColorI();
+   ColorI fontColorHL = argv[4].getColorI();
+   ColorI fontColorSEL = argv[5].getColorI();
 
-   r = g = b = 0;
-   dSscanf( argv[3], "%d %d %d", &r, &g, &b );
-   fontColor.set( r, g, b );
-
-   r = g = b = 0;
-   dSscanf( argv[4], "%d %d %d", &r, &g, &b );
-   fontColorHL.set( r, g, b );
-
-   r = g = b = 0;
-   dSscanf( argv[5], "%d %d %d", &r, &g, &b );
-   fontColorSEL.set( r, g, b );
-
-   object->addScheme( dAtoi( argv[2] ), fontColor, fontColorHL, fontColorSEL );
+   object->addScheme( argv[2].getInt(), fontColor, fontColorHL, fontColorSEL);
 }
 
 ConsoleMethod( GuiPopUpMenuCtrl, setText, void, 3, 3, "(string text)")
 {
-   object->setText(argv[2]);
+   object->setText(argv[2].toString());
 }
 
 ConsoleMethod( GuiPopUpMenuCtrl, getText, const char*, 2, 2, "")
@@ -186,12 +175,12 @@ ConsoleMethod( GuiPopUpMenuCtrl, getSelected, S32, 2, 2, "")
 
 ConsoleMethod( GuiPopUpMenuCtrl, setSelected, void, 3, 3, "(int id)")
 {
-   object->setSelected(dAtoi(argv[2]));
+   object->setSelected(argv[2].getInt());
 }
 
 ConsoleMethod( GuiPopUpMenuCtrl, getTextById, const char*, 3, 3,  "(int id)")
 {
-   return(object->getTextById(dAtoi(argv[2])));
+   return(object->getTextById(argv[2].getInt()));
 }
 
 ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, string enum)"
@@ -204,7 +193,7 @@ ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, str
    // walk the class list to get our class
    while(classRep)
    {
-      if(!dStricmp(classRep->getClassName(), argv[2]))
+      if(!dStricmp(classRep->getClassName(), argv[2].toString()))
          break;
       classRep = classRep->getNextClass();
    }
@@ -219,7 +208,7 @@ ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, str
    // walk the fields to check for this one (findField checks StringTableEntry ptrs...)
    U32 i;
    for(i = 0; i < classRep->mFieldList.size(); i++)
-      if(!dStricmp(classRep->mFieldList[i].pFieldname, argv[3]))
+      if(!dStricmp(classRep->mFieldList[i].pFieldname, argv[3].toString()))
          break;
 
    // found it?
@@ -249,7 +238,7 @@ ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, str
 ConsoleMethod( GuiPopUpMenuCtrl, findText, S32, 3, 3, "(string text)"
               "Returns the position of the first entry containing the specified text.")
 {
-   return( object->findText( argv[2] ) );
+   return( object->findText( argv[2].toString() ) );
 }
 
 //------------------------------------------------------------------------------
@@ -261,7 +250,7 @@ ConsoleMethod( GuiPopUpMenuCtrl, size, S32, 2, 2, "Get the size of the menu - th
 //------------------------------------------------------------------------------
 ConsoleMethod( GuiPopUpMenuCtrl, replaceText, void, 3, 3, "(bool doReplaceText)")
 {
-   object->replaceText(dAtoi(argv[2]));
+   object->replaceText(!!argv[2].getInt());
 }
 
 //------------------------------------------------------------------------------
@@ -384,9 +373,7 @@ void GuiPopUpMenuCtrl::setSelected(S32 id)
          setText(mEntries[i].buf);
 
          // Now perform the popup action:
-         char idval[24];
-         dSprintf( idval, sizeof(idval), "%d", mEntries[mSelIndex].id );
-         Con::executef( this, 3, "onSelect", idval, mEntries[mSelIndex].buf );
+         Con::executef( this, 3, "onSelect", mEntries[mSelIndex].id, mEntries[mSelIndex].buf );
          return;
       }
 
@@ -401,7 +388,7 @@ void GuiPopUpMenuCtrl::setSelected(S32 id)
 }
 
 //------------------------------------------------------------------------------
-const char *GuiPopUpMenuCtrl::getScriptValue()
+ConsoleValue GuiPopUpMenuCtrl::getScriptValue()
 {
    return getText();
 }
@@ -491,9 +478,7 @@ void GuiPopUpMenuCtrl::closePopUp()
    // Now perform the popup action:
    if ( mSelIndex != -1 )
    {
-      char idval[24];
-      dSprintf( idval, sizeof(idval), "%d", mEntries[mSelIndex].id );
-      Con::executef( this, 3, "onSelect", idval, mEntries[mSelIndex].buf );
+      Con::executef( this, 3, "onSelect", mEntries[mSelIndex].id, mEntries[mSelIndex].buf );
    }
    else
       Con::executef( this, 1, "onCancel" );

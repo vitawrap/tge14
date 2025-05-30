@@ -133,13 +133,13 @@ SimFieldDictionary::~SimFieldDictionary()
          Entry *temp = walk;
          walk = temp->next;
 
-         dFree(temp->value);
+         temp->value.~ConsoleValue();
          freeEntry(temp);
       }
    }
 }
 
-void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *value)
+void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue& value)
 {
    U32 bucket = HashPointer(slotName) % HashTableSize;
    Entry **walk = &mHashTable[bucket];
@@ -147,13 +147,13 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *va
       walk = &((*walk)->next);
 
    Entry *field = *walk;
-   if(!*value)
+   if(value.isNullString())
    {
       if(field)
       {
          mVersion++;
 
-         dFree(field->value);
+         field->value.~ConsoleValue();
          *walk = field->next;
          freeEntry(field);
       }
@@ -161,16 +161,13 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *va
    else
    {
       if(field)
-      {
-         dFree(field->value);
-         field->value = dStrdup(value);
-      }
+         field->value = value;
       else
       {
          mVersion++;
 
          field = allocEntry();
-         field->value = dStrdup(value);
+         constructInPlace(&field->value, &value);
          field->slotName = slotName;
          field->next = NULL;
          *walk = field;
@@ -178,7 +175,7 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, const char *va
    }
 }
 
-const char *SimFieldDictionary::getFieldValue(StringTableEntry slotName)
+ConsoleValue SimFieldDictionary::getFieldValue(StringTableEntry slotName)
 {
    U32 bucket = HashPointer(slotName) % HashTableSize;
 
@@ -186,7 +183,7 @@ const char *SimFieldDictionary::getFieldValue(StringTableEntry slotName)
       if(walk->slotName == slotName)
          return walk->value;
 
-   return NULL;
+   return "";
 }
 
 //---------------------------------------------------------------------------
@@ -242,10 +239,10 @@ void SimFieldDictionary::writeFields(SimObject *obj, Stream &stream, U32 tabStop
             continue;
 
          writeTabs(stream, tabStop+1);
-         dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = \"", walk->slotName);
-         expandEscape(expandedBuffer + dStrlen(expandedBuffer), walk->value);
-         dStrcat(expandedBuffer, "\";\r\n");
-         stream.write(dStrlen(expandedBuffer),expandedBuffer);
+         size_t used = dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = ", walk->slotName);
+         used += walk->value.serialize(expandedBuffer + used, 1024 - used);
+         dStrcpy(expandedBuffer + used, ";\r\n");
+         stream.write(used + dStrlen(expandedBuffer + used), expandedBuffer);
       }
    }
 }
@@ -283,9 +280,10 @@ void SimFieldDictionary::printFields(SimObject *obj)
 
    for(Vector<Entry *>::iterator itr = flist.begin(); itr != flist.end(); itr++)
    {
-      dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = \"", (*itr)->slotName);
-      expandEscape(expandedBuffer + dStrlen(expandedBuffer), (*itr)->value);
-      Con::printf("%s\"", expandedBuffer);
+      dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = ", (*itr)->slotName);
+      size_t used = dStrlen(expandedBuffer);
+      (*itr)->value.serialize(expandedBuffer + used, 1024 - used);
+      Con::printf("%s", expandedBuffer);
    }
 }
 
@@ -330,17 +328,17 @@ void SimObject::assignFieldsFrom(SimObject *parent)
          const AbstractClassRep::Field* f = &list[i];
          if(f->elementCount == 1)
          {
-            const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), 0, f->table);
-            if(fieldVal)
-               Con::setData(f->type, (void *) (((const char *)this) + f->offset), 0, 1, &fieldVal, f->table);
+            auto fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), 0, f->table);
+            if(!fieldVal.isNullString())
+               Con::setData(f->type, (void *) (((const char *)this) + f->offset), 0, fieldVal, f->table);
          }
          else
          {
             for(U32 j = 0; j < f->elementCount; j++)
             {
-               const char *fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table);
-               if(fieldVal)
-                  Con::setData(f->type, (void *) (((const char *)this) + f->offset), j, 1, &fieldVal, f->table);
+               auto fieldVal = Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table);
+               if(!fieldVal.isNullString())
+                  Con::setData(f->type, (void *) (((const char *)this) + f->offset), j, fieldVal, f->table);
             }
          }
       }
@@ -357,8 +355,10 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
 {
    const AbstractClassRep::FieldList &list = getFieldList();
    char expandedBuffer[1024];
-   const char *docRoot = Con::getVariable("$DocRoot");
-   const char *modRoot = Con::getVariable("$ModRoot");
+   ConsoleValue docVal = Con::getVariable("$DocRoot");
+   ConsoleValue modVal = Con::getVariable("$ModRoot");
+   const char *docRoot = docVal.toString();
+   const char *modRoot = modVal.toString();
    S32 docRootLen = dStrlen(docRoot);
    S32 modRootLen = dStrlen(modRoot);
 
@@ -372,31 +372,36 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         const char *val = Con::getData(f->type, (void *) (((const char *)this) + f->offset), j, f->table);
-         if(!val || !*val)
+         auto val = Con::getData(f->type, (void *) (((const char *)this) + f->offset), j, f->table);
+         if(val.isNullString())
             continue;
          if(f->elementCount == 1)
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = \"", f->pFieldname);
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s = ", f->pFieldname);
          else
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s[%d] = \"", f->pFieldname, j);
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "%s[%d] = ", f->pFieldname, j);
 
          // detect and collapse relative path information
-         if (f->type == TypeFilename)
+         // FIXME: THIS DOES NOT WORK FOR OTHER Type###Filename TYPES!!!!!!!!!!!!!!!!!!!!!!!!!!
+         if (f->type == TypeFilename || f->type == TypeBitmapFilename || f->type == TypeTextureFilename)
          {
-            if (docRootLen && (dStrnicmp(docRoot, val, docRootLen) == 0))
+            auto path = val.getStringU();
+            if (docRootLen && (dStrnicmp(docRoot, path, docRootLen) == 0))
             {
-               val += (docRootLen-1);
-               dStrcat(expandedBuffer, ".");
+               path += (docRootLen-1);
+               dStrcat(expandedBuffer, "\".");
             }
             else
-               if (modRootLen && (dStrnicmp(modRoot, val, modRootLen) == 0))
+               if (modRootLen && (dStrnicmp(modRoot, path, modRootLen) == 0))
                {
-                  val += (modRootLen-1);
-                  dStrcat(expandedBuffer, "~");
+                  path += (modRootLen-1);
+                  dStrcat(expandedBuffer, "\"~");
                }
+            expandEscape(expandedBuffer + dStrlen(expandedBuffer), path);
          }
-
-         expandEscape(expandedBuffer + dStrlen(expandedBuffer), val);
+         else {
+             size_t used = dStrlen(expandedBuffer);
+             val.serialize(expandedBuffer + used, 1024 - used);
+         }
          dStrcat(expandedBuffer, "\";\r\n");
 
          writeTabs(stream, tabStop);
@@ -427,9 +432,10 @@ ConsoleFunctionGroupBegin ( SimFunctions, "Functions relating to Sim.");
 ConsoleFunction(nameToID, S32, 2, 2, "nameToID(object)")
 {
    argc;
-   SimObject *obj = Sim::findObject(argv[1]);
+   // I suppose this is the only place where forcing argv1 to string would help.
+   SimObject *obj = Sim::findObject(argv[1].toString());
    if(obj)
-      return obj->getId();
+      return S64(obj->getId());
    else
       return -1;
 }
@@ -437,48 +443,50 @@ ConsoleFunction(nameToID, S32, 2, 2, "nameToID(object)")
 ConsoleFunction(isObject, bool, 2, 2, "isObject(object)")
 {
    argc;
-   if (!dStrcmp(argv[1], "0") || !dStrcmp(argv[1], ""))
+   // isObject relies on flawed behavior from Sim::findObject(const char*)
+   // where it fails to find objects with negative ids, namely RootGroup.
+   if (argv[1].isNull() || argv[1].getInt() < 0)
       return false;
    else
-      return (Sim::findObject(argv[1]) != NULL);
+      return (Sim::findObject(argv[1].toString()) != NULL);
 }
 
 ConsoleFunction(cancel,void,2,2,"cancel(eventId)")
 {
    argc;
-   Sim::cancelEvent(dAtoi(argv[1]));
+   Sim::cancelEvent(argv[1].getInt());
 }
 
 ConsoleFunction(isEventPending, bool, 2, 2, "isEventPending(%scheduleId);")
 {
    argc;
-   return Sim::isEventPending(dAtoi(argv[1]));
+   return Sim::isEventPending(argv[1].getInt());
 }
 
 ConsoleFunction(getEventTimeLeft, S32, 2, 2, "getEventTimeLeft(scheduleId) Get the time left in ms until this event will trigger.")
 {
-   return Sim::getEventTimeLeft(dAtoi(argv[1]));
+   return (S64) Sim::getEventTimeLeft(argv[1].getInt());
 }
 
 ConsoleFunction(getScheduleDuration, S32, 2, 2, "getTimeSinceStart(%scheduleId);")
 {
-   argc;   S32 ret = Sim::getScheduleDuration(dAtoi(argv[1]));
+   argc;   S32 ret = Sim::getScheduleDuration(argv[1].getInt());
    return ret;
 }
 
 ConsoleFunction(getTimeSinceStart, S32, 2, 2, "getTimeSinceStart(%scheduleId);")
 {
-   argc;   S32 ret = Sim::getTimeSinceStart(dAtoi(argv[1]));
+   argc;   S32 ret = Sim::getTimeSinceStart(argv[1].getInt());
    return ret;
 }
 
 ConsoleFunction(schedule, S32, 4, 0, "schedule(time, refobject|0, command, <arg1...argN>)")
 {
-   U32 timeDelta = U32(dAtof(argv[1]));
+   U32 timeDelta = U32(argv[1].getNumber());
    SimObject *refObject = Sim::findObject(argv[2]);
    if(!refObject)
    {
-      if(argv[2][0] != '0')
+      if(argv[2].toString()[0] != '0')
          return 0;
 
       refObject = Sim::getRootGroup();
@@ -501,28 +509,28 @@ ConsoleMethod(SimObject, save, bool, 3, 4, "obj.save(fileName, <selectedOnly>)")
    static const char *endMessage = "//--- OBJECT WRITE END ---";
    FileStream stream;
    FileObject f;
-   f.readMemory(argv[2]);
+   f.readMemory(argv[2].toString());
 
    // check for flags <selected, ...>
    U32 writeFlags = 0;
    if(argc > 3)
    {
-      if(dAtob(argv[3]))
+      if(argv[3].getInt())
          writeFlags |= SimObject::SelectedOnly;
    }
 
-   if(!ResourceManager->openFileForWrite(stream, argv[2]))
+   if(!ResourceManager->openFileForWrite(stream, argv[2].toString()))
       return false;
 
    char docRoot[256];
    char modRoot[256];
 
-   dStrcpy(docRoot, argv[2]);
+   dStrcpy(docRoot, argv[2].toString());
    char *p = dStrrchr(docRoot, '/');
    if (p) *++p = '\0';
    else  docRoot[0] = '\0';
 
-   dStrcpy(modRoot, argv[2]);
+   dStrcpy(modRoot, argv[2].toString());
    p = dStrchr(modRoot, '/');
    if (p) *++p = '\0';
    else  modRoot[0] = '\0';
@@ -562,8 +570,8 @@ ConsoleMethod(SimObject, save, bool, 3, 4, "obj.save(fileName, <selectedOnly>)")
       stream.write(2, "\r\n");
    }
 
-   Con::setVariable("$DocRoot", NULL);
-   Con::setVariable("$ModRoot", NULL);
+   Con::setVariable("$DocRoot", "");
+   Con::setVariable("$ModRoot", "");
 
    return true;
 }
@@ -571,7 +579,7 @@ ConsoleMethod(SimObject, save, bool, 3, 4, "obj.save(fileName, <selectedOnly>)")
 ConsoleMethod(SimObject, setName, void, 3, 3, "obj.setName(newName)")
 {
    argc;
-   object->assignName(argv[2]);
+   object->assignName(argv[2].toString());
 }
 
 ConsoleMethod(SimObject, getName, const char *, 2, 2, "obj.getName()")
@@ -591,7 +599,7 @@ ConsoleMethod(SimObject, getClassName, const char *, 2, 2, "obj.getClassName()")
 ConsoleMethod(SimObject, getId, S32, 2, 2, "obj.getId()")
 {
    argc; argv;
-   return object->getId();
+   return (S64) object->getId();
 }
 
 ConsoleMethod(SimObject, getGroup, S32, 2, 2, "obj.getGroup()")
@@ -600,7 +608,7 @@ ConsoleMethod(SimObject, getGroup, S32, 2, 2, "obj.getGroup()")
    SimGroup *grp = object->getGroup();
    if(!grp)
       return -1;
-   return grp->getId();
+   return (S64) grp->getId();
 }
 
 ConsoleMethod(SimObject, delete, void, 2, 2,"obj.delete()")
@@ -611,7 +619,7 @@ ConsoleMethod(SimObject, delete, void, 2, 2,"obj.delete()")
 
 ConsoleMethod(SimObject,schedule, S32, 4, 0, "object.schedule(time, command, <arg1...argN>);")
 {
-   U32 timeDelta = U32(dAtof(argv[2]));
+   U32 timeDelta = U32(argv[2].getNumber());
    argv[2] = argv[3];
    argv[3] = argv[1];
    SimConsoleEvent *evt = new SimConsoleEvent(argc - 2, argv + 2, true);
@@ -657,15 +665,16 @@ ConsoleMethod(SimObject,dump, void, 2, 2, "obj.dump()")
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         const char *val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table);
-         if(!val /*|| !*val*/)
+         auto val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table);
+         if(val.isNullString())
             continue;
          if(f->elementCount == 1)
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = \"", f->pFieldname);
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s = ", f->pFieldname);
          else
-            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s[%d] = \"", f->pFieldname, j);
-         expandEscape(expandedBuffer + dStrlen(expandedBuffer), val);
-         Con::printf("%s\"   %s", expandedBuffer, f->pFieldDocs? f->pFieldDocs : "");
+            dSprintf(expandedBuffer, sizeof(expandedBuffer), "  %s[%d] = ", f->pFieldname, j);
+         size_t used = dStrlen(expandedBuffer);
+         val.serialize(expandedBuffer + used, 1024 - used);
+         Con::printf("%s   %s", expandedBuffer, f->pFieldDocs? f->pFieldDocs : "");
       }
    }
 
@@ -704,7 +713,7 @@ const char *SimObject::tabComplete(const char *prevText, S32 baseLen, bool fForw
    return mNameSpace->tabComplete(prevText, baseLen, fForward);
 }
 
-void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* array, const char* value)
+void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* array, ConsoleValue& value)
 {
     AssertFatal(fld, "SimObject::setStaticField: Field was null.");
 
@@ -715,7 +724,7 @@ void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* a
     S32 array1 = array ? dAtoi(array) : 0;
 
     if (array1 >= 0 && array1 < fld->elementCount && fld->elementCount >= 1)
-        Con::setData(fld->type, (void*)(((const char*)this) + fld->offset), array1, 1, &value, fld->table);
+        Con::setData(fld->type, (void*)(((const char*)this) + fld->offset), array1, value, fld->table);
 
     if (fld->validator)
         fld->validator->validateType(this, (void*)(((const char*)this) + fld->offset));
@@ -723,7 +732,7 @@ void SimObject::setStaticField(AbstractClassRep::Field const* fld, const char* a
     onStaticModified(fld->pFieldname);  // pFieldName can be used like a StringTableEntry.
 }
 
-void SimObject::setDataField(StringTableEntry slotName, const char *array, const char *value)
+void SimObject::setDataField(StringTableEntry slotName, const char *array, ConsoleValue& value)
 {
    // first search the static fields if enabled
    if(mFlags.test(ModStaticFields))
@@ -741,31 +750,28 @@ void SimObject::setDataField(StringTableEntry slotName, const char *array, const
       if(!mFieldDictionary)
          mFieldDictionary = new SimFieldDictionary;
 
-      if(!array)
+      if(!array || !*array)
          mFieldDictionary->setFieldValue(slotName, value);
       else
       {
          char buf[256];
-         dStrcpy(buf, slotName);
-         dStrcat(buf, array);
+         dSprintf(buf, sizeof(buf), "%s%s", slotName, array);
          mFieldDictionary->setFieldValue(StringTable->insert(buf), value);
       }
    }
 }
 
-const char *SimObject::getDataField(StringTableEntry slotName, const char *array)
+ConsoleValue SimObject::getDataField(StringTableEntry slotName, const char *array)
 {
    if(mFlags.test(ModStaticFields))
    {
-      S32 array1 = array ? dAtoi(array) : -1;
+      S32 array1 = array ? dAtoi(array) : 0;
       const AbstractClassRep::Field *fld = findField(slotName);
    
       if(fld)
       {
-         if(array1 == -1 && fld->elementCount == 1)
-            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), 0, fld->table);
          if(array1 >= 0 && array1 < fld->elementCount)
-            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table);// + typeSizes[fld.type] * array1));
+            return Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table);
          return "";
       }
    }
@@ -775,18 +781,13 @@ const char *SimObject::getDataField(StringTableEntry slotName, const char *array
       if(!mFieldDictionary)
          return "";
 
-      if(!array) 
-      {
-         if (const char* val = mFieldDictionary->getFieldValue(slotName))
-            return val;
-      }
+      if(!array || !*array) 
+         return mFieldDictionary->getFieldValue(slotName);
       else
       {
          static char buf[256];
-         dStrcpy(buf, slotName);
-         dStrcat(buf, array);
-         if (const char* val = mFieldDictionary->getFieldValue(StringTable->insert(buf)))
-            return val;
+         dSprintf(buf, sizeof(buf), "%s%s", slotName, array);
+         return mFieldDictionary->getFieldValue(StringTable->insert(buf));
       }
    }
 
@@ -814,14 +815,15 @@ bool SimObject::isLocked()
    if(!mFieldDictionary)
       return false;
 
-   const char * val = mFieldDictionary->getFieldValue( StringTable->insert( "locked", false ) );
+   ConsoleValue val = mFieldDictionary->getFieldValue( StringTable->insert( "locked", false ) );
 
-   return( val ? dAtob(val) : false );
+   return(val.getInt());
 }
 
 void SimObject::setLocked( bool b = true )
 {
-   setDataField(StringTable->insert("locked", false), NULL, b ? "true" : "false" );
+   ConsoleValue val(b ? "true" : "false");
+   setDataField(StringTable->insert("locked", false), NULL, val );
 }
 
 bool SimObject::isHidden()
@@ -829,13 +831,14 @@ bool SimObject::isHidden()
    if(!mFieldDictionary)
       return false;
 
-   const char * val = mFieldDictionary->getFieldValue( StringTable->insert( "hidden", false ) );
-   return( val ? dAtob(val) : false );
+   ConsoleValue val = mFieldDictionary->getFieldValue( StringTable->insert( "hidden", false ) );
+   return(val.getInt());
 }
 
 void SimObject::setHidden(bool b = true)
 {
-   setDataField(StringTable->insert("hidden", false), NULL, b ? "true" : "false" );
+   ConsoleValue val(b ? "true" : "false");
+   setDataField(StringTable->insert("hidden", false), NULL, val );
 }
 
 const char* SimObject::getIdString() const
@@ -845,9 +848,9 @@ const char* SimObject::getIdString() const
    return IDbuffer;
 }
 
-const char* SimObject::scriptThis() const
+ConsoleValue SimObject::scriptThis() const
 {
-    return Con::getIntArg(getId());
+    return (S64) getId();
 }
 
 //---------------------------------------------------------------------------
@@ -888,7 +891,7 @@ void SimObject::onStaticModified(const char*)
 {
 }
 
-bool SimObject::processArguments(S32 argc, const char**)
+bool SimObject::processArguments(S32 argc, ConsoleValue *)
 {
    return argc == 0;
 }
@@ -1414,13 +1417,13 @@ ConsoleMethod(SimSet, getCount, S32, 2, 2, "set.getCount()")
 ConsoleMethod(SimSet, getObject, S32, 3, 3, "set.getObject(objIndex)")
 {
    argc;
-   S32 objectIndex = dAtoi(argv[2]);
+   S32 objectIndex = argv[2].getInt();
    if(objectIndex < 0 || objectIndex >= S32(object->size()))
    {
       Con::printf("Set::getObject index out of range.");
       return -1;
    }
-   return ((*object)[objectIndex])->getId();
+   return (S64) ((*object)[objectIndex])->getId();
 }
 
 ConsoleMethod(SimSet, isMember, bool, 3, 3, "set.isMember(object)")
@@ -1664,7 +1667,7 @@ SimObject* SimObject::findObject(const char* )
 
 //---------------------------------------------------------------------------
 
-bool SimGroup::processArguments(S32, const char **)
+bool SimGroup::processArguments(S32, ConsoleValue *)
 {
    return true;
 }
@@ -1675,30 +1678,21 @@ IMPLEMENT_CONOBJECT(SimGroup);
 
 //------------------------------------------------------------------------------
 
-SimConsoleEvent::SimConsoleEvent(S32 argc, const char **argv, bool onObject)
+SimConsoleEvent::SimConsoleEvent(S32 argc, ConsoleValue *argv, bool onObject)
 {
    mOnObject = onObject;
    mArgc = argc;
-   U32 totalSize = 0;
-   S32 i;
-   for(i = 0; i < argc; i++)
-      totalSize += dStrlen(argv[i]) + 1;
-   totalSize += sizeof(char *) * argc;
 
-   mArgv = (char **) dMalloc(totalSize);
-   char *argBase = (char *) &mArgv[argc];
+   // Copy arguments over for thread safety...
+   mArgv = new ConsoleValue[argc];
 
-   for(i = 0; i < argc; i++)
-   {
-      mArgv[i] = argBase;
-      dStrcpy(mArgv[i], argv[i]);
-      argBase += dStrlen(argv[i]) + 1;
-   }
+   for(S32 i = 0; i < argc; i++)
+       mArgv[i] = argv[i];
 }
 
 SimConsoleEvent::~SimConsoleEvent()
 {
-   dFree(mArgv);
+   delete[] mArgv;
 }
 
 void SimConsoleEvent::process(SimObject* object)
@@ -1707,14 +1701,14 @@ void SimConsoleEvent::process(SimObject* object)
 //    Con::printf("Executing schedule: %d", sequenceCount);
 // #endif
    if(mOnObject)
-      Con::execute(object, mArgc, const_cast<const char**>( mArgv ));
+      Con::execute(object, mArgc, mArgv);
    else
-      Con::execute(mArgc, const_cast<const char**>( mArgv ));
+      Con::execute(mArgc, mArgv);
 }
 
 //-----------------------------------------------------------------------------
 
-SimConsoleThreadExecCallback::SimConsoleThreadExecCallback() : retVal(NULL)
+SimConsoleThreadExecCallback::SimConsoleThreadExecCallback() : retVal("")
 {
    sem = Semaphore::createSemaphore(0);
 }
@@ -1724,25 +1718,25 @@ SimConsoleThreadExecCallback::~SimConsoleThreadExecCallback()
    Semaphore::destroySemaphore(sem);
 }
 
-void SimConsoleThreadExecCallback::handleCallback(const char *ret)
+void SimConsoleThreadExecCallback::handleCallback(ConsoleValue ret)
 {
    retVal = ret;
    Semaphore::releaseSemaphore(sem);
 }
 
-const char *SimConsoleThreadExecCallback::waitForResult()
+ConsoleValue SimConsoleThreadExecCallback::waitForResult()
 {
    if(Semaphore::acquireSemaphore(sem, true))
    {
       return retVal;
    }
 
-   return NULL;
+   return CONVALUE_NULL;
 }
 
 //-----------------------------------------------------------------------------
 
-SimConsoleThreadExecEvent::SimConsoleThreadExecEvent(S32 argc, const char **argv, bool onObject, SimConsoleThreadExecCallback *callback) : 
+SimConsoleThreadExecEvent::SimConsoleThreadExecEvent(S32 argc, ConsoleValue*argv, bool onObject, SimConsoleThreadExecCallback *callback) : 
    SimConsoleEvent(argc, argv, onObject),
    cb(callback)
 {
@@ -1750,11 +1744,11 @@ SimConsoleThreadExecEvent::SimConsoleThreadExecEvent(S32 argc, const char **argv
 
 void SimConsoleThreadExecEvent::process(SimObject* object)
 {
-   const char *retVal;
+   ConsoleValue retVal;
    if(mOnObject)
-      retVal = Con::execute(object, mArgc, const_cast<const char**>( mArgv ));
+      retVal = Con::execute(object, mArgc, mArgv);
    else
-      retVal = Con::execute(mArgc, const_cast<const char**>( mArgv ));
+      retVal = Con::execute(mArgc, mArgv);
 
    if(cb)
       cb->handleCallback(retVal);

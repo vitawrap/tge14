@@ -31,7 +31,7 @@ void AudioBlender::fadeIn(AUDIOHANDLE source, S32 msToFullVolume)
 	if (mTween)
 		TweenerBase::removeTween(mTween);
 
-	TweenerBase* t = TweenerBase::create(this, "blendValue", "1.0", msToFullVolume);
+	TweenerBase* t = TweenerBase::create(this, "blendValue", ConsoleValue(1.0), msToFullVolume);
 	mTween = t? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -49,7 +49,7 @@ void AudioBlender::fadeOut(S32 msToZeroVolume)
 	if (mTween)
 		TweenerBase::removeTween(mTween);
 
-	TweenerBase* t = TweenerBase::create(this, "blendValue", "1.0", msToZeroVolume);
+	TweenerBase* t = TweenerBase::create(this, "blendValue", ConsoleValue(1.0), msToZeroVolume);
 	mTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -72,7 +72,7 @@ void AudioBlender::crossFade(AUDIOHANDLE b, S32 msToComplete)
 	if (mTween)
 		TweenerBase::removeTween(mTween);
 
-	TweenerBase* t = TweenerBase::create(this, "blendValue", "1.0", msToComplete);
+	TweenerBase* t = TweenerBase::create(this, "blendValue", ConsoleValue(1.0), msToComplete);
 	mTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -81,9 +81,7 @@ void AudioBlender::quieten(S32 msToQuiet)
 	if (mQuietTween)
 		TweenerBase::removeTween(mQuietTween);
 
-	char quietVol[128];
-	dSprintf(quietVol, sizeof(quietVol), "%g", sQuietVolume);
-	TweenerBase* t = TweenerBase::create(this, "quietValue", quietVol, msToQuiet);
+	TweenerBase* t = TweenerBase::create(this, "quietValue", ConsoleValue(sQuietVolume), msToQuiet);
 	mQuietTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -92,7 +90,7 @@ void AudioBlender::louden(S32 msToLoud)
 	if (mQuietTween)
 		TweenerBase::removeTween(mQuietTween);
 
-	TweenerBase* t = TweenerBase::create(this, "quietValue", "1.0", msToLoud);
+	TweenerBase* t = TweenerBase::create(this, "quietValue", ConsoleValue(1.0), msToLoud);
 	mQuietTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -158,25 +156,25 @@ void AudioBlender::initPersistFields() {
 
 ConsoleMethod(AudioBlender, fadeIn, void, 4, 4, "(AUDIOHANDLE source, S32 ms) - Fade source in")
 {
-	object->fadeIn(dAtoi(argv[2]), dAtoi(argv[3]));
+	object->fadeIn(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod(AudioBlender, fadeOut, void, 3, 3, "(S32 ms) - Fade source (from fadeIn) out")
 {
-	object->fadeOut(dAtoi(argv[2]));
+	object->fadeOut(argv[2].getInt());
 }
 
 ConsoleMethod(AudioBlender, crossFade, void, 4, 4, "(AUDIOHANDLE b, S32 ms) - Fade source out")
 {
-	object->crossFade(dAtoi(argv[2]), dAtoi(argv[3]));
+	object->crossFade(argv[2].getInt(), argv[3].getInt());
 }
 
 ConsoleMethod(AudioBlender, quieten, void, 2, 3, "(S32 ms = 500) - Lower tracks to $AudioBlender::QuietVolume")
 {
-	object->quieten(argc == 2? 500: dAtoi(argv[2]));
+	object->quieten(argc == 2? 500: argv[2].getInt());
 }
 
 ConsoleMethod(AudioBlender, louden, void, 2, 3, "(S32 ms = 1000)")
 {
-	object->louden(argc == 2? 1000 : dAtoi(argv[2]));
+	object->louden(argc == 2? 1000 : argv[2].getInt());
 }

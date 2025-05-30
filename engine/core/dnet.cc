@@ -33,7 +33,7 @@ static const char *packetTypeNames[] =
 ConsoleFunction(DNetSetLogging, void, 2, 2, "(bool enabled)")
 {
    argc;
-   gLogToConsole = dAtob(argv[1]);
+   gLogToConsole = argv[1].getInt();
 }
 
 ConnectionProtocol::ConnectionProtocol()

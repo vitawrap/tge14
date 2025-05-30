@@ -376,14 +376,14 @@ ConsoleMethod(EditTSCtrl, renderSphere, void, 4, 5, "(Point3F pos, float radius,
 
    S32 sphereLevel = object->mConsoleSphereLevel;
    if(argc == 5)
-      sphereLevel = dAtoi(argv[4]);
+      sphereLevel = argv[4].getInt();
 
    const Sphere::TriangleMesh * mesh = sphere.getMesh(sphereLevel);
 
-   Point3F pos(argv[2]);
+   Point3F pos = argv[2].getPoint3F();
    //dSscanf(argv[2], "%g %g %g", &pos.x, &pos.y, &pos.z);
 
-   F32 radius = dAtoi(argv[3]);
+   F32 radius = argv[3].getNumber();
 
    glEnable(GL_BLEND);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -458,15 +458,16 @@ ConsoleMethod( EditTSCtrl, renderCircle, void, 5, 6, "(Point3F pos, Point3F norm
    if(!object->mConsoleFrameColor.alpha && !object->mConsoleFillColor.alpha)
       return;
 
-   Point3F pos(argv[2]), normal(argv[3]);
+   Point3F pos = argv[2].getPoint3F();
+   Point3F normal = argv[3].getPoint3F();
    //dSscanf(argv[2], "%g %g %g", &pos.x, &pos.y, &pos.z);
    //dSscanf(argv[3], "%g %g %g", &normal.x, &normal.y, &normal.z);
 
-   F32 radius = dAtoi(argv[4]);
+   F32 radius = argv[4].getNumber();
 
    S32 segments = object->mConsoleCircleSegments;
    if(argc == 6)
-      segments = dAtoi(argv[5]);
+      segments = argv[5].getInt();
 
    normal.normalize();
 
@@ -550,7 +551,7 @@ ConsoleMethod( EditTSCtrl, renderTriangle, void, 5, 5, "(Point3F a, Point3F b, P
 
    Point3F pnts[3];
    for (U32 i = 0; i < 3; i++)
-       pnts[i] = argv[i + 2];
+       pnts[i] = argv[i + 2].getPoint3F();
       //dSscanf(argv[i+2], "%g %g %g", &pnts[i].x, &pnts[i].y, &pnts[i].z);
 
    glEnable(GL_BLEND);
@@ -595,13 +596,14 @@ ConsoleMethod( EditTSCtrl, renderLine, void, 4, 5, "(Point3F start, Point3F end,
    if(!object->mConsoleFrameColor.alpha)
       return;
 
-   Point3F start(argv[2]), end(argv[3]);
+   Point3F start = argv[2].getPoint3F();
+   Point3F end = argv[3].getPoint3F();
    //dSscanf(argv[2], "%g %g %g", &start.x, &start.y, &start.z);
    //dSscanf(argv[3], "%g %g %g", &end.x, &end.y, &end.z);
 
    S32 width = object->mConsoleLineWidth;
    if(argc == 5)
-      width = dAtoi(argv[4]);
+      width = argv[4].getInt();
 
    glEnable(GL_BLEND);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

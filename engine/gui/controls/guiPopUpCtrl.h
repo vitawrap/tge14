@@ -118,7 +118,7 @@ class GuiPopUpMenuCtrl : public GuiTextCtrl
 
    S32 getSelected();
    void setSelected(S32 id);
-   const char *getScriptValue();
+   ConsoleValue getScriptValue() override;
    const char *getTextById(S32 id);
    S32 findText( const char* text );
    S32 getNumEntries()   { return( mEntries.size() ); }

@@ -38,31 +38,32 @@ ConsoleFunction( mathInit, void, 1, 10, "( ... )"
    }
    for (argc--, argv++; argc; argc--, argv++)
    {
-      if (dStricmp(*argv, "DETECT") == 0) {
+      char const* arg = (*argv).toString();
+      if (dStricmp(arg, "DETECT") == 0) {
          Math::init(0);
          return;
       }
-      if (dStricmp(*argv, "C") == 0) {
+      if (dStricmp(arg, "C") == 0) {
          properties |= CPU_PROP_C;
          continue;
       }
-      if (dStricmp(*argv, "FPU") == 0) {
+      if (dStricmp(arg, "FPU") == 0) {
          properties |= CPU_PROP_FPU;
          continue;
       }
-      if (dStricmp(*argv, "MMX") == 0) {
+      if (dStricmp(arg, "MMX") == 0) {
          properties |= CPU_PROP_MMX;
          continue;
       }
-      if (dStricmp(*argv, "3DNOW") == 0) {
+      if (dStricmp(arg, "3DNOW") == 0) {
          properties |= CPU_PROP_3DNOW;
          continue;
       }
-      if (dStricmp(*argv, "SSE") == 0) {
+      if (dStricmp(arg, "SSE") == 0) {
          properties |= CPU_PROP_SSE;
          continue;
       }
-      Con::printf("Error: MathInit(): ignoring unknown math extension '%s'", *argv);
+      Con::printf("Error: MathInit(): ignoring unknown math extension '%s'", arg);
    }
    Math::init(properties);
 }

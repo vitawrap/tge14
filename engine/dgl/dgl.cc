@@ -887,15 +887,16 @@ ConsoleFunctionGroupEnd( MacFSAA );
 #endif
 
 //------------------------------------------------------------------------------
+// FIXME: THIS LEAKS STRING BUFFERS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ConsoleFunction(png2jpg, S32, 2, 3, "png2jpg(pngName,[quality=0-100])")
 {
    extern U32 gJpegQuality;
    const char * rgbname = NULL;
    const char * alphaname = NULL;
    const char * basname = NULL;
-   const char * bmpname = argv[1];
+   const char * bmpname = argv[1].toString();
    if(argc == 3)
-      gJpegQuality = dAtoi(argv[2]);
+      gJpegQuality = argv[2].getInt();
    else
       gJpegQuality = 90;
    bool basOpt = false;

@@ -29,19 +29,19 @@ ConsoleFunction( setDisplayDevice, bool, 2, 6, "( string deviceName, int width, 
 {
 	Resolution currentRes = Video::getResolution();
 
-	U32 width = ( argc > 2 ) ? dAtoi( argv[2] ) : currentRes.w;
-	U32 height =  ( argc > 3 ) ? dAtoi( argv[3] ) : currentRes.h;
-	U32 bpp = ( argc > 4 ) ? dAtoi( argv[4] ) : currentRes.bpp;
-	bool fullScreen = ( argc > 5 ) ? dAtob( argv[5] ) : Video::isFullScreen();
+	U32 width = ( argc > 2 ) ? argv[2].getInt() : currentRes.w;
+	U32 height =  ( argc > 3 ) ? argv[3].getInt() : currentRes.h;
+	U32 bpp = ( argc > 4 ) ? argv[4].getInt() : currentRes.bpp;
+	bool fullScreen = ( argc > 5 ) ? argv[5].getInt() : Video::isFullScreen();
 
-   return( Video::setDevice( argv[1], width, height, bpp, fullScreen ) );
+   return( Video::setDevice( argv[1].toString(), width, height, bpp, fullScreen));
 }
 
 
 //--------------------------------------------------------------------------
 ConsoleFunction( setScreenMode, bool, 5, 5, "( int width, int height, int bpp, bool fullScreen )" )
 {
-   return( Video::setScreenMode( dAtoi( argv[1] ), dAtoi( argv[2] ), dAtoi( argv[3] ), dAtob( argv[4] ) ) );
+   return( Video::setScreenMode( argv[1].getInt(), argv[2].getInt(), argv[3].getInt(), argv[4].getInt() ) );
 }
 
 
@@ -99,12 +99,12 @@ ConsoleFunction( getRes, const char*, 1, 1, "Get the width, height, and bitdepth
 //--------------------------------------------------------------------------
 ConsoleFunction( setRes, bool, 3, 4, "( int width, int height, int bpp=NULL )")
 {
-   U32 width = dAtoi( argv[1] );
-   U32 height = dAtoi( argv[2] );
+   U32 width = argv[1].getInt();
+   U32 height = argv[2].getInt();
    U32 bpp = 0;
    if ( argc == 4 )
    {
-      bpp = dAtoi( argv[3] );
+      bpp = argv[3].getInt();
       if ( bpp != 16 && bpp != 32 )
          bpp = 0;
    }
@@ -122,7 +122,7 @@ ConsoleFunction( getDisplayDeviceList, const char*, 1, 1, "")
 //------------------------------------------------------------------------------
 ConsoleFunction( getResolutionList, const char*, 2, 2, "")
 {
-	DisplayDevice* device = Video::getDevice( argv[1] );
+	DisplayDevice* device = Video::getDevice( argv[1].toString() );
 	if ( !device )
 	{
 		Con::warnf( ConsoleLogEntry::General, "\"%s\" display device not found!", argv[1] );
@@ -141,7 +141,7 @@ ConsoleFunction( getVideoDriverInfo, const char*, 1, 1, "")
 //------------------------------------------------------------------------------
 ConsoleFunction( isDeviceFullScreenOnly, bool, 2, 2, "( string deviceName )")
 {
-	DisplayDevice* device = Video::getDevice( argv[1] );
+	DisplayDevice* device = Video::getDevice( argv[1].toString() );
 	if ( !device )
 	{
 		Con::warnf( ConsoleLogEntry::General, "\"%s\" display device not found!", argv[1] );
@@ -159,7 +159,7 @@ static F32 sgGammaCorrection = 0.0;
 ConsoleFunction(videoSetGammaCorrection, void, 2, 2, "setGammaCorrection(gamma);")
 {
    argc;
-   F32 g = mClampF(dAtof(argv[1]),0.0,1.0);
+   F32 g = mClampF(argv[1].getNumber(),0.0,1.0);
    F32 d = -(g - 0.5);
 
    if (d != sgGammaCorrection &&
@@ -246,8 +246,7 @@ bool Video::setDevice( const char *renderName, U32 width, U32 height, U32 bpp, b
 			if (dStrcmp(renderName,"OpenGL") == 0)
 			{
 				U32 w, h, d;
-				
-				dSscanf(Con::getVariable("$pref::Video::resolution"), "%d %d %d", &w, &h, &d);
+				dSscanf(Con::getVariable("$pref::Video::resolution").toString(), "%d %d %d", &w, &h, &d);
 
 				return setDevice("D3D",w,h,d,Con::getBoolVariable("$pref::Video::fullScreen",true));
 			}
@@ -263,8 +262,7 @@ bool Video::setDevice( const char *renderName, U32 width, U32 height, U32 bpp, b
 			if (dStrcmp(renderName,"D3D") == 0)
 			{
 				U32 w, h, d;
-				
-				dSscanf(Con::getVariable("$pref::Video::resolution"), "%d %d %d", &w, &h, &d);
+				dSscanf(Con::getVariable("$pref::Video::resolution").toString(), "%d %d %d", &w, &h, &d);
 
 				return setDevice("OpenGL",w,h,d,Con::getBoolVariable("$pref::Video::fullScreen",true));
 			}
@@ -280,8 +278,7 @@ bool Video::setDevice( const char *renderName, U32 width, U32 height, U32 bpp, b
 					!Con::getBoolVariable("$pref::Video::appliedPref"))
 		{
 			U32 w, h, d;
-				
-			dSscanf(Con::getVariable("$pref::Video::resolution"), "%d %d %d", &w, &h, &d);
+			dSscanf(Con::getVariable("$pref::Video::resolution").toString(), "%d %d %d", &w, &h, &d);
 			Con::setBoolVariable("$pref::Video::appliedPref", true);
 
 			return setDevice("D3D",w,h,d,Con::getBoolVariable("$pref::Video::fullScreen",true));
@@ -455,27 +452,21 @@ Resolution Video::getResolution()
 
 
 //------------------------------------------------------------------------------
-const char* Video::getDeviceList()
+ConsoleValue Video::getDeviceList()
 {
 	U32 deviceCount = smDeviceList.size();
 	if ( deviceCount > 0 ) // It better be...
-	{		
-		U32 strLen = 0, i;
-		for ( i = 0; i < deviceCount; i++ )
-			strLen += ( dStrlen( smDeviceList[i]->mDeviceName ) + 1 );
-
-		char* returnString = Con::getReturnBuffer( strLen );
-		dStrcpy( returnString, smDeviceList[0]->mDeviceName );
-		for ( i = 1; i < deviceCount; i++ )
+	{
+		ConsoleValue ret;
+		ret.concatStringU(smDeviceList[0]->mDeviceName, dStrlen(smDeviceList[0]->mDeviceName));
+		for ( S32 i = 1; i < deviceCount; i++ )
 		{
-			dStrcat( returnString, "\t" );
-			dStrcat( returnString, smDeviceList[i]->mDeviceName );
+			ret.concatStringU("\t", 1);
+			ret.concatStringU(smDeviceList[i]->mDeviceName, dStrlen(smDeviceList[0]->mDeviceName));
 		}
-
-		return( returnString );				
+		return ret;
 	}
-
-	return( NULL );
+	return "";
 }
 
 //------------------------------------------------------------------------------
@@ -489,7 +480,7 @@ const char* Video::getDeviceName()
 
 
 //------------------------------------------------------------------------------
-const char* Video::getResolutionList()
+ConsoleValue Video::getResolutionList()
 {
    if ( smCurrentDevice )
       return smCurrentDevice->getResolutionList();
@@ -499,7 +490,7 @@ const char* Video::getResolutionList()
 
 
 //------------------------------------------------------------------------------
-const char* Video::getDriverInfo()
+ConsoleValue Video::getDriverInfo()
 {
    if ( smCurrentDevice )
       return smCurrentDevice->getDriverInfo();
@@ -554,7 +545,7 @@ bool Video::setVerticalSync( bool on )
 ConsoleFunction( setVerticalSync, bool, 2, 2, "setVerticalSync( bool f )" )
 {
    argc;
-   return( Video::setVerticalSync( dAtob( argv[1] ) ) );
+   return( Video::setVerticalSync( argv[1].getInt() ) );
 }
 
 ConsoleFunctionGroupEnd(Video);
@@ -616,7 +607,7 @@ bool DisplayDevice::nextRes()
 // This function returns a string containing all of the available resolutions for this device
 // in the format "<bit depth> <width> <height>", separated by tabs.
 //
-const char* DisplayDevice::getResolutionList()
+ConsoleValue DisplayDevice::getResolutionList()
 {
    if (Con::getBoolVariable("$pref::Video::clipHigh", false))
 		for (S32 i = mResolutionList.size()-1; i >= 0; --i)
@@ -641,14 +632,13 @@ const char* DisplayDevice::getResolutionList()
       }
       tempBuffer[dStrlen( tempBuffer ) - 1] = 0;
 
-      char* returnString = Con::getReturnBuffer( dStrlen( tempBuffer ) + 1 );
-      dStrcpy( returnString, tempBuffer );
+      ReturnBuffer ret(dStrlen( tempBuffer ) + 1);
+      dStrcpy( *ret, tempBuffer );
       delete [] tempBuffer;
 
-      return returnString;
+      return ret;
    }
-
-   return NULL;
+   return "";
 }
 
 #define checkstr(a) a = a ? a : "unknown"

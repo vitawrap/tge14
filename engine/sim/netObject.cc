@@ -261,5 +261,5 @@ void NetObject::initPersistFields()
 
 ConsoleMethod( NetObject, getGhostID, S32, 2, 2, "")
 {
-   return object->getNetIndex();
+   return (S64) object->getNetIndex();
 }

@@ -16,7 +16,7 @@ GuiTreeViewCtrl::Item::Item()
    // Just null our memory, it's safest!
    mState = 0;
    mScriptInfo.mText = 0;
-   mScriptInfo.mValue = 0;
+   mScriptInfo.mValue = "";
 }
 
 GuiTreeViewCtrl::Item::~Item()
@@ -33,11 +33,7 @@ GuiTreeViewCtrl::Item::~Item()
          setText(NULL);
       }
 
-      if ( getValue() )
-      {
-         delete [] getValue();
-         setValue( NULL );
-      }
+      clearValue();
    }
 }
 
@@ -74,7 +70,7 @@ void GuiTreeViewCtrl::Item::setText(char *txt)
    mScriptInfo.mText = txt;
 }
 
-void GuiTreeViewCtrl::Item::setValue(const char *val)
+void GuiTreeViewCtrl::Item::setValue(ConsoleValue& val)
 {
    if(mState.test(InspectorData))
    {
@@ -82,7 +78,18 @@ void GuiTreeViewCtrl::Item::setValue(const char *val)
       return;
    }
 
-   mScriptInfo.mValue = const_cast<char*>(val); // mValue really ought to be a StringTableEntry
+   mScriptInfo.mValue = val; // mValue really ought to be a StringTableEntry
+}
+
+void GuiTreeViewCtrl::Item::clearValue()
+{
+    if (mState.test(InspectorData))
+    {
+        Con::errorf("Tried to set value for item %d, which is InspectorData!", mId);
+        return;
+    }
+
+    mScriptInfo.mValue.clearValue();
 }
 
 const S8 GuiTreeViewCtrl::Item::getNormalImage() const
@@ -118,7 +125,7 @@ char *GuiTreeViewCtrl::Item::getText()
    return mScriptInfo.mText;
 }
 
-char *GuiTreeViewCtrl::Item::getValue()
+ConsoleValue GuiTreeViewCtrl::Item::getValue()
 {
    if(mState.test(InspectorData))
    {
@@ -299,7 +306,7 @@ GuiTreeViewCtrl::Item *GuiTreeViewCtrl::Item::findChildByValue( StringTableEntry
    while(res)
    {
       // check the script value of the item against the specified value
-      if( dStricmp( res->mScriptInfo.mValue, Value ) == 0 )
+      if( dStricmp( res->mScriptInfo.mValue.toString(), Value) == 0)
          return res;
       res = res->mNext;
    }
@@ -415,7 +422,7 @@ GuiTreeViewCtrl::Item * GuiTreeViewCtrl::createItem(S32 icon)
    item->mNext = item->mPrevious = item->mParent = item->mChild = 0;
    item->mState.clear();
    item->setText(0);
-   item->setValue(0);
+   item->clearValue();
    item->mState = 0;
    item->mTabLevel = 0;
 
@@ -463,12 +470,7 @@ void GuiTreeViewCtrl::destroyItem(Item * item)
          delete [] item->getText();
          item->setText(NULL);
       }
-
-      if ( item->getValue() )
-      {
-         delete [] item->getValue();
-         item->setValue(NULL);
-      }
+      item->clearValue();
    }
 
    // unlink
@@ -653,7 +655,7 @@ bool GuiTreeViewCtrl::scrollVisible( Item *item )
 
 //------------------------------------------------------------------------------
 
-S32 GuiTreeViewCtrl::insertItem(S32 parentId, const char * text, const char * value, const char * iconString, S16 normalImage, S16 expandedImage)
+S32 GuiTreeViewCtrl::insertItem(S32 parentId, const char * text, ConsoleValue& value, const char * iconString, S16 normalImage, S16 expandedImage)
 {
    if((parentId < 0) || (parentId > mItems.size()))
    {
@@ -674,8 +676,7 @@ S32 GuiTreeViewCtrl::insertItem(S32 parentId, const char * text, const char * va
    // fill the data
    item->setText( new char[dStrlen( text ) + 1] );
    dStrcpy( item->getText(), text );
-   item->setValue( new char[dStrlen( value ) + 1] );
-   dStrcpy( item->getValue(), value );
+   item->setValue( value );
    item->setNormalImage( normalImage );
    item->setExpandedImage( expandedImage );
 
@@ -921,10 +922,10 @@ bool GuiTreeViewCtrl::onWake()
       Con::executef(this, 1, "onWake");
 
       // (Re)build our icon table.
-      const char * res = Con::executef(this, 1, "onDefineIcons");
+      ConsoleValue res = Con::executef(this, 1, "onDefineIcons");
 
       // If no icons were defined in script then use defaults.
-      if(!(dAtob(res)))
+      if(!(res.getInt()))
       {
          buildIconTable(NULL);
       }
@@ -1315,23 +1316,19 @@ void GuiTreeViewCtrl::addSelection(S32 itemId)
 
 void GuiTreeViewCtrl::onItemSelected( Item *item )
 {
-
-   char buf[16];
-   dSprintf(buf, 16, "%d", item->mId);
    if (item->isInspectorData())
    {
-      Con::executef(this, 2, "onSelect", Con::getIntArg(item->getObject()->getId()));
+      Con::executef(this, 2, "onSelect", item->getObject()->getId());
       if (!(item->isParent()) && item->getObject())
-         Con::executef(this, 2, "onInspect", Con::getIntArg(item->getObject()->getId()));
+         Con::executef(this, 2, "onInspect", item->getObject()->getId());
    }
    else
    {
-      Con::executef(this, 2, "onSelect", buf);
+      Con::executef(this, 2, "onSelect", item->mId);
       if (!(item->isParent()))
-         Con::executef(this, 2, "onInspect", buf);
+         Con::executef(this, 2, "onInspect", item->mId);
    }
    mSelectedItem = item->getID();
-
 }
 
 bool GuiTreeViewCtrl::setItemSelected(S32 itemId, bool select)
@@ -1428,12 +1425,12 @@ bool GuiTreeViewCtrl::setItemSelected(S32 itemId, bool select)
       {
          if(item->getObject())
          {
-            Con::executef(this, 2, "onUnSelect", Con::getIntArg(item->getObject()->getId()));
+            Con::executef(this, 2, "onUnSelect", item->getObject()->getId());
          }
       }
       else
       {
-         Con::executef(this, 2, "onUnSelect", Con::getIntArg(item->mId));
+         Con::executef(this, 2, "onUnSelect", item->mId);
       }
 
       // remove it from the selected items list
@@ -1486,7 +1483,7 @@ bool GuiTreeViewCtrl::setItemExpanded(S32 itemId, bool expand)
 }
 
 
-bool GuiTreeViewCtrl::setItemValue(S32 itemId, StringTableEntry Value)
+bool GuiTreeViewCtrl::setItemValue(S32 itemId, ConsoleValue& Value)
 {
    Item * item = getItem(itemId);
    if(!item)
@@ -1495,8 +1492,7 @@ bool GuiTreeViewCtrl::setItemValue(S32 itemId, StringTableEntry Value)
       return(false);
    }
 
-   item->setValue( ( Value ) ? Value : "" );
-
+   item->setValue( Value );
    return(true);
 }
 
@@ -1512,7 +1508,7 @@ const char * GuiTreeViewCtrl::getItemText(S32 itemId)
    return(item->getText() ? item->getText() : "");
 }
 
-const char * GuiTreeViewCtrl::getItemValue(S32 itemId)
+ConsoleValue GuiTreeViewCtrl::getItemValue(S32 itemId)
 {
    Item * item = getItem(itemId);
    if(!item)
@@ -1529,11 +1525,11 @@ const char * GuiTreeViewCtrl::getItemValue(S32 itemId)
    else
    {
       // Just return the script value...
-      return(item->getValue() ? item->getValue() : "");
+      return item->getValue();
    }
 }
 
-bool GuiTreeViewCtrl::editItem( S32 itemId, const char* newText, const char* newValue )
+bool GuiTreeViewCtrl::editItem( S32 itemId, const char* newText, ConsoleValue& newValue )
 {
    Item* item = getItem( itemId );
    if ( !item )
@@ -1552,9 +1548,7 @@ bool GuiTreeViewCtrl::editItem( S32 itemId, const char* newText, const char* new
    item->setText (new char[dStrlen( newText ) + 1]);
    dStrcpy( item->getText(), newText );
 
-   delete [] item->getValue();
-   item->setValue( new char[dStrlen( newValue ) + 1] );
-   dStrcpy( item->getValue(), newValue );
+   item->setValue( newValue );
 
    // Update the widths and such:
    buildVisibleTree();
@@ -2471,7 +2465,7 @@ void GuiTreeViewCtrl::onMouseDown(const GuiEvent & event)
          // already selected, so unselect it and remove it
          removeSelection(item->mId);
          if (item->isInspectorData())
-            Con::executef(this,2,"onRemoveSelection",Con::getIntArg(item->getObject()->getId()));
+            Con::executef(this,2,"onRemoveSelection", item->getObject()->getId());
       } else
       {
          // otherwise select it and add it to the list
@@ -2485,7 +2479,7 @@ void GuiTreeViewCtrl::onMouseDown(const GuiEvent & event)
          //if (newSelection) {
          addSelection(item->mId);
          if (item->isInspectorData())
-            Con::executef(this,2,"onAddSelection",Con::getIntArg(item->getObject()->getId()));
+            Con::executef(this,2,"onAddSelection", item->getObject()->getId());
          //}
 
 
@@ -2541,7 +2535,7 @@ void GuiTreeViewCtrl::onMouseDown(const GuiEvent & event)
                   {
                      addSelection(mVisibleItems[j]->mId);
                      if (mVisibleItems[j]->isInspectorData())
-                        Con::executef(this,2,"onAddSelection",Con::getIntArg(mVisibleItems[j]->getObject()->getId()));
+                        Con::executef(this,2,"onAddSelection", mVisibleItems[j]->getObject()->getId());
                   }
                }
             }
@@ -2561,7 +2555,7 @@ void GuiTreeViewCtrl::onMouseDown(const GuiEvent & event)
                   {
                      addSelection(mVisibleItems[j]->mId);
                      if (mVisibleItems[j]->isInspectorData())
-                        Con::executef(this,2,"onAddSelection",Con::getIntArg(mVisibleItems[j]->getObject()->getId()));
+                        Con::executef(this,2,"onAddSelection", mVisibleItems[j]->getObject()->getId());
                   }
                }
             }
@@ -2679,17 +2673,12 @@ void GuiTreeViewCtrl::onRightMouseDown(const GuiEvent & event)
       return;
 
    //
-   char bufs[2][32];
-   dSprintf(bufs[0], 32, "%d", item->mId);
-   dSprintf(bufs[1], 32, "%d %d", event.mousePoint.x, event.mousePoint.y);
+   auto* vl = ConsoleValueList::from(event.mousePoint.x, event.mousePoint.y);
 
    if (item->isInspectorData())
-      Con::executef(this,4, "onRightMouseDown", bufs[0],bufs[1],Con::getIntArg(item->getObject()->getId()));
+      Con::executef(this,4, "onRightMouseDown", item->mId, vl, item->getObject()->getId());
    else
-      Con::executef(this, 3, "onRightMouseDown", bufs[0], bufs[1]);
-
-
-
+      Con::executef(this, 3, "onRightMouseDown", item->mId, vl);
 }
 
 //------------------------------------------------------------------------------
@@ -2954,7 +2943,7 @@ void GuiTreeViewCtrl::onRenderCell(Point2I offset, Point2I cell, bool, bool )
    {
       // If it's script data, our color is determined by whether or not we're
       // zero. A bit gross and hacky, maybe this should go.
-      if ( dStrcmp( item->getValue(), "0" ) )
+      if ( item->getValue().getInt() != 0 )
          fontColor = item->mState.test( Item::Selected ) ? mProfile->mFontColorSEL :
                    ( item->mState.test( Item::MouseOverText ) ? mProfile->mFontColorHL : mProfile->mFontColor );
       else
@@ -3268,9 +3257,9 @@ void GuiTreeViewCtrl::inspectObject(SimObject *obj, bool okToEdit)
    mFlags.set(IsEditable, okToEdit);
 
    //build our icon table
-   const char * res  = Con::executef(this, 1, "onDefineIcons");
+   ConsoleValue res  = Con::executef(this, 1, "onDefineIcons");
 
-   if(!(dAtob(res)))
+   if(!(res.getInt()))
    {
       // if no icons were defined in script then use defaults.
       buildIconTable(NULL);
@@ -3331,7 +3320,7 @@ StringTableEntry GuiTreeViewCtrl::getTextToRoot( S32 itemId, const char * delimi
 //------------------------------------------------------------------------------
 ConsoleMethod(GuiTreeViewCtrl, findItemByName, S32, 3, 3, "(find item by name and returns the mId)")
 {
-   return(object->findItemByName(argv[2]));
+   return(object->findItemByName(argv[2].toString()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, insertItem, S32, 4, 8, "(TreeItemId parent, name, value, icon, normalImage=0, expandedImage=0)")
@@ -3340,19 +3329,19 @@ ConsoleMethod(GuiTreeViewCtrl, insertItem, S32, 4, 8, "(TreeItemId parent, name,
 
    if (argc > 6) 
    {
-      norm = dAtoi(argv[6]);
+      norm = argv[6].getInt();
       if(argc > 7)
-         expand = dAtoi(argv[7]);
+         expand = argv[7].getInt();
    }
 
-   return(object->insertItem(dAtoi(argv[2]),  argv[3], argv[4], argv[5], norm, expand));
+   return(object->insertItem(argv[2].getInt(), argv[3].toString(), argv[4], argv[5].toString(), norm, expand));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, lockSelection, void, 2, 3, "(locks selections)")
 {
    bool lock = true;
    if(argc == 3)
-      lock = dAtob(argv[2]);
+      lock = argv[2].getInt();
    object->lockSelection(lock);
 }
 
@@ -3368,39 +3357,38 @@ ConsoleMethod(GuiTreeViewCtrl, deleteSelection, void, 2, 2, "(deletes the select
 
 ConsoleMethod(GuiTreeViewCtrl, addSelection, void, 3, 3, "(selects an item)")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    object->addSelection(id);
 }
 
 ConsoleMethod(GuiTreeViewCtrl, removeSelection, void, 3, 3, "(deselects an item)")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    object->removeSelection(id);
 }
 
 ConsoleMethod(GuiTreeViewCtrl, selectItem, bool, 3, 4, "(TreeItemId item, bool select=true)")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    bool select = true;
    if(argc == 4)
-      select = dAtob(argv[3]);
+      select = argv[3].getInt();
 
    return(object->setItemSelected(id, select));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, expandItem, bool, 3, 4, "(TreeItemId item, bool expand=true)")
 {
-   S32 id = dAtoi(argv[2]);
+   S32 id = argv[2].getInt();
    bool expand = true;
    if(argc == 4)
-      expand = dAtob(argv[3]);
+      expand = argv[3].getInt();
    return(object->setItemExpanded(id, expand));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, buildIconTable, bool, 3,3, "(builds an icon table)")
 {
-   const char * icons = argv[2];
-   return object->buildIconTable(icons);
+   return object->buildIconTable(argv[2].toString());
 }
 
 ConsoleMethod( GuiTreeViewCtrl, open, void, 3, 4, "(SimSet obj, bool okToEdit=true) Set the root of the tree view to the specified object, or to the root set.")
@@ -3411,7 +3399,7 @@ ConsoleMethod( GuiTreeViewCtrl, open, void, 3, 4, "(SimSet obj, bool okToEdit=tr
    bool okToEdit = true;
 
    if (argc == 4)
-      okToEdit = dAtob(argv[3]);
+      okToEdit = argv[3].getInt();
 
    if (target)
       treeRoot = dynamic_cast<SimSet*>(target);
@@ -3424,22 +3412,22 @@ ConsoleMethod( GuiTreeViewCtrl, open, void, 3, 4, "(SimSet obj, bool okToEdit=tr
 
 ConsoleMethod(GuiTreeViewCtrl, getItemText, const char *, 3, 3, "(TreeItemId item)")
 {
-   return(object->getItemText(dAtoi(argv[2])));
+   return(object->getItemText(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, getItemValue, const char *, 3, 3, "(TreeItemId item)")
 {
-   return(object->getItemValue(dAtoi(argv[2])));
+   return(object->getItemValue(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, editItem, bool, 5, 5, "(TreeItemId item, string newText, string newValue)")
 {
-   return(object->editItem(dAtoi(argv[2]), argv[3], argv[4]));
+   return(object->editItem(argv[2].getInt(), argv[3].toString(), argv[4]));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, removeItem, bool, 3, 3, "(TreeItemId item)")
 {
-   return(object->removeItem(dAtoi(argv[2])));
+   return(object->removeItem(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, clear, void, 2, 2, "() - empty tree")
@@ -3454,22 +3442,22 @@ ConsoleMethod(GuiTreeViewCtrl, getFirstRootItem, S32, 2, 2, "Get id for root ite
 
 ConsoleMethod(GuiTreeViewCtrl, getChild, S32, 3, 3, "(TreeItemId item)")
 {
-   return(object->getChildItem(dAtoi(argv[2])));
+   return(object->getChildItem(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, getParent, S32, 3, 3, "(TreeItemId item)")
 {
-   return(object->getParentItem(dAtoi(argv[2])));
+   return(object->getParentItem(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, getNextSibling, S32, 3, 3, "(TreeItemId item)")
 {
-   return(object->getNextSiblingItem(dAtoi(argv[2])));
+   return(object->getNextSiblingItem(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, getPrevSibling, S32, 3, 3, "(TreeItemId item)")
 {
-   return(object->getPrevSiblingItem(dAtoi(argv[2])));
+   return(object->getPrevSiblingItem(argv[2].getInt()));
 }
 
 ConsoleMethod(GuiTreeViewCtrl, getItemCount, S32, 2, 2, "")
@@ -3484,7 +3472,7 @@ ConsoleMethod(GuiTreeViewCtrl, getSelectedItem, S32, 2, 2, "")
 
 ConsoleMethod(GuiTreeViewCtrl, moveItemUp, void, 3, 3, "(TreeItemId item)")
 {
-   object->moveItemUp( dAtoi( argv[2] ) );
+   object->moveItemUp( argv[2].getInt() );
 }
 
 //-----------------------------------------------------------------------------
@@ -3496,8 +3484,8 @@ ConsoleMethod(GuiTreeViewCtrl, getTextToRoot, const char*,4,4,"(TreeItemId item,
       Con::warnf("GuiTreeViewCtrl::getTextToRoot - Invalid number of arguments!");
       return ("");
    }
-   S32 itemId = dAtoi( argv[2] );
-   StringTableEntry delimiter = argv[3];
+   S32 itemId = argv[2].getInt();
+   StringTableEntry delimiter = argv[3].toString();
 
    return object->getTextToRoot( itemId, delimiter );
 }

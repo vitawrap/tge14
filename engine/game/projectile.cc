@@ -667,11 +667,8 @@ void Projectile::explode(const Point3F& p, const Point3F& n, const U32 collideTy
       mExplosionNormal = n;
       mCollideHitType  = collideType;
 
-      char buffer[128];
-      dSprintf(buffer, sizeof(buffer),  "%g %g %g", mExplosionPosition.x,
-                                                    mExplosionPosition.y,
-                                                    mExplosionPosition.z);
-      Con::executef(mDataBlock, 4, "onExplode", scriptThis(), buffer, Con::getFloatArg(mFadeValue));
+      Con::executef(mDataBlock, 4, "onExplode", getId(),
+          ConsoleValueList::from(mExplosionPosition.x, mExplosionPosition.y, mExplosionPosition.z), mFadeValue);
 
       setMaskBits(ExplosionMask);
 		Sim::postEvent(this, new ObjectDeleteEvent, Sim::getCurrentTime() + DeleteWaitTime);
@@ -910,7 +907,6 @@ void Projectile::advanceTime(F32 dt)
    }
    else
    {
-
       if (mMaintainThread)
       {
          mProjectileShape->advanceTime(dt, mMaintainThread);
@@ -967,18 +963,12 @@ void Projectile::onCollision(const Point3F& hitPosition, const Point3F& hitNorma
 
    if (hitObject != NULL && isServerObject())
    {
-      char *posArg = Con::getArgBuffer(64);
-      char *normalArg = Con::getArgBuffer(64);
-
-      dSprintf(posArg, 64, "%g %g %g", hitPosition.x, hitPosition.y, hitPosition.z);
-      dSprintf(normalArg, 64, "%g %g %g", hitNormal.x, hitNormal.y, hitNormal.z);
-
       Con::executef(mDataBlock, 6, "onCollision",
-         scriptThis(),
-         Con::getIntArg(hitObject->getId()),
-         Con::getFloatArg(mFadeValue),
-         posArg,
-         normalArg);
+         getId(),
+         hitObject->getId(),
+         mFadeValue,
+         ConsoleValueList::from(hitPosition.x, hitPosition.y, hitPosition.z),
+         ConsoleValueList::from(hitNormal.x, hitNormal.y, hitNormal.z));
    }
 }
 
