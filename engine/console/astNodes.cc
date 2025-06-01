@@ -787,8 +787,6 @@ U32 IntNode::compile(U64 *codeStream, U64 ip, TypeReq type)
    if (type == TypeReqNone)
       return ip;
 
-   FloatIntConv conv;
-   conv.f = value;
    codeStream[ip++] = OP_LOADIMMED_UINT;
    codeStream[ip++] = value;
    return ip;
