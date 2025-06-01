@@ -6,6 +6,7 @@
 #ifndef _AST_H_
 #define _AST_H_
 
+struct ConsoleValue;
 class ExprEvalState;
 class Namespace;
 class SimObject;
@@ -15,6 +16,15 @@ class SimGroup;
 enum TypeReq {
    TypeReqNone,
    TypeReqValue
+};
+
+// Fold type
+enum TypeConst {
+   TypeConstUnknown,
+   TypeConstString,
+   TypeConstFloat,
+   TypeConstInt,
+   TypeConstList
 };
 
 /// Representation of a node for the scripting language parser.
@@ -56,10 +66,23 @@ struct StmtNode
    /// @name Compilation
    /// @{
 
+   virtual TypeConst getFoldType() const { return TypeConstUnknown; }
+   virtual ConsoleValue getFoldValue() const;
+   virtual StmtNode* fold() { return this; }
+
    virtual U32 precompileStmt(U32 loopCount) = 0;
    virtual U32 compileStmt(U64* codeStream, U64 ip, U32 continuePoint, U32 breakPoint) = 0;
    virtual void setPackage(StringTableEntry packageName);
    /// @}
+};
+
+// This can appear during the AST folding stage if a node has to exist but nothing can be compiled.
+struct NoStmtNode : StmtNode
+{
+   static NoStmtNode* alloc();
+
+   U32 precompileStmt(U32) { return 0; }
+   U32 compileStmt(U64*, U64 ip, U32, U32) { return ip; }
 };
 
 struct BreakStmtNode : StmtNode
@@ -95,6 +118,8 @@ struct ReturnStmtNode : StmtNode
    static ReturnStmtNode *alloc(ExprNode *expr);
    U32 precompileStmt(U32 loopCount);
    U32 compileStmt(U64* codeStream, U64 ip, U32 continuePoint, U32 breakPoint);
+
+   StmtNode* fold() override;
 };
 
 struct IfStmtNode : StmtNode
@@ -111,6 +136,8 @@ struct IfStmtNode : StmtNode
    ExprNode *getSwitchOR(ExprNode *left, ExprNode *list, bool string);
    U32 precompileStmt(U32 loopCount);
    U32 compileStmt(U64* codeStream, U64 ip, U32 continuePoint, U32 breakPoint);
+
+   StmtNode* fold() override;
 };
 
 struct SwitchStmtNode : StmtNode
@@ -118,6 +145,8 @@ struct SwitchStmtNode : StmtNode
     ExprNode* testExpr;
 
     static SwitchStmtNode* alloc(S32 lineNumber, ExprNode* testExpr);
+
+    StmtNode* fold() override;
 };
 
 struct LoopStmtNode : StmtNode
@@ -135,6 +164,8 @@ struct LoopStmtNode : StmtNode
    static LoopStmtNode *alloc(S32 lineNumber, ExprNode *testExpr, ExprNode *initExpr, ExprNode *endLoopExpr, StmtNode *loopBlock, bool isDoLoop);
    U32 precompileStmt(U32 loopCount);
    U32 compileStmt(U64* codeStream, U64 ip, U32 continuePoint, U32 breakPoint);
+
+   StmtNode* fold() override;
 };
 
 /// A binary mathematical expression (ie, left op right).
@@ -143,6 +174,8 @@ struct BinaryExprNode : ExprNode
    S32 op;
    ExprNode *left;
    ExprNode *right;
+
+   StmtNode* fold() override;
 };
 
 struct FloatBinaryExprNode : BinaryExprNode
@@ -151,6 +184,8 @@ struct FloatBinaryExprNode : BinaryExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct ConditionalExprNode : ExprNode
@@ -163,6 +198,8 @@ struct ConditionalExprNode : ExprNode
    virtual U32 precompile(TypeReq type);
    virtual U32 compile(U64* codeStream, U64 ip, TypeReq type);
    virtual TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct IntBinaryExprNode : BinaryExprNode
@@ -176,6 +213,8 @@ struct IntBinaryExprNode : BinaryExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct StreqExprNode : BinaryExprNode
@@ -185,6 +224,8 @@ struct StreqExprNode : BinaryExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold();
 };
 
 struct StrcatExprNode : BinaryExprNode
@@ -194,6 +235,8 @@ struct StrcatExprNode : BinaryExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold();
 };
 
 struct StrForgiveExprNode : BinaryExprNode
@@ -202,6 +245,8 @@ struct StrForgiveExprNode : BinaryExprNode
     U32 precompile(TypeReq type);
     U32 compile(U64* codeStream, U64 ip, TypeReq type);
     TypeReq getPreferredType();
+
+    StmtNode* fold();
 };
 
 struct CommaCatExprNode : BinaryExprNode
@@ -211,6 +256,8 @@ struct CommaCatExprNode : BinaryExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold();
 };
 
 struct InstanceOfExprNode : BinaryExprNode
@@ -232,6 +279,8 @@ struct IntUnaryExprNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct FloatUnaryExprNode : ExprNode
@@ -243,6 +292,8 @@ struct FloatUnaryExprNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct VarNode : ExprNode
@@ -255,6 +306,8 @@ struct VarNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct IntNode : ExprNode
@@ -266,6 +319,9 @@ struct IntNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   TypeConst getFoldType() const override { return TypeConstInt; }
+   ConsoleValue getFoldValue() const override;
 };
 
 struct FloatNode : ExprNode
@@ -277,6 +333,9 @@ struct FloatNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   TypeConst getFoldType() const override { return TypeConstFloat; }
+   ConsoleValue getFoldValue() const override;
 };
 
 struct StrConstNode : ExprNode
@@ -290,6 +349,10 @@ struct StrConstNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
+   TypeConst getFoldType() const override { return TypeConstString; }
+   ConsoleValue getFoldValue() const override;
 };
 
 struct ConstantNode : ExprNode
@@ -302,6 +365,9 @@ struct ConstantNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   TypeConst getFoldType() const override { return TypeConstString; }
+   ConsoleValue getFoldValue() const override;
 };
 
 struct AssignExprNode : ExprNode
@@ -316,6 +382,8 @@ struct AssignExprNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct AssignDecl
@@ -339,6 +407,8 @@ struct AssignOpExprNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct ValueListExprNode : ExprNode
@@ -349,6 +419,8 @@ struct ValueListExprNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct FuncCallExprNode : ExprNode
@@ -367,6 +439,8 @@ struct FuncCallExprNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct SlotDecl
@@ -385,6 +459,8 @@ struct SlotAccessNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct SlotAssignNode : ExprNode
@@ -397,6 +473,8 @@ struct SlotAssignNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct SlotAssignOpNode : ExprNode
@@ -412,6 +490,8 @@ struct SlotAssignOpNode : ExprNode
    U32 precompile(TypeReq type);
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct ObjectDeclNode : ExprNode
@@ -431,6 +511,8 @@ struct ObjectDeclNode : ExprNode
    U32 compile(U64* codeStream, U64 ip, TypeReq type);
    U32 compileSubObject(U64 *codeStream, U64 ip, bool);
    TypeReq getPreferredType();
+
+   StmtNode* fold() override;
 };
 
 struct ObjectBlockDecl
@@ -453,6 +535,8 @@ struct FunctionDeclStmtNode : StmtNode
    U32 precompileStmt(U32 loopCount);
    U32 compileStmt(U64 *codeStream, U64 ip, U32 continuePoint, U32 breakPoint);
    void setPackage(StringTableEntry packageName);
+
+   StmtNode* fold() override;
 };
 
 extern StmtNode *statementList;
@@ -462,5 +546,22 @@ extern bool lookupFunction(const char *fnName, VarNode **args, StmtNode **statem
 typedef const char *(*cfunc)(S32 argc, char **argv);
 extern bool lookupCFunction(const char *fnName, cfunc *f);
 
+// This already supports nullable statement lists
+template <typename T>
+static T* foldNodeList(T* start) {
+    StmtNode* newStart = NULL;
+    StmtNode* prev = NULL;
+    for (StmtNode* walk = start; walk; walk = (StmtNode*)walk->next) {
+        StmtNode* savedNext = walk->next;
+        walk = walk->fold();
+        walk->next = savedNext;
+        // Previous node needs to be aware that his successor changed.
+        if (prev) prev->next = walk;
+        prev = walk;
+        // Prepare to return new head
+        if (!newStart) newStart = walk;
+    }
+    return newStart ? (T*)newStart : start;
+}
 
 #endif

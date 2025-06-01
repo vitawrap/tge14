@@ -396,7 +396,10 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
    {
       consoleAllocReset();
       return false;
-   }   
+   }
+
+   // Attempt constant folding
+   statementList = foldNodeList(statementList);
 
    FileStream st;
    if(!ResourceManager->openFileForWrite(st, codeFileName)) 
@@ -491,6 +494,9 @@ ConsoleValue CodeBlock::compileExec(StringTableEntry fileName, const char *strin
       delete this;
       return "";
    }
+
+   // Also fold when evaluating, to get consistent results.
+   statementList = foldNodeList(statementList);
 
    resetTables();
 

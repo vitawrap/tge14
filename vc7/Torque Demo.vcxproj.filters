@@ -1271,6 +1271,9 @@
     <ClCompile Include="..\engine\console\consoleValue.cc">
       <Filter>Source Files\console</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\console\astFold.cc">
+      <Filter>Source Files\console</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\engine\collision\abstractPolyList.h">

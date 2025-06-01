@@ -35,6 +35,7 @@ SOURCE.COLLISION=\
 
 SOURCE.CONSOLE=\
 	console/astAlloc.cc \
+	console/astFold.cc \
 	console/astNodes.cc \
 	console/codeBlock.cc \
 	console/compiledEval.cc  \

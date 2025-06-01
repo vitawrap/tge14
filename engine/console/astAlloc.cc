@@ -20,6 +20,13 @@ using namespace Compiler;
 
 //------------------------------------------------------------
 
+NoStmtNode* NoStmtNode::alloc()
+{
+   NoStmtNode* ret = (NoStmtNode*)consoleAlloc(sizeof(NoStmtNode));
+   constructInPlace(ret);
+   return ret;
+}
+
 BreakStmtNode *BreakStmtNode::alloc()
 {
    BreakStmtNode *ret = (BreakStmtNode *) consoleAlloc(sizeof(BreakStmtNode));

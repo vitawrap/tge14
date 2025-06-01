@@ -299,6 +299,7 @@
     <ClCompile Include="..\engine\collision\polyhedron.cc" />
     <ClCompile Include="..\engine\collision\polytope.cc" />
     <ClCompile Include="..\engine\console\astAlloc.cc" />
+    <ClCompile Include="..\engine\console\astFold.cc" />
     <ClCompile Include="..\engine\console\astNodes.cc" />
     <ClCompile Include="..\engine\console\CMDgram.cc" />
     <ClCompile Include="..\engine\console\CMDscan.cc" />
