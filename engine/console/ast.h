@@ -540,11 +540,7 @@ struct FunctionDeclStmtNode : StmtNode
 };
 
 extern StmtNode *statementList;
-extern void createFunction(const char *fnName, VarNode *args, StmtNode *statements);
 extern ExprEvalState gEvalState;
-extern bool lookupFunction(const char *fnName, VarNode **args, StmtNode **statements);
-typedef const char *(*cfunc)(S32 argc, char **argv);
-extern bool lookupCFunction(const char *fnName, cfunc *f);
 
 // This already supports nullable statement lists
 template <typename T>
