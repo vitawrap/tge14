@@ -1035,9 +1035,7 @@ void ShapeBase::getRenderMuzzlePoint(U32 imageSlot,Point3F* pos)
 void ShapeBase::scriptCallback(U32 imageSlot,const char* function)
 {
    MountedImage& image = mMountedImageList[imageSlot];
-   char buff1[32];
-   dSprintf(buff1,sizeof(buff1),"%d",imageSlot);
-   Con::executef(image.dataBlock, 3, function,scriptThis(),buff1);
+   Con::executef(image.dataBlock, 3, function, getId(), imageSlot);
 }
 
 
