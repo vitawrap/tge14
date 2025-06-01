@@ -159,7 +159,7 @@ ConsoleFunction(alGetString, const char *, 2, 2, "(string item)\n\n"
    ALenum e = getEnum(argv[1].toString(), (Context | Get));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "alGetString: invalid enum name '%s'", argv[1]);
+      Con::errorf(ConsoleLogEntry::General, "alGetString: invalid enum name '%s'", argv[1].toString());
       return "";
    }
 
@@ -200,7 +200,7 @@ ConsoleFunction(alxCreateSource, S32, 2, 6,
       description = dynamic_cast<AudioDescription*>( Sim::findObject( argv[1] ) );
       if (description == NULL)
       {
-         Con::printf("Unable to locate audio profile/description '%s'", argv[1]);
+         Con::printf("Unable to locate audio profile/description '%s'", argv[1].toString());
          return NULL_AUDIOHANDLE;
       }
    }
@@ -236,7 +236,7 @@ ConsoleFunction(alxSourcef, void, 4, 4, "(handle, ALenum, value)")
    ALenum e = getEnum(argv[2].toString(), (Source | Set | Float));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "cAudio_alxSourcef: invalid enum name '%s'", argv[2]);
+      Con::errorf(ConsoleLogEntry::General, "cAudio_alxSourcef: invalid enum name '%s'", argv[2].toString());
       return;
    }
 
@@ -252,7 +252,7 @@ ConsoleFunction(alxSource3f, void, 3, 6, "(handle, ALenum, x, y, z)\n\n"
    ALenum e = getEnum(argv[2].toString(), (Source | Set | Float3));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "cAudio_alxSource3f: invalid enum name '%s'", argv[2]);
+      Con::errorf(ConsoleLogEntry::General, "cAudio_alxSource3f: invalid enum name '%s'", argv[2].toString());
       return;
    }
 
@@ -283,7 +283,7 @@ ConsoleFunction(alxSourcei, void, 4, 4, "(handle, ALenum, value)")
    ALenum e = getEnum(argv[2].toString(), (Source | Set | Int));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "cAudio_alxSourcei: invalid enum name '%s'", argv[2]);
+      Con::errorf(ConsoleLogEntry::General, "cAudio_alxSourcei: invalid enum name '%s'", argv[2].toString());
       return;
    }
 
@@ -297,7 +297,7 @@ ConsoleFunction(alxGetSourcef, F32, 3, 3, "(handle, ALenum)")
    ALenum e = getEnum(argv[2].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSourcef: invalid enum name '%s'", argv[2]);
+      Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSourcef: invalid enum name '%s'", argv[2].toString());
       return(0.f);
    }
 
@@ -313,7 +313,7 @@ ConsoleFunction(alxGetSource3f, const char *, 3, 3, "(handle, ALenum)" )
    ALenum e = getEnum(argv[2].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSource3f: invalid enum name '%s'", argv[2]);
+      Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSource3f: invalid enum name '%s'", argv[2].toString());
       return ConsoleValueList::from(0.0, 0.0, 0.0);
    }
 
@@ -329,7 +329,7 @@ ConsoleFunction(alxGetSourcei, S32, 3, 3, "(handle, ALenum)")
    ALenum e = getEnum(argv[2].toString(), (Source | Get | Int));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSourcei: invalid enum name '%s'", argv[2]);
+      Con::errorf(ConsoleLogEntry::General, "cAudio_alxGetSourcei: invalid enum name '%s'", argv[2].toString());
       return(0);
    }
 
@@ -409,7 +409,7 @@ ConsoleFunction(alxListenerf, void, 3, 3, "alxListener(ALenum, value)")
    ALenum e = getEnum(argv[1].toString(), (Listener | Set | Float));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "alxListenerf: invalid enum name '%s'", argv[1]);
+      Con::errorf(ConsoleLogEntry::General, "alxListenerf: invalid enum name '%s'", argv[1].toString());
       return;
    }
 
@@ -424,7 +424,7 @@ ConsoleFunction(alListener3f, void, 3, 5, "alListener3f(ALenum, \"x y z\") or "
    ALenum e = getEnum(argv[1].toString(), (Listener | Set | Float3));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "alListener3f: invalid enum name '%s'", argv[1]);
+      Con::errorf(ConsoleLogEntry::General, "alListener3f: invalid enum name '%s'", argv[1].toString());
       return;
    }
 
@@ -455,7 +455,7 @@ ConsoleFunction(alxGetListenerf, F32, 2, 2, "alxGetListenerf(Alenum)")
    ALenum e = getEnum(argv[1].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "alxGetListenerf: invalid enum name '%s'", argv[1]);
+      Con::errorf(ConsoleLogEntry::General, "alxGetListenerf: invalid enum name '%s'", argv[1].toString());
       return(0.f);
    }
 
@@ -471,7 +471,7 @@ ConsoleFunction(alGetListener3f, const char *, 2, 2, "alGetListener3f(Alenum)")
    ALenum e = getEnum(argv[2].toString(), (Source | Get | Float));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "alGetListener3f: invalid enum name '%s'", argv[1]);
+      Con::errorf(ConsoleLogEntry::General, "alGetListener3f: invalid enum name '%s'", argv[1].toString());
       return ConsoleValueList::from(0.0, 0.0, 0.0);
    }
 
@@ -487,7 +487,7 @@ ConsoleFunction(alGetListeneri, S32, 2, 2, "alGetListeneri(Alenum)")
    ALenum e = getEnum(argv[1].toString(), (Source | Get | Int));
    if(e == AL_INVALID)
    {
-      Con::errorf(ConsoleLogEntry::General, "alGetListeneri: invalid enum name '%s'", argv[1]);
+      Con::errorf(ConsoleLogEntry::General, "alGetListeneri: invalid enum name '%s'", argv[1].toString());
       return(0);
    }
 
