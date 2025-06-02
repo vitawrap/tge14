@@ -1635,6 +1635,10 @@ void ShapeBase::setImageState(U32 imageSlot, U32 newState,bool force)
       image.shapeInstance->setTimeScale(image.flashThread,0);
    }
 
+   // Execute script callback on server before testing for immediate transitions
+   if (stateData.script && stateData.script[0] && !isGhost())
+       scriptCallback(imageSlot, stateData.script);
+
    // Check for immediate transitions
    S32 ns;
    if ((ns = stateData.transition.loaded[image.loaded]) != -1) {
@@ -1737,10 +1741,6 @@ void ShapeBase::setImageState(U32 imageSlot, U32 newState,bool force)
          break;
       }
    }
-
-   // Script callback on server
-   if (stateData.script && stateData.script[0] && !isGhost())
-      scriptCallback(imageSlot,stateData.script);
 
    // If there is a zero timeout, and a timeout transition, then
    // go ahead and transition imediately.
