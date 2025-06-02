@@ -159,7 +159,7 @@ S32 ConsoleValue::serialize(char* out, S32 size) {
 		break;
 
 	case TypeValueList:
-		strBuf.concat("{");
+		strBuf.concat("#{");
 		for (ConsoleValue* itr = list->begin(); itr != list->end(); itr++) {
 			itr->serialize(stringConv, stringCSize);
 			strBuf.concatStringU(stringConv, dStrlen(stringConv));
