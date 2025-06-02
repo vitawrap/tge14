@@ -68,6 +68,7 @@ ProjectileData::ProjectileData()
 
     isBallistic = false;
     explodeOnDeath = false;
+    explodeOnWater = false;
 
     velInheritFactor = 1.0;
     muzzleVelocity = 50;
@@ -129,6 +130,7 @@ void ProjectileData::initPersistFields()
 
     addNamedField(isBallistic, TypeBool, ProjectileData);
     addNamedField(explodeOnDeath, TypeBool, ProjectileData);
+    addNamedField(explodeOnWater, TypeBool, ProjectileData);
     addNamedFieldV(velInheritFactor, TypeF32, ProjectileData, new FRangeValidator(0, 1));
     addNamedFieldV(muzzleVelocity, TypeF32, ProjectileData, new FRangeValidator(0, 10000));
 
@@ -513,6 +515,10 @@ bool Projectile::onAdd()
    resetWorldBox();
    addToScene();
 
+   // Check if spawning is legal according to the datablock.
+   if (mDataBlock->explodeOnWater && pointInWater(mCurrPosition))
+       explode(mCurrPosition, Point3F(0, 0, 1), WaterObjectType);
+
    return true;
 }
 
@@ -677,7 +683,7 @@ void Projectile::explode(const Point3F& p, const Point3F& n, const U32 collideTy
       //
       Explosion* pExplosion = NULL;
 
-      if (mDataBlock->waterExplosion && pointInWater(p))
+      if (mDataBlock->waterExplosion && (collideType & WaterObjectType || pointInWater(p)))
       {
          pExplosion = new Explosion;
          pExplosion->onNewDataBlock(mDataBlock->waterExplosion);
@@ -802,10 +808,12 @@ void Projectile::processTick(const Move* move)
    // and on the client (for prediction purposes). It is possible that the server
    // will have registered a collision while the client prediction has not. If this
    // happens the client will be corrected in the next packet update.
-   if (getContainer()->castRay(oldPosition, newPosition, csmDynamicCollisionMask | csmStaticCollisionMask, &rInfo) == true)
+   U32 staticMask = csmStaticCollisionMask;
+   if (mDataBlock->explodeOnWater) staticMask |= WaterObjectType;
+   if (getContainer()->castRay(oldPosition, newPosition, csmDynamicCollisionMask | staticMask, &rInfo) == true)
    {
       // make sure the client knows to bounce
-      if(isServerObject() && (rInfo.object->getType() & csmStaticCollisionMask) == 0)
+      if(isServerObject() && (rInfo.object->getType() & staticMask) == 0)
          setMaskBits(BounceMask);
 
       // Next order of business: do we explode on this hit?

@@ -63,6 +63,8 @@ public:
 
    /// Should it explode when its lifetime expires?
    bool explodeOnDeath;
+   /// Explode immediately when submerged?
+   bool explodeOnWater;
 
    /// How HIGH should it bounce (parallel to normal), [0,1]
    F32 bounceElasticity;
