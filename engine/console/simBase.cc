@@ -390,19 +390,20 @@ void SimObject::writeFields(Stream &stream, U32 tabStop)
                path += (docRootLen-1);
                dStrcat(expandedBuffer, "\".");
             }
-            else
-               if (modRootLen && (dStrnicmp(modRoot, path, modRootLen) == 0))
-               {
-                  path += (modRootLen-1);
-                  dStrcat(expandedBuffer, "\"~");
-               }
+            else if (modRootLen && (dStrnicmp(modRoot, path, modRootLen) == 0))
+            {
+                path += (modRootLen-1);
+                dStrcat(expandedBuffer, "\"~");
+            }
+            else dStrcat(expandedBuffer, "\"");
             expandEscape(expandedBuffer + dStrlen(expandedBuffer), path);
+            dStrcat(expandedBuffer, "\";\r\n");
          }
          else {
              size_t used = dStrlen(expandedBuffer);
              val.serialize(expandedBuffer + used, 1024 - used);
+             dStrcat(expandedBuffer, ";\r\n");
          }
-         dStrcat(expandedBuffer, "\";\r\n");
 
          writeTabs(stream, tabStop);
          stream.write(dStrlen(expandedBuffer),expandedBuffer);
