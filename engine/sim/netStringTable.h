@@ -71,7 +71,7 @@ public:
    static void create();
    static void destroy();
 
-   static void expandString(StringHandle &string, char *buf, U32 bufSize, U32 argc, const char **argv);
+   static void expandString(StringHandle &string, char *buf, U32 bufSize, U32 argc, ConsoleValue *argv);
 
 #if defined(TORQUE_DEBUG)
    void dumpToConsole();

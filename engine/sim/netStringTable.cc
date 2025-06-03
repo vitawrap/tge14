@@ -179,7 +179,7 @@ void NetStringTable::destroy()
    gNetStringTable = NULL;
 }
 
-void NetStringTable::expandString(StringHandle &inString, char *buf, U32 bufSize, U32 argc, const char **argv)
+void NetStringTable::expandString(StringHandle &inString, char *buf, U32 bufSize, U32 argc, ConsoleValue *argv)
 {
    buf[0] = StringTagPrefixByte;
    dSprintf(buf + 1, bufSize - 1, "%d ", inString.getIndex());
@@ -198,8 +198,8 @@ void NetStringTable::expandString(StringHandle &inString, char *buf, U32 bufSize
                U32 strIndex = c - '1';
                if(strIndex >= argc)
                   continue;
-               // start copying out of arg index
-               const char *copy = argv[strIndex];
+               // start copying out of arg index (can safely take string ptr of cv ptr)
+               const char *copy = argv[strIndex].toString();
                // skip past any tags:
                if(*copy == StringTagPrefixByte)
                {

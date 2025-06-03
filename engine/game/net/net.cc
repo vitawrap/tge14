@@ -115,7 +115,7 @@ public:
                                           mBuf,
                                           sizeof(mBuf),
                                           (mArgc - 1) - i,
-                                          (const char**)(mArgv + i + 2) );
+                                          mArgv + i + 2 );
             mArgv[i+1] = mBuf;
          }
       }
@@ -141,6 +141,8 @@ public:
          Con::execute(mArgc+1, mArgv);
          mArgv[1] = temp;
       }
+
+      // destructor should automatically clean up consolevalues.
    }
 
    DECLARE_CONOBJECT(RemoteCommandEvent);
