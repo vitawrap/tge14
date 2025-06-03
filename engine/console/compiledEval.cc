@@ -215,7 +215,7 @@ static void dumpInterpreterState(U64 op) {
         "OP_SETCURFIELD_ARRAY",
         "OP_LOADFIELD",
         "OP_SAVEFIELD",
-        "OP_STRNOTNULL",
+        "OP_JMPIF_STRNOTNULL_NP",
         "OP_VAL_TO_NONE",
         "OP_LOADIMMED_UINT",
         "OP_LOADIMMED_FLT",
@@ -692,6 +692,14 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             }
             ip = code[ip];
             break;
+         case OP_JMPIF_STRNOTNULL_NP:
+            if(valueStack[TOP].isNullString()) {
+               popValueStack();
+               ip++;
+               break;
+            }
+            ip = code[ip];
+            break;
          case OP_JMP:
             ip = code[ip];
             break;
@@ -893,11 +901,6 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          case OP_SAVEFIELD:
             if(curObject)
                curObject->setDataField(curField, curFieldArray.toString(), valueStack[TOP]);
-            break;
-
-         case OP_STRNOTNULL:
-            // useful to test if not equal to null term (0)
-            valueStack[TOP] = S64( !valueStack[TOP].isNullString() );
             break;
 
          case OP_VAL_TO_NONE:

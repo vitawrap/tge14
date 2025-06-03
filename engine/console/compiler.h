@@ -95,7 +95,7 @@ namespace Compiler
       OP_LOADFIELD,
       OP_SAVEFIELD,
 
-      OP_STRNOTNULL,
+      OP_JMPIF_STRNOTNULL_NP,
       OP_VAL_TO_NONE,
 
       OP_LOADIMMED_UINT,

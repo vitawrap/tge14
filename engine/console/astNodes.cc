@@ -601,15 +601,14 @@ TypeReq StrcatExprNode::getPreferredType()
 
 U32 StrForgiveExprNode::precompile(TypeReq type)
 {
-    U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 3;
+    U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 2;
     return addSize + conversionSize(TypeReqValue, type);
 }
 
 U32 StrForgiveExprNode::compile(U64* codeStream, U64 ip, TypeReq type)
 {
     ip = left->compile(codeStream, ip, TypeReqValue);
-    codeStream[ip++] = OP_STRNOTNULL;
-    codeStream[ip++] = OP_JMPIF;
+    codeStream[ip++] = OP_JMPIF_STRNOTNULL_NP;
     U32 jmpIp = ip++;
     ip = right->compile(codeStream, ip, TypeReqValue);
     codeStream[jmpIp] = ip;
