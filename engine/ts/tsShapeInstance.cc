@@ -534,6 +534,10 @@ S32 TSShapeInstance::findMesh(char const* meshName)
 
 S32 TSShapeInstance::reColor(char const* meshName, const ColorF& color)
 {
+    // No mesh name specified, recolor the first mesh.
+    if (!meshName || !meshName[0])
+        return reColor(0, color);
+
     for (S32 i = 0; i < mMeshObjects.size(); i++)
     {
         S32 nameIndex = mMeshObjects[i].object->nameIndex;
