@@ -166,8 +166,11 @@ void Terraformer::setShift(const Point2F &shift)
 void Terraformer::getMinMax(U32 r, F32 *fmin, F32 *fmax)
 {
    Heightfield *src = getRegister(r);
-   if (!src)
+   if (!src) { // don't leave fmin and fmax potentially uninitialized!
+      *fmin = 0.f;
+      *fmax = 1.f;
       return;
+   }
 
    F32 *p = src->data;
    *fmin = *p;
@@ -212,7 +215,7 @@ GBitmap* Terraformer::getScaledGreyscale(U32 r)
    getMinMax(r, &fmin, &fmax);
 
    GBitmap* bitmap = new GBitmap(blockSize, blockSize, false, GBitmap::RGB);
-   
+
    U8 *rgb = bitmap->getAddress(0,0);
 
    S32 y, x;
@@ -307,10 +310,13 @@ bool Terraformer::loadGreyscale(U32 r, const char *filename)
 {
    Heightfield *dst = getRegister(r);
 
-//   return ResourceManager->findFile(filename);
    GBitmap *bmp = (GBitmap *) ResourceManager->loadInstance(filename);
-   if (!bmp)
+   if (!bmp) {
+      Con::errorf("Terraformer::loadGreyscale: file \"%s\" referenced by heightscript no longer exists!", filename);
+      dMemset(dst->dataS32, 0, sizeof(*dst->dataS32) * blockSize * blockSize);
+      dst->val(0, 0) = 1.f; // ...have to do this in order to not trip up math relying on getMinMax.
       return false;
+   }
 
    for (S32 y=0; y<blockSize; y++)
       for (S32 x=0; x<blockSize; x++)
