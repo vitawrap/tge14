@@ -76,23 +76,24 @@ ConsoleMethod( GuiPlayerView, setSeq, void, 3, 3, "playerView.setSeq( name )" )
    object->setPlayerSeq( argv[2].toString() );
 }
 
-ConsoleMethod(GuiPlayerView, setModelColor, void, 4, 4, "playerView.setModelColor( nodeName, colorF )")
+ConsoleMethod(GuiPlayerView, setModelColor, void, 3, 4, "playerView.setModelColor( [nodeName,] colorF )")
 {
-    argc;
     ColorF color(1.f, 1.f, 1.f, 1.f);
-    color = argv[3].getColorF();
-    //dSscanf(argv[3], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
-    object->setModelColor(argv[2].toString(), color);
+    color = argv[argc-1].getColorF();
+
+    // nodeName can be a null string to recolor the first mesh object.
+    if (argc > 3)   object->setModelColor(argv[2].toString(), color);
+    else            object->setModelColor(NULL, color);
 }
 
-ConsoleMethod(GuiPlayerView, setImageColor, void, 5, 5, "playerView.setImageColor( mountPoint, nodeName, colorF )")
+ConsoleMethod(GuiPlayerView, setImageColor, void, 4, 5, "playerView.setImageColor( mountPoint, [nodeName,] colorF )")
 {
-    argc;
     ColorF color(1.f, 1.f, 1.f, 1.f);
-    color = argv[4].getColorF();
-    //dSscanf(argv[4], "%g %g %g %g", &color.red, &color.green, &color.blue, &color.alpha);
+    color = argv[argc-1].getColorF();
 
-    object->setImageColor(argv[2].getInt(), argv[3].toString(), color);
+    // nodeName can be a null string to recolor the first mesh object.
+    if (argc > 4)   object->setImageColor(argv[2].getInt(), argv[3].toString(), color);
+    else            object->setImageColor(argv[2].getInt(), NULL, color);
 }
 
 ConsoleMethod(GuiPlayerView, fitModel, void, 2, 2, "playerView.fitModel() - Calculate ideal FOV for model")
