@@ -67,7 +67,6 @@ DemoNetInterface GameNetInterface;
 extern ResourceInstance *constructTerrainFile(Stream &stream);
 extern ResourceInstance *constructTSShape(Stream &);
 
-
 ConsoleFunctionGroupBegin( Platform , "General platform functions.");
 
 ConsoleFunction( lockMouse, void, 2, 2, "(bool isLocked)"
@@ -254,6 +253,8 @@ bool runEntryScript (int argc, const char **argv)
    return true;
 }
 
+StringTableEntry scriptTimeCallback = "";
+
 /// Initalize game, run the specified startup script
 bool initGame(int argc, const char **argv)
 {
@@ -288,6 +289,9 @@ bool initGame(int argc, const char **argv)
    Con::setIntVariable("$TypeMasks::StaticRenderedObjectType", StaticRenderedObjectType);
    Con::setIntVariable("$TypeMasks::DamagableItemObjectType",  DamagableItemObjectType);
    Con::setIntVariable("$TypeMasks::InteriorMapObjectType",    InteriorMapObjectType);
+
+   // Game time elapsed callback
+   Con::addVariable("Game::timeCallback", TypeString, &scriptTimeCallback);
 
    //
 #ifdef TORQUE_GATHER_METRICS
@@ -641,6 +645,10 @@ void DemoGame::processTimeEvent(TimeEvent *event)
    if(tickPass)
       GNet->processClient();
    PROFILE_END();
+
+   // Run a script command if we want to.
+   if (scriptTimeCallback[0])
+       Con::executef(2, scriptTimeCallback, timeDelta);
 
    if(Canvas && gDGLRender)
    {
