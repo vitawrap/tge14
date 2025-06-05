@@ -1348,13 +1348,15 @@ void Player::updateState()
             {
                // this serves and counter, and direction state
                mRecoverTicks = mReversePending;
-               mActionAnimation.forward = false;
 
-               AssertFatal(mActionAnimation.action < mDataBlock->actionCount, "Action animation is out of bounds!");
+               //AssertFatal(mActionAnimation.action < mDataBlock->actionCount, "Action animation is out of bounds!");
 
                // careful! it's possible we have no action animation thread
-               if (mActionAnimation.thread)
+               if (mActionAnimation.thread
+                   // Sequences outside the hardcoded player action list should not cause this to crash!
+                   && (mActionAnimation.action < mDataBlock->actionCount))
                {
+                   mActionAnimation.forward = false;
                    S32 seq = mDataBlock->actionList[mActionAnimation.action].sequence;
                    F32 pos = mShapeInstance->getPos(mActionAnimation.thread);
                    mShapeInstance->setTimeScale(mActionAnimation.thread, -sLandReverseScale);
