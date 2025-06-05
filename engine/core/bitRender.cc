@@ -297,8 +297,12 @@ void BitRender::render_tris(const U8 * draw, S32 numDraw, S32 szDraw, const U16 
             }
 
             // all the control variables we have to set up...
-            S32 leftDeltaY, xLeftInc, xLeftErrInc, xLeftDir, xLeft, xLeftErr = 0;
-            S32 rightDeltaY, xRightInc, xRightErrInc, xRightDir, xRight, xRightErr = 0;
+            S32 leftDeltaY, xLeftInc = 0;
+            S32 xLeftErrInc, xLeftDir = 0;
+            S32 xLeft, xLeftErr = 0;
+            S32 rightDeltaY, xRightInc = 0;
+            S32 xRightErrInc, xRightDir = 0;
+            S32 xRight, xRightErr = 0;
             S32 * changeThisDelta;
             S32 * changeThisInc;
             S32 * changeThisErrInc;
