@@ -778,6 +778,7 @@ void ParticleData::initializeParticle(Particle* init, const Point3F& inheritVelo
 //
 ParticleEmitter::ParticleEmitter()
 {
+   mDataBlock = NULL;
    mNeedTransformUpdate = true;
 
    mAddToScene       = true;
@@ -846,16 +847,24 @@ void ParticleEmitter::onRemove()
       gClientSceneGraph->removeObjectFromScene(this);
    }
 
+   // Don't forget to unregister datablock ref...
+   if (mDataBlock)
+       mDataBlock->unregisterReference((SimObject**) &mDataBlock);
+
    Parent::onRemove();
 }
 
 
 bool ParticleEmitter::onNewDataBlock(GameBaseData* dptr)
 {
+   if (mDataBlock)
+       mDataBlock->unregisterReference((SimObject**) &mDataBlock);
+
    mDataBlock = dynamic_cast<ParticleEmitterData*>(dptr);
    if (!mDataBlock || !Parent::onNewDataBlock(dptr))
       return false;
 
+   mDataBlock->registerReference((SimObject**) &mDataBlock);
    scriptOnNewDataBlock();
    return true;
 }
@@ -990,6 +999,10 @@ void ParticleEmitter::render(const Point3F& camPos, const MatrixF& modelview)
 
 void ParticleEmitter::renderObject(SceneState* state, SceneRenderImage*)
 {
+   // Failsafe for deleteWhenEmpty overstepping datablock lifetime...
+   if (!mDataBlock)
+       return;
+
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on entry");
 
    RectI viewport;
@@ -1576,8 +1589,8 @@ void PEngine::updateParticles(Particle* particles, ParticleEmitter &emitter, con
    AssertFatal(particles != NULL, "PEngine::updateParticles: Error, must have particles to process in this function");
    AssertFatal(ms != 0, "PEngine::updateParticles: error, no time to update?");
 
-   // updateParticles always runs, even when datablocks relied on by ParticleEmitters are being destroyed...
-   if (Sim::getDataBlockGroup()->size() == 0)
+   // Failsafe for deleteWhenEmpty overstepping datablock lifetime...
+   if (!emitter.getDataBlock())
        return;
 
    Particle* pProbe = particles;
