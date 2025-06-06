@@ -1072,6 +1072,12 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   const char* nsName = ns? ns->mName: "";
                   Con::warnf(ConsoleLogEntry::Script, "%s: %s::%s - wrong number of arguments.", getFileLine(ip-4), nsName, fnName);
                   Con::warnf(ConsoleLogEntry::Script, "%s: usage: %s", getFileLine(ip-4), nsEntry->mUsage);
+                  
+                  // we still need to clean up
+                  popValueStack(callArgc);
+                  if (code[ip] != OP_VAL_TO_NONE)
+                      valueStack[++TOP].clearValue();
+                  else ip++;
                }
                else
                {
