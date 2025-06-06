@@ -7,6 +7,7 @@
 #include "dgl/dgl.h"
 #include "core/bitStream.h"
 #include "math/mathUtils.h"
+#include "math/mathIO.h"
 #include "console/consoleTypes.h"
 #include "console/consoleObject.h"
 #include "sim/netConnection.h"
@@ -957,4 +958,89 @@ void Debris::setShapeSkin( StringHandle& name )
 {
     if (mShape)
         mShape->reSkin(name);
+}
+
+//----------------------------------------------------------------------------
+// Console method to spawn debris
+//----------------------------------------------------------------------------
+class DebrisGhostEvent : public NetEvent
+{
+    typedef NetEvent Parent;
+
+    DebrisData* dataBlock;
+    Point3F position, velocity;
+    StringHandle skinName;
+public:
+    DebrisGhostEvent() : NetEvent()
+        { mGuaranteeType = Unguaranteed; }
+    ~DebrisGhostEvent() {}
+
+    void init(DebrisData* db, const Point3F& pos, const Point3F& vel, const StringHandle& skin = {}) {
+        dataBlock = db;
+        position = pos;
+        velocity = vel;
+        skinName = skin;
+    }
+
+    void write(NetConnection* ps, BitStream* bstream) override { pack(ps, bstream); }
+    void pack(NetConnection* ps, BitStream* bstream) override {
+        bstream->writeRangedU32(dataBlock->getId(), DataBlockObjectIdFirst, DataBlockObjectIdLast);
+        mathWrite(*bstream, position);
+        mathWrite(*bstream, velocity);
+        ps->packStringHandleU(bstream, skinName);
+    }
+    void unpack(NetConnection* ps, BitStream* bstream) override {
+        U32 dataId = bstream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
+        Sim::findObject((SimObjectId)dataId, dataBlock);
+        mathRead(*bstream, &position);
+        mathRead(*bstream, &velocity);
+        skinName = ps->unpackStringHandleU(bstream);
+    }
+    void process(NetConnection* ps) override;
+
+    DECLARE_CONOBJECT(DebrisGhostEvent);
+};
+IMPLEMENT_CO_CLIENTEVENT_V1(DebrisGhostEvent);
+
+void DebrisGhostEvent::process(NetConnection*) {
+    if (!dataBlock)
+        return;
+
+    Debris* debris = new Debris;
+    debris->setDataBlock(dataBlock);
+    debris->init(position, velocity);
+
+    if (!debris->registerObject())
+    {
+        Con::warnf(ConsoleLogEntry::General, "DebrisGhostEvent: Could not register debris for class: %s", dataBlock->getName());
+        delete debris;
+        debris = NULL;
+    }
+
+    if (!skinName.isNull())
+        debris->setShapeSkin(skinName);
+}
+
+ConsoleStaticMethod(Debris, spawn, bool, 4, 5, "(dataBlock, pos, vel, skin) - Spawn debris for all clients.")
+{
+    argc;
+    DebrisData* dataBlock = NULL;
+    if (Sim::findObject(argv[1], dataBlock)) {
+        auto* event = new DebrisGhostEvent;
+        event->init(dataBlock, argv[2].getPoint3F(), argv[3].getPoint3F(), argc > 4 ? argv[4].toString() : "base");
+        event->incRef();
+
+        SimGroup* clients = Sim::getClientGroup();
+        if (!clients)
+            return false;
+
+        for (auto itr = clients->begin(); itr != clients->end(); ++itr) {
+            NetConnection* nc = dynamic_cast<NetConnection*>(*itr);
+            if (nc)
+                nc->postNetEvent(event);
+        }
+        event->decRef();
+        return true;
+    }
+    return false;
 }
