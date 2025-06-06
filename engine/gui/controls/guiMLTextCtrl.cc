@@ -1926,20 +1926,20 @@ textemit:
 }
 
 //-----------------------------------------------------------------------------
-ConsoleValue GuiMLTextCtrl::stripControlChars(const char *inString)
+ConsoleValue GuiMLTextCtrl::stripControlChars(const char *inString, U32 size)
 {
    if (! bool(inString))
       return NULL;
-   const U32 maxBufLength = 64;
-   char strippedBuffer[maxBufLength];
-   char *stripBufPtr = &strippedBuffer[0];
+   // This used to rely on a mismanaged fixed size 64 byte buffer... god bless ReturnBuffers.
+   ReturnBuffer strippedBuffer(size);
+   char *stripBufPtr = *strippedBuffer;
    const char *bufPtr = (char *) inString;
    U32 idx, sizidx;
 
    for(;;)
    {
       //if we've reached the end of the string, or run out of room in the stripped Buffer...
-      if(*bufPtr == '\0' || (U32(stripBufPtr - strippedBuffer) >= maxBufLength - 1))
+      if(*bufPtr == '\0' || (U32(stripBufPtr - *strippedBuffer) >= size - 1))
          break;
 
       if (*bufPtr == '\n')

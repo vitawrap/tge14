@@ -139,7 +139,7 @@ class GuiMLTextCtrl : public GuiControl
    void setScriptValue(ConsoleValue& value);
    ConsoleValue getScriptValue();
 
-   static ConsoleValue stripControlChars(const char *inString);
+   static ConsoleValue stripControlChars(const char *inString, U32 size = 64);
 
    //-------------------------------------- Protected Structures and constants
   protected:
