@@ -237,14 +237,30 @@ void GuiShapeNameHud::onRender( Point2I, const RectI &updateRect)
 /// @param   opacity Opacity of name (a fraction).
 void GuiShapeNameHud::drawName(Point2I offset, const char *name, F32 opacity)
 {
+   char stripBuffer[128];
+   size_t nameLen = getMin(dStrlen(name), 127);
+   dMemmove(stripBuffer, name, nameLen);
+   stripBuffer[nameLen] = 0;
+
+   Con::stripColorChars(stripBuffer);
+
+   size_t stripLen = dStrlen(stripBuffer);
+   if (stripLen == 0)
+       return;
+
+   S32 strWidth = mProfile->mFont->getStrNWidth((const UTF8*)stripBuffer, stripLen);
+   S32 strHeight = mProfile->mFont->getHeight();
+
    // Center the name
-   offset.x -= mProfile->mFont->getStrWidth((const UTF8 *)name) / 2;
-   offset.y -= mProfile->mFont->getHeight();
+   offset.x -= strWidth / 2;
+   offset.y -= strHeight;
 
    // Deal with opacity and draw.
    mTextColor.alpha = opacity;
+   ColorI bg = ColorF(1.f-mTextColor.red, 1.f-mTextColor.green, 1.f-mTextColor.blue, opacity * .5f);
+   dglDrawRectFill(RectI(offset - Point2I(3,0), Point2I(strWidth + 6, strHeight)), bg);
    dglSetBitmapModulation(mTextColor);
-   dglDrawText(mProfile->mFont, offset, name);
+   dglDrawTextN(mProfile->mFont, offset, name, nameLen, mProfile->mFontColors);
    dglClearBitmapModulation();
 }
 
