@@ -162,10 +162,13 @@ void GuiShapeNameHud::onRender( Point2I, const RectI &updateRect)
             }
             else 
             {
-                // Use the render transform instead of the box center
-                // otherwise it'll jitter.
+               // Use the render transform as base, adding OBJECT box height
+               // otherwise it'll jitter.
                MatrixF srtMat = shape->getRenderTransform();
                srtMat.getColumn(3, &shapePos);
+               
+               Box3F const& box = shape->getObjBox();
+               shapePos.z += box.max.z;
             }
 
             VectorF shapeDir = shapePos - camPos;
