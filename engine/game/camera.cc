@@ -17,6 +17,7 @@
 #include "math/mathIO.h"
 #include "editor/editor.h"
 #include "game/fx/cameraFXMgr.h"
+#include "game/missionArea.h"
 
 #define MaxPitch 1.3962
 #define CameraRadius    0.05;
@@ -62,6 +63,7 @@ Camera::Camera()
     mOrbitObject = NULL;
     mPosition.set(0.f, 0.f, 0.f);
     mObservingClientObject = false;
+    mInMissionArea = false;
     mode = 2;
 }
 
@@ -161,6 +163,33 @@ void Camera::setCameraFov(F32 fov)
 }
 
 //----------------------------------------------------------------------------
+void Camera::checkMissionArea()
+{
+    // Checks to see if the player is in the Mission Area...
+    // Shameless copypaste from player code!
+    Point3F pos;
+    MissionArea* obj = dynamic_cast<MissionArea*>(Sim::findObject("MissionArea"));
+
+    if (!obj)
+        return;
+
+    const RectI& area = obj->getArea();
+    getTransform().getColumn(3, &pos);
+
+    if ((pos.x < area.point.x || pos.x > area.point.x + area.extent.x ||
+        pos.y < area.point.y || pos.y > area.point.y + area.extent.y)) {
+        if (mInMissionArea) {
+            mInMissionArea = false;
+            Con::executef(getDataBlock(), 3, "onLeaveMissionArea", getId());
+        }
+    }
+    else if (!mInMissionArea)
+    {
+        mInMissionArea = true;
+        Con::executef(getDataBlock(), 3, "onEnterMissionArea", getId());
+    }
+}
+
 void Camera::processTick(const Move* move)
 {
     Parent::processTick(move);
@@ -241,8 +270,13 @@ void Camera::processTick(const Move* move)
         setMaskBits(MoveMask);
     }
 
-    if (getControllingClient() && mContainer)
-        updateContainer();
+    if (getControllingClient()) {
+        if (mContainer)
+            updateContainer();
+
+        if (isServerObject())
+            checkMissionArea();
+    }
 }
 
 void Camera::onDeleteNotify(SimObject* obj)

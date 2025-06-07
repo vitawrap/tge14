@@ -53,6 +53,7 @@ class Camera: public ShapeBase
    F32 mCurOrbitDist;
    Point3F mPosition;
    bool mObservingClientObject;
+   bool mInMissionArea;
 
    enum
    {
@@ -78,6 +79,8 @@ class Camera: public ShapeBase
 
    F32 getDamageFlash() const;
    F32 getWhiteOut() const;
+
+   void checkMissionArea();
 
 public:
    DECLARE_CONOBJECT(Camera);
