@@ -56,7 +56,7 @@ ConsoleMethod( GuiMLTextCtrl, scrollToBottom, void, 2, 2, "Scroll to the top of 
 ConsoleFunction( StripMLControlChars, const char*, 2, 2, "(string val)"
                 "Strip TorqueML control characters from the specified string, returning a 'clean' version.")
 {
-   return GuiMLTextCtrl::stripControlChars(argv[1].toString());
+   return GuiMLTextCtrl::stripControlChars(argv[1].toString(), argv[1].getStrlen());
 }
 
 ConsoleMethod(GuiMLTextCtrl,forceReflow,void,2,2,"forces the text control to reflow the text after new text is added, possibly resizing the control.")
