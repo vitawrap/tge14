@@ -961,6 +961,16 @@ void Debris::setShapeSkin( StringHandle& name )
 }
 
 //----------------------------------------------------------------------------
+// Recolor shape if there is one
+//----------------------------------------------------------------------------
+void Debris::setShapeColor( const ColorF& color )
+{
+    if (mShape)
+        for (U32 i = 0; i < mShape->getShape()->meshes.sz; ++i)
+            mShape->reColor(i, color);
+}
+
+//----------------------------------------------------------------------------
 // Console method to spawn debris
 //----------------------------------------------------------------------------
 class DebrisGhostEvent : public NetEvent
@@ -970,16 +980,18 @@ class DebrisGhostEvent : public NetEvent
     DebrisData* dataBlock;
     Point3F position, velocity;
     StringHandle skinName;
+    ColorF color;
 public:
     DebrisGhostEvent() : NetEvent()
         { mGuaranteeType = Unguaranteed; }
     ~DebrisGhostEvent() {}
 
-    void init(DebrisData* db, const Point3F& pos, const Point3F& vel, const StringHandle& skin = {}) {
+    void init(DebrisData* db, const Point3F& pos, const Point3F& vel, const ColorF c, const StringHandle& skin = {}) {
         dataBlock = db;
         position = pos;
         velocity = vel;
         skinName = skin;
+        color = c;
     }
 
     void write(NetConnection* ps, BitStream* bstream) override { pack(ps, bstream); }
@@ -987,6 +999,7 @@ public:
         bstream->writeRangedU32(dataBlock->getId(), DataBlockObjectIdFirst, DataBlockObjectIdLast);
         mathWrite(*bstream, position);
         mathWrite(*bstream, velocity);
+        bstream->write(color);
         ps->packStringHandleU(bstream, skinName);
     }
     void unpack(NetConnection* ps, BitStream* bstream) override {
@@ -994,6 +1007,7 @@ public:
         Sim::findObject((SimObjectId)dataId, dataBlock);
         mathRead(*bstream, &position);
         mathRead(*bstream, &velocity);
+        bstream->read(&color);
         skinName = ps->unpackStringHandleU(bstream);
     }
     void process(NetConnection* ps) override;
@@ -1017,17 +1031,19 @@ void DebrisGhostEvent::process(NetConnection*) {
         debris = NULL;
     }
 
+    debris->setShapeColor(color);
     if (!skinName.isNull())
         debris->setShapeSkin(skinName);
 }
 
-ConsoleStaticMethod(Debris, spawn, bool, 4, 5, "(dataBlock, pos, vel, skin) - Spawn debris for all clients.")
+ConsoleStaticMethod(Debris, spawn, bool, 4, 6, "(dataBlock, pos, vel[, color, skin]) - Spawn debris for all clients.")
 {
     argc;
     DebrisData* dataBlock = NULL;
     if (Sim::findObject(argv[1], dataBlock)) {
         auto* event = new DebrisGhostEvent;
-        event->init(dataBlock, argv[2].getPoint3F(), argv[3].getPoint3F(), argc > 4 ? argv[4].toString() : "base");
+        event->init(dataBlock, argv[2].getPoint3F(), argv[3].getPoint3F(),
+            argc > 4? argv[4].getColorF() : ColorF(1, 1, 1), argc > 5? argv[5].toString() : "base");
         event->incRef();
 
         SimGroup* clients = Sim::getClientGroup();

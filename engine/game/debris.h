@@ -146,6 +146,7 @@ public:
    void  setVelocity( const Point3F &vel ){ mVelocity = vel; }
    void  setRotAngles( const Point3F &angles ){ mRotAngles = angles; }
    void  setShapeSkin( StringHandle& name);
+   void  setShapeColor( const ColorF& color );
 
    DECLARE_CONOBJECT(Debris);
 
