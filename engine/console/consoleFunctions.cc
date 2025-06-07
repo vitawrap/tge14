@@ -731,9 +731,9 @@ ConsoleFunction(getTag, const char *, 2, 2, "getTag(textTagString)")
 
       U32 len;
       if(space)
-         len = space - string;
+         len = space - (string + 1);
       else
-         len = dStrlen(string) + 1;
+         len = dStrlen(string);
 
       ConsoleValue ret;
       ret.concatStringU(string + 1, len - 1);
