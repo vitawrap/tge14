@@ -24,6 +24,7 @@ public:
    U32 waitTime;
    U32 fadeoutTime;
    bool fadeWhenVisible;
+   ColorI fadeColor;
 
    GuiFadeinBitmapCtrl()
        : mFramebufferTexture(RectI(getPosition(), getExtent()))
@@ -35,6 +36,7 @@ public:
       fadeAlpha   = false;
       done        = false;
       fadeWhenVisible = false;
+      fadeColor.set(0, 0, 0);
    }
    virtual void resize(const Point2I& newPosition, const Point2I& newExtent)
    {
@@ -125,7 +127,7 @@ public:
       }
       else
       {
-          ColorI color(0, 0, 0, alpha);
+          ColorI color(fadeColor.red, fadeColor.green, fadeColor.blue, alpha);
           dglDrawRectFill(offset, mBounds.extent + offset, color);
       }
    }
@@ -135,7 +137,8 @@ public:
       addField("fadeinTime", TypeS32, Offset(fadeinTime, GuiFadeinBitmapCtrl));
       addField("waitTime", TypeS32, Offset(waitTime, GuiFadeinBitmapCtrl));
       addField("fadeoutTime", TypeS32, Offset(fadeoutTime, GuiFadeinBitmapCtrl));
-      addField("fadeAlpha", TypeBool, Offset(fadeAlpha, GuiFadeinBitmapCtrl)); // Fade to alpha instead of black
+      addField("fadeAlpha", TypeBool, Offset(fadeAlpha, GuiFadeinBitmapCtrl)); // Fade to alpha instead of color
+      addField("fadeColor", TypeColorI, Offset(fadeColor, GuiFadeinBitmapCtrl)); // black by default
       addField("fadeWhenVisible", TypeBool, Offset(fadeWhenVisible, GuiFadeinBitmapCtrl));
       addField("done", TypeBool, Offset(done, GuiFadeinBitmapCtrl));
    }
