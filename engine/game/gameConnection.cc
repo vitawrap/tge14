@@ -18,6 +18,7 @@
 #include "game/gameConnectionEvents.h"
 #include "game/auth.h"
 #include "util/safeDelete.h"
+#include "fx/cameraFXMgr.h"
 
 //----------------------------------------------------------------------------
 #define MAX_MOVE_PACKET_SENDS 4
@@ -1512,7 +1513,16 @@ ConsoleMethod(GameConnection, setFirstPerson, void, 3, 3, "(bool firstPerson) Se
 
 ConsoleMethod(GameConnection, shakeCamera, void, 6, 6, "(F32 falloff, Point3F freq, Point3F amp, F32 duration) - Manually shake a client's camera")
 {
-    if (!object->isConnectionToServer())
+    if (object->isConnectionToServer()) {
+        CameraShake* shake = new CameraShake();
+        shake->init();
+        shake->setFalloff(argv[2].getNumber());
+        shake->setFrequency(argv[3].getPoint3F());
+        shake->setAmplitude(argv[4].getPoint3F());
+        shake->setDuration(argv[5].getNumber());
+        gCamFXMgr.addFX(shake);
+    } else {
         object->postNetEvent(new CameraShakeEvent(
             argv[2].getNumber(), argv[3].getPoint3F(), argv[4].getPoint3F(), argv[5].getNumber()));
+    }
 }
