@@ -241,7 +241,7 @@ GBitmap* Terraformer::getScaledGreyscale(U32 r)
             index -= indexLo;
             c.interpolate(land[indexLo], land[indexHi], index);
          }
-         else if(water != 0)
+         else if(worldWater != 0.f)
          {  // below "water"
             index /= worldWater;
             S32 indexLo = (S32)mFloor(index);
