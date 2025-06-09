@@ -204,6 +204,9 @@ bool ProjectileData::preload(bool server, char errorBuffer[ErrorBufferSize])
       delete pDummy;
    }
 
+   // Reset this first (repeated preloads can lead to this being over NumDecals...)
+   decalCount = 0;
+
    // load up all the supplied decal datablocks
    //  move non-null ones to the front of the array
    //  for our random decal picker later
