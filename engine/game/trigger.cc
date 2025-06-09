@@ -509,8 +509,8 @@ void Trigger::processTick(const Move* move)
    if (isClientObject())
       return;
 
-   //
-   if (mObjects.size() == 0)
+   // No objects, or datablock does not want to process ticks.
+   if ((mObjects.size() == 0) || (mDataBlock->tickPeriodMS < 0))
       return;
 
    if (mLastThink + mDataBlock->tickPeriodMS < mCurrTick) {
