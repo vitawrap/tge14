@@ -7,7 +7,8 @@
 #include "game/guiPlayerView.h"
 #include "console/consoleTypes.h"
 
-static const F32 MaxOrbitDist = 5.0f;
+// FIXME: This constant can sometimes be smaller than mMinOrbitDist...
+static const F32 MaxOrbitDist = 40.0f;
 static const S32 MaxAnimations = 6;
 
 IMPLEMENT_CONOBJECT( GuiPlayerView );
