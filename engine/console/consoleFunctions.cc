@@ -1439,4 +1439,10 @@ ConsoleFunction( min, F32, 2, 0, "min(...) - Get min argument")
     return curMin;
 }
 
+ConsoleFunction( ColorItoF, const char*, 2, 2, "ColorItoF(ColorI) - Convert ColorI to ColorF")
+{
+    ColorF f = argv[1].getColorI();
+    return ConsoleValueList::from(f.red, f.green, f.blue, f.alpha);
+}
+
 ConsoleFunctionGroupEnd( Utility );
