@@ -511,9 +511,10 @@ public:
    ///
    /// The palette is a table of colors which are used
    /// when the shape calls 'setColor' with a palette entry.
+   /// The colors are specified as ColorI to avoid "rotting" of float values. 
    /// 
    /// @{
-   ColorF   palette[MaxPaletteColors];   ///< Array of colors.
+   ColorI   palette[MaxPaletteColors];   ///< Array of colors.
    U32      paletteSize;                 ///< Size of this array
    /// @}
 

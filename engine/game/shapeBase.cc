@@ -321,7 +321,7 @@ void ShapeBaseData::initPersistFields()
    addField("cloakTexture",   TypeFilename, Offset(cloakTexName,   ShapeBaseData));
    addField("etex",           TypeFilename, Offset(envTexName,     ShapeBaseData));
    addField("emap",           TypeBool,     Offset(emap,           ShapeBaseData));
-   addField("palette",        TypeColorF,   Offset(palette,        ShapeBaseData), MaxPaletteColors);
+   addField("palette",        TypeColorI,   Offset(palette,        ShapeBaseData), MaxPaletteColors);
    addField("paletteSize",    TypeS32,      Offset(paletteSize,    ShapeBaseData));
    endGroup("Render");
 
@@ -567,7 +567,7 @@ void ShapeBaseData::unpackData(BitStream* stream)
    {
        U32 rgba;
        stream->read(&rgba);
-       palette[i] = ColorF(rgba);
+       palette[i].set((rgba >> 24) & 0xff, (rgba >> 16) & 0xff, (rgba >> 8) & 0xff, rgba & 0xff);
    }
 }
 
