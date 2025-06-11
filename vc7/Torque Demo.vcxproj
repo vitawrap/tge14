@@ -507,6 +507,7 @@
     <ClCompile Include="..\engine\gui\game\guiChunkedBitmapCtrl.cc" />
     <ClCompile Include="..\engine\gui\game\guiFadeinBitmapCtrl.cc" />
     <ClCompile Include="..\engine\gui\game\guiLetterboxCtrl.cc" />
+    <ClCompile Include="..\engine\gui\game\guiLiquidGlass.cc" />
     <ClCompile Include="..\engine\gui\game\guiMessageVectorCtrl.cc" />
     <ClCompile Include="..\engine\gui\game\guiProgressCtrl.cc" />
     <ClCompile Include="..\engine\gui\shiny\guiEffectCanvas.cc" />

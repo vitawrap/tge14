@@ -176,6 +176,7 @@ SOURCE.GUI=\
 	gui/game/guiChunkedBitmapCtrl.cc \
 	gui/game/guiFadeinBitmapCtrl.cc \
 	gui/game/guiLetterboxCtrl.cc \
+	gui/game/guiLiquidGlass.cc \
 	gui/game/guiMessageVectorCtrl.cc \
 	gui/game/guiProgressCtrl.cc \
 	gui/utility/guiBubbleTextCtrl.cc \
