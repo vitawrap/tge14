@@ -666,7 +666,7 @@ ConsoleFunction(NextToken,const char *,4,4,"nextToken(str,token,delim)")
        return "";
 
    char *str = const_cast<char*>(argv[1].getStringU());
-   const char *token = argv[2].toString();
+   auto* token = argv[2].isList()? argv[2].list : new ConsoleValueList;
    const char *delim = argv[3].toString();
 
    if (str)
@@ -686,12 +686,11 @@ ConsoleFunction(NextToken,const char *,4,4,"nextToken(str,token,delim)")
       if (*str)
          *str++ = 0;
 
-      // set local variable if inside a function
-      if (gEvalState.stack.size() && 
-         gEvalState.stack.last().scopeName)
-         Con::setLocalVariable(token,tmp);
+      // use the list to update by ref
+      if (!token->size())
+         token->push_back(tmp);
       else
-         Con::setVariable(token,tmp);
+         token->at(0) = tmp;
 
       // advance str past the 'delim space'
       while (isInSet(*str, delim))
