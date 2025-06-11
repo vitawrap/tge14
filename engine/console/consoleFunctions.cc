@@ -508,8 +508,7 @@ ConsoleFunction(removeWord, const char *, 3, 3, "newText = removeWord(text, inde
    if (val.isList()) {
        if (val.getListSizeU() > index) {
            for (S32 i = index; (i+1) < val.getListSizeU(); ++i)
-               val.list->at(i) = val.list->at(i+1);
-           val.list->at(index).clearValue();
+               val.list->at(i) = dMove(val.list->at(i+1));
            val.list->decrement();
        }
        return val;
