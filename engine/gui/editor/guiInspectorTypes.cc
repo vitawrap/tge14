@@ -182,6 +182,8 @@ void GuiInspectorTypeFileName::consoleInit()
    Parent::consoleInit();
 
    ConsoleBaseType::getType(TypeFilename)->setInspectorFieldType("GuiInspectorTypeFileName");
+   ConsoleBaseType::getType(TypeBitmapFilename)->setInspectorFieldType("GuiInspectorTypeFileName");
+   ConsoleBaseType::getType(TypeTextureFilename)->setInspectorFieldType("GuiInspectorTypeFileName");
 }
 
 GuiControl* GuiInspectorTypeFileName::constructEditControl()
