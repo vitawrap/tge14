@@ -397,7 +397,7 @@ ConsoleMethod( NetConnection, checkMaxRate, void, 2, 2, "conn.checkMaxRate()")
 ConsoleMethod( NetConnection, setLogging, void, 3, 3, "conn.setLogging(bool)")
 {
    argc;
-   object->setLogging(dAtob(argv[2]));
+   object->setLogging(argv[2].getInt());
 }
 
 #endif
