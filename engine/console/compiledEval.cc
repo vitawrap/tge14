@@ -229,6 +229,7 @@ static void dumpInterpreterState(U64 op) {
         "OP_CONCAT_CHAR",
         "OP_CONCAT_STR_COMMA",
         "OP_COMPARE_STR",
+        "OP_ISNULL_STR",
         "OP_BREAK",
         "OP_INVALID"
     };
@@ -1136,6 +1137,10 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          case OP_COMPARE_STR:
             valueStack[TOP-1] = S64(!valueStack[TOP-1].compare(valueStack[TOP]));
             popValueStack();
+            break;
+
+         case OP_ISNULL_STR:
+            valueStack[TOP] = S64(valueStack[TOP].isNullString() == code[ip++]);
             break;
 
          //case OP_BREAK:

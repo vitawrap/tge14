@@ -540,11 +540,11 @@ TypeReq IntBinaryExprNode::getPreferredType()
 
 U32 StreqExprNode::precompile(TypeReq type)
 {
-   // eval str left
-   // eval str right
-   // OP_COMPARE_STR
-   // if !eq: OP_NOT
-   // optional conversion
+   // string !$=/$= ""
+   if (nullCheck)
+       return left->precompile(TypeReqValue) + 2 + conversionSize(TypeReqValue, type);
+
+   // string1 !$=/$= string2
    U32 addSize = left->precompile(TypeReqValue) + right->precompile(TypeReqValue) + 1;
    if(!eq)
       addSize ++;
@@ -553,6 +553,14 @@ U32 StreqExprNode::precompile(TypeReq type)
 
 U32 StreqExprNode::compile(U64 *codeStream, U64 ip, TypeReq type)
 {
+   if (nullCheck) {
+       ip = left->compile(codeStream, ip, TypeReqValue);
+       codeStream[ip++] = OP_ISNULL_STR;
+       codeStream[ip++] = eq;
+       conversionOp(TypeReqValue, type, codeStream, ip);
+       return ip;
+   }
+
    ip = left->compile(codeStream, ip, TypeReqValue);
    ip = right->compile(codeStream, ip, TypeReqValue);
    codeStream[ip++] = OP_COMPARE_STR;

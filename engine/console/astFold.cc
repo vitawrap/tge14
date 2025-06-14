@@ -166,6 +166,10 @@ StmtNode* StreqExprNode::fold() {
 		if (lVal.castTo(ConsoleValue::TypeString))
 			return IntNode::alloc(eq? !lVal.compare(rVal) : !!lVal.compare(rVal));
 	}
+	else if (isConstNode(right) && right->getFoldValue().isNullString())
+		nullCheck = true;
+	else if (isConstNode(left) && left->getFoldValue().isNullString())
+		nullCheck = true, left = right; // deal with symmetrical case
 	return this;
 }
 

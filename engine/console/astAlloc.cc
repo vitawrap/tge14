@@ -114,6 +114,7 @@ StreqExprNode *StreqExprNode::alloc(ExprNode *left, ExprNode *right, bool eq)
    ret->left = left;
    ret->right = right;
    ret->eq = eq;
+   ret->nullCheck = false;
 
    return ret;
 }

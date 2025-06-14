@@ -219,6 +219,7 @@ struct IntBinaryExprNode : BinaryExprNode
 
 struct StreqExprNode : BinaryExprNode
 {
+   bool nullCheck;
    bool eq;
    static StreqExprNode *alloc(ExprNode *left, ExprNode *right, bool eq);
    U32 precompile(TypeReq type);
