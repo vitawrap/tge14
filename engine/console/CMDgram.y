@@ -531,7 +531,7 @@ slot_assign
 aidx_expr
    : expr
       { $$ = $1; }
-   | aidx_expr ',' expr
+   | expr ',' aidx_expr
       { $$ = CommaCatExprNode::alloc($1, $3); }
    ;
 %%

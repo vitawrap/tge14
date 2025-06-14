@@ -79,6 +79,23 @@ static F64 nodeBinaryOp<F64>(ConsoleValue& lVal, ConsoleValue& rVal, S32 op) {
 	return 0LL;
 }
 
+// Merge as much of the array expr as we can to the varname.
+// The return value is the nonconstant array expr that must be evaulated at runtime.
+static ExprNode* foldArrayExpr(StringTableEntry& varName, ExprNode* varArray, S32 depth = 0) {
+	if (isConstNode(varArray)) {
+		char merge[512];
+		dSprintf(merge, sizeof(merge), depth? "%s_%s" : "%s%s", varName, varArray->getFoldValue().toString());
+		varName = StringTable->insert(merge);
+		return NULL;
+	}
+	else if (dynamic_cast<CommaCatExprNode*>(varArray)) {
+		auto* cat = reinterpret_cast<CommaCatExprNode*>(varArray);
+		if (!foldArrayExpr(varName, cat->left, depth))
+			return foldArrayExpr(varName, cat->right, depth+1);
+	}
+	return varArray;
+}
+
 //-----------------------------------------------------------------------------
 
 ConsoleValue StmtNode::getFoldValue() const { return ""; }
@@ -94,6 +111,8 @@ ConsoleValue FloatNode::getFoldValue() const { return value; }
 //-----------------------------------------------------------------------------
 
 #define FoldNullableExpr(expr) { if (expr) expr = (ExprNode*) expr->fold(); }
+#define FoldNullableArrayExpr(name, expr) \
+{ if (expr) { expr = (ExprNode*) expr->fold(); expr = foldArrayExpr(name, expr); } }
 
 // Default implementation for binary expr nodes
 StmtNode* BinaryExprNode::fold() {
@@ -213,12 +232,12 @@ StmtNode* CommaCatExprNode::fold() {
 }
 
 StmtNode* VarNode::fold() {
-	FoldNullableExpr(arrayIndex);
+	FoldNullableArrayExpr(varName, arrayIndex);
 	return this;
 }
 
 StmtNode* AssignOpExprNode::fold() {
-	FoldNullableExpr(arrayIndex);
+	FoldNullableArrayExpr(varName, arrayIndex);
 	expr = (ExprNode*) expr->fold();
 	return this;
 }
@@ -235,12 +254,12 @@ StmtNode* FuncCallExprNode::fold() {
 
 StmtNode* SlotAccessNode::fold() {
 	objectExpr = (ExprNode*) objectExpr->fold();
-	FoldNullableExpr(arrayExpr);
+	FoldNullableExpr(arrayExpr);	// cannot merge array when dealing with slots
 	return this;
 }
 
 StmtNode* SlotAssignNode::fold() {
-	FoldNullableExpr(arrayExpr);
+	FoldNullableExpr(arrayExpr);	// cannot merge array when dealing with slots
 	FoldNullableExpr(objectExpr);
 	valueExpr = (ExprNode*)valueExpr->fold();
 	return this;
@@ -249,13 +268,13 @@ StmtNode* SlotAssignNode::fold() {
 StmtNode* SlotAssignOpNode::fold() {
 	objectExpr = (ExprNode*)objectExpr->fold();
 	valueExpr = (ExprNode*)valueExpr->fold();
-	FoldNullableExpr(arrayExpr);
+	FoldNullableExpr(arrayExpr);	// cannot merge array when dealing with slots
 	return this;
 }
 
 StmtNode* AssignExprNode::fold() {
 	expr = (ExprNode*)expr->fold();
-	FoldNullableExpr(arrayIndex);
+	FoldNullableArrayExpr(varName, arrayIndex);
 	return this;
 }
 
