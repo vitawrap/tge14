@@ -460,7 +460,7 @@ bool collapseEscape(char *buf)
 static int Sc_ScanNum()
 {
    CMDtext[CMDleng] = 0;
-   cmdlval.f = dAtof(CMDtext);
+   cmdlval.f = dStrtod(CMDtext, NULL);
    return(FLTCONST);
 }
 
