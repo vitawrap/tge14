@@ -79,7 +79,7 @@ ConsoleFunction(aiConnect, S32 , 2, 20, "(...)"
 
    // Prep the arguments for the console exec...
    // Make sure and leav args[1] empty.
-   ConsoleValue args[21];
+   ConsoleValue args[32];
    args[0] = "onConnect";
    for (S32 i = 1; i < argc; i++)
       args[i + 1] = argv[i];
