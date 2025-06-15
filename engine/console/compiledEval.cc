@@ -1063,8 +1063,10 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   } else
                       valueStack[++TOP] = dMove(returnVal);
                }
-               else // no body, return null on stack
+               else { // no body, return null on stack
+                  popValueStack(callArgc);
                   valueStack[++TOP].clearValue();
+               }
             }
             else
             {
