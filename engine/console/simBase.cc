@@ -449,7 +449,7 @@ ConsoleFunction(isObject, bool, 2, 2, "isObject(object)")
    if (argv[1].isNull() || argv[1].getInt() < 0)
       return false;
    else
-      return (Sim::findObject(argv[1].toString()) != NULL);
+      return (Sim::findObject(argv[1]) != NULL);
 }
 
 ConsoleFunction(cancel,void,2,2,"cancel(eventId)")
