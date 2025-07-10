@@ -793,7 +793,7 @@ void GameConnection::readPacket(BitStream *bstream)
             obj->readPacketData(this, bstream);
 
             if(callScript)
-               Con::executef(this, 2, "initialControlSet");
+               Con::executef(this, 1, "initialControlSet");
          }
          else
          {
