@@ -60,7 +60,7 @@ namespace DTS
       int  bump ;          //!< Number of bump map (?) or -1 if none
       int  detail ;        //!< Index of the material, which stores the Detailmap for this material or -1 if none
       float detailScale ;  //!< Scale of the Detailmap, Default = 1.0f
-      float reflection ;   //!< ?
+      float reflection ;   //!< Env reflection factor, Default = 1.0f (when NeverEnvMap is cleared)
 
       enum //!< Material flags
       {
