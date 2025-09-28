@@ -38,6 +38,7 @@ private:
    U32  mBuffTail;                     // last valid position in buffer (inclusive)
    bool mDirty;                        // whether buffer has been written to
    bool mEOF;                          // whether disk reads have reached the end-of-file
+   char* mFilename;                    // filename of this stream
 
    FileStream(const FileStream &i_fileStrm);             // disable copy constructor
    FileStream& operator=(const FileStream &i_fileStrm);  // disable assignment operator
@@ -58,6 +59,7 @@ public:
    void close();
 
    bool flush();
+   char const* getFilename() const { return mFilename; }
 
 protected:
    // more mandatory methods from Stream base class...

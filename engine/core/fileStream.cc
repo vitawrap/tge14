@@ -99,6 +99,11 @@ bool FileStream::open(const char *i_pFilename, AccessMode i_openMode)
 
    if (File::Ok == mFile.open(i_pFilename, (File::AccessMode)i_openMode))
    {
+      // copy filename over
+      if (mFilename)
+         dFree(mFilename);
+      mFilename = dStrdup(i_pFilename);
+
       setStatus();
       switch (i_openMode)
       {
@@ -144,6 +149,12 @@ void FileStream::close()
 
    // clear the file stream's state
    init();
+
+   // clear filename
+   if (mFilename) {
+      dFree(mFilename);
+      mFilename = NULL;
+   }
 }
 
 //-----------------------------------------------------------------------------
@@ -370,6 +381,7 @@ bool FileStream::_write(const U32 i_numBytes, const void *i_pBuffer)
 //-----------------------------------------------------------------------------
 void FileStream::init()
 {
+   mFilename = NULL;
    mStreamCaps = 0;
    Stream::setStatus(Closed);
    clearBuffer();
