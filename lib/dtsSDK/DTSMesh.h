@@ -162,7 +162,7 @@ namespace DTS
       std::vector <char>      enormals ;  //!< Encoded normals (see encodeNormal)
       std::vector <Primitive> primitives; //!< Mesh primitives
       std::vector <unsigned short> indices ;   //!< Vertex index array, for primitives
-      std::vector <unsigned short> mindices ;  //!< ?
+      std::vector <unsigned short> mindices ;  //!< ? (Material indices?)
 
       // Extended data used by Skin Meshes
 

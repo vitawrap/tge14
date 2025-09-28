@@ -587,6 +587,7 @@ class TSMaterialList : public MaterialList
 };
 
 extern ResourceInstance *constructTSShape(Stream &stream);
+extern ResourceInstance *constructGLBTSShape(Stream& stream);
 
 #define TSNode TSShape::Node
 #define TSObject TSShape::Object

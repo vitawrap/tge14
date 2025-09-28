@@ -1199,7 +1199,7 @@
     <ClCompile Include="..\engine\game\fx\fxBeam.cc">
       <Filter>Source Files\game\fx</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\ts\tsShapeB3DRead.cc">
+    <ClCompile Include="..\engine\ts\tsShapeGLBRead.cc">
       <Filter>Source Files\ts</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\mimalloc\alloc.c">
@@ -2274,6 +2274,12 @@
     </ClInclude>
     <ClInclude Include="..\engine\console\consoleValue.h">
       <Filter>Source Files\console</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\ts\tiny_gltf.h">
+      <Filter>Source Files\ts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\core\json.h">
+      <Filter>Source Files\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

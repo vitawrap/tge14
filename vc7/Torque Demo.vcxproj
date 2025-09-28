@@ -648,7 +648,7 @@
     <ClCompile Include="..\engine\ts\tsPartInstance.cc" />
     <ClCompile Include="..\engine\ts\tsShape.cc" />
     <ClCompile Include="..\engine\ts\tsShapeAlloc.cc" />
-    <ClCompile Include="..\engine\ts\tsShapeB3DRead.cc" />
+    <ClCompile Include="..\engine\ts\tsShapeGLBRead.cc" />
     <ClCompile Include="..\engine\ts\tsShapeConstruct.cc" />
     <ClCompile Include="..\engine\ts\tsShapeInstance.cc" />
     <ClCompile Include="..\engine\ts\tsShapeOldRead.cc" />
@@ -725,6 +725,7 @@
     <ClInclude Include="..\engine\core\frameAllocator.h" />
     <ClInclude Include="..\engine\core\idGenerator.h" />
     <ClInclude Include="..\engine\core\iTickable.h" />
+    <ClInclude Include="..\engine\core\json.h" />
     <ClInclude Include="..\engine\core\llist.h" />
     <ClInclude Include="..\engine\core\memstream.h" />
     <ClInclude Include="..\engine\core\polyList.h" />
@@ -977,6 +978,7 @@
     <ClInclude Include="..\engine\terrain\terrData.h" />
     <ClInclude Include="..\engine\terrain\terrRender.h" />
     <ClInclude Include="..\engine\terrain\waterBlock.h" />
+    <ClInclude Include="..\engine\ts\tiny_gltf.h" />
     <ClInclude Include="..\engine\ts\tsDecal.h" />
     <ClInclude Include="..\engine\ts\tsIntegerSet.h" />
     <ClInclude Include="..\engine\ts\tsLastDetail.h" />

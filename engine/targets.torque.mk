@@ -492,6 +492,7 @@ SOURCE.TS=\
 	ts/tsShape.cc \
 	ts/tsShapeAlloc.cc \
 	ts/tsShapeConstruct.cc \
+	ts/tsShapeGLBRead.cc \
 	ts/tsShapeInstance.cc \
 	ts/tsShapeOldRead.cc \
 	ts/tsSortedMesh.cc \

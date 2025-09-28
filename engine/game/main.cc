@@ -134,7 +134,7 @@ static bool initLibraries()
    ResourceManager->registerExtension(".dif", constructInteriorDIF);
    ResourceManager->registerExtension(".ter", constructTerrainFile);
    ResourceManager->registerExtension(".dts", constructTSShape);
-   ResourceManager->registerExtension(".b3d", constructTSShape);
+   ResourceManager->registerExtension(".glb", constructGLBTSShape);
    ResourceManager->registerExtension(".dml", constructMaterialList);
    ResourceManager->registerExtension(".map", constructInteriorMAP);
 
