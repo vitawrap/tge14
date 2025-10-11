@@ -767,13 +767,12 @@ class TSThread
 {
    friend class TSShapeInstance;
 
+   TSShapeInstance * mShapeInstance;  ///< Instance of the shape that this thread animates
+   const TSSequence * sequence;       ///< Sequence this thread will perform
+
    S32 priority;
 
-   TSShapeInstance * mShapeInstance;  ///< Instance of the shape that this thread animates
-
-   const TSSequence * sequence;       ///< Sequence this thread will perform
    F32 pos;
-
    F32 timeScale;                     ///< How fast to play through the sequence
 
    S32 keyNum1;                       ///< Keyframe at or before current position
