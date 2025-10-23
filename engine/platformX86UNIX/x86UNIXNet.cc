@@ -689,8 +689,7 @@ Net::Error Net::bind(NetSocket socket, U16 port)
 
    // thanks to [TPG]P1aGu3 for the name
    auto serverIP = Con::getVariable( "Pref::Net::BindAddress" );
-   // serverIP is guaranteed to be non-0.
-   AssertFatal( !serverIP.isNullString(), "serverIP is NULL!" );
+   // Used to test for NULL before ConsoleVariable.
 
    if( !serverIP.isNullString() ) {
       // we're not empty
