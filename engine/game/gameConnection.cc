@@ -707,7 +707,8 @@ bool GameConnection::readDemoStartBlock(BitStream *stream)
       char value[256];
       stream->readString(array);
       stream->readString(value);
-      setDataField(slotName, array, ConsoleValue(value));
+      auto cvalue = ConsoleValue(value);
+      setDataField(slotName, array, cvalue);
    }
    bool ret = Parent::readDemoStartBlock(stream);
    // grab the control object

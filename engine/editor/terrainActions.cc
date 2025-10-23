@@ -58,8 +58,10 @@ void SoftSelectAction::process(Selection * sel, const Gui3DMouseEvent &, bool se
       sel = &tmpSel;
    }
 
-   if(type == Begin || type == Process)
-      mFilter.set(1, &ConsoleValue(mTerrainEditor->mSoftSelectFilter));
+   if(type == Begin || type == Process) {
+      auto args = ConsoleValue(mTerrainEditor->mSoftSelectFilter);
+      mFilter.set(1, &args);
+   }
 
    //
    if(selChanged)

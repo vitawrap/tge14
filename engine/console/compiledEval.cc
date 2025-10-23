@@ -409,6 +409,10 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             bool isDataBlock =          code[ip + 2];   // datablock ...{...};
             failJump         =          code[ip + 3];   // if we can't create the object...
 
+            // If we don't allow calls, we certainly don't allow creating objects!
+            if(noCalls)
+                goto fail_cleanup;
+
             // TODO: Readjust callbacks to not account for fnName (even for OP_CALL_FUNC)
 
             // Get the constructor arguments off the stack.

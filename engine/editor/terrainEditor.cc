@@ -229,7 +229,8 @@ void BoxBrush::rebuild()
 {
    reset();
    Filter filter;
-   filter.set(1, &ConsoleValue(mTerrainEditor->mSoftSelectFilter));
+   auto filterVal = ConsoleValue(mTerrainEditor->mSoftSelectFilter);
+   filter.set(1, &filterVal);
    //
    // mSize should always be odd.
 
@@ -265,7 +266,8 @@ void EllipseBrush::rebuild()
    reset();
    Point3F center(F32(mSize.x - 1) / 2, F32(mSize.y - 1) / 2, 0);
    Filter filter;
-   filter.set(1, &ConsoleValue(mTerrainEditor->mSoftSelectFilter));
+   auto filterVal = ConsoleValue(mTerrainEditor->mSoftSelectFilter);
+   filter.set(1, &filterVal);
 
    // a point is in a circle if:
    // x^2 + y^2 <= r^2
