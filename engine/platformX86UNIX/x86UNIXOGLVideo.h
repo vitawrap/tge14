@@ -37,7 +37,7 @@ class OpenGLDevice : public DisplayDevice
       void destroy();
       bool setScreenMode( U32 width, U32 height, U32 bpp, bool fullScreen, bool forceIt = false, bool repaint = true );
       void swapBuffers();
-      const char* getDriverInfo();
+      ConsoleValue getDriverInfo();
       bool getGammaCorrection(F32 &g);
       bool setGammaCorrection(F32 g);
       bool setVerticalSync( bool on );

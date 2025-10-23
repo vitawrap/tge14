@@ -1323,7 +1323,7 @@ void UInputManager::deactivateJoystick()
 }
 
 //------------------------------------------------------------------------------
-const char* UInputManager::getJoystickAxesString( U32 deviceID )
+ConsoleValue UInputManager::getJoystickAxesString( U32 deviceID )
 {
    for (Vector<JoystickInputDevice*>::iterator iter = mJoystickList.begin();
         iter != mJoystickList.end();
@@ -1591,8 +1591,8 @@ void JoystickInputDevice::loadAxisInfo()
       dSprintf(tempBuf, TempBufSize, "$Pref::Input::Joystick%d::Axis%d", 
          mDeviceID, i);
 
-      const char* axisStr = Con::getVariable(tempBuf);
-      if (axisStr == NULL || dStrlen(axisStr) == 0)
+      auto axisStr = Con::getVariable(tempBuf);
+      if (axisStr.getStrlen() == 0)
       {
          if (i < sizeof(AxisDefaults))
             axisInfo.type = AxisDefaults[i];
@@ -1600,7 +1600,7 @@ void JoystickInputDevice::loadAxisInfo()
       else
       {
          // format is "TorqueAxisName MinValue MaxValue";
-         dStrncpy(tempBuf, axisStr, TempBufSize);
+         dStrncpy(tempBuf, axisStr.toString(), TempBufSize);
          char* temp = dStrtok( tempBuf, " \0" );
          if (temp)
          {
@@ -1623,7 +1623,7 @@ void JoystickInputDevice::loadAxisInfo()
 }
 
 //------------------------------------------------------------------------------
-const char* JoystickInputDevice::getJoystickAxesString()
+ConsoleValue JoystickInputDevice::getJoystickAxesString()
 {
    char buf[64];
    dSprintf( buf, sizeof( buf ), "%d", mAxisList.size());
@@ -1657,10 +1657,7 @@ const char* JoystickInputDevice::getJoystickAxesString()
             break;
       }
    }
-
-   char* returnString = Con::getReturnBuffer( dStrlen( buf ) + 1 );
-   dStrcpy( returnString, buf );
-   return( returnString );
+   return buf;
 }
 
 

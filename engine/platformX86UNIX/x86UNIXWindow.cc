@@ -796,9 +796,9 @@ bool Platform::openWebBrowser( const char* webAddress )
 
    // look for a browser preference variable
    // JMQTODO: be nice to implement some UI to customize this
-   const char* webBrowser = Con::getVariable("Pref::Unix::WebBrowser");
-   if (dStrlen(webBrowser) == 0)
-      webBrowser = NULL;
+   auto webBrowser = Con::getVariable("Pref::Unix::WebBrowser");
+   if (webBrowser.getStrlen() == 0)
+      webBrowser = "";
 
    pid_t pid = fork();
    if (pid == -1)
@@ -826,8 +826,8 @@ bool Platform::openWebBrowser( const char* webAddress )
       int ok = -1;
 
       // if execvp returns, it means it couldn't execute the program
-      if (webBrowser != NULL)
-         ok = execvp(webBrowser, argv);
+      if (!webBrowser.isNullString())
+         ok = execvp(webBrowser.toString(), argv);
 
       ok = execvp("konqueror", argv);
       ok = execvp("mozilla", argv);
@@ -847,7 +847,7 @@ bool Platform::openWebBrowser( const char* webAddress )
 //------------------------------------------------------------------------------
 // Login password routines:
 //------------------------------------------------------------------------------
-const char* Platform::getLoginPassword()
+ConsoleValue Platform::getLoginPassword()
 {
    Con::printf("WARNING: Platform::getLoginPassword() is unimplemented");
    return "";
@@ -880,14 +880,11 @@ ConsoleFunction( getDesktopResolution, const char*, 1, 1,
    if (!x86UNIXState->windowCreated())
       return "0 0 0";
 
-   char buffer[256];
-   char* returnString = Con::getReturnBuffer( dStrlen( buffer ) + 1 );
-
-   dSprintf( buffer, sizeof( buffer ), "%d %d %d", 
+   ReturnBuffer returnString(256);
+   dSprintf( *returnString, returnString.size(), "%d %d %d", 
       x86UNIXState->getDesktopSize().x,
       x86UNIXState->getDesktopSize().y, 
       x86UNIXState->getDesktopBpp() );
-   dStrcpy( returnString, buffer );
    return( returnString );
 }
 
