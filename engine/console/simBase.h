@@ -225,7 +225,7 @@ public:
 
    SimFieldDictionary();
    ~SimFieldDictionary();
-   void setFieldValue(StringTableEntry slotName, ConsoleValue& value);
+   void setFieldValue(StringTableEntry slotName, ConsoleValue const& value);
    ConsoleValue getFieldValue(StringTableEntry slotName);
    void writeFields(SimObject *obj, Stream &strem, U32 tabStop);
    void printFields(SimObject *obj);

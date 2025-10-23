@@ -139,7 +139,7 @@ SimFieldDictionary::~SimFieldDictionary()
    }
 }
 
-void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue& value)
+void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue const& value)
 {
    U32 bucket = HashPointer(slotName) % HashTableSize;
    Entry **walk = &mHashTable[bucket];
@@ -167,7 +167,7 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue& 
          mVersion++;
 
          field = allocEntry();
-         constructInPlace(&field->value, &value);
+         constructInPlace(&field->value, value);
          field->slotName = slotName;
          field->next = NULL;
          *walk = field;
