@@ -70,7 +70,7 @@ void GuiTreeViewCtrl::Item::setText(char *txt)
    mScriptInfo.mText = txt;
 }
 
-void GuiTreeViewCtrl::Item::setValue(ConsoleValue& val)
+void GuiTreeViewCtrl::Item::setValue(ConsoleValue const& val)
 {
    if(mState.test(InspectorData))
    {
@@ -130,7 +130,7 @@ ConsoleValue GuiTreeViewCtrl::Item::getValue()
    if(mState.test(InspectorData))
    {
       Con::errorf("Tried to get the value for item %d, which is InspectorData!", mId);
-      return NULL;
+      return "";
    }
 
    return mScriptInfo.mValue;
@@ -655,7 +655,7 @@ bool GuiTreeViewCtrl::scrollVisible( Item *item )
 
 //------------------------------------------------------------------------------
 
-S32 GuiTreeViewCtrl::insertItem(S32 parentId, const char * text, ConsoleValue& value, const char * iconString, S16 normalImage, S16 expandedImage)
+S32 GuiTreeViewCtrl::insertItem(S32 parentId, const char * text, ConsoleValue const& value, const char * iconString, S16 normalImage, S16 expandedImage)
 {
    if((parentId < 0) || (parentId > mItems.size()))
    {

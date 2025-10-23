@@ -97,7 +97,7 @@ class GuiTreeViewCtrl : public GuiArrayCtrl
          /// Set the items displayable text (caption)
          void setText(char *txt);
          /// Set the items script value (data)
-         void setValue(ConsoleValue& val);
+         void setValue(ConsoleValue const& val);
          /// Clear script value
          void clearValue();
          /// Set the items virtual parent flag
@@ -329,7 +329,7 @@ protected:
 
       // insertion/removal
       void unlinkItem(Item * item);
-      S32 insertItem(S32 parentId, const char * text, ConsoleValue& value = ConsoleValue(""),
+      S32 insertItem(S32 parentId, const char * text, ConsoleValue const& value = ConsoleValue(""),
           const char * iconString = "", S16 normalImage = 0, S16 expandedImage = 1);
       bool removeItem(S32 itemId);
 
