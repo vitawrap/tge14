@@ -496,7 +496,7 @@ public:
 		, Parent()
 	{}
 
-	ConsoleValueList::~ConsoleValueList() {
+	~ConsoleValueList() {
 		for (ConsoleValue* itr = begin(); itr != end(); itr++)
 			itr->clear();
 	}
