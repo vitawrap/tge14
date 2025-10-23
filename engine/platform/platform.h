@@ -540,6 +540,18 @@ inline T* constructInPlace(T* p, const T* copy)
 }
 
 template <class T>
+inline T* constructInPlace(T* p, const T& copy)
+{
+   return new(p) T(copy);
+}
+
+template <class T>
+inline T* constructInPlace(T* p, T&& move)
+{
+   return new(p) T(dMove(move));
+}
+
+template <class T>
 inline void destructInPlace(T* p)
 {
    p->~T();
