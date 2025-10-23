@@ -52,7 +52,7 @@ ConsoleFunction(populateFontCacheRange, void, 5, 5, "(faceName, size, rangeStart
 
    if(f.isNull())
    {
-      Con::errorf("populateFontCacheRange - could not load font '%s %d'!", argv[1], argv[2].getInt());
+      Con::errorf("populateFontCacheRange - could not load font '%s %d'!", argv[1].getStringU(), argv[2].getInt());
       return;
    }
 

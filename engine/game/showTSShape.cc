@@ -848,9 +848,9 @@ ConsoleFunction( showSequenceLoad, void, 2, 3, "(string sequenceFile, string seq
    char buffer[512];
 
    if (argc==2)
-      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s\"; };",currentShow->getShapeName(),argv[1]);
+      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s\"; };",currentShow->getShapeName(),argv[1].toString());
    else
-      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s %s\"; };",currentShow->getShapeName(),argv[1],argv[2]);
+      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s %s\"; };",currentShow->getShapeName(),argv[1].toString(),argv[2].toString());
 
    Con::evaluate(buffer);
    ShowTSShape::reset();

@@ -43,7 +43,7 @@ ConsoleFunction( calcExplosionCoverage, F32, 4, 4, "(Point3F source, SceneObject
    SceneObject* sceneObject = NULL;
    if (Sim::findObject(id, sceneObject) == false)
    {
-      Con::warnf(ConsoleLogEntry::General, "calcExplosionCoverage: couldn't find object: %s", argv[2]);
+      Con::warnf(ConsoleLogEntry::General, "calcExplosionCoverage: couldn't find object: %s", argv[2].toString());
       return 1.0;
    }
 

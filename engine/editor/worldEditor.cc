@@ -2735,7 +2735,7 @@ ConsoleMethod( WorldEditor, setMode, void, 3, 3, "(string newMode)"
               "Sets the mode to one of move, rotate, scale.")
 {
 	if(!object->setMode(argv[2].toString()))
-		Con::warnf(ConsoleLogEntry::General, avar("worldEditor.setMode: invalid mode '%s'", argv[2]));
+		Con::warnf(ConsoleLogEntry::General, avar("worldEditor.setMode: invalid mode '%s'", argv[2].toString()));
 }
 
 ConsoleMethod( WorldEditor, addUndoState, void, 2, 2, "")
