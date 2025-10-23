@@ -29,6 +29,7 @@
 namespace Con {
 	template<typename T> struct CVCast { typedef T Type; };
 	template<> struct CVCast<U32> { typedef S64 Type; };
+	template<> struct CVCast<long> { typedef S64 Type; };
 	template<> struct CVCast<dsize_t> { typedef S64 Type; };
 	template<> struct CVCast<char[]> { typedef char const* Type; };
 	template<typename T> constexpr typename CVCast<T>::Type Cast(T in) {
