@@ -353,7 +353,7 @@ ConsoleFunction(alxPlay, S32, 2, 5, "alxPlay(handle) or "
    }
    if (profile == NULL)
    {
-      Con::printf("Unable to locate audio profile '%s'", argv[1]);
+      Con::printf("Unable to locate audio profile '%s'", argv[1].toString());
       return NULL_AUDIOHANDLE;
    }
 

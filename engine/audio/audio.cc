@@ -2425,12 +2425,11 @@ bool OpenALInit()
 
    // Open a device
 #ifdef TORQUE_OS_LINUX
-   const char* deviceSpecifier =
-     Con::getVariable("Pref::Unix::OpenALSpecifier");
-   if (dStrlen(deviceSpecifier) == 0)
+   auto deviceSpecifier = Con::getVariable("Pref::Unix::OpenALSpecifier");
+   if (dStrlen(deviceSpecifier.toString()) == 0)
      // use SDL for audio output by default
      deviceSpecifier = "'((devices '(sdl)))";
-   mDevice = (ALCdevice *)alcOpenDevice((ALubyte*)deviceSpecifier);
+   mDevice = (ALCdevice *)alcOpenDevice((ALubyte*)deviceSpecifier.toString());
 #endif
    // SDL failed, (or not on linux) open a default device instead.
    if (mDevice == (ALCdevice *)NULL)
