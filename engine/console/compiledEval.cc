@@ -403,10 +403,6 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
          case OP_CREATE_OBJECT:
          {
-            // If we don't allow calls, we certainly don't allow creating objects!
-            if(noCalls)
-                goto fail_cleanup;
-
             // Read some useful info.
             callArgc         =          code[ip    ];   // at least 3.
             objParent        = U64toSTE(code[ip + 1]);  // ...(Name : Parent [,...])... (copy fields, eg. Gui profiles)
@@ -1123,14 +1119,14 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          case OP_CONCAT_CHAR:
             // Relies on U64 char to be stored as LE, so it already has 7 natural null terms.
             if (valueStack[TOP].castTo(ConsoleValue::TypeString)) {
-                valueStack[TOP].concatU(ConsoleValue((char const*) &code[ip]));
+                valueStack[TOP].concatStringU((char const*) &code[ip], 1);
             }
             ++ip;
             break;
 
          case OP_CONCAT_STR_COMMA:
             if (valueStack[TOP-1].castTo(ConsoleValue::TypeString)) {
-                valueStack[TOP-1].concatU(ConsoleValue("_"));
+                valueStack[TOP-1].concatStringU("_", 1);
                 valueStack[TOP-1].concatU(valueStack[TOP]);
             }
             popValueStack();
