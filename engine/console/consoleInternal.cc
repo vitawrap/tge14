@@ -389,6 +389,12 @@ void Dictionary::setVariable(StringTableEntry name, ConsoleValue& cval)
    ent->setValue(cval);
 }
 
+void Dictionary::setVariable(StringTableEntry name, ConsoleValue&& cval)
+{
+   Entry* ent = add(name);
+   ent->setValue(dMove(cval));
+}
+
 void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
 {
    if(name[0] != '$')
