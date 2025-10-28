@@ -735,6 +735,7 @@
     <ClInclude Include="..\engine\core\stringBuffer.h" />
     <ClInclude Include="..\engine\core\stringTable.h" />
     <ClInclude Include="..\engine\core\tAlgorithm.h" />
+    <ClInclude Include="..\engine\core\tDictionary.h" />
     <ClInclude Include="..\engine\core\theoraPlayer.h" />
     <ClInclude Include="..\engine\core\tokenizer.h" />
     <ClInclude Include="..\engine\core\torqueConfig.h" />

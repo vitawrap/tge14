@@ -2275,6 +2275,9 @@
     <ClInclude Include="..\engine\console\consoleValue.h">
       <Filter>Source Files\console</Filter>
     </ClInclude>
+    <ClInclude Include="..\engine\core\tDictionary.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\engine\console\CMDgram.y">

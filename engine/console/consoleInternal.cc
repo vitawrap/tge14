@@ -15,7 +15,10 @@
 #include "core/fileStream.h"
 #include "console/compiler.h"
 
-#define ST_INIT_SIZE 15
+S64 HashPointer(StringTableEntry ptr)
+{
+    return (S64)(((dlsize_t)ptr) >> 2);
+}
 
 static char scratchBuffer[1024];
 U32 Namespace::mCacheSequence = 0;
@@ -65,7 +68,6 @@ bool canTabComplete(const char *prevText, const char *bestMatch,
 // Dictionary functions
 //
 //---------------------------------------------------------------
-StackAllocator Dictionary::smStackAlloc;
 
 struct StringValue
 {
@@ -104,10 +106,10 @@ StringValue & StringValue::operator=(const char *string)
 
 static S32 QSORT_CALLBACK varCompare(const void* a,const void* b)
 {
-   return dStricmp( (*((Dictionary::Entry **) a))->name, (*((Dictionary::Entry **) b))->name );
+   return dStricmp( (*((ConsoleValueDictionary::Entry **) a))->name, (*((ConsoleValueDictionary::Entry **) b))->name );
 }
 
-void Dictionary::exportVariables(const char *varString, const char *fileName, bool append, bool runnable /* = true */)
+void ConsoleValueDictionary::exportVariables(const char *varString, const char *fileName, bool append, bool runnable /* = true */)
 {
    const char *searchStr = varString;
    Vector<Entry *> sortList(__FILE__, __LINE__);
@@ -163,7 +165,8 @@ void Dictionary::exportVariables(const char *varString, const char *fileName, bo
       strm.close();
 }
 
-void Dictionary::deleteVariables(const char *varString)
+// deleteVariables() assumes remove() is a stable remove (will not reorder entries on remove)
+void ConsoleValueDictionary::deleteVariables(const char *varString)
 {
    const char *searchStr = varString;
 
@@ -180,162 +183,33 @@ void Dictionary::deleteVariables(const char *varString)
    }
 }
 
-S64 HashPointer(StringTableEntry ptr)
-{
-   return (S64)(((dlsize_t)ptr) >> 2);
-}
-
-Dictionary::Entry *Dictionary::lookup(StringTableEntry name)
-{
-   Entry *walk = hashTable->data[HashPointer(name) % hashTable->size];
-   while(walk)
-   {
-      if(walk->name == name)
-         return walk;
-      else
-         walk = walk->nextEntry;
-   }
-
-   return NULL;
-}
-
-Dictionary::Entry *Dictionary::add(StringTableEntry name)
-{
-   Entry *walk = hashTable->data[HashPointer(name) % hashTable->size];
-   while(walk)
-   {
-      if(walk->name == name)
-         return walk;
-      else
-         walk = walk->nextEntry;
-   }
-   Entry *ret;
-   hashTable->count++;
-
-   if(hashTable->count > hashTable->size * 2)
-   {
-        Entry head(NULL), *walk;
-        S32 i;
-        walk = &head;
-        walk->nextEntry = 0;
-        for(i = 0; i < hashTable->size; i++) {
-   	        while(walk->nextEntry) {
-   		        walk = walk->nextEntry;
-   	        }
-   	        walk->nextEntry = hashTable->data[i];
-        }
-        delete[] hashTable->data;
-        hashTable->size = hashTable->size * 4 - 1;
-        hashTable->data = new Entry *[hashTable->size];
-        for(i = 0; i < hashTable->size; i++)
-            hashTable->data[i] = NULL;
-        walk = head.nextEntry;
-        while(walk)
-        {
-            Entry *temp = walk->nextEntry;
-            S32 idx = HashPointer(walk->name) % hashTable->size;
-            walk->nextEntry = hashTable->data[idx];
-            hashTable->data[idx] = walk;
-            walk = temp;
-        }
-   }
-
-   ret = new Entry(name);
-   S32 idx = HashPointer(name) % hashTable->size;
-   ret->nextEntry = hashTable->data[idx];
-   hashTable->data[idx] = ret;
-   return ret;
-}
-
-// deleteVariables() assumes remove() is a stable remove (will not reorder entries on remove)
-void Dictionary::remove(Dictionary::Entry *ent)
-{
-   Entry **walk = &hashTable->data[HashPointer(ent->name) % hashTable->size];
-   while(*walk != ent)
-      walk = &((*walk)->nextEntry);
-
-   *walk = (ent->nextEntry);
-   delete ent;
-   hashTable->count--;
-}
-
-Dictionary::Dictionary()
-   :  hashTable( NULL ),
-      localHashTable{},
-      exprState( NULL ),
+ConsoleValueDictionary::ConsoleValueDictionary()
+   :  exprState( NULL ),
       scopeName( NULL ),
       scopeNamespace( NULL ),
       code( NULL ),
       ip( 0 ),
-      marker( -1 )
+      Parent()
 {
 }
 
-Dictionary::Dictionary(ExprEvalState *state, Dictionary* ref)
-   :  hashTable( NULL ),
-      localHashTable{},
-      exprState( NULL ),
+ConsoleValueDictionary::ConsoleValueDictionary(ExprEvalState *state, ConsoleValueDictionary* ref)
+   :  exprState( NULL ),
       scopeName( NULL ),
       scopeNamespace( NULL ),
       code( NULL ),
-      ip( 0 )
+      Parent()
 {
-   setState(state,ref);
+   setStateEx(state,ref);
 }
 
-void Dictionary::setState(ExprEvalState *state, Dictionary* ref)
+void ConsoleValueDictionary::setStateEx(ExprEvalState *state, ConsoleValueDictionary* ref)
 {
    exprState = state;
-
-   if (ref)
-   {
-      hashTable = ref->hashTable;
-   }
-   else
-   {
-      // Avoid redundant allocation, the tables are not refcounted
-      // anyway so use-after-free was just as much a risk before...
-      hashTable = &localHashTable;
-      hashTable->owner = this;
-      hashTable->count = 0;
-      hashTable->size = ST_INIT_SIZE;
-      hashTable->data = new Entry *[hashTable->size];
-   
-      for(S32 i = 0; i < hashTable->size; i++)
-         hashTable->data[i] = NULL;
-   }
+   setState(ref);
 }
 
-Dictionary::~Dictionary()
-{
-   if ( hashTable->owner == this )
-   {
-      reset();
-      delete [] hashTable->data;
-   }
-}
-
-void Dictionary::reset()
-{
-   S32 i;
-   Entry *walk, *temp;
-
-   for(i = 0; i < hashTable->size; i++)
-   {
-      walk = hashTable->data[i];
-      while(walk)
-      {
-         temp = walk->nextEntry;
-         delete walk;
-         walk = temp;
-      }
-      hashTable->data[i] = NULL;
-   }
-   hashTable->size = ST_INIT_SIZE;
-   hashTable->count = 0;
-}
-
-const char *Dictionary::tabComplete(const char *prevText, S32 baseLen, bool fForward)
+const char * ConsoleValueDictionary::tabComplete(const char *prevText, S32 baseLen, bool fForward)
 {
    S32 i;
 
@@ -353,18 +227,9 @@ const char *Dictionary::tabComplete(const char *prevText, S32 baseLen, bool fFor
    return bestMatch;
 }
 
-
 char *typeValueEmpty = "";
 
-Dictionary::Entry::Entry(StringTableEntry in_name)
-    : value("")
-{
-   dataPtr = NULL;
-   name = in_name;
-   type = TypeInternalValue;
-}
-
-ConsoleValue Dictionary::getVariable(StringTableEntry name, bool *entValid)
+ConsoleValue ConsoleValueDictionary::getVariable(StringTableEntry name, bool *entValid)
 {
    Entry *ent = lookup(name);
    if(ent)
@@ -383,13 +248,13 @@ ConsoleValue Dictionary::getVariable(StringTableEntry name, bool *entValid)
    return "";
 }
 
-void Dictionary::setVariable(StringTableEntry name, ConsoleValue& cval)
+void ConsoleValueDictionary::setVariable(StringTableEntry name, ConsoleValue& cval)
 {
    Entry *ent = add(name);
    ent->setValue(cval);
 }
 
-void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
+void ConsoleValueDictionary::addVariable(const char *name, S32 type, void *dataPtr)
 {
    if(name[0] != '$')
    {
@@ -403,7 +268,7 @@ void Dictionary::addVariable(const char *name, S32 type, void *dataPtr)
    ent->dataPtr = dataPtr;
 }
 
-bool Dictionary::removeVariable(StringTableEntry name)
+bool ConsoleValueDictionary::removeVariable(StringTableEntry name)
 {
    if( Entry *ent = lookup(name) ){
       remove( ent );
@@ -419,8 +284,8 @@ void ExprEvalState::pushFrame(StringTableEntry frameName, Namespace *ns)
    // 12/2022 Dictionary (and its hashtable) in frame is now using in-place memory instead of new allocs.
 
    stack.increment();
-   Dictionary& last = stack.last();
-   new (&last) Dictionary(this);
+   ConsoleValueDictionary& last = stack.last();
+   new (&last) ConsoleValueDictionary(this);
    last.scopeName = frameName;
    last.scopeNamespace = ns;
 }
@@ -429,7 +294,7 @@ void ExprEvalState::pushFrame(StringTableEntry frameName, Namespace *ns)
 void ExprEvalState::popFrame()
 {
    //Dictionary *last = stack.last();
-   stack.last().~Dictionary();
+   stack.last().~ConsoleValueDictionary();
    stack.pop_back();
    //delete last;
 }
@@ -442,15 +307,15 @@ void ExprEvalState::pushFrameRef(S32 stackIndex)
 
    AssertFatal( stackIndex >= 0 && stackIndex < stack.size(), "You must be asking for a valid frame!" );
    stack.increment();
-   Dictionary& last = stack.last();
-   new (&last) Dictionary(this, &stack[stackIndex]);
+   ConsoleValueDictionary& last = stack.last();
+   new (&last) ConsoleValueDictionary(this, &stack[stackIndex]);
 }
 #pragma pop_macro("new")
 
 ExprEvalState::ExprEvalState()
 {
    VECTOR_SET_ASSOCIATION(stack);
-   globalVars.setState(this);
+   globalVars.setStateEx(this);
    currentVariable = NULL;
    thisObject = NULL;
    traceOn = false;
