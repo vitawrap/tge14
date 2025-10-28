@@ -254,6 +254,12 @@ void ConsoleValueDictionary::setVariable(StringTableEntry name, ConsoleValue& cv
    ent->setValue(cval);
 }
 
+void ConsoleValueDictionary::setVariable(StringTableEntry name, ConsoleValue&& cval)
+{
+    Entry* ent = add(name);
+    ent->setValue(dMove(cval));
+}
+
 void ConsoleValueDictionary::addVariable(const char *name, S32 type, void *dataPtr)
 {
    if(name[0] != '$')
