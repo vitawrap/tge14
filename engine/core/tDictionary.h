@@ -39,7 +39,7 @@ protected:
 public:
     typedef TEntry Entry;
 
-    TEntry* lookup(StringTableEntry name)
+    TEntry* lookup(StringTableEntry name) const
     {
         TEntry* walk = hashTable->data[HashPointer(name) % hashTable->size];
         while (walk)
@@ -169,12 +169,14 @@ public:
 
     ~Dictionary()
     {
-        if (hashTable->owner == this)
+        if (hashTable && (hashTable->owner == this))
         {
             reset();
             delete[] hashTable->data;
         }
     }
+
+    bool isAllocated() const { return !!hashTable; }
 };
 
 #endif
