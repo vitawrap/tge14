@@ -13,6 +13,9 @@
 #ifndef _TVECTOR_H_
 #include "core/tVector.h"
 #endif
+#ifndef _DICTIONARY_H_
+#include "core/tDictionary.h"
+#endif
 #ifndef _STRINGTABLE_H_
 #include "core/stringTable.h"
 #endif
@@ -239,8 +242,18 @@ public:
       TypeValidator *validator;     ///< Validator, if any.
    };
    typedef Vector<Field> FieldList;
-
    FieldList mFieldList;
+
+   struct FieldEntry : public DictEntryBase<FieldEntry> {
+       Field* field;
+
+       FieldEntry(StringTableEntry name)
+           : field(NULL)
+           , DictEntryBase(name)
+       { }
+   };
+
+   Dictionary<FieldEntry> mFieldMap;    ///< Fast field lookup mapped over mFieldList for script use.
 
    bool mDynamicGroupExpand;
 
