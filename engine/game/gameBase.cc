@@ -500,7 +500,7 @@ ConsoleMethod(GameBase, setDataBlock, bool, 3, 3, "(DataBlock db)"
    if (Sim::findObject(argv[2], data)) {
       return object->setDataBlock(data);
    }
-   Con::errorf("Could not find data block \"%s\"",argv[2]);
+   Con::errorf("Could not find data block \"%s\"", argv[2].toString());
    return false;
 }
 

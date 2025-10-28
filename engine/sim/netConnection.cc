@@ -1138,7 +1138,7 @@ ConsoleMethod(NetConnection, connect, void, 3, 3, "(string remoteAddress) Connec
    NetAddress addr;
    if(!Net::stringToAddress(argv[2].toString(), &addr))
    {
-      Con::errorf("NetConnection::connect: invalid address - %s", argv[2]);
+      Con::errorf("NetConnection::connect: invalid address - %s", argv[2].toString());
       return;
    }
    object->connect(&addr);

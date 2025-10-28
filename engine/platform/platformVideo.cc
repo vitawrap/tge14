@@ -125,8 +125,8 @@ ConsoleFunction( getResolutionList, const char*, 2, 2, "")
 	DisplayDevice* device = Video::getDevice( argv[1].toString() );
 	if ( !device )
 	{
-		Con::warnf( ConsoleLogEntry::General, "\"%s\" display device not found!", argv[1] );
-		return( NULL );
+		Con::warnf( ConsoleLogEntry::General, "\"%s\" display device not found!", argv[1].toString() );
+		return "";
 	}
 	
 	return( device->getResolutionList() );		
@@ -144,7 +144,7 @@ ConsoleFunction( isDeviceFullScreenOnly, bool, 2, 2, "( string deviceName )")
 	DisplayDevice* device = Video::getDevice( argv[1].toString() );
 	if ( !device )
 	{
-		Con::warnf( ConsoleLogEntry::General, "\"%s\" display device not found!", argv[1] );
+		Con::warnf( ConsoleLogEntry::General, "\"%s\" display device not found!", argv[1].toString() );
 		return( false );
 	}
 	
@@ -485,7 +485,7 @@ ConsoleValue Video::getResolutionList()
    if ( smCurrentDevice )
       return smCurrentDevice->getResolutionList();
    else
-      return NULL;
+      return "";
 }
 
 
@@ -495,7 +495,7 @@ ConsoleValue Video::getDriverInfo()
    if ( smCurrentDevice )
       return smCurrentDevice->getDriverInfo();
    else
-      return NULL;
+      return "";
 }
 
 
@@ -606,6 +606,7 @@ bool DisplayDevice::nextRes()
 //------------------------------------------------------------------------------
 // This function returns a string containing all of the available resolutions for this device
 // in the format "<bit depth> <width> <height>", separated by tabs.
+// TODO: Turn this into a ConsoleValueList.
 //
 ConsoleValue DisplayDevice::getResolutionList()
 {

@@ -187,6 +187,7 @@ public:
     void deleteVariables(const char *varString);
 
     void setVariable(StringTableEntry name, ConsoleValue& cv);
+    void setVariable(StringTableEntry name, ConsoleValue&& cv);
     ConsoleValue getVariable(StringTableEntry name, bool *valid = NULL);
 
     void addVariable(const char *name, S32 type, void *dataPtr);

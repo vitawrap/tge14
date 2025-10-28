@@ -225,7 +225,7 @@ public:
 
    SimFieldDictionary();
    ~SimFieldDictionary();
-   void setFieldValue(StringTableEntry slotName, ConsoleValue& value);
+   void setFieldValue(StringTableEntry slotName, ConsoleValue const& value);
    ConsoleValue getFieldValue(StringTableEntry slotName);
    void writeFields(SimObject *obj, Stream &strem, U32 tabStop);
    void printFields(SimObject *obj);
@@ -1327,6 +1327,7 @@ namespace Sim
    SimObject* findObject(SimObjectId);
    SimObject* findObject(const char* name);
    SimObject* findObject(ConsoleValue& cval);
+   SimObject* findObject(ConsoleValue&& cval);
    template<class T> inline bool findObject(SimObjectId id,T*&t)
    {
       t = dynamic_cast<T*>(findObject(id));
@@ -1340,6 +1341,11 @@ namespace Sim
    template<class T> inline bool findObject(ConsoleValue& objectVal, T*& t)
    {
        t = dynamic_cast<T*>(findObject(objectVal));
+       return t != NULL;
+   }
+   template<class T> inline bool findObject(ConsoleValue&& objectVal, T*& t)
+   {
+       t = dynamic_cast<T*>(findObject(dMove(objectVal)));
        return t != NULL;
    }
 

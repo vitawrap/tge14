@@ -688,21 +688,20 @@ Net::Error Net::bind(NetSocket socket, U16 port)
    // We let the user specify which one the server runs on.
 
    // thanks to [TPG]P1aGu3 for the name
-   const char* serverIP = Con::getVariable( "Pref::Net::BindAddress" );
-   // serverIP is guaranteed to be non-0.
-   AssertFatal( serverIP, "serverIP is NULL!" );
+   auto serverIP = Con::getVariable( "Pref::Net::BindAddress" );
+   // Used to test for NULL before ConsoleVariable.
 
-   if( serverIP[0] != '\0' ) {
+   if( !serverIP.isNullString() ) {
       // we're not empty
-      socketAddress.sin_addr.s_addr = inet_addr( serverIP );
+      socketAddress.sin_addr.s_addr = inet_addr( serverIP.toString() );
 
       if( socketAddress.sin_addr.s_addr != INADDR_NONE ) {
-	 Con::printf( "Binding server port to %s", serverIP );
+	      Con::printf( "Binding server port to %s", serverIP.toString() );
       } else {
-	 Con::warnf( ConsoleLogEntry::General,
+	      Con::warnf( ConsoleLogEntry::General,
 		     "inet_addr() failed for %s while binding!",
-		     serverIP );
-	 socketAddress.sin_addr.s_addr = INADDR_ANY;
+		     serverIP.toString() );
+	      socketAddress.sin_addr.s_addr = INADDR_ANY;
       }
 
    } else {

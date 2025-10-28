@@ -217,7 +217,8 @@ void GuiDirectoryTreeCtrl::recurseInsert( Item* parent, StringTableEntry path )
 
       char *szValue = new char[ 1024 ];
       dMemset( szValue, 0, 1024 );
-      dSprintf( szValue, 1024, "%s/%s", parent->getValue(), curPos );
+      ConsoleValue pvalue = parent->getValue();
+      dSprintf( szValue, 1024, "%s/%s", pvalue.toString(), curPos );
       Item *exists = item->findChildByValue( szValue );
       if( !exists && dStrcmp( curPos, "" ) != 0 )
       {

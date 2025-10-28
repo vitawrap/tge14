@@ -9,6 +9,7 @@
 #define _X86UNIXINPUTMANAGER_H_
 
 #include "core/tVector.h"
+#include "console/consoleValue.h"
 #include "platform/platformInput.h"
 #include "platformX86UNIX/platformX86UNIX.h"
 
@@ -53,7 +54,7 @@ class JoystickInputDevice : public InputDevice
     U8 getDeviceType() { return( JoystickDeviceType ); }
     U8 getDeviceID() { return( mDeviceID ); }
     const char* getName();
-    const char* getJoystickAxesString();
+    ConsoleValue getJoystickAxesString();
 
     void loadJoystickInfo();
     void loadAxisInfo();
@@ -123,7 +124,7 @@ class UInputManager : public InputManager
       void setLocking(bool enabled);
       bool getLocking() { return mLocking; }
 
-      const char* getJoystickAxesString( U32 deviceID );
+      ConsoleValue getJoystickAxesString( U32 deviceID );
       bool joystickDetected()       { return mJoystickList.size() > 0; }
    private:
       typedef SimGroup Parent;

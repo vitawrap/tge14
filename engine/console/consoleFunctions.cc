@@ -67,7 +67,7 @@ ConsoleFunction(strstr, S32 , 3, 3, "(string one, string two) "
    const char *retpos = dStrstr(a, b);
    if(!retpos)
       return -1;
-   return retpos - a;
+   return S32(retpos - a);
 }
 
 ConsoleFunction(strpos, S32, 3, 4, "(string hay, string needle, int offset=0) "
@@ -1187,7 +1187,7 @@ ConsoleFunction(importList, void, 2, 2, "importList(fileName) - formatted *.list
         filename = scriptFilenameBuffer;
     else
     {
-        Con::errorf("importList: Could not import variable list from %s", argv[2]);
+        Con::errorf("importList: Could not import variable list from %s", argv[2].toString());
         return;
     }
 

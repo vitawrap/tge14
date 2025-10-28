@@ -1444,7 +1444,7 @@ ConsoleMethod(WheeledVehicle, setWheelSteering, bool, 4, 4, "obj.setWheelSteerin
    }
    else
       Con::warnf("setWheelSteering: wheel index out of bounds, vehicle has %d hubs",
-         argv[3],object->getWheelCount());
+         argv[3].toString(), object->getWheelCount());
    return false;
 }
 
@@ -1458,7 +1458,7 @@ ConsoleMethod(WheeledVehicle, setWheelPowered, bool, 4, 4, "obj.setWheelPowered(
    }
    else
       Con::warnf("setWheelPowered: wheel index out of bounds, vehicle has %d hubs",
-         argv[3],object->getWheelCount());
+         argv[3].toString(), object->getWheelCount());
    return false;
 }
 
@@ -1475,10 +1475,10 @@ ConsoleMethod(WheeledVehicle, setWheelTire, bool, 4, 4, "obj.setWheelTire(wheel#
       }
       else
          Con::warnf("setWheelTire: wheel index out of bounds, vehicle has %d hubs",
-            argv[3],object->getWheelCount());
+            argv[3].toString(), object->getWheelCount());
    }
    else
-      Con::warnf("setWheelTire: %s datablock does not exist (or is not a tire)",argv[3]);
+      Con::warnf("setWheelTire: %s datablock does not exist (or is not a tire)",argv[3].toString());
    return false;
 }
 
@@ -1495,10 +1495,10 @@ ConsoleMethod(WheeledVehicle, setWheelSpring, bool, 4, 4, "obj.setWheelSpring(wh
       }
       else
          Con::warnf("setWheelSpring: wheel index out of bounds, vehicle has %d hubs",
-            argv[3],object->getWheelCount());
+            argv[3].toString(), object->getWheelCount());
    }
    else
-      Con::warnf("setWheelSpring: %s datablock does not exist (or is not a spring)",argv[3]);
+      Con::warnf("setWheelSpring: %s datablock does not exist (or is not a spring)",argv[3].toString());
    return false;
 }
 

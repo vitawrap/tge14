@@ -901,7 +901,7 @@ ConsoleFunction(png2jpg, S32, 2, 3, "png2jpg(pngName,[quality=0-100])")
       gJpegQuality = 90;
    bool basOpt = false;
 
-   Con::printf("Converting file: %s", argv[1]);
+   Con::printf("Converting file: %s", argv[1].toString());
 
    if (!rgbname)
    {

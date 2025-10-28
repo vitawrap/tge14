@@ -375,7 +375,7 @@ void AIClient::onAdd( const char *nameSpace ) {
  */
 ConsoleMethod( AIConnection, setMoveSpeed, void, 3, 3, "ai.setMoveSpeed( float );" ) {
    AIClient *ai = static_cast<AIClient *>( object );
-   ai->setMoveSpeed( dAtof( argv[2] ) );
+   ai->setMoveSpeed( argv[2].getNumber() );
 }
 
 /**
@@ -391,10 +391,7 @@ ConsoleMethod( AIConnection, stop, void, 2, 2, "ai.stop();" ) {
  */
 ConsoleMethod( AIConnection, setAimLocation, void, 3, 3, "ai.setAimLocation( x y z );" ) {
    AIClient *ai = static_cast<AIClient *>( object );
-   Point3F v( 0.0f,0.0f,0.0f );
-   dSscanf( argv[2], "%f %f %f", &v.x, &v.y, &v.z );
-
-   ai->setAimLocation( v );
+   ai->setAimLocation( argv[2].getPoint3F() );
 }
 
 /**
@@ -402,10 +399,8 @@ ConsoleMethod( AIConnection, setAimLocation, void, 3, 3, "ai.setAimLocation( x y
  */
 ConsoleMethod( AIConnection, setMoveDestination, void, 3, 3, "ai.setMoveDestination( x y z );" ) {
    AIClient *ai = static_cast<AIClient *>( object );
-   Point3F v( 0.0f, 0.0f, 0.0f );
-   dSscanf( argv[2], "%f %f", &v.x, &v.y );
-
-   ai->setMoveDestination( v );
+   // TODO: Why was this hardcoded to ignore the Z axis?
+   ai->setMoveDestination( argv[2].getPoint3F() );
 }
 
 /**
@@ -415,10 +410,7 @@ ConsoleMethod( AIConnection, getAimLocation, const char *, 2, 2, "ai.getAimLocat
    AIClient *ai = static_cast<AIClient *>( object );
    Point3F aimPoint = ai->getAimLocation();
 
-   char *returnBuffer = Con::getReturnBuffer( 256 );
-   dSprintf( returnBuffer, 256, "%f %f %f", aimPoint.x, aimPoint.y, aimPoint.z );
-
-   return returnBuffer;
+   return ConsoleValueList::from(aimPoint.x, aimPoint.y, aimPoint.z);
 }
 
 /**
@@ -428,10 +420,7 @@ ConsoleMethod( AIConnection, getMoveDestination, const char *, 2, 2, "ai.getMove
    AIClient *ai = static_cast<AIClient *>( object );
    Point3F movePoint = ai->getMoveDestination();
 
-   char *returnBuffer = Con::getReturnBuffer( 256 );
-   dSprintf( returnBuffer, 256, "%f %f %f", movePoint.x, movePoint.y, movePoint.z );
-
-   return returnBuffer;
+   return ConsoleValueList::from(movePoint.x, movePoint.y, movePoint.z);
 }
 
 /**
@@ -480,10 +469,7 @@ ConsoleMethod( AIConnection, getLocation, const char *, 2, 2, "ai.getLocation();
    AIClient *ai = static_cast<AIClient *>( object );
    Point3F locPoint = ai->getLocation();
 
-   char *returnBuffer = Con::getReturnBuffer( 256 );
-   dSprintf( returnBuffer, 256, "%f %f %f", locPoint.x, locPoint.y, locPoint.z );
-
-   return returnBuffer;
+   return ConsoleValueList::from(locPoint.x, locPoint.y, locPoint.z);
 }
 
 /**
@@ -503,11 +489,11 @@ ConsoleFunction( aiAddPlayer, S32 , 2, 3, "aiAddPlayer( 'playerName'[, 'AIClassT
    SimGroup *g = Sim::getClientGroup();
    g->addObject( aiPlayer );
 
-   char *name = new char[ dStrlen( argv[1] ) + 1];
-   char *ns = new char[ dStrlen( argv[2] ) + 1];
+   char *name = new char[ argv[1].getStrlen() + 1];
+   char *ns = new char[ argv[2].getStrlen() + 1];
 
-   dStrcpy( name, argv[1] );
-   dStrcpy( ns, argv[2] );
+   dStrcpy( name, argv[1].toString() );
+   dStrcpy( ns, argv[2].toString() );
 
    // Execute the connect console function, this is the same 
    // onConnect function invoked for normal client connections
@@ -519,7 +505,7 @@ ConsoleFunction( aiAddPlayer, S32 , 2, 3, "aiAddPlayer( 'playerName'[, 'AIClassT
    else
       aiPlayer->onAdd( "AIClient" );
 
-   return aiPlayer->getId();
+   return S64(aiPlayer->getId());
 }
 
 

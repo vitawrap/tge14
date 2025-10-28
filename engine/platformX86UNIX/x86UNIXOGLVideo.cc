@@ -26,7 +26,8 @@ bool InitOpenGL()
    DisplayDevice::init();
 
    // Get the video settings from the prefs:
-   const char* resString = Con::getVariable( "$pref::Video::resolution" );
+   char resString[128];
+   Con::getVariable( "$pref::Video::resolution" ).toString(resString, 128);
    char* tempBuf = new char[dStrlen( resString ) + 1];
    dStrcpy( tempBuf, resString );
    char* temp = dStrtok( tempBuf, " x\0" );
@@ -453,7 +454,7 @@ void OpenGLDevice::swapBuffers()
 }
 
 //------------------------------------------------------------------------------
-const char* OpenGLDevice::getDriverInfo()
+ConsoleValue OpenGLDevice::getDriverInfo()
 {
    const char* vendorString   = (const char*) glGetString( GL_VENDOR );
    const char* rendererString = (const char*) glGetString( GL_RENDERER );
@@ -466,8 +467,8 @@ const char* OpenGLDevice::getDriverInfo()
                  + ( extensionsString ? dStrlen( extensionsString ) : 0 )
                  + 4;
 
-   char* returnString = Con::getReturnBuffer( bufferLen );
-   dSprintf( returnString, bufferLen, "%s\t%s\t%s\t%s",
+   ReturnBuffer returnString( bufferLen );
+   dSprintf( *returnString, bufferLen, "%s\t%s\t%s\t%s",
       ( vendorString ? vendorString : "" ),
       ( rendererString ? rendererString : "" ),
       ( versionString ? versionString : "" ),

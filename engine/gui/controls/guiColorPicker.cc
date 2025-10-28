@@ -361,7 +361,8 @@ ConsoleValue GuiColorPickerCtrl::getScriptValue()
 //--------------------------------------------------------------------------    
 void GuiColorPickerCtrl::setScriptValue(ConsoleValue& value)
 {
-   setValue(value.getColorF());
+   ColorF color = value.getColorF();
+   setValue(color);
 }
 
 ConsoleMethod(GuiColorPickerCtrl, getSelectorPos, const char*, 2, 2, "Gets the current position of the selector")

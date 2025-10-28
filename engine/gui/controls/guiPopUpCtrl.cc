@@ -201,7 +201,7 @@ ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, str
    // get it?
    if(!classRep)
    {
-      Con::warnf(ConsoleLogEntry::General, "failed to locate class rep for '%s'", argv[2]);
+      Con::warnf(ConsoleLogEntry::General, "failed to locate class rep for '%s'", argv[2].toString());
       return;
    }
 
@@ -214,7 +214,7 @@ ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, str
    // found it?
    if(i == classRep->mFieldList.size())
    {
-      Con::warnf(ConsoleLogEntry::General, "failed to locate field '%s' for class '%s'", argv[3], argv[2]);
+      Con::warnf(ConsoleLogEntry::General, "failed to locate field '%s' for class '%s'", argv[3].toString(), argv[2].toString());
       return;
    }
 
@@ -223,11 +223,11 @@ ConsoleMethod( GuiPopUpMenuCtrl, setEnumContent, void, 4, 4, "(string class, str
    // check the type
    if(field.type != TypeEnum)
    {
-      Con::warnf(ConsoleLogEntry::General, "field '%s' is not an enumeration for class '%s'", argv[3], argv[2]);
+      Con::warnf(ConsoleLogEntry::General, "field '%s' is not an enumeration for class '%s'", argv[3].toString(), argv[2].toString());
       return;
    }
 
-   AssertFatal(field.table, avar("enumeration '%s' for class '%s' with NULL ", argv[3], argv[2]));
+   AssertFatal(field.table, avar("enumeration '%s' for class '%s' with NULL ", argv[3].toString(), argv[2].toString()));
 
    // fill it
    for(i = 0; i < field.table->size; i++)

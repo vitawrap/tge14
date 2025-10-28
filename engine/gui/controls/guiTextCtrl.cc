@@ -82,11 +82,14 @@ bool GuiTextCtrl::onWake()
             char* buf = new char[mMaxStrLen + 1];
             dStrncpy( buf, txt, mMaxStrLen );
             buf[mMaxStrLen] = 0;
-            setScriptValue( ConsoleValue(buf) );
+            auto cvbuf = ConsoleValue(buf);
+            setScriptValue( cvbuf );
             delete [] buf;
          }
-         else
-            setScriptValue( ConsoleValue(txt) );
+         else {
+            auto cvtxt = ConsoleValue(txt);
+            setScriptValue( cvtxt );
+         }
       }
    }
    

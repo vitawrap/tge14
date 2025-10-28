@@ -30,31 +30,32 @@ ConsoleFunction( MathInit, void, 1, 10, "(detect|C|FPU|MMX|3DNOW|SSE|...)")
    }
    for (argc--, argv++; argc; argc--, argv++)
    {
-      if (dStricmp(*argv, "DETECT") == 0) { 
+      ConsoleValue arg = *argv;
+      if (dStricmp(arg.toString(), "DETECT") == 0) { 
          Math::init(0);
          return;
       }
-      if (dStricmp(*argv, "C") == 0) { 
+      if (dStricmp(arg.toString(), "C") == 0) { 
          properties |= CPU_PROP_C; 
          continue; 
       }
-      if (dStricmp(*argv, "FPU") == 0) { 
+      if (dStricmp(arg.toString(), "FPU") == 0) { 
          properties |= CPU_PROP_FPU; 
          continue; 
       }
-      if (dStricmp(*argv, "MMX") == 0) { 
+      if (dStricmp(arg.toString(), "MMX") == 0) { 
          properties |= CPU_PROP_MMX; 
          continue; 
       }
-      if (dStricmp(*argv, "3DNOW") == 0) { 
+      if (dStricmp(arg.toString(), "3DNOW") == 0) { 
          properties |= CPU_PROP_3DNOW; 
          continue; 
       }
-      if (dStricmp(*argv, "SSE") == 0) { 
+      if (dStricmp(arg.toString(), "SSE") == 0) { 
          properties |= CPU_PROP_SSE; 
          continue; 
       }
-      Con::printf("Error: MathInit(): ignoring unknown math extension '%s'", *argv);
+      Con::printf("Error: MathInit(): ignoring unknown math extension '%s'", arg.toString());
    }
    Math::init(properties);
 }

@@ -1929,7 +1929,7 @@ textemit:
 ConsoleValue GuiMLTextCtrl::stripControlChars(const char *inString, U32 size)
 {
    if (! bool(inString))
-      return NULL;
+      return "";
    // This used to rely on a mismanaged fixed size 64 byte buffer... god bless ReturnBuffers.
    ReturnBuffer strippedBuffer(size);
    char *stripBufPtr = *strippedBuffer;

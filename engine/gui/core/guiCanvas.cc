@@ -129,7 +129,7 @@ ConsoleMethod( GuiCanvas, setCursor, void, 3, 3, "(bool visible)")
    {
       if(!Sim::findObject(argv[2].getStringU(), curs))
       {
-         Con::printf("%s is not a valid cursor.", argv[2]);
+         Con::printf("%s is not a valid cursor.", argv[2].toString());
          return;
       }
    }

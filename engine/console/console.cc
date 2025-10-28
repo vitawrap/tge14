@@ -823,7 +823,7 @@ ConsoleValue execute(S32 argc, ConsoleValue argv[])
 
       if(!ent)
       {
-         warnf(ConsoleLogEntry::Script, "%s: Unknown command.", argv[0]);
+         warnf(ConsoleLogEntry::Script, "%s: Unknown command.", argv[0].toString());
 
          // Clean up arg buffers, if any.
          // STR.clearFunctionOffset();
@@ -873,7 +873,7 @@ ConsoleValue execute(SimObject *object, S32 argc, ConsoleValue argv[])
          return ret;
       }
    }
-   warnf(ConsoleLogEntry::Script, "Con::execute - %d has no namespace: %s", object->getId(), argv[0]);
+   warnf(ConsoleLogEntry::Script, "Con::execute - %d has no namespace: %s", object->getId(), argv[0].toString());
    return "";
 }
 

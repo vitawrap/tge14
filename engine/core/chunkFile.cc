@@ -384,7 +384,7 @@ ConsoleFunction(saveChunkFile, bool, 3, 3, "(SimChunk chunk, Filename file)"
 
    if(!Sim::findObject(argv[1], rootChunk))
    {
-      Con::errorf("writeChunkFile - Unable to locate root chunk '%s'", argv[1]);
+      Con::errorf("writeChunkFile - Unable to locate root chunk '%s'", argv[1].toString());
       return false;
    }
 
@@ -396,7 +396,7 @@ ConsoleFunction(saveChunkFile, bool, 3, 3, "(SimChunk chunk, Filename file)"
 
    if(!cf->save(file))
    {
-      Con::errorf("writeChunkFile - Failed to save '%s' to '%s'", argv[1],  file);
+      Con::errorf("writeChunkFile - Failed to save '%s' to '%s'", argv[1].toString(),  file);
       res = false;
    }
 
@@ -412,7 +412,7 @@ ConsoleFunction(loadChunkFile, S32, 2, 2, "(Filename file)"
 
    if(bool(ri) == false)
    {
-      Con::errorf("loadChunkFile - failed to open '%s'", argv[1]);
+      Con::errorf("loadChunkFile - failed to open '%s'", argv[1].getStringU());
       return 0;
    }
 
