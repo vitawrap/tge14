@@ -198,6 +198,104 @@ void OptimizedPolyList::render()
    }
 }
 
+
+U32 OptimizedPolyList::addEdge(const OptimizedPolyList::Edge& edge, bool overwriteFaces)
+{
+    for (U32 edx = 0; edx < mEdgeList.size(); ++edx)
+    {
+        Edge& check = mEdgeList[edx];
+        if ((check.vertexes[0] == edge.vertexes[0] && check.vertexes[1] == check.vertexes[1]) ||
+            (check.vertexes[0] == edge.vertexes[1] && check.vertexes[1] == check.vertexes[0]))
+        {
+            if (overwriteFaces) {
+                check.faces[0] = edge.faces[0];
+                check.faces[1] = edge.faces[1];
+            }
+            return edx;
+        }
+    }
+
+    mEdgeList.push_back(edge);
+    return mEdgeList.size() - 1;
+}
+
+
+void OptimizedPolyList::generateEdges()
+{
+    Edge edge;
+    edge.faces[0] = edge.faces[1] = -1;
+    mEdgeList.clear();
+
+    // From render, I assume polys are made out of triangle fans?
+    for (U32 pdx = 0; pdx < mPolyList.size(); pdx++)
+    {
+        if (mPolyList[pdx].vertexCount < 2)
+            continue;
+        else if (mPolyList[pdx].vertexCount == 2) {
+            // register whole poly as edge
+            edge.vertexes[0] = mIndexList[mPolyList[pdx].vertexStart];
+            edge.vertexes[1] = mIndexList[mPolyList[pdx].vertexStart + 1];
+            addEdge(edge);
+        }
+        else {  // vertexCount >= 3
+            U32 j, i0 = mIndexList[mPolyList[pdx].vertexStart];
+            for (j = 1; j < mPolyList[pdx].vertexCount - 1; j++)
+            {
+                U32 i1 = mIndexList[mPolyList[pdx].vertexStart + j];
+                U32 i2 = mIndexList[mPolyList[pdx].vertexStart + j + 1];
+
+                edge.vertexes[0] = i0;
+                edge.vertexes[1] = i1;
+                addEdge(edge);
+                edge.vertexes[0] = i1;
+                edge.vertexes[1] = i2;
+                addEdge(edge);
+            }
+            // add last edge of fan
+            edge.vertexes[0] = i0;
+            edge.vertexes[1] = mIndexList[mPolyList[pdx].vertexStart + (mPolyList[pdx].vertexCount - 1)];
+            addEdge(edge);
+        }
+    }
+
+    // Find all neighbors
+    for (U32 edx = 0; edx < mEdgeList.size(); ++edx)
+    {
+
+    }
+}
+
+
+void OptimizedPolyList::renderWireFrame(ColorF const& stroke, ColorF const& fill)
+{
+    if (mPolyList.size() == 0 || mVertexList.size() == 0)
+        return;
+
+    // This shamelessly duplicates ClippedPolyList code to render better...
+    glVertexPointer(3, GL_FLOAT, sizeof(Point3F), mVertexList.address());
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColor4f(fill.red, fill.blue, fill.green, fill.alpha);
+    glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    Poly* p;
+    for (p = mPolyList.begin(); p < mPolyList.end(); p++) {
+        glDrawElements(GL_POLYGON, p->vertexCount,
+            GL_UNSIGNED_INT, &mIndexList[p->vertexStart]);
+    }
+
+    glColor3f(stroke.red, stroke.green, stroke.blue);
+    glDisable(GL_BLEND);
+    for (p = mPolyList.begin(); p < mPolyList.end(); p++) {
+        glDrawElements(GL_LINE_LOOP, p->vertexCount,
+            GL_UNSIGNED_INT, &mIndexList[p->vertexStart]);
+    }
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+
 void OptimizedPolyList::copyPolyToList(OptimizedPolyList* target, U32 pdx) const
 {
    target->mPolyList.increment();
