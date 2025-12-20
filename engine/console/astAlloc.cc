@@ -226,6 +226,14 @@ StrConstNode *StrConstNode::alloc(char *str, bool tag)
    return ret;
 }
 
+FindObjectNode* FindObjectNode::alloc(StringTableEntry value)
+{
+   FindObjectNode *ret = (FindObjectNode *) consoleAlloc(sizeof(FindObjectNode));
+   constructInPlace(ret);
+   ret->value = value;
+   return ret;
+}
+
 ConstantNode *ConstantNode::alloc(StringTableEntry value)
 {
    ConstantNode *ret = (ConstantNode *) consoleAlloc(sizeof(ConstantNode));

@@ -178,7 +178,8 @@ namespace Con
       /// 03/25/25 - viw - 39->40 Fix instanceof.
       /// 05/03/25 - viw - 40->41 Add null forgiving operator.
       /// 05/17/25 - viw - 41->42 Rewrite for console values.
-      DSOVersion = 42,
+      /// 12/20/25 - viw - 42->43 Add resolve-object strings.
+      DSOVersion = 43,
 
       MaxLineLength = 512,  ///< Maximum length of a line of console input.
       MaxDataTypes = 256    ///< Maximum number of registered data types.

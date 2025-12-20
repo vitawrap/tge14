@@ -13,7 +13,7 @@ using namespace Compiler;
 #define YY_NO_UNISTD_H 1
 
 // Some basic parsing primitives...
-static int Sc_ScanString(int ret);
+static int Sc_ScanString(int ret, int offset);
 static int Sc_ScanNum();
 static int Sc_ScanVar();
 static int Sc_ScanHex();
@@ -86,8 +86,9 @@ HEXDIGIT [a-fA-F0-9]
 "//"[^\n\r]*   ;
 [\r]        ;
 [\n]        {lineIndex++;}
-\"(\\.|[^\\"\n\r])*\"      { return(Sc_ScanString(STRATOM)); }
-\'(\\.|[^\\'\n\r])*\'      { return(Sc_ScanString(TAGATOM)); }
+\"(\\.|[^\\"\n\r])*\"      { return(Sc_ScanString(STRATOM, 1)); }
+\'(\\.|[^\\'\n\r])*\'      { return(Sc_ScanString(TAGATOM, 1)); }
+[$]\"(\\.|[^\\"\n\r])*\"   { return(Sc_ScanString(PTHATOM, 2)); }
 "=="        return(cmdlval.i = opEQ);
 "!="        return(cmdlval.i = opNE);
 ">="        return(cmdlval.i = opGE);
@@ -280,13 +281,13 @@ static int getHexDigit(char c)
    return -1;
 }
 
-static int Sc_ScanString(int ret)
+static int Sc_ScanString(int ret, int offset)
 {
    CMDtext[CMDleng - 1] = 0;
-   if(!collapseEscape(CMDtext+1))
+   if(!collapseEscape(CMDtext + offset))
       return -1;
    cmdlval.str = (char *) consoleAlloc(dStrlen(CMDtext));
-   dStrcpy(cmdlval.str, CMDtext + 1);
+   dStrcpy(cmdlval.str, CMDtext + offset);
    return(ret);
 }
 

@@ -59,6 +59,7 @@ void cmderror(char *, ...);
 %token <s>   IDENT
 %token <str> STRATOM
 %token <str> TAGATOM
+%token <str> PTHATOM
 %token <f>   FLTCONST
 
    /* Operator Definitions */
@@ -423,6 +424,8 @@ expr
       { $$ = ConstantNode::alloc($1); }
    | STRATOM
       { $$ = StrConstNode::alloc($1, false); }
+   | PTHATOM
+      { $$ = FindObjectNode::alloc(StringTable->insert($1)); }
    | VAR
       { $$ = (ExprNode*)VarNode::alloc($1, NULL); }
    | VAR '[' aidx_expr ']'

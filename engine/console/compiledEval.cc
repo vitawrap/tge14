@@ -230,6 +230,7 @@ static void dumpInterpreterState(U64 op) {
         "OP_CONCAT_STR_COMMA",
         "OP_COMPARE_STR",
         "OP_ISNULL_STR",
+        "OP_FINDOBJECT_STR",
         "OP_BREAK",
         "OP_INVALID"
     };
@@ -638,6 +639,13 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             }
             valueStack[TOP-1] = S64(found);
             popValueStack();
+            break;
+         }
+
+         case OP_FINDOBJECT_STR:
+         {
+            SimObject* object = Sim::findObject(U64toSTE(code[ip++]));
+            valueStack[++TOP] = object ? (S64)object->getId() : 0LL;
             break;
          }
 
