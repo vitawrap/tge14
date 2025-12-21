@@ -89,6 +89,8 @@ HEXDIGIT [a-fA-F0-9]
 \"(\\.|[^\\"\n\r])*\"      { return(Sc_ScanString(STRATOM, 1)); }
 \'(\\.|[^\\'\n\r])*\'      { return(Sc_ScanString(TAGATOM, 1)); }
 [$]\"(\\.|[^\\"\n\r])*\"   { return(Sc_ScanString(PTHATOM, 2)); }
+\`(\\.|[^\\`])*\`          { return(Sc_ScanString(NLSATOM, 1)); }
+
 "=="        return(cmdlval.i = opEQ);
 "!="        return(cmdlval.i = opNE);
 ">="        return(cmdlval.i = opGE);

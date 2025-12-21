@@ -89,38 +89,39 @@ extern int cmddebug;
     TAGATOM = 282,                 /* TAGATOM  */
     PTHATOM = 283,                 /* PTHATOM  */
     FLTCONST = 284,                /* FLTCONST  */
-    opMINUSMINUS = 285,            /* opMINUSMINUS  */
-    opPLUSPLUS = 286,              /* opPLUSPLUS  */
-    opSHL = 287,                   /* opSHL  */
-    opSHR = 288,                   /* opSHR  */
-    opPLASN = 289,                 /* opPLASN  */
-    opMIASN = 290,                 /* opMIASN  */
-    opMLASN = 291,                 /* opMLASN  */
-    opDVASN = 292,                 /* opDVASN  */
-    opMODASN = 293,                /* opMODASN  */
-    opANDASN = 294,                /* opANDASN  */
-    opXORASN = 295,                /* opXORASN  */
-    opORASN = 296,                 /* opORASN  */
-    opSLASN = 297,                 /* opSLASN  */
-    opSRASN = 298,                 /* opSRASN  */
-    opEQ = 299,                    /* opEQ  */
-    opNE = 300,                    /* opNE  */
-    opGE = 301,                    /* opGE  */
-    opLE = 302,                    /* opLE  */
-    opAND = 303,                   /* opAND  */
-    opOR = 304,                    /* opOR  */
-    opSTREQ = 305,                 /* opSTREQ  */
-    opRANGE = 306,                 /* opRANGE  */
-    opCOLONCOLON = 307,            /* opCOLONCOLON  */
-    opMDASN = 308,                 /* opMDASN  */
-    opNDASN = 309,                 /* opNDASN  */
-    opNTASN = 310,                 /* opNTASN  */
-    opCAT = 311,                   /* opCAT  */
-    opSTRNE = 312,                 /* opSTRNE  */
-    opFORGIVE = 313,               /* opFORGIVE  */
-    opINSTANCE = 314,              /* opINSTANCE  */
-    UNARY = 315,                   /* UNARY  */
-    opIDXSTART = 316               /* opIDXSTART  */
+    NLSATOM = 285,                 /* NLSATOM  */
+    opMINUSMINUS = 286,            /* opMINUSMINUS  */
+    opPLUSPLUS = 287,              /* opPLUSPLUS  */
+    opSHL = 288,                   /* opSHL  */
+    opSHR = 289,                   /* opSHR  */
+    opPLASN = 290,                 /* opPLASN  */
+    opMIASN = 291,                 /* opMIASN  */
+    opMLASN = 292,                 /* opMLASN  */
+    opDVASN = 293,                 /* opDVASN  */
+    opMODASN = 294,                /* opMODASN  */
+    opANDASN = 295,                /* opANDASN  */
+    opXORASN = 296,                /* opXORASN  */
+    opORASN = 297,                 /* opORASN  */
+    opSLASN = 298,                 /* opSLASN  */
+    opSRASN = 299,                 /* opSRASN  */
+    opEQ = 300,                    /* opEQ  */
+    opNE = 301,                    /* opNE  */
+    opGE = 302,                    /* opGE  */
+    opLE = 303,                    /* opLE  */
+    opAND = 304,                   /* opAND  */
+    opOR = 305,                    /* opOR  */
+    opSTREQ = 306,                 /* opSTREQ  */
+    opRANGE = 307,                 /* opRANGE  */
+    opCOLONCOLON = 308,            /* opCOLONCOLON  */
+    opMDASN = 309,                 /* opMDASN  */
+    opNDASN = 310,                 /* opNDASN  */
+    opNTASN = 311,                 /* opNTASN  */
+    opCAT = 312,                   /* opCAT  */
+    opSTRNE = 313,                 /* opSTRNE  */
+    opFORGIVE = 314,               /* opFORGIVE  */
+    opINSTANCE = 315,              /* opINSTANCE  */
+    UNARY = 316,                   /* UNARY  */
+    opIDXSTART = 317               /* opIDXSTART  */
   };
   typedef enum cmdtokentype cmdtoken_kind_t;
 #endif
@@ -129,7 +130,7 @@ extern int cmddebug;
 #if ! defined CMDSTYPE && ! defined CMDSTYPE_IS_DECLARED
 union CMDSTYPE
 {
-#line 75 "CMDgram.y"
+#line 76 "CMDgram.y"
 
    char              c;
    int               i;
@@ -146,7 +147,7 @@ union CMDSTYPE
    AssignDecl        asn;
    IfStmtNode *      ifnode;
 
-#line 150 "CMDgram.hh"
+#line 151 "CMDgram.hh"
 
 };
 typedef union CMDSTYPE CMDSTYPE;

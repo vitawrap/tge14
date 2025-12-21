@@ -61,6 +61,7 @@ void cmderror(char *, ...);
 %token <str> TAGATOM
 %token <str> PTHATOM
 %token <f>   FLTCONST
+%token <str> NLSATOM
 
    /* Operator Definitions */
 
@@ -423,6 +424,8 @@ expr
    | IDENT
       { $$ = ConstantNode::alloc($1); }
    | STRATOM
+      { $$ = StrConstNode::alloc($1, false); }
+   | NLSATOM
       { $$ = StrConstNode::alloc($1, false); }
    | PTHATOM
       { $$ = FindObjectNode::alloc(StringTable->insert($1)); }
