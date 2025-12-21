@@ -708,7 +708,7 @@ ConsoleFunctionGroupBegin( TaggedStrings, "Functions dealing with tagging/detagg
 ConsoleFunction(detag, const char *, 2, 2, "detag(textTagString)")
 {
    argc;
-   if(argv[1].castTo(ConsoleValue::TypeString) && (argv[1].getStringU()[0] == StringTagPrefixByte))
+   if(argv[1].isTagString())
    {
       const char *word = dStrchr(argv[1].getStringU(), ' ');
       if(word == NULL)
@@ -722,7 +722,7 @@ ConsoleFunction(detag, const char *, 2, 2, "detag(textTagString)")
 ConsoleFunction(getTag, const char *, 2, 2, "getTag(textTagString)")
 {
    argc;
-   if(argv[1].castTo(ConsoleValue::TypeString) && (argv[1].getStringU()[0] == StringTagPrefixByte))
+   if(argv[1].isTagString())
    {
       const char * string = argv[1].getStringU();
       const char * space = dStrchr(string, ' ');
