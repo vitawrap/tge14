@@ -67,7 +67,7 @@ void GuiTSCtrl::renderWorld(const RectI& /*updateRect*/)
 {
 }
 
-bool GuiTSCtrl::project(const Point3F &pt, Point3F *dest)
+bool GuiTSCtrl::project(const Point3F &pt, Point3F *dest) const
 {
    GLdouble winx, winy, winz;
    GLint result = gluProject(pt.x, pt.y, pt.z,
@@ -79,7 +79,7 @@ bool GuiTSCtrl::project(const Point3F &pt, Point3F *dest)
    return true;
 }
 
-bool GuiTSCtrl::unproject(const Point3F &pt, Point3F *dest)
+bool GuiTSCtrl::unproject(const Point3F &pt, Point3F *dest) const
 {
    GLdouble objx, objy, objz;
    GLint result = gluUnProject(pt.x, pt.y, pt.z,
@@ -157,4 +157,24 @@ void GuiTSCtrl::onRender(Point2I offset, const RectI &updateRect)
       renderChildControls(offset, updateRect);
 
    smFrameCount++;
+}
+
+// Note for unproject: Depth (z) is exponential!
+
+ConsoleMethod(GuiTSCtrl, project, const char*, 3, 3, "(Point3F xyz) - Project 3D coordinates in 2D.")
+{
+    Point3F xyz = argv[2].getPoint3F();
+    Point3F out;
+    if (!object->project(xyz, &out))
+        return "";
+    return ConsoleValueList::from(out.x, out.y, out.z);
+}
+
+ConsoleMethod(GuiTSCtrl, unproject, const char*, 3, 3, "(Point3F xyz) - Project 2D coordinates in 3D.")
+{
+    Point3F xyz = argv[2].getPoint3F();
+    Point3F out;
+    if (!object->unproject(xyz, &out))
+        return "";
+    return ConsoleValueList::from(out.x, out.y, out.z);
 }
