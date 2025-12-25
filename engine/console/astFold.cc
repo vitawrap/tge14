@@ -97,7 +97,7 @@ static ExprNode* foldArrayExpr(StringTableEntry& varName, ExprNode* varArray, S3
 	}
 	else if (dynamic_cast<CommaCatExprNode*>(varArray)) {
 		auto* cat = reinterpret_cast<CommaCatExprNode*>(varArray);
-		if (!foldArrayExpr(varName, cat->left, depth))
+		if (!foldArrayExpr(varName, cat->left, depth+1))
 			return foldArrayExpr(varName, cat->right, depth+1);
 	}
 	return varArray;
