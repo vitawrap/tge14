@@ -73,6 +73,7 @@ StaticShape::StaticShape()
    mLastTickInterpolate = 0.f;
    mRelativeTransform.identity();
    mRelativeCollision = true;
+   mMustClearParentScope = false;
 }
 
 StaticShape::~StaticShape()
@@ -251,9 +252,12 @@ void StaticShape::setInterpolate(bool interp)
 
 void StaticShape::setTransformParent(ShapeBase* shape)
 {
-    mTransformParent = shape;
-    setMaskBits(XParentMask | PositionMask);
     if (!isGhost()) {
+        if (mTransformParent && mMustClearParentScope)
+            mTransformParent->clearScopeAlways();
+        mTransformParent = shape;
+        if (mMustClearParentScope = !mTransformParent->isGhostAlways())
+            mTransformParent->setScopeAlways();
         setMaskBits(XParentMask | PositionMask);
         if (shape)
             processAfter(shape);
@@ -277,7 +281,7 @@ U64 StaticShape::packUpdate(NetConnection *con, U64 mask, BitStream *bstream)
            if (bstream->writeFlag(ghostIndex != -1))
                bstream->writeRangedU32(U32(ghostIndex), 0, NetConnection::MaxGhostCount);
            else // havn't recieved the ghost for the source object yet, try again later
-               retMask |= GameBase::InitialUpdateMask;
+               retMask |= XParentMask;
        }
        else
            bstream->writeFlag(false);

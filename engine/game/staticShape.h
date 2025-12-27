@@ -37,14 +37,16 @@ class StaticShape: public ShapeBase
 {
    typedef ShapeBase Parent;
 
-   StaticShapeData*  mDataBlock;
    bool              mPowered;
-
    bool              mRelativeCollision;
+   bool              mInterpolateTransform;
+   bool              mMustClearParentScope;
+
+   StaticShapeData*  mDataBlock;
+
    SimObjectPtr<ShapeBase> mTransformParent;
    MatrixF           mRelativeTransform;
 
-   bool              mInterpolateTransform;
    F32               mLastTickInterpolate;
    MatrixF           mTargetTransform;
    QuatF             mInitialRotation;
