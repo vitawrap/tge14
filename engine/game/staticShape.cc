@@ -35,6 +35,7 @@ StaticShapeData::StaticShapeData()
    genericShadowLevel = StaticShape_GenericShadowLevel;
    noShadowLevel = StaticShape_NoShadowLevel;
    noIndividualDamage = false;
+   collisionTol = 0.1f;
 }
 
 void StaticShapeData::initPersistFields()
@@ -73,7 +74,10 @@ StaticShape::StaticShape()
    mLastTickInterpolate = 0.f;
    mRelativeTransform.identity();
    mRelativeCollision = true;
-   mMustClearParentScope = false;
+
+   mCollisionList = NULL;
+   mConvex.mObject = NULL;
+   mConvex.pShapeBase = NULL;
 }
 
 StaticShape::~StaticShape()
@@ -127,6 +131,7 @@ bool StaticShape::onNewDataBlock(GameBaseData* dptr)
 
 void StaticShape::onRemove()
 {
+   setMonitorCollisions(false); // free collision stuff
    scriptOnRemove();
    removeFromScene();
    Parent::onRemove();
@@ -134,6 +139,53 @@ void StaticShape::onRemove()
 
 
 //----------------------------------------------------------------------------
+
+void StaticShape::updateCollisions(F32 dt)
+{
+    AssertFatal(mCollisionList, "Collision list must exist when a StaticShape updates collisions!");
+
+    // Update working list
+    // (This does no effort at inflating the box from predicted movement yet, might act erratic!)
+    Box3F convexBox = mConvex.getBoundingBox(getTransform(), getScale());
+    disableCollision();
+    mConvex.updateWorkingList(convexBox, STATIC_COLLISION_MASK);
+    enableCollision();
+
+    // Update collision information
+    MatrixF mat = getTransform();
+    MatrixF cmat;
+    mConvex.transform = &mat;
+    cmat = mConvex.getTransform();
+
+    mCollisionList->count = 0;
+    CollisionState* state = mConvex.findClosestState(cmat, getScale(), mDataBlock->collisionTol);
+    if (state && state->dist <= mDataBlock->collisionTol) {
+        mConvex.getCollisionInfo(cmat, getScale(), mCollisionList, mDataBlock->collisionTol);
+    }
+
+    // Now resolve collisions we care about
+    CollisionList& cList = *mCollisionList;
+    for (S32 i = 0; i < cList.count; i++) {
+        Collision& c = cList.collision[i];
+
+        // Skip static shapes attached to us
+        if (c.object->getTypeMask() & StaticShapeObjectType) {
+            StaticShape* col = static_cast<StaticShape*>(c.object);
+            if (!col->collidesWithParent() && (col->getTransformParent() == this)) {
+                cList.removeCollision(i--);
+                continue;
+            }
+        }
+
+        if (c.distance < mDataBlock->collisionTol) {
+            // Keep track of objects we collide with
+            if (!isGhost() && c.object->getTypeMask() & ShapeBaseObjectType) {
+                ShapeBase* col = static_cast<ShapeBase*>(c.object);
+                queueCollision(col, col->getVelocity());
+            }
+        }
+    }
+}
 
 void StaticShape::processTick(const Move* move)
 {
@@ -157,6 +209,8 @@ void StaticShape::processTick(const Move* move)
       Parent::setTransform(mat);
       Parent::setRenderTransform(mat);
    }
+   if (mCollisionList)
+       updateCollisions(TickSec);
 }
 
 void StaticShape::interpolateTick(F32)
@@ -253,14 +307,35 @@ void StaticShape::setInterpolate(bool interp)
 void StaticShape::setTransformParent(ShapeBase* shape)
 {
     if (!isGhost()) {
-        if (mTransformParent && mMustClearParentScope)
-            mTransformParent->clearScopeAlways();
         mTransformParent = shape;
-        if (mMustClearParentScope = !mTransformParent->isGhostAlways())
+        if (!mTransformParent->isGhostAlways())
             mTransformParent->setScopeAlways();
         setMaskBits(XParentMask | PositionMask);
         if (shape)
             processAfter(shape);
+    }
+}
+
+void StaticShape::setMonitorCollisions(bool monitor)
+{
+    if (monitor) {
+        if (!isGhost() && mDataBlock && mDataBlock->collisionDetails[0] != -1) {
+            mConvex.mObject = this;
+            mConvex.pShapeBase = this;
+            mConvex.hullId = 0;
+            mConvex.box = mObjBox;
+            mConvex.box.min.convolve(mObjScale);
+            mConvex.box.max.convolve(mObjScale);
+            mConvex.findNodeTransform();
+            if (!mCollisionList)
+                mCollisionList = new CollisionList();
+        }
+    }
+    else {
+        delete mCollisionList;
+        mConvex.nukeList();
+        mConvex.mObject = NULL;
+        mConvex.pShapeBase = NULL;
     }
 }
 
@@ -396,4 +471,14 @@ ConsoleMethod(StaticShape, getParent, bool, 2, 2, "get transform parent")
 {
     ShapeBase* parent = object->getTransformParent();
     return S64( parent? parent->getId() : 0 );
+}
+
+ConsoleMethod(StaticShape, setMonitorCollisions, void, 3, 3, "(bool monitor) - make this shape respond to collisions")
+{
+    object->setMonitorCollisions(argv[2].getInt());
+}
+
+ConsoleMethod(StaticShape, isMonitoringCollisions, bool, 2, 2, "() - is this shape responding to collisions?")
+{
+    return object->isMonitoringCollisions();
 }
