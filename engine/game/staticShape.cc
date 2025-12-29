@@ -168,10 +168,11 @@ void StaticShape::updateCollisions(F32 dt)
     for (S32 i = 0; i < cList.count; i++) {
         Collision& c = cList.collision[i];
 
-        // Skip static shapes attached to us
+        // Skip static shapes attached to us (or sharing the same parent, if any)
         if (c.object->getTypeMask() & StaticShapeObjectType) {
             StaticShape* col = static_cast<StaticShape*>(c.object);
-            if (!col->collidesWithParent() && (col->getTransformParent() == this)) {
+            if (!col->collidesWithParent() && (col->getTransformParent() == this ||
+                (col->getTransformParent() == getTransformParent() && getTransformParent()))) {
                 cList.removeCollision(i--);
                 continue;
             }
