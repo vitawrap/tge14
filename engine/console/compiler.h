@@ -113,6 +113,7 @@ namespace Compiler
       OP_CONCAT_STR_COMMA,
       OP_COMPARE_STR,
       OP_ISNULL_STR,
+      OP_FINDOBJECT_STR,
 
       OP_BREAK,
 

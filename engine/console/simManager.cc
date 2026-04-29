@@ -327,6 +327,13 @@ SimObject* findObject(ConsoleValue& cval)
     return findObject(cval.toString());
 }
 
+SimObject* findObject(ConsoleValue&& cval)
+{
+    if (cval.getType() == ConsoleValue::TypeInt)
+        return findObject(static_cast<SimObjectId>(cval.getIntU()));
+    return findObject(cval.toString());
+}
+
 SimGroup *getRootGroup()
 {
    return gRootGroup;

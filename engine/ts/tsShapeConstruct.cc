@@ -56,7 +56,7 @@ bool TSShapeConstructor::preload(bool server, char errorBuffer[ErrorBufferSize])
       if (mSequence[i])
       {
          char fileBuf[256];
-         dStrcpy(fileBuf, mSequence[i]);
+         dSprintf(fileBuf, 256, "%s", mSequence[i]);
 
          // spaces and tabs indicate the end of the file name:
          char * terminate1 = dStrchr(fileBuf,' ');

@@ -105,40 +105,31 @@ void StringBuffer::insert(const U32 charOffset, const StringBuffer &in)
       append(in);
       return;
    }
+   const U32 len = in.length();
 
    // Append was easy, now we have to do some work.
-
-   // Make some space in our buffer. We only need in.length() more as we
-   // will be dropping one of the two terminators present in this operation.
-   mBuffer.increment(in.length());
    
    // Copy everything we have that comes after charOffset past where the new
    // string data will be.
 
-   // Figure the address to start copying at. We know this is ok as otherwise
-   // we'd be in the append case.
-   const UTF16 *copyStart = &mBuffer[charOffset];
-
    // Figure the number of UTF16's to copy, taking into account the possibility
    // that we may be inserting a long string into a short string.
    
-   // We want to copy in.length() chars up, but there may not be that many available.
-   // So we want to really do either in.length() or length()-charOffset, whichever
-   // is lower.
-   const U32 copyCharLength = (S32)(length() - charOffset);
+   // How many chars come after the insert point? Add 1 to deal with terminator.
+   const U32 copyCharLength = (S32)(length() - charOffset) + 1;
 
-   // Don't copy unless we have to.
-   if(copyCharLength)
-   {
-      for(S32 i=copyCharLength-1; i>=0; i--)
-         mBuffer[charOffset+i+in.length()] = mBuffer[charOffset+i];
+   // Make some space in our buffer. We only need in.length() more as we
+   // will be dropping one of the two terminators present in this operation.
+   mBuffer.increment(len);
 
-      //  Can't copy directly, it messes up sometimes, esp. in release mode builds.
-      //dMemcpy(&mBuffer[charOffset+in.length()], &mBuffer[charOffset], sizeof(UTF16) * copyCharLength);
-   }
+   for(S32 i=copyCharLength-1; i>=0; i--)
+      mBuffer[charOffset+i+len] = mBuffer[charOffset+i];
+
+   //  Can't copy directly, it messes up sometimes, esp. in release mode builds.
+   //dMemcpy(&mBuffer[charOffset+in.length()], &mBuffer[charOffset], sizeof(UTF16) * copyCharLength);
 
    // And finally copy the new data in, not including its terminator.
-   dMemcpy(&mBuffer[charOffset], in.mBuffer.address(), sizeof(UTF16) * in.length());
+   dMemcpy(&mBuffer[charOffset], in.mBuffer.address(), sizeof(UTF16) * len);
 
    // All done!
    AssertFatal(mBuffer.last() == 0, "StringBuffer::insert - not a null terminated string!");

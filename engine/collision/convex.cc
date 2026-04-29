@@ -86,11 +86,12 @@ bool ConvexFeature::collide(ConvexFeature& cf,CollisionList* cList, F32 tol)
       U32 storeCount = cList->count;
       testVertex(*vert,cList,true, tol);
 
-      // Fix up last reference.  material and object are copied from this rather
+      // Fix up added references.  material and object are copied from this rather
       //  than the object we're colliding against.
-      if (storeCount != cList->count) {
-         cList->collision[cList->count - 1].material = cf.material;
-         cList->collision[cList->count - 1].object   = cf.object;
+      while (storeCount < cList->count) {
+         cList->collision[storeCount].material = cf.material;
+         cList->collision[storeCount].object   = cf.object;
+         ++storeCount;
       }
       vert++;
    }

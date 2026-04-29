@@ -933,6 +933,32 @@ TypeReq ConstantNode::getPreferredType()
 
 //------------------------------------------------------------
 
+U32 FindObjectNode::precompile(TypeReq type)
+{
+    if (type == TypeReqNone)
+        return 0;
+    precompileIdent(value);
+    return 2;
+}
+
+U32 FindObjectNode::compile(U64* codeStream, U64 ip, TypeReq type)
+{
+    if (type == TypeReqNone)
+        return ip;
+
+    codeStream[ip++] = OP_FINDOBJECT_STR;
+    codeStream[ip] = STEtoU64(value, ip);
+    return ++ip;
+}
+
+TypeReq FindObjectNode::getPreferredType()
+{
+    return TypeReqValue;
+}
+
+
+//------------------------------------------------------------
+
 U32 AssignExprNode::precompile(TypeReq type)
 {
    subType = expr->getPreferredType();

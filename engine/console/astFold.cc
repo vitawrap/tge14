@@ -33,9 +33,16 @@ static inline bool tryCoerceInt(ConsoleValue& left, ConsoleValue& right) {
 	return false;
 }
 
+// This forces the compiler to only generate nodeBinaryOp when it has a T
+// to check against this (otherwise it can decide to always generate the default case).
+template <typename T>
+struct AssertFail {
+	static constexpr bool value = false;
+};
+
 template <typename T>
 static T nodeBinaryOp(ConsoleValue& lVal, ConsoleValue& rVal, S32 op) {
-	static_assert(false, "Illegal type for nodeBinaryOp<T>.");
+	static_assert(AssertFail<T>::value, "Illegal type for nodeBinaryOp<T>.");
 	return T();
 }
 
@@ -90,7 +97,7 @@ static ExprNode* foldArrayExpr(StringTableEntry& varName, ExprNode* varArray, S3
 	}
 	else if (dynamic_cast<CommaCatExprNode*>(varArray)) {
 		auto* cat = reinterpret_cast<CommaCatExprNode*>(varArray);
-		if (!foldArrayExpr(varName, cat->left, depth))
+		if (!foldArrayExpr(varName, cat->left, depth+1))
 			return foldArrayExpr(varName, cat->right, depth+1);
 	}
 	return varArray;

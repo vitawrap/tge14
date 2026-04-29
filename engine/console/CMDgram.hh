@@ -87,39 +87,41 @@ extern int cmddebug;
     IDENT = 280,                   /* IDENT  */
     STRATOM = 281,                 /* STRATOM  */
     TAGATOM = 282,                 /* TAGATOM  */
-    FLTCONST = 283,                /* FLTCONST  */
-    opMINUSMINUS = 284,            /* opMINUSMINUS  */
-    opPLUSPLUS = 285,              /* opPLUSPLUS  */
-    opSHL = 286,                   /* opSHL  */
-    opSHR = 287,                   /* opSHR  */
-    opPLASN = 288,                 /* opPLASN  */
-    opMIASN = 289,                 /* opMIASN  */
-    opMLASN = 290,                 /* opMLASN  */
-    opDVASN = 291,                 /* opDVASN  */
-    opMODASN = 292,                /* opMODASN  */
-    opANDASN = 293,                /* opANDASN  */
-    opXORASN = 294,                /* opXORASN  */
-    opORASN = 295,                 /* opORASN  */
-    opSLASN = 296,                 /* opSLASN  */
-    opSRASN = 297,                 /* opSRASN  */
-    opEQ = 298,                    /* opEQ  */
-    opNE = 299,                    /* opNE  */
-    opGE = 300,                    /* opGE  */
-    opLE = 301,                    /* opLE  */
-    opAND = 302,                   /* opAND  */
-    opOR = 303,                    /* opOR  */
-    opSTREQ = 304,                 /* opSTREQ  */
-    opRANGE = 305,                 /* opRANGE  */
-    opCOLONCOLON = 306,            /* opCOLONCOLON  */
-    opMDASN = 307,                 /* opMDASN  */
-    opNDASN = 308,                 /* opNDASN  */
-    opNTASN = 309,                 /* opNTASN  */
-    opCAT = 310,                   /* opCAT  */
-    opSTRNE = 311,                 /* opSTRNE  */
-    opFORGIVE = 312,               /* opFORGIVE  */
-    opINSTANCE = 313,              /* opINSTANCE  */
-    UNARY = 314,                   /* UNARY  */
-    opIDXSTART = 315               /* opIDXSTART  */
+    PTHATOM = 283,                 /* PTHATOM  */
+    FLTCONST = 284,                /* FLTCONST  */
+    NLSATOM = 285,                 /* NLSATOM  */
+    opMINUSMINUS = 286,            /* opMINUSMINUS  */
+    opPLUSPLUS = 287,              /* opPLUSPLUS  */
+    opSHL = 288,                   /* opSHL  */
+    opSHR = 289,                   /* opSHR  */
+    opPLASN = 290,                 /* opPLASN  */
+    opMIASN = 291,                 /* opMIASN  */
+    opMLASN = 292,                 /* opMLASN  */
+    opDVASN = 293,                 /* opDVASN  */
+    opMODASN = 294,                /* opMODASN  */
+    opANDASN = 295,                /* opANDASN  */
+    opXORASN = 296,                /* opXORASN  */
+    opORASN = 297,                 /* opORASN  */
+    opSLASN = 298,                 /* opSLASN  */
+    opSRASN = 299,                 /* opSRASN  */
+    opEQ = 300,                    /* opEQ  */
+    opNE = 301,                    /* opNE  */
+    opGE = 302,                    /* opGE  */
+    opLE = 303,                    /* opLE  */
+    opAND = 304,                   /* opAND  */
+    opOR = 305,                    /* opOR  */
+    opSTREQ = 306,                 /* opSTREQ  */
+    opRANGE = 307,                 /* opRANGE  */
+    opCOLONCOLON = 308,            /* opCOLONCOLON  */
+    opMDASN = 309,                 /* opMDASN  */
+    opNDASN = 310,                 /* opNDASN  */
+    opNTASN = 311,                 /* opNTASN  */
+    opCAT = 312,                   /* opCAT  */
+    opSTRNE = 313,                 /* opSTRNE  */
+    opFORGIVE = 314,               /* opFORGIVE  */
+    opINSTANCE = 315,              /* opINSTANCE  */
+    UNARY = 316,                   /* UNARY  */
+    opIDXSTART = 317               /* opIDXSTART  */
   };
   typedef enum cmdtokentype cmdtoken_kind_t;
 #endif
@@ -128,7 +130,7 @@ extern int cmddebug;
 #if ! defined CMDSTYPE && ! defined CMDSTYPE_IS_DECLARED
 union CMDSTYPE
 {
-#line 74 "CMDgram.y"
+#line 76 "CMDgram.y"
 
    char              c;
    int               i;
@@ -145,7 +147,7 @@ union CMDSTYPE
    AssignDecl        asn;
    IfStmtNode *      ifnode;
 
-#line 149 "CMDgram.hh"
+#line 151 "CMDgram.hh"
 
 };
 typedef union CMDSTYPE CMDSTYPE;

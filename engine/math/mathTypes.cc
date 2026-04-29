@@ -288,6 +288,12 @@ ConsoleFunctionGroupEnd(VectorMath);
 
 ConsoleFunctionGroupBegin(MatrixMath, "Matrix manipulation functions.");
 
+ConsoleFunction( MatrixIdentity, const char*, 1, 1, "Create an identity matrix (base AA axis is X)" )
+{
+   AngAxisF aa(Point3F(1.f, 0.f, 0.f), 0.f);
+   return ConsoleValueList::from(0.f, 0.f, 0.f, aa.axis.x, aa.axis.y, aa.axis.z, aa.angle);
+}
+
 ConsoleFunction( MatrixCreate, const char*, 3, 3, "(Vector3F pos, Vector3F rot) Create a matrix representing the given translation and rotation.")
 {
    Point3F pos = argv[1].getPoint3F();

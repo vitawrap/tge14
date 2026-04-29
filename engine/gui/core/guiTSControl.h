@@ -65,8 +65,8 @@ public:
    static void initPersistFields();
    static void consoleInit();
 
-   bool project(const Point3F &pt, Point3F *dest); // returns screen space X,Y and Z for world space point
-   bool unproject(const Point3F &pt, Point3F *dest); // returns world space point for X, Y and Z
+   bool project(const Point3F &pt, Point3F *dest) const; // returns screen space X,Y and Z for world space point
+   bool unproject(const Point3F &pt, Point3F *dest) const; // returns world space point for X, Y and Z
 
    DECLARE_CONOBJECT(GuiTSCtrl);
 };

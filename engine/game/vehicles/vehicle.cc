@@ -1071,31 +1071,22 @@ bool Vehicle::updateCollision(F32 dt)
 */
 bool Vehicle::resolveCollision(Rigid&  ns,CollisionList& cList)
 {
-   // Apply impulses to resolve collision
-   bool colliding, collided = false;
+    // Apply impulses to resolve collision
+    bool collided = false;
 
-   // This is highly unstable and assumes the forces will always end up
-   // getting the object unstuck. Sometimes it can't... so use a retry
-   // count instead. Worst case is the car will get nudged out through
-   // multiple frames eventually! xoxo
-   const U32 retryCount = 10;
-   U32 retries = 0;
+    for (S32 i = 0; i < cList.count; i++) {
+        Collision& c = cList.collision[i];
 
-   do {
-      colliding = false;
-      for (S32 i = 0; i < cList.count; i++) {
-         Collision& c = cList.collision[i];
+        // Skip static shapes attached to vehicle
+        if (c.object->getTypeMask() & StaticShapeObjectType) {
+            StaticShape* col = static_cast<StaticShape*>(c.object);
+            if ((!col->collidesWithParent()) && (col->getTransformParent() == this)) {
+                cList.removeCollision(i--);
+                continue;
+            }
+        }
 
-         // Skip static shapes attached to vehicle
-         if (c.object->getTypeMask() & StaticShapeObjectType) {
-             StaticShape* col = static_cast<StaticShape*>(c.object);
-             if (!col->collidesWithParent() && (col->getTransformParent() == this)) {
-                 cList.removeCollision(i--);
-                 continue;
-             }
-         }
-
-         if (c.distance < mDataBlock->collisionTol) {
+        if (c.distance < mDataBlock->collisionTol) {
             // Velocity into surface
             Point3F v,r;
             ns.getOriginVector(c.point,&r);
@@ -1107,22 +1098,21 @@ bool Vehicle::resolveCollision(Rigid&  ns,CollisionList& cList)
             // "constraints".
             if (vn < -mDataBlock->contactTol) {
 
-               // Apply impulses to the rigid body to keep it from
-               // penetrating the surface.
-               ns.resolveCollision(c.point, c.normal);
-               colliding = collided = true;
+                // Apply impulses to the rigid body to keep it from
+                // penetrating the surface.
+                ns.resolveCollision(c.point, c.normal);
+                collided = true;
 
-               // Keep track of objects we collide with
-               if (!isGhost() && c.object->getTypeMask() & ShapeBaseObjectType) {
-                  ShapeBase* col = static_cast<ShapeBase*>(c.object);
-                  queueCollision(col,v - col->getVelocity());
-               }
+                // Keep track of objects we collide with
+                if (!isGhost() && c.object->getTypeMask() & ShapeBaseObjectType) {
+                    ShapeBase* col = static_cast<ShapeBase*>(c.object);
+                    queueCollision(col,v - col->getVelocity());
+                }
             }
-         }
-      }
-   } while (colliding && (retries++ < retryCount));
+        }
+    }
 
-   return collided;
+    return collided;
 }
 
 //----------------------------------------------------------------------------
@@ -1138,14 +1128,8 @@ bool Vehicle::resolveContacts(Rigid& ns,CollisionList& cList,F32 dt)
    for (S32 i = 0; i < cList.count; i++) {
       Collision& c = cList.collision[i];
       
-      // Skip static shapes attached to vehicle
-      if (c.object->getTypeMask() & StaticShapeObjectType) {
-          StaticShape* col = static_cast<StaticShape*>(c.object);
-          if (!col->collidesWithParent() && (col->getTransformParent() == this)) {
-              cList.removeCollision(i--);
-              continue;
-          }
-      }
+      // Don't need to skip static shapes attached to vehicle here
+      // because the collision list was already mutated to omit them.
 
       if (c.distance < mDataBlock->collisionTol) {
 

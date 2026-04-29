@@ -15,6 +15,9 @@
 #ifndef _CONSOLETYPES_H_
 #include "console/consoleTypes.h"
 #endif
+#ifndef _DICTIONARY_H_
+#include "core/tDictionary.h"
+#endif
 
 class ExprEvalState;
 struct FunctionDecl;
@@ -128,80 +131,63 @@ public:
 
 extern char *typeValueEmpty;
 
-class Dictionary
+struct ConsoleValueEntry : public DictEntryBase<ConsoleValueEntry>
 {
-public:
-    struct Entry
+    // Positive type values are reserved for Type### constants set by ConsoleType(...)
+    enum
     {
-        // Positive type values are reserved for Type### constants set by ConsoleType(...)
-        enum
-        {
-            TypeInternalValue = -1,
-        };
-
-        StringTableEntry name;
-        Entry *nextEntry;
-
-        S32 type;   // either our internal types or a public console type
-        ConsoleValue value;
-        void *dataPtr;
-
-        Entry(StringTableEntry name);
-
-        ConsoleValue getValue()
-        {
-            if(type == TypeInternalValue)
-                return value;
-            else
-                return Con::getData(type, dataPtr, 0);
-        }
-
-        void setValue(ConsoleValue& src)
-        {
-            if(type == TypeInternalValue)
-                value = src;
-            else
-                Con::setData(type, dataPtr, 0, src);
-        }
+        TypeInternalValue = -1,
     };
 
+    S32 type;   // either our internal types or a public console type
+    ConsoleValue value;
+    void* dataPtr;
+
+    ConsoleValueEntry(StringTableEntry in_name)
+        : value(""), DictEntryBase(in_name)
+    {
+        dataPtr = NULL;
+        type = TypeInternalValue;
+    }
+
+    ConsoleValue getValue()
+    {
+        if (type == TypeInternalValue)
+            return value;
+        else
+            return Con::getData(type, dataPtr, 0);
+    }
+
+    void setValue(ConsoleValue& src)
+    {
+        if (type == TypeInternalValue)
+            value = src;
+        else
+            Con::setData(type, dataPtr, 0, src);
+    }
+};
+
+class ConsoleValueDictionary : public Dictionary<ConsoleValueEntry>
+{
 private:
-    static StackAllocator smStackAlloc;
-
-    struct HashTableData
-    {
-        Dictionary* owner;
-        S32 size;
-        S32 count;
-        Entry **data;
-    };
-
-    HashTableData *hashTable;
-    HashTableData localHashTable;
+    typedef Dictionary<ConsoleValueEntry> Parent;
     ExprEvalState *exprState;
-    
-    StackAllocator::StackMarker marker;
 public:
     StringTableEntry scopeName;
     Namespace *scopeNamespace;
     CodeBlock *code;
     U32 ip;
 
-    Dictionary();
-    Dictionary(ExprEvalState *state, Dictionary* ref=NULL);
+    ConsoleValueDictionary();
+    ConsoleValueDictionary(ExprEvalState *state, ConsoleValueDictionary* ref=NULL);
 
-    ~Dictionary();
-
-    Entry *lookup(StringTableEntry name);
-    Entry *add(StringTableEntry name);
-    void setState(ExprEvalState *state, Dictionary* ref=NULL);
-    void remove(Entry *);
-    void reset();
+    void setStateEx(ExprEvalState* state, ConsoleValueDictionary* ref = NULL);
 
     void exportVariables(const char *varString, const char *fileName, bool append, bool runnable = true);
     void deleteVariables(const char *varString);
 
     void setVariable(StringTableEntry name, ConsoleValue& cv);
+    void setVariable(StringTableEntry name, ConsoleValue&& cv);
     ConsoleValue getVariable(StringTableEntry name, bool *valid = NULL);
 
     void addVariable(const char *name, S32 type, void *dataPtr);
@@ -220,7 +206,7 @@ public:
 
     ///
     SimObject *thisObject;
-    Dictionary::Entry *currentVariable;
+    ConsoleValueDictionary::Entry *currentVariable;
     bool traceOn;
 
     ExprEvalState();
@@ -232,8 +218,8 @@ public:
     /// @{
 
     ///
-    Dictionary globalVars;
-    Vector<Dictionary> stack;
+    ConsoleValueDictionary globalVars;
+    Vector<ConsoleValueDictionary> stack;
     void setCurVarName(StringTableEntry name);
     void setCurVarNameCreate(StringTableEntry name);
     void setCurLocalName(StringTableEntry name);

@@ -467,7 +467,8 @@ void TSShapeInstance::reSkin(StringHandle& newBaseHandle)
    const char* defaultBaseName = "base";
    const char* newBaseName;
 
-   if (newBaseHandle.isValidString()) {
+   // Count empty strings as an user error when fetching skins, use default base name.
+   if (newBaseHandle.isValidString() && newBaseHandle.getString()[0] != 0) {
       newBaseName = newBaseHandle.getString();
       if (newBaseName == NULL) {
          return;

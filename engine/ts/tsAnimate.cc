@@ -133,8 +133,8 @@ void TSShapeInstance::animateNodes(S32 ss)
             QuatF q1,q2;
             mShape->getRotation(*th->sequence,th->keyNum1,j,&q1);
             mShape->getRotation(*th->sequence,th->keyNum2,j,&q2);
-            // 1.f instead of th->keyPos here changes linear animation interp to constant!
-            TSTransform::interpolate(q1,q2,th->keyPos,&smNodeCurrentRotations[nodeIndex]);
+            F32 pos = th->sequence->noInterpolation() ? 1.f : th->keyPos;
+            TSTransform::interpolate(q1,q2,pos,&smNodeCurrentRotations[nodeIndex]);
             rotBeenSet.set(nodeIndex);
             smRotationThreads[nodeIndex] = th;
          }
@@ -155,8 +155,8 @@ void TSShapeInstance::animateNodes(S32 ss)
             {
                const Point3F & p1 = mShape->getTranslation(*th->sequence,th->keyNum1,j);
                const Point3F & p2 = mShape->getTranslation(*th->sequence,th->keyNum2,j);
-               // 1.f instead of th->keyPos here changes linear animation interp to constant!
-               TSTransform::interpolate(p1,p2,th->keyPos,&smNodeCurrentTranslations[nodeIndex]);
+               F32 pos = th->sequence->noInterpolation() ? 1.f : th->keyPos;
+               TSTransform::interpolate(p1,p2,pos,&smNodeCurrentTranslations[nodeIndex]);
                smTranslationThreads[nodeIndex] = th;
             }
             tranBeenSet.set(nodeIndex);

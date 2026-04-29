@@ -22,6 +22,7 @@ struct StaticShapeData: public ShapeBaseData {
    S32   dynamicTypeField;
    bool  isShielded;
    F32   energyPerDamagePoint;
+   F32   collisionTol;
 
    //
    DECLARE_CONOBJECT(StaticShapeData);
@@ -37,20 +38,25 @@ class StaticShape: public ShapeBase
 {
    typedef ShapeBase Parent;
 
-   StaticShapeData*  mDataBlock;
    bool              mPowered;
+   bool              mRelativeCollision;        ///< Collide with parent?
+   bool              mInterpolateTransform;     ///< Smoothen movement?
 
-   bool              mRelativeCollision;
+   StaticShapeData*  mDataBlock;
+
    SimObjectPtr<ShapeBase> mTransformParent;
    MatrixF           mRelativeTransform;
 
-   bool              mInterpolateTransform;
    F32               mLastTickInterpolate;
    MatrixF           mTargetTransform;
    QuatF             mInitialRotation;
    Point3F           mLinearVelocity;
 
+   ShapeBaseConvex   mConvex;                  ///< Enabled only when monitoring collisions.
+   CollisionList*    mCollisionList;           ///< Not all static shapes need this.
+
    void onUnmount(ShapeBase* obj,S32 node);
+   void updateCollisions(F32 dt);
 
   protected:
    enum MaskBits : U64 {
@@ -94,6 +100,9 @@ public:
    ShapeBase* getTransformParent() const { return mTransformParent; }
 
    bool collidesWithParent() const { return mRelativeCollision; }
+
+   void setMonitorCollisions(bool monitor);
+   bool isMonitoringCollisions() const { return !!mCollisionList; }
 };
 
 

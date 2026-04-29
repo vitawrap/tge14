@@ -103,7 +103,7 @@ ConsoleFunction( getJoystickAxes, const char*, 2, 2, "getJoystickAxes( instance 
    argc; argv;
    UInputManager* manager = dynamic_cast<UInputManager*>(Input::getManager());
    if (manager)
-      return manager->getJoystickAxesString(dAtoi(argv[1]));
+      return manager->getJoystickAxesString(argv[1].getInt());
    else
       return "";
 }
@@ -309,7 +309,7 @@ void NotifySelectionEvent(XEvent& event)
 }
 
 //------------------------------------------------------------------------------
-const char* Platform::getClipboard()
+ConsoleValue Platform::getClipboard()
 {
    return SDL_HasClipboardText() ? SDL_GetClipboardText() : "";
 }

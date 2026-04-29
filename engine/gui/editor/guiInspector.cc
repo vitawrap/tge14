@@ -355,7 +355,8 @@ bool GuiInspectorField::onAdd()
       setControlProfile( dynamic_cast<GuiControlProfile*>(profilePtr) );
 
    // Force our editField to set it's value
-   updateValue( getData() );
+   auto value = getData();
+   updateValue( value );
 
    return true;
 }
@@ -747,7 +748,8 @@ bool GuiInspectorGroup::inspectGroup()
          GuiInspectorField *field = findField( itr->pFieldname );
          if( field != NULL )
          {
-            field->updateValue( field->getData() );
+            auto fdata = field->getData();
+            field->updateValue( fdata );
             continue;
          }
 
@@ -1003,7 +1005,8 @@ void GuiInspectorDynamicField::setData( ConsoleValue& data )
    dStrcpy( buf, newValue.toString() );
    collapseEscape(buf);
 
-   mTarget->getFieldDictionary()->setFieldValue(mDynField->slotName, ConsoleValue(buf));
+   auto cv = ConsoleValue(buf);
+   mTarget->getFieldDictionary()->setFieldValue(mDynField->slotName, cv);
 
    // Force our edit to update
    updateValue( data );
@@ -1060,7 +1063,8 @@ void GuiInspectorDynamicField::renameField( StringTableEntry newFieldName )
    }
 
    // Set our old fields data to "" (which will effectively erase the field)
-   mTarget->setDataField( getFieldName(), NULL, ConsoleValue("") );
+   auto cvblank = ConsoleValue("");
+   mTarget->setDataField( getFieldName(), NULL, cvblank );
    
    // Assign our dynamic field pointer (where we retrieve field information from) to our new field pointer
    mDynField = newEntry;

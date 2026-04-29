@@ -11,6 +11,12 @@
 #include "sim/netObject.h"
 #include "core/resManager.h"
 
+#define TORQUE_COMPRESS_DOWNLOADS
+
+#ifdef TORQUE_COMPRESS_DOWNLOADS
+#include <zlib.h>
+#endif
+
 class FileDownloadRequestEvent : public NetEvent
 {
 public:
@@ -82,7 +88,7 @@ class FileChunkEvent : public NetEvent
 public:
    enum
    {
-      ChunkSize = 63,
+      ChunkSize = 1023,
    };
 
    U8 chunkData[ChunkSize];
@@ -90,27 +96,50 @@ public:
    
    FileChunkEvent(U8 *data = NULL, U32 len = 0)
    {
-      if(data)
-         dMemcpy(chunkData, data, len);
+      if(data && len)
+         dMemcpy(chunkData, data, getMin(len, (U32)ChunkSize));
       chunkLen = len;
    }
    
    virtual void pack(NetConnection *, BitStream *bstream)
    {
-      bstream->writeRangedU32(chunkLen, 0, ChunkSize);
+      bstream->writeRangedU32(chunkLen, 0, ChunkSize);  // uncompressed size
+      if (!chunkLen)
+          return;   // server can send a 0-sized file to signal failure!
+
+#ifdef TORQUE_COMPRESS_DOWNLOADS
+      void* rawData = dMalloc(chunkLen);
+      uLongf realLen;
+      compress(chunkData, &realLen, (const Bytef*) rawData, chunkLen);
+      bstream->writeRangedU32(realLen, 0, ChunkSize);   // compressed size
+      bstream->write(realLen, chunkData);
+      dFree(rawData);
+#else
       bstream->write(chunkLen, chunkData);
+#endif
    }
    
-   virtual void write(NetConnection *, BitStream *bstream)
+   virtual void write(NetConnection * nc, BitStream *bstream)
    {
-      bstream->writeRangedU32(chunkLen, 0, ChunkSize);
-      bstream->write(chunkLen, chunkData);
+      pack(nc, bstream);
    }
    
    virtual void unpack(NetConnection *, BitStream *bstream)
    {
-      chunkLen = bstream->readRangedU32(0, ChunkSize);
+      chunkLen = bstream->readRangedU32(0, ChunkSize);  // uncompressed size
+      if (!chunkLen || (chunkLen > ChunkSize))
+          return;   // make sure we can actually store incoming data...
+
+#ifdef TORQUE_COMPRESS_DOWNLOADS
+      U32 compLen = bstream->readRangedU32(0, ChunkSize); // compressed size
+      void* compData = dMalloc(chunkLen);
+      bstream->read(compLen, compData);
+      uLongf realLen;
+      uncompress((Bytef*)chunkData, &realLen, (const Bytef*)compData, compLen);
+      dFree(compData);
+#else
       bstream->read(chunkLen, chunkData);
+#endif
    }
    
    virtual void process(NetConnection *connection)
@@ -170,7 +199,7 @@ bool NetConnection::startSendingFile(const char *fileName)
    mCurrentFileBufferSize = mCurrentDownloadingFile->getStreamSize();
    mCurrentFileBufferOffset = 0;
 
-   // always have 32 file chunks (64 bytes each) in transit
+   // always have 32 file chunks (1023 bytes each) in transit
    sendConnectionMessage(FileDownloadSizeMessage, mCurrentFileBufferSize);
    for(U32 i = 0; i < 32; i++)
       sendFileChunk();

@@ -1923,8 +1923,10 @@ void InteriorInstance::addChildren()
       }
       gb->setField("dataBlock", ent->mDataBlock);
       gb->setModStaticFields(true);
-      for(U32 j = 0; j < ent->mDictionary.size(); j++)
-         gb->setDataField(StringTable->insert(ent->mDictionary[j].name), NULL, ConsoleValue(ent->mDictionary[j].value));
+      for(U32 j = 0; j < ent->mDictionary.size(); j++) {
+         auto entDictVal = ConsoleValue(ent->mDictionary[j].value);
+         gb->setDataField(StringTable->insert(ent->mDictionary[j].name), NULL, entDictVal);
+      }
       gb->setModStaticFields(false);
       Point3F origin = ent->mPos;
       origin.convolve(mObjScale);
@@ -1955,8 +1957,10 @@ void InteriorInstance::addChildren()
       child->mInteriorResName  = mInteriorFileName;
       child->setField("dataBlock", pSource->mDataBlock);
 
-      for(U32 i = 0; i < pSource->mDictionary.size(); i++)
-         child->setDataField(pSource->mDictionary[i].name, NULL, ConsoleValue(pSource->mDictionary[i].value));
+      for(U32 i = 0; i < pSource->mDictionary.size(); i++) {
+         auto sourceVal = ConsoleValue(pSource->mDictionary[i].value);
+         child->setDataField(pSource->mDictionary[i].name, NULL, sourceVal);
+      }
 
       // Create a group for the door
       SimGroup* doorGroup = new SimGroup;
@@ -1997,8 +2001,10 @@ void InteriorInstance::addChildren()
          // Add the object...
          Trigger* pTrigger = new Trigger;
          pTrigger->setField("dataBlock", pITrigger->mDataBlock);
-         for(U32 i = 0; i < pITrigger->mDictionary.size(); i++)
-            pTrigger->setDataField(StringTable->insert(pITrigger->mDictionary[i].name), NULL, ConsoleValue(pITrigger->mDictionary[i].value));
+         for(U32 i = 0; i < pITrigger->mDictionary.size(); i++) {
+            auto triggerVal = ConsoleValue(pITrigger->mDictionary[i].value);
+            pTrigger->setDataField(StringTable->insert(pITrigger->mDictionary[i].name), NULL, triggerVal);
+         }
 
          MatrixF newXForm;
          createTriggerTransform(pITrigger, &newXForm);

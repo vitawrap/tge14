@@ -31,7 +31,8 @@ void AudioBlender::fadeIn(AUDIOHANDLE source, S32 msToFullVolume)
 	if (mTween)
 		TweenerBase::removeTween(mTween);
 
-	TweenerBase* t = TweenerBase::create(this, "blendValue", ConsoleValue(1.0), msToFullVolume);
+	auto one = ConsoleValue(1.0);
+	TweenerBase* t = TweenerBase::create(this, "blendValue", one, msToFullVolume);
 	mTween = t? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -49,7 +50,8 @@ void AudioBlender::fadeOut(S32 msToZeroVolume)
 	if (mTween)
 		TweenerBase::removeTween(mTween);
 
-	TweenerBase* t = TweenerBase::create(this, "blendValue", ConsoleValue(1.0), msToZeroVolume);
+	auto one = ConsoleValue(1.0);
+	TweenerBase* t = TweenerBase::create(this, "blendValue", one, msToZeroVolume);
 	mTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -72,7 +74,8 @@ void AudioBlender::crossFade(AUDIOHANDLE b, S32 msToComplete)
 	if (mTween)
 		TweenerBase::removeTween(mTween);
 
-	TweenerBase* t = TweenerBase::create(this, "blendValue", ConsoleValue(1.0), msToComplete);
+	auto one = ConsoleValue(1.0);
+	TweenerBase* t = TweenerBase::create(this, "blendValue", one, msToComplete);
 	mTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -81,7 +84,8 @@ void AudioBlender::quieten(S32 msToQuiet)
 	if (mQuietTween)
 		TweenerBase::removeTween(mQuietTween);
 
-	TweenerBase* t = TweenerBase::create(this, "quietValue", ConsoleValue(sQuietVolume), msToQuiet);
+	auto qv = ConsoleValue(sQuietVolume);
+	TweenerBase* t = TweenerBase::create(this, "quietValue", qv, msToQuiet);
 	mQuietTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 
@@ -90,7 +94,8 @@ void AudioBlender::louden(S32 msToLoud)
 	if (mQuietTween)
 		TweenerBase::removeTween(mQuietTween);
 
-	TweenerBase* t = TweenerBase::create(this, "quietValue", ConsoleValue(1.0), msToLoud);
+	auto one = ConsoleValue(1.0);
+	TweenerBase* t = TweenerBase::create(this, "quietValue", one, msToLoud);
 	mQuietTween = t ? TweenerBase::pushLiveTween(t) : 0;
 }
 

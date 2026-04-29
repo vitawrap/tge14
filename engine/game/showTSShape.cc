@@ -526,7 +526,8 @@ void ShowTSShape::render()
       // set slider value to be correct
       if (slider && slider->mAwake)
       {
-         slider->setScriptValue( ConsoleValue((F32)shapeInstance->getCurrentDetail() + 1.0f - shapeInstance->getCurrentIntraDetail()) );
+         auto dvalue = ConsoleValue((F32)shapeInstance->getCurrentDetail() + 1.0f - shapeInstance->getCurrentIntraDetail());
+         slider->setScriptValue( dvalue );
       }
    }
    else
@@ -603,7 +604,8 @@ void ShowTSShape::advanceTime(U32 delta)
       S32 th = threadList->getSelectedCell().y;
       if (currentShow->getPlay(th))
       {
-         slider->setScriptValue( ConsoleValue(currentShow->getPos(th)) );
+         auto posvalue = ConsoleValue(currentShow->getPos(th));
+         slider->setScriptValue( posvalue );
       }
       else
          currentShow->setPos(th,slider->getValue());
@@ -846,9 +848,9 @@ ConsoleFunction( showSequenceLoad, void, 2, 3, "(string sequenceFile, string seq
    char buffer[512];
 
    if (argc==2)
-      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s\"; };",currentShow->getShapeName(),argv[1]);
+      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s\"; };",currentShow->getShapeName(),argv[1].toString());
    else
-      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s %s\"; };",currentShow->getShapeName(),argv[1],argv[2]);
+      dSprintf(buffer,512,"new TSShapeConstructor() { baseShape=\"%s\";sequence0=\"%s %s\"; };",currentShow->getShapeName(),argv[1].toString(),argv[2].toString());
 
    Con::evaluate(buffer);
    ShowTSShape::reset();
@@ -891,7 +893,8 @@ ConsoleFunction( showSelectSequence, void, 1, 1, "")
       GuiSliderCtrl * slider = static_cast<GuiSliderCtrl*>(Sim::findObject("threadPosition"));
       if (slider && slider->getRoot())
       {
-         slider->setScriptValue( ConsoleValue(currentShow->getPos(threadNum)) );
+         auto posvalue = ConsoleValue(currentShow->getPos(threadNum));
+         slider->setScriptValue( posvalue );
       }
    }
 

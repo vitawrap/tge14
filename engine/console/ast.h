@@ -356,6 +356,17 @@ struct StrConstNode : ExprNode
    ConsoleValue getFoldValue() const override;
 };
 
+struct FindObjectNode : ExprNode
+{
+    StringTableEntry value;
+
+    static FindObjectNode* alloc(StringTableEntry value);
+
+    U32 precompile(TypeReq type);
+    U32 compile(U64* codeStream, U64 ip, TypeReq type);
+    TypeReq getPreferredType();
+};
+
 struct ConstantNode : ExprNode
 {
    StringTableEntry value;

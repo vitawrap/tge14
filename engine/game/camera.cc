@@ -230,18 +230,26 @@ void Camera::processTick(const Move* move)
                 {
                     MatrixF ret;
                     shape->getRenderEyeTransform(&ret);
-                    mPosition = ret.getPosition();
+                    // Apply mPosition as a local offset to the shape
+                    Point3F offset;
+                    ret.mulV(mPosition, &offset);
+                    pos = ret.getPosition() + offset;
+                    setPosition(pos, mRot);
                 }
                 else
                 {
                     // Hopefully this is a static object that doesn't move,
                     // because the worldbox doesn't get updated between ticks.
                     mOrbitObject->getWorldBox().getCenter(&mPosition);
+                    setPosition(mPosition, mRot);
+                    pos = mPosition;
                 }
             }
-            setPosition(mPosition, mRot);
+            else {
+                setPosition(mPosition, mRot);
+                pos = mPosition;
+            }
             validateEyePoint(1.0f, &mRenderObjToWorld);
-            pos = mPosition;
         }
         else
         {
@@ -308,16 +316,20 @@ void Camera::interpolateTick(F32 dt)
             {
                 MatrixF ret;
                 shape->getRenderEyeTransform(&ret);
-                mPosition = ret.getPosition();
+                // Apply mPosition as a local offset to the shape
+                Point3F offset;
+                ret.mulV(mPosition, &offset);
+                setRenderPosition(ret.getPosition() + offset, rot);
             }
             else
             {
                 // Hopefully this is a static object that doesn't move,
                 // because the worldbox doesn't get updated between ticks.
                 mOrbitObject->getWorldBox().getCenter(&mPosition);
+                setRenderPosition(mPosition, rot);
             }
-        }
-        setRenderPosition(mPosition, rot);
+        } else
+            setRenderPosition(mPosition, rot);
         validateEyePoint(1.0f, &mRenderObjToWorld);
     }
     else
@@ -390,8 +402,7 @@ void Camera::writePacketData(GameConnection* connection, BitStream* bstream)
             bstream->writeFlag(mObservingClientObject);
             bstream->writeInt(gIndex, NetConnection::GhostIdBitSize);
         }
-        if (writeMode == OrbitPointMode)
-            bstream->writeCompressedPoint(writePos);
+        bstream->writeCompressedPoint(writePos);
     }
 }
 
@@ -418,8 +429,7 @@ void Camera::readPacketData(GameConnection* connection, BitStream* bstream)
             S32 gIndex = bstream->readInt(NetConnection::GhostIdBitSize);
             obj = static_cast<GameBase*>(connection->resolveGhost(gIndex));
         }
-        if (mode == OrbitPointMode)
-            bstream->readCompressedPoint(&mPosition);
+        bstream->readCompressedPoint(&mPosition);
     }
     if (obj != (GameBase*)mOrbitObject) {
         if (mOrbitObject) {
@@ -601,14 +611,14 @@ void Camera::setOrbitMode(GameBase* obj, Point3F& pos, AngAxisF& rot, F32 minDis
     {
         processAfter(mOrbitObject);
         deleteNotify(mOrbitObject);
-        mOrbitObject->getWorldBox().getCenter(&mPosition);
+        //mOrbitObject->getWorldBox().getCenter(&mPosition);
         mode = OrbitObjectMode;
     }
     else
     {
         mode = OrbitPointMode;
-        mPosition = pos;
     }
+    mPosition = pos;
 
     QuatF q(rot);
     MatrixF tempMat(true);
@@ -616,7 +626,8 @@ void Camera::setOrbitMode(GameBase* obj, Point3F& pos, AngAxisF& rot, F32 minDis
     // Fix according to http://www.garagegames.com/index.php?sec=mg&mod=resource&page=view&qid=11035 (fix 4)
     EulerF dir = tempMat.toEuler();
 
-    setPosition(mPosition, dir);
+    // This will be set in interpolateTick/processTick...
+    // setPosition(mPosition, dir);
 
     mMinOrbitDist = minDist;
     mMaxOrbitDist = maxDist;

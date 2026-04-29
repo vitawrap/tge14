@@ -59,7 +59,7 @@ ConsoleFunction(screenShot, void, 3, 3, "(string file, string format)"
    FileStream fStream;
    if(!fStream.open(argv[1].toString(), FileStream::Write))
    {
-      Con::printf("Failed to open file '%s'.", argv[1]);
+      Con::printf("Failed to open file '%s'.", argv[1].toString());
       return;
    }
 
@@ -462,7 +462,7 @@ ConsoleFunction( panoramaScreenShot, void, 3, 3, "(string file, string format)"
 
       object->setTransform( result );
       Canvas->renderFrame(false);
-      dSprintf(buffer, sizeof(buffer), "%s-%d.png", argv[1], i);
+      dSprintf(buffer, sizeof(buffer), "%s-%d.png", argv[1].toString(), i);
 
       glReadBuffer(GL_FRONT);
       glReadPixels(0, 0, extent.x, extent.y, GL_RGB, GL_UNSIGNED_BYTE, pixels);

@@ -2281,6 +2281,9 @@
     <ClInclude Include="..\engine\core\json.h">
       <Filter>Source Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\engine\core\tDictionary.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\engine\console\CMDgram.y">

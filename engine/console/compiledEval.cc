@@ -230,6 +230,7 @@ static void dumpInterpreterState(U64 op) {
         "OP_CONCAT_STR_COMMA",
         "OP_COMPARE_STR",
         "OP_ISNULL_STR",
+        "OP_FINDOBJECT_STR",
         "OP_BREAK",
         "OP_INVALID"
     };
@@ -403,15 +404,15 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
 
          case OP_CREATE_OBJECT:
          {
-            // If we don't allow calls, we certainly don't allow creating objects!
-            if(noCalls)
-                goto fail_cleanup;
-
             // Read some useful info.
             callArgc         =          code[ip    ];   // at least 3.
             objParent        = U64toSTE(code[ip + 1]);  // ...(Name : Parent [,...])... (copy fields, eg. Gui profiles)
             bool isDataBlock =          code[ip + 2];   // datablock ...{...};
             failJump         =          code[ip + 3];   // if we can't create the object...
+
+            // If we don't allow calls, we certainly don't allow creating objects!
+            if(noCalls)
+                goto fail_cleanup;
 
             // TODO: Readjust callbacks to not account for fnName (even for OP_CALL_FUNC)
 
@@ -436,7 +437,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                // Make sure we're not changing types on ourselves...
                if(db && dStricmp(db->getClassName(), callArgv[1].toString()))
                {
-                  Con::errorf(ConsoleLogEntry::General, "Cannot re-declare data block %s with a different class.", callArgv[2]);
+                  Con::errorf(ConsoleLogEntry::General, "Cannot re-declare data block %s with a different class.", callArgv[2].toString());
                   goto fail_cleanup;
                }
 
@@ -453,7 +454,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                // Deal with failure!
                if(!object)
                {
-                  Con::errorf(ConsoleLogEntry::General, "%s: Unable to instantiate non-conobject class %s.", getFileLine(ip-1), callArgv[1]);
+                  Con::errorf(ConsoleLogEntry::General, "%s: Unable to instantiate non-conobject class %s.", getFileLine(ip-1), callArgv[1].toString());
                   goto fail_cleanup;
                }
 
@@ -468,7 +469,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                   else
                   {
                      // They tried to make a non-datablock with a datablock keyword!
-                     Con::errorf(ConsoleLogEntry::General, "%s: Unable to instantiate non-datablock class %s.", getFileLine(ip-1), callArgv[1]);
+                     Con::errorf(ConsoleLogEntry::General, "%s: Unable to instantiate non-datablock class %s.", getFileLine(ip-1), callArgv[1].toString());
 
                      // Clean up...
                      delete object;
@@ -482,7 +483,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                // Deal with the case of a non-SimObject.
                if(!currentNewObject)
                {
-                  Con::errorf(ConsoleLogEntry::General, "%s: Unable to instantiate non-SimObject class %s.", getFileLine(ip-1), callArgv[1]);
+                  Con::errorf(ConsoleLogEntry::General, "%s: Unable to instantiate non-SimObject class %s.", getFileLine(ip-1), callArgv[1].toString());
                   delete object;
                   goto fail_cleanup;
                }
@@ -500,7 +501,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                      currentNewObject->assignFieldsFrom(parent);
                   }
                   else
-                     Con::errorf(ConsoleLogEntry::General, "%s: Unable to find parent object %s for %s.", getFileLine(ip-1), objParent, callArgv[1]);
+                     Con::errorf(ConsoleLogEntry::General, "%s: Unable to find parent object %s for %s.", getFileLine(ip-1), objParent, callArgv[1].toString());
 
                   // Mm! Juices!
                }
@@ -638,6 +639,13 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
             }
             valueStack[TOP-1] = S64(found);
             popValueStack();
+            break;
+         }
+
+         case OP_FINDOBJECT_STR:
+         {
+            SimObject* object = Sim::findObject(U64toSTE(code[ip++]));
+            valueStack[++TOP] = object ? (S64)object->getId() : 0LL;
             break;
          }
 
@@ -1010,7 +1018,7 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                if(!gEvalState.thisObject)
                {
                   gEvalState.thisObject = 0;
-                  Con::warnf(ConsoleLogEntry::General,"%s: Unable to find object: '%s' attempting to call function '%s'", getFileLine(ip-4), callArgv[1], fnName);
+                  Con::warnf(ConsoleLogEntry::General,"%s: Unable to find object: '%s' attempting to call function '%s'", getFileLine(ip-4), callArgv[1].toString(), fnName);
                   break;
                }
                ns = gEvalState.thisObject->getNamespace();
@@ -1123,14 +1131,14 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
          case OP_CONCAT_CHAR:
             // Relies on U64 char to be stored as LE, so it already has 7 natural null terms.
             if (valueStack[TOP].castTo(ConsoleValue::TypeString)) {
-                valueStack[TOP].concatU(ConsoleValue((char const*) &code[ip]));
+                valueStack[TOP].concatStringU((char const*) &code[ip], 1);
             }
             ++ip;
             break;
 
          case OP_CONCAT_STR_COMMA:
             if (valueStack[TOP-1].castTo(ConsoleValue::TypeString)) {
-                valueStack[TOP-1].concatU(ConsoleValue("_"));
+                valueStack[TOP-1].concatStringU("_", 1);
                 valueStack[TOP-1].concatU(valueStack[TOP]);
             }
             popValueStack();

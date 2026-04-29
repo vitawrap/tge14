@@ -23,6 +23,20 @@
 #include "core/color.h"
 #endif
 
+/**
+ * Type coercion helper for ConsoleValues.
+ */
+namespace Con {
+	template<typename T> struct CVCast { typedef T Type; };
+	template<> struct CVCast<U32> { typedef S64 Type; };
+	template<> struct CVCast<long> { typedef S64 Type; };
+	template<> struct CVCast<dsize_t> { typedef S64 Type; };
+	template<> struct CVCast<char[]> { typedef char const* Type; };
+	template<typename T> constexpr typename CVCast<T>::Type Cast(T in) {
+		return static_cast<typename CVCast<T>::Type>(in);
+	}
+}
+
 // Size for small string in console value
 #define CONVALUE_SSO_SIZE 16
 
@@ -496,7 +510,7 @@ public:
 		, Parent()
 	{}
 
-	ConsoleValueList::~ConsoleValueList() {
+	~ConsoleValueList() {
 		for (ConsoleValue* itr = begin(); itr != end(); itr++)
 			itr->clear();
 	}
@@ -538,7 +552,7 @@ public:
 		auto* list = new ConsoleValueList;
 		list->increment(sizeof...(CVArgs));
 		int dummy[sizeof...(CVArgs)] =
-		{ (constructInPlace<ConsoleValue>(&list->at(i++), &ConsoleValue(Con::Cast(args))),0)... };
+		{ (constructInPlace<ConsoleValue>(&list->at(i++), dMove(ConsoleValue(Con::Cast(args)))),0)... };
 		return list;
 	}
 };

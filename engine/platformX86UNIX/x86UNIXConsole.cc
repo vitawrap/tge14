@@ -23,7 +23,7 @@ ConsoleFunction(enableWinConsole, void, 2, 2, "enableWinConsole(bool);")
 {
    argc;
    if (stdConsole)
-      stdConsole->enable(dAtob(argv[1]));
+      stdConsole->enable(argv[1].getInt());
 }
 
 void StdConsole::create()
@@ -80,7 +80,8 @@ void StdConsole::enable(bool enabled)
       // put the terminal into our preferred mode
       resetTerminal();
       
-      printf("%s", Con::getVariable("Con::Prompt"));
+      auto prompt = Con::getVariable("Con::Prompt");
+      printf("%s", prompt.toString());
      
    }
    else if (!enabled && stdConsoleEnabled)
@@ -171,13 +172,16 @@ void StdConsole::processConsoleLine(const char *consoleLine)
       inbuf[inpos] = 0;
       if(lineOutput)
          printf("%s\n", consoleLine);
-      else
-         printf("%c%s\n%s%s", '\r', consoleLine, Con::getVariable("Con::Prompt"), inbuf);
+      else {
+         auto prompt = Con::getVariable("Con::Prompt");
+         printf("%c%s\n%s%s", '\r', consoleLine, prompt.toString(), inbuf);
+      }
    }
 }
 
 void StdConsole::process()
 {
+   ConsoleValue cv;
    if(stdConsoleEnabled)
    {
       //U16 key;
@@ -284,7 +288,8 @@ void StdConsole::process()
                   // Put the new command into the array
                   strcpy(rgCmds[iCmdIndex ++], inbuf);
 
-                  printf("%s", Con::getVariable("Con::Prompt"));
+                  cv = Con::getVariable("Con::Prompt");
+                  printf("%s", cv.toString());
                   inpos = outpos = 0;
                   break;
             case 27:

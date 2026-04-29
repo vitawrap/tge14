@@ -64,7 +64,10 @@ class TSShape : public ResourceInstance
          MakePath       = BIT(5),
          IflInit        = BIT(6),
          HasTranslucency= BIT(7),
-         AnyScale       = UniformScale | AlignedScale | ArbitraryScale
+         AnyScale       = UniformScale | AlignedScale | ArbitraryScale,
+
+         // Non-default flags (not handled by default exporters)
+         NoLinearInterp = BIT(8)    ///< No keyframe interpolation in playback
       };
 
    /// Nodes hold the transforms in the shape's tree.  They are the bones of the skeleton.
@@ -196,6 +199,7 @@ class TSShape : public ResourceInstance
       bool isBlend() const                { return testFlags(Blend); }
       bool isCyclic() const               { return testFlags(Cyclic); }
       bool makePath() const               { return testFlags(MakePath); }
+      bool noInterpolation() const        { return testFlags(NoLinearInterp); }
       /// @}
 
       /// @name IO

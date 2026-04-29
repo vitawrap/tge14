@@ -107,6 +107,10 @@ class OptimizedPolyList : public AbstractPolyList
    void vertex(U32 vi);
    void end();
 
+   // When edges are needed but ConvexBrush is not assisting
+   void generateEdges();
+   U32 addEdge(const Edge& edge, bool overwriteFaces = false);
+
    inline bool isEqual(Point3F& a, Point3F& b)
    {
       return( ( mFabs( a.x - b.x ) < DEV ) &&
@@ -119,6 +123,7 @@ class OptimizedPolyList : public AbstractPolyList
    FullPoly getFullPoly(U32 pdx);
 
    void render();
+   void renderWireFrame(ColorF const& stroke, ColorF const& fill);
    bool isEmpty() const;
 
   protected:

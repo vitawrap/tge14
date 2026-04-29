@@ -29,19 +29,14 @@ const AbstractClassRep::Field *AbstractClassRep::findField(StringTableEntry name
 {
     // [2023] this was an ugly linear search before,
     // now we take advantage of STE's for a bsearch.
-    S32 begin = 0;
-    S32 end = mFieldList.size() - 1;
-    AbstractClassRep::Field* fields = mFieldList.address();
-    while (begin <= end)
-    {
-        S32 half = (begin + end) >> 1;
-        if (name == fields[half].pFieldname)
-            return &fields[half];
-        else if (name > fields[half].pFieldname)
-            begin = half + 1;
-        else end = half - 1;
-    }
-    return NULL;
+
+    // [2025] this was an ugly binary search before,
+    // now we take advantage of Dictionary<T>.
+    
+    if (!mFieldMap.isAllocated())
+        return NULL;
+    FieldEntry* entry = mFieldMap.lookup(name);
+    return entry ? entry->field : NULL;
 }
 
 //--------------------------------------
@@ -110,19 +105,6 @@ static S32 QSORT_CALLBACK ACRCompare(const void *aptr, const void *bptr)
    return dStrcmp(a->getClassName(), b->getClassName());
 }
 
-static S32 QSORT_CALLBACK ACRFieldCompare(const void* aptr, const void* bptr)
-{
-    // fieldnames are StringTableEntries, so their ptrs can be sorted for searching later
-    const AbstractClassRep::Field* a = (const AbstractClassRep::Field*)aptr;
-    const AbstractClassRep::Field* b = (const AbstractClassRep::Field*)bptr;
-
-    // narrowing-safe return
-    S64 ptr = a->pFieldname - b->pFieldname;
-    if (ptr < 0)        return -1;
-    else if (ptr > 0)   return 1;
-    return 0;
-}
-
 void AbstractClassRep::initialize()
 {
    AssertFatal(!initialized, "Duplicate call to AbstractClassRep::initialize()!");
@@ -150,10 +132,15 @@ void AbstractClassRep::initialize()
       walk->init();
 
       // So if we have things in it, copy it over...
-      if (sg_tempFieldList.size() != 0)
-      {
-         dQsort(sg_tempFieldList.address(), sg_tempFieldList.size(), sizeof(AbstractClassRep::Field), ACRFieldCompare);
+      if (sg_tempFieldList.size() != 0) {
          walk->mFieldList = sg_tempFieldList;
+
+         // Allocate and populate the static field dictionary
+         walk->mFieldMap.setState(NULL);
+         for (Field* field = walk->mFieldList.begin(); field != walk->mFieldList.end(); ++field) {
+             FieldEntry* entry = walk->mFieldMap.add(field->pFieldname);
+             entry->field = field;
+         }
       }
 
       // Insert it into the name table, for constructors in script

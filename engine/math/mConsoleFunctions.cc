@@ -72,6 +72,11 @@ ConsoleFunction( mFloatLength, const char *, 3, 3, "(float v, int numDecimals)"
    return outBuffer;
 }
 
+ConsoleFunction( mLerp, F32, 4, 4, "(float a, float b, float t) Linearly interpolate a towards b by a factor of t.")
+{
+    return mLerp(argv[1].getNumber(), argv[2].getNumber(), argv[3].getNumber());
+}
+
 //------------------------------------------------------------------------------
 ConsoleFunction( mAbs, F32, 2, 2, "(float v) Returns the absolute value of the argument.")
 {

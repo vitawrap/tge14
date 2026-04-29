@@ -55,8 +55,8 @@ public:
    void init();
    void fadeAmplitude();
    void setFalloff( F32 falloff ){ mFalloff = falloff; }
-   void setFrequency( VectorF &freq ){ mFreq = freq; }
-   void setAmplitude( VectorF &amp ){ mStartAmp = amp; }
+   void setFrequency( VectorF const&freq ){ mFreq = freq; }
+   void setAmplitude( VectorF const&amp ){ mStartAmp = amp; }
 
    virtual void update( F32 dt );
 };

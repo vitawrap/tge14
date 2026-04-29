@@ -139,7 +139,7 @@ SimFieldDictionary::~SimFieldDictionary()
    }
 }
 
-void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue& value)
+void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue const& value)
 {
    U32 bucket = HashPointer(slotName) % HashTableSize;
    Entry **walk = &mHashTable[bucket];
@@ -167,7 +167,7 @@ void SimFieldDictionary::setFieldValue(StringTableEntry slotName, ConsoleValue& 
          mVersion++;
 
          field = allocEntry();
-         constructInPlace(&field->value, &value);
+         constructInPlace(&field->value, value);
          field->slotName = slotName;
          field->next = NULL;
          *walk = field;
@@ -684,7 +684,7 @@ ConsoleMethod(SimObject,dump, void, 2, 2, "obj.dump()")
       object->getFieldDictionary()->printFields(object);
 
 
-   // Then dump engine methods and scrîpt methods
+   // Then dump engine methods and scrï¿½pt methods
    Namespace *ns = object->getNamespace();
    Vector<Namespace::Entry*> vecEngine(__FILE__, __LINE__);
    Vector<Namespace::Entry*> vecScript(__FILE__, __LINE__);
@@ -1385,7 +1385,7 @@ ConsoleMethod(SimSet, add, void, 3, 0, "set.add(obj1,...)")
       if(obj)
          object->addObject(obj);
       else
-         Con::printf("Set::add: Object \"%s\" doesn't exist", argv[i]);
+         Con::printf("Set::add: Object \"%s\" doesn't exist", argv[i].toString());
    }
 }
 
@@ -1398,7 +1398,7 @@ ConsoleMethod(SimSet, remove, void, 3, 0, "set.remove(obj1,...)")
       if(obj && object->find(object->begin(),object->end(),obj) != object->end())
          object->removeObject(obj);
       else
-         Con::printf("Set::remove: Object \"%s\" does not exist in set", argv[i]);
+         Con::printf("Set::remove: Object \"%s\" does not exist in set", argv[i].toString());
       object->unlock();
    }
 }
@@ -1433,7 +1433,7 @@ ConsoleMethod(SimSet, isMember, bool, 3, 3, "set.isMember(object)")
    SimObject *testObject = Sim::findObject(argv[2]);
    if(!testObject)
    {
-      Con::printf("SimSet::isMember: %s is not an object.", argv[2]);
+      Con::printf("SimSet::isMember: %s is not an object.", argv[2].toString());
       return false;
    }
 
