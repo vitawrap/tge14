@@ -459,11 +459,15 @@ ConsoleFunctionGroupBegin( FieldManipulators, "Functions to manipulate data retu
 ConsoleFunction(getWord, const char *, 3, 3, "(string|list values, int index)")
 {
    argc;
-   S64 index = argv[2].getInt();
-   if (argv[1].isList())
-       return argv[1].getListSizeU() > index ? argv[1].getListValueU(index) : "";
+   if (argv[1].isList()) {
+       if (argv[2].isNumber()) {
+           S32 index = argv[2].getInt();
+           return argv[1].getListSizeU() > index ? argv[1].getListValueU(index) : "";
+       }
+       return argv[1].getListMapValueU(argv[2].toSTString());
+   }
    else {
-       auto pair = getUnit(argv[1].toString(), index, " \t\n");
+       auto pair = getUnit(argv[1].toString(), argv[2].getInt(), " \t\n");
        ConsoleValue ret;
        if (pair.start)
            ret.concatStringU(pair.start, pair.length);
@@ -499,29 +503,37 @@ ConsoleFunction(setWord, const char *, 4, 4, "newText = setWord(text, index, rep
 {
    argc;
    auto& val = argv[1];
-   U32 index = argv[2].getInt();
+   
    if (val.isList()) {
-       while (val.getListSizeU() <= index) val.list->push_back("");
-       val.list->at(index) = dMove(argv[3]);
+       if (argv[2].isNumber()) {
+           U32 index = argv[2].getInt();
+           while (val.getListSizeU() <= index) val.list->push_back("");
+           val.list->at(index) = dMove(argv[3]);
+       } else
+           val.getListU().mapSet(argv[2].toSTString(), dMove(argv[3]));
        return val;
    }
-   return setUnit(val.toString(), index, argv[3].toString(), " \t\n");
+   return setUnit(val.toString(), argv[2].getInt(), argv[3].toString(), " \t\n");
 }
 
 ConsoleFunction(removeWord, const char *, 3, 3, "newText = removeWord(text, index) OR removeWord(list, index)")
 {
    argc;
    auto& val = argv[1];
-   U32 index = argv[2].getInt();
    if (val.isList()) {
-       if (val.getListSizeU() > index) {
-           for (S32 i = index; (i+1) < val.getListSizeU(); ++i)
-               val.list->at(i) = dMove(val.list->at(i+1));
-           val.list->decrement();
+       if (argv[2].isNumber()) {
+           U32 index = argv[2].getInt();
+           if (val.getListSizeU() > index) {
+               for (S32 i = index; (i+1) < val.getListSizeU(); ++i)
+                   val.list->at(i) = dMove(val.list->at(i+1));
+               val.list->decrement();
+           }
        }
+       else
+           val.removeListMapValueU(argv[2].toSTString());
        return val;
    }
-   return removeUnit(val.toString(), index, " \t\n");
+   return removeUnit(val.toString(), argv[2].getInt(), " \t\n");
 }
 
 ConsoleFunction(getWordCount, S32, 2, 2, "getWordCount(text)")

@@ -410,8 +410,11 @@ public:
 	inline ConsoleValueList& getListU();
 	inline size_t getListSizeU() const;
 	inline ConsoleValue& getListValueU(U32 i);
+	inline ConsoleValue getListMapValueU(StringTableEntry str);
 	inline ConsoleValue const& getListValueU(U32 i) const;
 	inline ConsoleValue const& getListValueDefU(U32 i, ConsoleValue const& def = "") const;
+
+	inline void removeListMapValueU(StringTableEntry key);
 
 	// Checked toString (mutates console value!)
 	// Make sure the lifetime of the ConsoleValue guarantees the lifetime of the ptr to the string!
@@ -504,24 +507,40 @@ public:
 	bool unpack(U64 size, char* buffer);
 };
 
+class ConsoleValueEntry;
+
+template <typename T, S32>
+class Dictionary;
+
 /**
 	Reference-type value for ConsoleValue
+	This list has been expanded to behave similar to a Lua table (vector + hashmap)
+	Unlike Lua tables, the set of string keys is completely disjoint from int keys
+	TODO: Enumeration
  */
 class ConsoleValueList : public Vector<ConsoleValue>
 {
 	typedef Vector<ConsoleValue> Parent;
 	mutable S32 mRefCount;
 
+	/** Map type if we have string keys */
+	Dictionary<ConsoleValueEntry, 15>* mMap;
+
+	void deleteMap();
+	void clearMap();
+
 public:
 	// Auto-increment ref-count when constructing
-	ConsoleValueList(bool incRef = false)
-		: mRefCount(incRef)
-		, Parent()
+	ConsoleValueList(bool incRef = false) :
+		mRefCount(incRef),
+		mMap(NULL),
+		Parent()
 	{}
 
 	~ConsoleValueList() {
 		for (ConsoleValue* itr = begin(); itr != end(); itr++)
 			itr->clear();
+		deleteMap();
 	}
 
 	void incRef() const { ++mRefCount; }
@@ -539,12 +558,17 @@ public:
 
 	ConsoleValue& at(S32 index) { return (*this)[index]; }
 	ConsoleValue const& at(S32 index) const { return (*this)[index]; }
+	ConsoleValue at(StringTableEntry key);
+
+	void mapSet(StringTableEntry key, ConsoleValue&& val);
+	void mapRemove(StringTableEntry key);
 
 	// SHADOW METHODS! NEVER USE DYNAMICALLY FROM BASE CLASS!
 
 	void clear() {
 		for (ConsoleValue* itr = begin(); itr != end(); itr++)
 			itr->~ConsoleValue();
+		clearMap();
 		Parent::clear();
 	}
 
@@ -614,6 +638,12 @@ inline size_t ConsoleValue::getListSizeU() const
 
 inline ConsoleValue& ConsoleValue::getListValueU(U32 i)
 { return (*list)[i]; }
+
+inline ConsoleValue ConsoleValue::getListMapValueU(StringTableEntry key)
+{ return (*list).at(key); }
+
+inline void ConsoleValue::removeListMapValueU(StringTableEntry key)
+{ (*list).mapRemove(key); }
 
 inline ConsoleValue const& ConsoleValue::getListValueU(U32 i) const
 { return (*list)[i]; }

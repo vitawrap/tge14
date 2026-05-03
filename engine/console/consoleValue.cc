@@ -6,6 +6,7 @@
 #include "console/console.h"
 #include "console/consoleValue.h"
 #include "core/memstream.h"
+#include "console/consoleInternal.h"
 
 const int stringCSize = 1024;
 thread_local static char stringConv[stringCSize];
@@ -256,4 +257,41 @@ bool ConsoleValue::unpack(U64 size, char* buffer)
 bool ConsoleValue::isTagString() const
 {
 	return (type == TypeString) && (getString()[0] == StringTagPrefixByte);
+}
+
+void ConsoleValueList::deleteMap()
+{
+	delete mMap;
+}
+
+void ConsoleValueList::clearMap()
+{
+	mMap->reset();
+}
+
+ConsoleValue ConsoleValueList::at(StringTableEntry key)
+{
+	if (!mMap) return CONVALUE_NULL;
+	ConsoleValueEntry* entry = mMap->lookup(key);
+	if (entry)
+		return entry->getValue();
+	return CONVALUE_NULL;
+}
+
+void ConsoleValueList::mapSet(StringTableEntry key, ConsoleValue&& val)
+{
+	if (!mMap) {
+		mMap = new Dictionary<ConsoleValueEntry>;
+		mMap->setState(NULL);
+	}
+	ConsoleValueEntry* pValue = mMap->add(key);
+	pValue->setValue(val);
+}
+
+void ConsoleValueList::mapRemove(StringTableEntry key)
+{
+	if (!mMap)
+		return;
+	if (auto* entry = mMap->lookup(key))
+		mMap->remove(entry);
 }
