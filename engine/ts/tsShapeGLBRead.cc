@@ -85,6 +85,7 @@ static bool glbOpenImage(
 static bool convertGLBtoDTS(Stream& stream, void* some_output_todo) {
     tinygltf::Model model;
     tinygltf::TinyGLTF gltf;
+    std::string error, warning;
     gltf.SetImageLoader(glbOpenImage, NULL);
 
     // Read all of glb in memory to feed to tiny_gltf
@@ -108,7 +109,6 @@ static bool convertGLBtoDTS(Stream& stream, void* some_output_todo) {
     }
     else goto fail;
 
-    std::string error, warning;
     if (gltf.LoadBinaryFromMemory(&model, &error, &warning, glbMemory, glbSize, assetBase))
     {
         // eagerly free up memory from raw glb stream (could be big)
