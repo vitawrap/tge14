@@ -115,11 +115,14 @@ const U32 convertUTF16toUTF8( const UTF16 *unistring, UTF8  *outbuffer, U32 len)
    UTF32 middleman;
    
    nCodeunits=0;
-   while( *unistring != NULL && nCodeunits < len - 3)
+   while( *unistring != NULL )
    {
       walked = 1;
       middleman  = oneUTF16toUTF32(unistring,&walked);
-      codeunitLen = oneUTF32toUTF8(middleman, &outbuffer[nCodeunits]);
+      codeunitLen = oneUTF32length(middleman);
+      if (nCodeunits + codeunitLen > len)
+        break;
+      oneUTF32toUTF8(middleman, codeunitLen, &outbuffer[nCodeunits]);
       unistring += walked;
       nCodeunits += codeunitLen;
    }
@@ -158,11 +161,16 @@ const U32 convertUTF32toUTF8( const UTF32 *unistring, UTF8  *outbuffer, U32 len)
 {
    PROFILE_START(convertUTF32toUTF8);
    U32 nCodeunits, codeunitLen;
+   UTF32 codePoint;
    
    nCodeunits=0;
-   while( *unistring != NULL && nCodeunits < len - 3)
+   while( *unistring != NULL )
    {
-      codeunitLen = oneUTF32toUTF8(*unistring, &outbuffer[nCodeunits]);
+      codePoint = *unistring;
+      codeunitLen = oneUTF32length(codePoint);
+      if (nCodeunits + codeunitLen > len)
+        break;
+      oneUTF32toUTF8(codePoint, codeunitLen, &outbuffer[nCodeunits]);
       unistring++;
       nCodeunits += codeunitLen;
    }
@@ -467,6 +475,29 @@ const UTF16 oneUTF32toUTF16(const UTF32 codepoint)
    return (UTF16)codepoint;
 }
 
+const U32 oneUTF32length(UTF32& codepoint)
+{
+    U32 bytecount = 0;
+
+    //-----------------
+    if (isSurrogateRange(codepoint))  // found an illegal codepoint!
+        codepoint = kReplacementChar;
+    //return oneUTF32toUTF8(kReplacementChar, threeByteCodeunitBuf);
+
+    if (isAboveBMP(codepoint))        // these are legal, we just dont want to deal with them.
+        codepoint = kReplacementChar;
+    //return oneUTF32toUTF8(kReplacementChar, threeByteCodeunitBuf);
+
+    //-----------------
+    if (codepoint < (1 << 7))        // codeable in 7 bits
+        bytecount = 1;
+    else if (codepoint < (1 << 11))  // codeable in 11 bits
+        bytecount = 2;
+    else if (codepoint < (1 << 16))  // codeable in 16 bits
+        bytecount = 3;
+    return bytecount;
+}
+
 //-----------------------------------------------------------------------------
 const U32 oneUTF32toUTF8(const UTF32 codepoint, UTF8 *threeByteCodeunitBuf)
 {
@@ -476,7 +507,8 @@ const U32 oneUTF32toUTF8(const UTF32 codepoint, UTF8 *threeByteCodeunitBuf)
    U32 working = codepoint;
    buf = threeByteCodeunitBuf;
 
-   //-----------------
+   // we make sure this makes no actual calls around, so getUTF32bytecount is manually inlined here
+
    if(isSurrogateRange(working))  // found an illegal codepoint!
       working = kReplacementChar;
       //return oneUTF32toUTF8(kReplacementChar, threeByteCodeunitBuf);
@@ -485,7 +517,6 @@ const U32 oneUTF32toUTF8(const UTF32 codepoint, UTF8 *threeByteCodeunitBuf)
       working = kReplacementChar;
       //return oneUTF32toUTF8(kReplacementChar, threeByteCodeunitBuf);
 
-   //-----------------
    if( working < (1 << 7))        // codeable in 7 bits
       bytecount = 1;
    else if( working < (1 << 11))  // codeable in 11 bits
@@ -513,6 +544,34 @@ const U32 oneUTF32toUTF8(const UTF32 codepoint, UTF8 *threeByteCodeunitBuf)
    
    PROFILE_END();
    return bytecount;
+}
+
+//-----------------------------------------------------------------------------
+void oneUTF32toUTF8(const UTF32 codepoint, U32 bytecount, UTF8* threeByteCodeunitBuf)
+{
+    PROFILE_START(oneUTF32toUTF8bc);
+    UTF8* buf = threeByteCodeunitBuf;
+    U32 working = codepoint;
+
+    AssertISV(bytecount > 0, "Error converting to UTF-8 in oneUTF32toUTF8(). isAboveBMP() should have caught this!");
+
+    //-----------------
+    U8  mask = byteMask8LUT[0];            // 0011 1111
+    U8  marker = (~mask << 1);            // 1000 0000
+
+    // Process the low order bytes, shifting the codepoint down 6 each pass.
+    for (int i = bytecount - 1; i > 0; i--)
+    {
+        threeByteCodeunitBuf[i] = marker | (working & mask);
+        working >>= 6;
+    }
+
+    // Process the 1st byte. filter based on the # of expected bytes.
+    mask = byteMask8LUT[bytecount];
+    marker = (~mask << 1);
+    threeByteCodeunitBuf[0] = marker | working & mask;
+
+    PROFILE_END();
 }
 
 //-----------------------------------------------------------------------------
