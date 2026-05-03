@@ -13,6 +13,7 @@
 #include "platform/event.h"
 #include "platform/gameInterface.h"
 #include "platform/platformInput.h"
+#include "core/unicode.h"
 
 // This is a temporary hack to get tools using the library to
 // link in this module which contains no other references.
@@ -52,6 +53,13 @@ ConsoleFunction(strlen, S32, 2, 2, "(string str)"
 {
    argc;
    return argv[1].getStrlen();
+}
+
+ConsoleFunction(utf8len, S32, 2, 2, "(string str)"
+    "Calculate the length of a string in UTF8 codepoints.")
+{
+    argc;
+    return S64(dStrlen8(argv[1].toString()));
 }
 
 ConsoleFunction(strstr, S32 , 3, 3, "(string one, string two) "
