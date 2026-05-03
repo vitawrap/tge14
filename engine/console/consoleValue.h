@@ -194,6 +194,12 @@ private:
 	void innerPack(MemStream& stream) const;
 	bool innerUnpack(MemStream& stream);
 
+	bool strIsNumber() const {
+		char* ptr;
+		dStrtod(getStringU(), &ptr);
+		return (*ptr == '\0') && getStrlenU();
+	}
+
 public:
 	~ConsoleValue() { clear(); }
 
@@ -387,6 +393,9 @@ public:
 
 	// Works for local and remote tagged strings
 	bool isTagString() const;
+
+	// Check if this is a number type
+	bool isNumber() const { return type == TypeInt || type == TypeFloat || (type == TypeString && strIsNumber()); }
 
 	// Unchecked getters (used after getType() or a successful castTo(T)).
 
