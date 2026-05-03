@@ -80,11 +80,12 @@ const U32	 oneUTF32length( UTF32& codepoint);
 
 //-----------------------------------------------------------------------------
 /// Functions that calculate the length of unicode strings.
-/// - Since calculating the length of a UTF8 string is nearly as expensive as
-///   converting it to another format, a dStrlen for UTF8 is not provided here.
+/// - Strlen for UTF8 has to be a different function to avoid potential conversion
+///   hell from C++, and should be referred to explicitly.
 /// - If *unistring does not point to a null terminated string of the correct type,
 ///   the behavior is undefined.
 const U32 dStrlen(const UTF16 *unistring);
 const U32 dStrlen(const UTF32 *unistring);
+const U32 dStrlen8(const UTF8* unistring);
 
 #endif // _UNICODE_H_

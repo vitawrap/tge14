@@ -594,6 +594,20 @@ const U32 dStrlen(const UTF32 *unistring)
    return i;
 }
 
+const U32 dStrlen8(const UTF8* unistring)
+{
+   U32 nCodepoints = 0, walked;
+   UTF32 codePoint;
+   while (*unistring != NULL)
+   {
+      walked = 1;
+      codePoint = oneUTF8toUTF32(unistring, &walked);
+      unistring += walked;
+      nCodepoints++;
+   }
+   return nCodepoints;
+}
+
 
 /* alternate utf-8 decode impl for speed, no error checking, 
    left here for your amusement:
