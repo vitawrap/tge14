@@ -65,6 +65,8 @@ public:
 
    void get(UTF8 *buff, const U32 buffSize) const;
    void get(UTF16 *buff, const U32 buffSize) const;
+
+   UTF16 const* getPtr() const { return mBuffer.address(); }
 };
 
 #endif
