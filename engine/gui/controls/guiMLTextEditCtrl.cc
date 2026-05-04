@@ -223,7 +223,7 @@ void GuiMLTextEditCtrl::handleDeleteKeys(const GuiEvent& event)
             if (mCursorPosition != 0)
             {
                // delete one character left
-               deleteChars(mCursorPosition-1, mCursorPosition-1);
+               deleteChars(mCursorPosition-1, mCursorPosition);
                setUpdate();
             }
             break;
@@ -232,7 +232,7 @@ void GuiMLTextEditCtrl::handleDeleteKeys(const GuiEvent& event)
             if (mCursorPosition != mTextBuffer.length())
             {
                // delete one character right
-               deleteChars(mCursorPosition, mCursorPosition);
+               deleteChars(mCursorPosition, mCursorPosition+1);
                setUpdate();
             }
             break;
