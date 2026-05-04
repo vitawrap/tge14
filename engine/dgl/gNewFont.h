@@ -104,7 +104,7 @@ public:
    const U32 getAscent() const   { return mAscent; }
    const U32 getDescent() const  { return mDescent; }
 
-   U32 getBreakPos(const UTF8 *string, U32 strlen, U32 width, bool breakOnWhitespace);
+   U32 getBreakPos(const UTF16 *string, U32 strlen, U32 width, bool breakOnWhitespace);
 
    /// These are the preferred width functions.
    U32 getStrNWidth(const UTF16*, U32 n);

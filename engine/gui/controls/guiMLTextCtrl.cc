@@ -160,11 +160,8 @@ void GuiMLTextCtrl::drawAtomText(bool sel, U32 start, U32 end, Atom *atom, Line 
    U32 xOff = 0;
    if(start != atom->textStart)
    {
-      // Get the string in UTF8 for length calcs (this is kinda silly - BJG)
-      FrameTemp<UTF8> tmp( (start - atom->textStart) * 3 + 1 );
       StringBuffer tmpBuff = mTextBuffer.substring(atom->textStart, start - atom->textStart);
-      tmpBuff.get(tmp, (start - atom->textStart) * 3 + 1 );
-      xOff += font->getStrNWidth(tmp, start - atom->textStart );
+      xOff += font->getStrNWidth(tmpBuff.getPtr(), start - atom->textStart);
    }
 
    Point2I drawPoint(offset.x + atom->xStart + xOff, offset.y + atom->yStart);
@@ -204,7 +201,7 @@ void GuiMLTextCtrl::drawAtomText(bool sel, U32 start, U32 end, Atom *atom, Line 
       if (atom->isClipped)
       {
          Point2I p2 = drawPoint;
-         p2.x += font->getStrNWidthPrecise(tmp, end-start);
+         p2.x += font->getStrNWidthPrecise(tmpBuff.getPtr(), end - start);
          dglDrawTextN(font, p2, "...", 3, mAllowColorChars ? mProfile->mFontColors : NULL);
       }
    }
@@ -213,7 +210,7 @@ void GuiMLTextCtrl::drawAtomText(bool sel, U32 start, U32 end, Atom *atom, Line 
       RectI rect;
       rect.point.x = drawPoint.x;
       rect.point.y = line->y + offset.y;
-      rect.extent.x = font->getStrNWidth(tmp, end - atom->textStart) + 1;
+      rect.extent.x = font->getStrNWidth(tmpBuff.getPtr(), end - atom->textStart) + 1;
       rect.extent.y = line->height + 1;
       
       dglDrawRectFill(rect, mProfile->mFillColorHL);
@@ -224,7 +221,7 @@ void GuiMLTextCtrl::drawAtomText(bool sel, U32 start, U32 end, Atom *atom, Line 
       if (atom->isClipped)
       {
          Point2I p2 = drawPoint;
-         p2.x += font->getStrNWidthPrecise(tmp, end - atom->textStart);
+         p2.x += font->getStrNWidthPrecise(tmpBuff.getPtr(), end - atom->textStart);
          dglDrawTextN(font, p2, "...", 3, mAllowColorChars ? mProfile->mFontColors : NULL);
       }
    }
@@ -233,7 +230,7 @@ void GuiMLTextCtrl::drawAtomText(bool sel, U32 start, U32 end, Atom *atom, Line 
    {
       drawPoint.y += atom->baseLine + 2;
       Point2I p2 = drawPoint;
-      p2.x += font->getStrNWidthPrecise(tmp, end - atom->textStart);
+      p2.x += font->getStrNWidthPrecise(tmpBuff.getPtr(), end - atom->textStart);
       dglDrawLine(drawPoint, p2, color);
    }
 }
@@ -511,11 +508,9 @@ void GuiMLTextCtrl::getCursorPositionAndColor(Point2I &cursorTop, Point2I &curso
             x = awalk->xStart;
             GFont *font = awalk->style->font->fontRes;
 
-            FrameTemp<UTF8> tmp( (mCursorPosition - awalk->textStart) * 3 + 1 );
             StringBuffer tmpBuff = mTextBuffer.substring(awalk->textStart, mCursorPosition - awalk->textStart);
-            tmpBuff.get(tmp, (mCursorPosition - awalk->textStart) * 3 + 1 );
 
-            x += font->getStrNWidth(tmp, mCursorPosition - awalk->textStart);
+            x += font->getStrNWidth(tmpBuff.getPtr(), mCursorPosition - awalk->textStart);
             color = awalk->style->color;
             goto done;
          }
@@ -926,7 +921,6 @@ S32 GuiMLTextCtrl::getTextPosition(const Point2I& localCoords)
    AssertFatal(mAwake, "Can't get the text position of a sleeping control.");
    if(mDirty)
       reflow();
-   U32 last = 0;
 
    for(Line *walk = mLineList; walk; walk = walk->next)
    {
@@ -942,14 +936,10 @@ S32 GuiMLTextCtrl::getTextPosition(const Point2I& localCoords)
             if(localCoords.x >= awalk->xStart + awalk->width)
                continue;
             // it's in the text block...
-            U32 x = awalk->xStart;
             GFont *font = awalk->style->font->fontRes;
 
-            FrameTemp<UTF8> tmp( (awalk->textStart - awalk->textStart) * 3 + 1 );
-            StringBuffer tmpBuff = mTextBuffer.substring(awalk->textStart, awalk->textStart - awalk->textStart);
-            tmpBuff.get(tmp, (awalk->textStart - awalk->textStart) * 3 + 1 );
-
-            U32 bp = font->getBreakPos(tmp, tmpBuff.length(), localCoords.x - awalk->xStart, false);
+            const UTF16* tmp16 = mTextBuffer.getPtr() + awalk->textStart;
+            U32 bp = font->getBreakPos(tmp16, awalk->len, localCoords.x - awalk->xStart, false);
             return awalk->textStart + bp;
          }
          return walk->textStart + walk->len;
@@ -1275,16 +1265,14 @@ GuiMLTextCtrl::Atom *GuiMLTextCtrl::splitAtomListEmit(Atom *list, U32 width)
       GFont *font = list->style->font->fontRes;
       U32 breakPos;
 
-      FrameTemp<UTF8> tmp( (list->len) * 3 + 1 );
       StringBuffer tmpBuff = mTextBuffer.substring(list->textStart, list->len);
-      tmpBuff.get(tmp, (list->len) * 3 + 1 );
 
       //if we're clipping the text, we don't break within an atom, we adjust the atom to only render
       //the portion of text that does fit, and to ignore the rest...
       if (mCurClipX > 0)
       {
          //find out how many character's fit within the given width
-         breakPos = font->getBreakPos(tmp, list->len, width - totalWidth, false);
+         breakPos = font->getBreakPos(tmpBuff.getPtr(), list->len, width - totalWidth, false);
 
          //if there isn't room for even the first character...
          if (breakPos == 0)
@@ -1299,7 +1287,7 @@ GuiMLTextCtrl::Atom *GuiMLTextCtrl::splitAtomListEmit(Atom *list, U32 width)
          else if (breakPos != list->len)
          {
             U32 etcWidth = font->getStrNWidthPrecise("...", 3);
-            breakPos = font->getBreakPos(tmp, list->len, width - totalWidth - etcWidth, false);
+            breakPos = font->getBreakPos(tmpBuff.getPtr(), list->len, width - totalWidth - etcWidth, false);
 
             //again, if there isn't even room for a single character before the "...."
             if (breakPos == 0)
@@ -1325,7 +1313,7 @@ GuiMLTextCtrl::Atom *GuiMLTextCtrl::splitAtomListEmit(Atom *list, U32 width)
          else
          {
             //set the atom width == to the string length
-            list->width = font->getStrNWidthPrecise(tmp, breakPos);
+            list->width = font->getStrNWidthPrecise(tmpBuff.getPtr(), breakPos);
 
             //set the pointer to the last atom that fit within the clip region
             clipAtom = list;
@@ -1333,12 +1321,12 @@ GuiMLTextCtrl::Atom *GuiMLTextCtrl::splitAtomListEmit(Atom *list, U32 width)
       }
       else
       {
-         breakPos = font->getBreakPos(tmp, list->len, width - totalWidth, true);
+         breakPos = font->getBreakPos(tmpBuff.getPtr(), list->len, width - totalWidth, true);
          if(breakPos == 0 || (breakPos < list->len && mTextBuffer.getChar(list->textStart + breakPos - 1)!= ' ' && emitted))
             break;
 
          //set the atom width == to the string length
-         list->width = font->getStrNWidthPrecise(tmp, breakPos);
+         list->width = font->getStrNWidthPrecise(tmpBuff.getPtr(), breakPos);
       }
 
       //update the total width
@@ -1381,11 +1369,9 @@ GuiMLTextCtrl::Atom *GuiMLTextCtrl::splitAtomListEmit(Atom *list, U32 width)
 
       U32 etcWidth = font->getStrNWidthPrecise("...", 3);
 
-      FrameTemp<UTF8> tmp( (clipAtom->len) * 3 + 1 );
       StringBuffer tmpBuff = mTextBuffer.substring(clipAtom->textStart, clipAtom->len);
-      tmpBuff.get(tmp, (clipAtom->len) * 3 + 1 );
 
-      breakPos = font->getBreakPos(tmp, clipAtom->len, clipAtom->width - etcWidth, false);
+      breakPos = font->getBreakPos(tmpBuff.getPtr(), clipAtom->len, clipAtom->width - etcWidth, false);
       if (breakPos != 0)
       {
          clipAtom->isClipped = true;

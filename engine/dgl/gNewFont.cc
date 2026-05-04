@@ -696,7 +696,7 @@ U32 GFont::getStrNWidthPrecise(const UTF16 *str, U32 n)
    return(totWidth);
 }
 
-U32 GFont::getBreakPos(const UTF8 *string, U32 slen, U32 width, bool breakOnWhitespace)
+U32 GFont::getBreakPos(const UTF16 *str16, U32 slen, U32 width, bool breakOnWhitespace)
 {
    // Some early out cases.
    if(slen==0)
@@ -706,12 +706,8 @@ U32 GFont::getBreakPos(const UTF8 *string, U32 slen, U32 width, bool breakOnWhit
    U32 lastws = 0;
    UTF16 c;
    U32 charCount = 0;
-
-   // convert the buffer to utf16, converter will give us the length.
-   FrameTemp<UTF16> str16(slen);
-   U32 len16 = convertUTF8toUTF16(string, str16, slen);
    
-   for( charCount=0; charCount < len16; charCount++)
+   for( charCount=0; charCount < slen; charCount++)
    {
       c = str16[charCount];
       if(c == NULL)
