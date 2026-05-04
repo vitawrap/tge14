@@ -162,32 +162,21 @@ StringBuffer StringBuffer::substring(const U32 start, const U32 len) const
    return tmp;
 }
 
-StringBuffer StringBuffer::cut(const U32 start, const U32 len)
+void StringBuffer::cut(const U32 start, const U32 len)
 {
-   AssertFatal(start < length(), "StringBuffer::cut - invalid start!");
-   AssertFatal(start+len <= length(), "StringBuffer::cut - invalid len!");
-   AssertFatal(len > 0, "StringBuffer::cut - len >= 1.");
-
-   // Get the substring for later use.
-   StringBuffer tmp;
-   tmp.mBuffer.clear();
-   tmp.mBuffer.reserve(len);
-   for(S32 i=0; i<len; i++)
-      tmp.mBuffer.push_back(mBuffer[start+i]);
-   if(tmp.mBuffer.last() != 0) 
-      tmp.mBuffer.push_back(0);
-
    AssertFatal(mBuffer.last() == 0, "StringBuffer::cut - not a null terminated string! (pre)");
 
-   // Now snip things.
+   // Allow idempotent operations to string buffer.
+   if (start >= length() || start + len > length() || len <= 0)
+       return;
+
+   // Otherwise snip things.
    for(S32 i=start; i<mBuffer.size()-len; i++)
       mBuffer[i] = mBuffer[i+len];
    mBuffer.decrement(len);
    mBuffer.compact();
 
    AssertFatal(mBuffer.last() == 0, "StringBuffer::cut - not a null terminated string! (post)");
-
-   return tmp;
 }
 
 const UTF16 StringBuffer::getChar(const U32 offset) const

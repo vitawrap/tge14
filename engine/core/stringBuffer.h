@@ -45,7 +45,7 @@ public:
    void append(const StringBuffer &in);
    void insert(const U32 charOffset, const StringBuffer &in);
    StringBuffer substring(const U32 start, const U32 len) const;
-   StringBuffer cut(const U32 start, const U32 len);
+   void cut(const U32 start, const U32 len);
 
    const UTF16 getChar(const U32 offset) const;
 
