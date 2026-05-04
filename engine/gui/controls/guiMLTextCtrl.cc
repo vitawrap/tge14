@@ -723,7 +723,7 @@ void GuiMLTextCtrl::deleteChars(const U32 rangeStart,
                                 const U32 rangeEnd)
 {
    AssertFatal(isSelectionActive() == false, "GuiMLTextCtrl::deleteChars: don't use this function when there's a selection active");
-   AssertFatal(rangeStart < mTextBuffer.length() && rangeEnd < mTextBuffer.length(),
+   AssertFatal(rangeStart < mTextBuffer.length() && rangeEnd <= mTextBuffer.length(),
                avar("GuiMLTextCtrl::deleteChars: can't delete outside of current text (%d, %d, %d)",
                     rangeStart, rangeEnd, mTextBuffer.length()));
    AssertFatal(rangeStart <= rangeEnd, "GuiMLTextCtrl::deleteChars: invalid delete range");
