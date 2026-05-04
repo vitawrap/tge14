@@ -236,9 +236,9 @@ S32 GuiTextEditCtrl::setCursorPos( const Point2I &offset )
 
    curX = offset.x - mTextOffset.x;
    S32 count=0;
-   if(mTextBuffer.length())
+   if(charCount)
    {
-      for(count=0; count<mTextBuffer.length(); count++)
+      for(count = 0; count < charCount; count++)
       {
          charLength += mFont->getCharXIncrement( mTextBuffer.getChar(count) );
          if ( charLength > curX )
