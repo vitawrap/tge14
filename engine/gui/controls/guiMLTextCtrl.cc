@@ -552,6 +552,71 @@ bool GuiMLTextCtrl::onKeyDown(const GuiEvent& event)
       }
    }
 
+   //allow selection with keys
+   if (event.modifier & SI_SHIFT)
+   {
+      switch(event.keyCode)
+      {
+         case KEY_HOME:
+         while (mCursorPosition > 0)
+         {
+         case KEY_LEFT:
+            if (mCursorPosition == 0)
+                return true;
+            if (!mSelectionActive) {
+               mSelectionActive = true;
+               mSelectionStart = --mCursorPosition;
+               mSelectionEnd = mSelectionStart;
+            } else {
+               if (mCursorPosition == mSelectionStart) {
+                   mCursorPosition = --mSelectionStart;
+               } else if (mCursorPosition == mSelectionEnd + 1) {
+                   if (mSelectionStart == mSelectionEnd) {
+                       mSelectionActive = false;
+                       --mCursorPosition;
+                   } else
+                       --mCursorPosition, --mSelectionEnd;
+               } else
+                   goto event_fail;
+            }
+            if (event.keyCode == KEY_LEFT) goto event_succeed;
+         }
+         break;
+         case KEY_END:
+         while (mCursorPosition < mTextBuffer.length())
+         {
+         case KEY_RIGHT:
+            if (mCursorPosition >= mTextBuffer.length())
+                return true;
+            if (!mSelectionActive) {
+               mSelectionActive = true;
+               mSelectionStart = mCursorPosition++;
+               mSelectionEnd = mSelectionStart;
+            } else {
+               if (mCursorPosition == mSelectionStart) {
+                   if (mSelectionStart == mSelectionEnd) {
+                      mSelectionActive = false;
+                      ++mCursorPosition;
+                   } else
+                      mCursorPosition = ++mSelectionStart;
+               } else if (mCursorPosition == mSelectionEnd + 1) {
+                   ++mSelectionEnd, ++mCursorPosition;
+               } else
+                   goto event_fail;
+            }
+            if (event.keyCode == KEY_RIGHT) goto event_succeed;
+         }
+         break;
+
+event_succeed:
+         setUpdate();
+         return true;
+
+         default: goto event_fail;
+      }
+   }
+
+event_fail:
    // Otherwise, let the parent have the event...
    return Parent::onKeyDown(event);
 }
