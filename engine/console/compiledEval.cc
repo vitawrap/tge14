@@ -1019,6 +1019,11 @@ ConsoleValue CodeBlock::exec(U64 ip, const char *functionName, Namespace *thisNa
                {
                   gEvalState.thisObject = 0;
                   Con::warnf(ConsoleLogEntry::General,"%s: Unable to find object: '%s' attempting to call function '%s'", getFileLine(ip-4), callArgv[1].toString(), fnName);
+                  // we still need to clean up
+                  popValueStack(callArgc);
+                  if (code[ip] != OP_VAL_TO_NONE)
+                      valueStack[++TOP].clearValue();
+                  else ip++;
                   break;
                }
                ns = gEvalState.thisObject->getNamespace();
