@@ -22,7 +22,7 @@ GuiControl* GuiInspectorTypeEnum::constructEditControl()
    // Let's make it look pretty.
    retCtrl->setField( "profile", "InspectorTypeEnumProfile" );
 
-   menu->setField("text", getData().toString());
+   menu->setField("text", getData());
 
    registerEditControl( retCtrl );
 
@@ -144,7 +144,7 @@ GuiControl* GuiInspectorTypeGuiProfile::constructEditControl()
    // Let's make it look pretty.
    retCtrl->setField( "profile", "InspectorTypeEnumProfile" );
 
-   menu->setField("text", getData().toString());
+   menu->setField("text", getData());
 
    registerEditControl( retCtrl );
 
@@ -211,7 +211,8 @@ GuiControl* GuiInspectorTypeFileName::constructEditControl()
    {
       RectI browseRect( Point2I( ( mBounds.point.x + mBounds.extent.x) - 26, mBounds.point.y + 2), Point2I(20, mBounds.extent.y - 4) );
       char szBuffer[512];
-      dSprintf( szBuffer, 512, "getLoadFilename(\"*.*\", \"%d.apply\", \"%s\");",getId(), getData());
+      ConsoleValue data = getData();
+      dSprintf( szBuffer, 512, "getLoadFilename(\"*.*\", \"%d.apply\", \"%s\");",getId(), data.toString());
       mBrowseButton->setField( "Command", szBuffer );
       mBrowseButton->setField( "text", "..." );
       mBrowseButton->setField( "Profile", "GuiInspectorTypeFileNameProfile" );
@@ -277,7 +278,8 @@ GuiControl* GuiInspectorTypeColor::constructEditControl()
    {
       RectI browseRect( Point2I( ( mBounds.point.x + mBounds.extent.x) - 26, mBounds.point.y + 2), Point2I(20, mBounds.extent.y - 4) );
       char szBuffer[512];
-      dSprintf( szBuffer, 512, "%s(\"%s\", \"%d.apply\");", mColorFunction, getData(), getId());
+      ConsoleValue data = getData();
+      dSprintf( szBuffer, 512, "%s(\"%s\", \"%d.apply\");", mColorFunction, data.toString(), getId());
       mBrowseButton->setField( "Command", szBuffer );
       mBrowseButton->setField( "text", "..." );
       mBrowseButton->setField( "Profile", "GuiInspectorTypeFileNameProfile" );
