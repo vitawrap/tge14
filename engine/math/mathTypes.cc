@@ -272,6 +272,12 @@ ConsoleFunction(VectorLen, F32, 2, 2, "(Vector3F v) Calculate the length of a ve
    return v.len();
 }
 
+ConsoleFunction(VectorFlip, const char*, 2, 2, "(Vector3F v) Flip a vector (-v).")
+{
+    VectorF v = -(argv[1].getPoint3F());
+    return ConsoleValueList::from(v.x, v.y, v.z);
+}
+
 ConsoleFunction( VectorOrthoBasis, const char*, 2, 2, "(AngAxisF aaf) Create an orthogonal basis from the given vector. Return a matrix.")
 {
    AngAxisF aa = argv[1].getPoint4F();
