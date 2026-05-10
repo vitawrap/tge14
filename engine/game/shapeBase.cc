@@ -4183,6 +4183,41 @@ ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
     return 0;   // Pretend it's the first frame otherwise
 }
 
+static void pushObjectInList(SceneObject* object, void* key)
+{
+    Container::CallbackInfo* info = reinterpret_cast<Container::CallbackInfo*>(key);
+    if (object->buildPolyList(info->polyList, info->boundingBox, info->boundingSphere))
+        reinterpret_cast<ConsoleValueList*>(info->key)->push_back((S64) object->getId());
+}
+
+// a good thing with poly list building is that the box is ever so slightly deflated so as to
+// avoid marking objects whose planes intersect but technically do not impede into the volume.
+template <typename T>
+static bool checkDeploy(U32 mask, bool ignoreSelf, ShapeBase* object, const MatrixF& mat, T* plist, Container::FindCallback cb = 0, void* key = NULL)
+{
+    Box3F objBox = object->getShape()->bounds;
+    Point3F boxCenter = (objBox.min + objBox.max) * 0.5;
+    objBox.min = boxCenter + (objBox.min - boxCenter) * 0.9;
+    objBox.max = boxCenter + (objBox.max - boxCenter) * 0.9;
+
+    Box3F wBox = objBox;
+    mat.mul(wBox);
+
+    plist->setPlanesFrom(objBox);
+
+    for (U32 i = 0; i < 6; i++)
+    {
+        PlaneF temp;
+        mTransformPlane(mat, object->getScale(), plist->mPlaneList[i], &temp);
+        plist->mPlaneList[i] = temp;
+    }
+
+    if (ignoreSelf) object->disableCollision();        //originally: InteriorObjectType | StaticShapeObjectType
+    bool result = !gServerContainer.buildPolyList(wBox, mask, plist, cb, key);
+    if (ignoreSelf) object->enableCollision();
+    return result;
+}
+
 ConsoleMethod(ShapeBase, checkDeployPos, bool, 3, 5, "(U32 mask, bool ignoreSelf=false, Transform xform=getTransform())")
 {
     if (bool(object->getShape()) == false)
@@ -4203,29 +4238,37 @@ ConsoleMethod(ShapeBase, checkDeployPos, bool, 3, 5, "(U32 mask, bool ignoreSelf
     }
     else mat = object->getTransform();
 
-    Box3F objBox = object->getShape()->bounds;
-    Point3F boxCenter = (objBox.min + objBox.max) * 0.5;
-    objBox.min = boxCenter + (objBox.min - boxCenter) * 0.9;
-    objBox.max = boxCenter + (objBox.max - boxCenter) * 0.9;
-
-    Box3F wBox = objBox;
-    mat.mul(wBox);
-
     EarlyOutPolyList polyList;
-    polyList.setPlanesFrom(objBox);
-
-    for (U32 i = 0; i < 6; i++)
-    {
-        PlaneF temp;
-        mTransformPlane(mat, object->getScale(), polyList.mPlaneList[i], &temp);
-        polyList.mPlaneList[i] = temp;
-    }
-
     bool ignoreSelf = argc > 3 ? argv[3].getInt() : false;
-    if (ignoreSelf) object->disableCollision();        //originally: InteriorObjectType | StaticShapeObjectType
-    bool result = !gServerContainer.buildPolyList(wBox, argv[2].getInt(), &polyList);
-    if (ignoreSelf) object->enableCollision();
-    return result;
+    return checkDeploy(argv[2].getInt(), ignoreSelf, object, mat, &polyList);
+}
+
+ConsoleMethod(ShapeBase, checkDeployColliders, const char*, 3, 5, "(U32 mask, bool ignoreSelf=false, Transform xform=getTransform())")
+{
+    if (bool(object->getShape()) == false)
+        return false;
+
+    MatrixF mat;
+    if (argc > 4)
+    {
+        Point3F pos(0, 0, 0);
+        AngAxisF aa(Point3F(0, 0, 1), 0);
+        if (argv[4].isList()) {
+            pos = argv[4].getPoint3F();
+            aa = argv[4].getPoint4F(3);
+        }
+        else dSscanf(argv[4].toString(), "%g %g %g %g %g %g %g",
+            &pos.x, &pos.y, &pos.z, &aa.axis.x, &aa.axis.y, &aa.axis.z, &aa.angle);
+        aa.setMatrix(&mat);
+        mat.setColumn(3, pos);
+    }
+    else mat = object->getTransform();
+
+    ClippedPolyList polyList;
+    auto* cvl = new ConsoleValueList;
+    bool ignoreSelf = argc > 3 ? argv[3].getInt() : false;
+    (void)checkDeploy(argv[2].getInt(), ignoreSelf, object, mat, &polyList, pushObjectInList, cvl);
+    return cvl; // empty if no colliders
 }
 
 //----------------------------------------------------------------------------
