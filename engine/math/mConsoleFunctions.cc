@@ -43,6 +43,12 @@ ConsoleFunction( mSolveQuartic, const char *, 6, 6, "(float a, float b, float c,
    return ConsoleValueList::from(sol, x[0], x[1], x[2], x[3]);
 }
 
+ConsoleFunction( mSign, S32, 2, 2, "(float v) Get the sign of the number as an integer or 0.")
+{
+    auto num = argv[1].getNumber();
+    return (S32)(num == 0.f? 0 : num > 0.f? 1 : -1);
+}
+
 ConsoleFunction( mFloor, S32, 2, 2, "(float v) Round v down to the nearest whole number.")
 {
    return (S32)mFloor(argv[1].getNumber());
