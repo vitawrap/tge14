@@ -372,7 +372,7 @@ public:
 		if (type == right.type) {
 			switch (type) {
 			case TypeInt: return i - right.i;
-			case TypeFloat: return f - right.f;
+			case TypeFloat: return (0.0 < (f - right.f)) - ((f - right.f) < 0.0);
 			case TypeString: return 
 				str.length == right.str.length?
 					(caseSens ? dStrcmp(getString(), right.getString()) :
