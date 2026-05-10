@@ -76,6 +76,19 @@ public:
    void vertex(U32 vi);
    void end();
 
+   // Shortcut to set poly clip planes from AABB.
+   void setPlanesFrom(Box3F const& box)
+   {
+       mNormal.set(0, 0, 0);
+       mPlaneList.setSize(6);
+       mPlaneList[0].set(box.min, VectorF(-1, 0, 0));
+       mPlaneList[1].set(box.max, VectorF(0, 1, 0));
+       mPlaneList[2].set(box.max, VectorF(1, 0, 0));
+       mPlaneList[3].set(box.min, VectorF(0, -1, 0));
+       mPlaneList[4].set(box.min, VectorF(0, 0, -1));
+       mPlaneList[5].set(box.max, VectorF(0, 0, 1));
+   }
+
   protected:
    const PlaneF& getIndexedPlane(const U32 index);
 };
