@@ -4186,7 +4186,8 @@ ConsoleMethod(ShapeBase, getIFLFrame, S32, 3, 3, "(string materialname)")
 static void pushObjectInList(SceneObject* object, void* key)
 {
     Container::CallbackInfo* info = reinterpret_cast<Container::CallbackInfo*>(key);
-    if (object->buildPolyList(info->polyList, info->boundingBox, info->boundingSphere))
+    object->buildPolyList(info->polyList, info->boundingBox, info->boundingSphere);
+    if (info->polyList && !info->polyList->isEmpty())
         reinterpret_cast<ConsoleValueList*>(info->key)->push_back((S64) object->getId());
 }
 
