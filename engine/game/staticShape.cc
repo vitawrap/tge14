@@ -309,7 +309,7 @@ void StaticShape::setTransformParent(ShapeBase* shape)
 {
     if (!isGhost()) {
         mTransformParent = shape;
-        if (!mTransformParent->isGhostAlways())
+        if (mTransformParent && !mTransformParent->isGhostAlways())
             mTransformParent->setScopeAlways();
         setMaskBits(XParentMask | PositionMask);
         if (shape)
