@@ -399,12 +399,12 @@ template<class T> inline const T& Vector<T>::front() const
 
 template<class T> inline T& Vector<T>::back()
 {
-   return *end();
+   return mArray[mElementCount - 1];
 }
 
 template<class T> inline const T& Vector<T>::back() const
 {
-   return *end();
+   return mArray[mElementCount - 1];
 }
 
 template<class T> inline void Vector<T>::push_front(const T& x)
